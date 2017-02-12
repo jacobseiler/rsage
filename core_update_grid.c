@@ -20,6 +20,7 @@ void update_grid_properties(int p, int merged, int GridNr)
 {
 
   int i, grid_position;
+  double fesc_local;
   for(i = 0; i < MAXSNAPS; ++i)
   {
     grid_position = GalGrid[p].History[i]; 
@@ -34,10 +35,15 @@ void update_grid_properties(int p, int merged, int GridNr)
       Grid[grid_position].Count += 1;
       Grid[grid_position].StellarMass += GalGrid[p].StellarMass[i];
       if (PhotonPrescription == 1)  // If our photon prescription is using the galaxy photon calculated from the STARBURST spectra.
-      {	
-        Grid[grid_position].Nion_HI += pow(10,GalGrid[p].Photons_HI[i])*f_esc; 
-        Grid[grid_position].Nion_HeI += pow(10,GalGrid[p].Photons_HeI[i])*f_esc; 
-        Grid[grid_position].Nion_HeII += pow(10,GalGrid[p].Photons_HeII[i])*f_esc; 
+      {
+        if (fescPrescription == 0)
+		fesc_local = fesc;
+	else if (fescPrescription == 1)
+		fesc_local = pow(10,1.292 - 0.245*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
+//	printf("%.4e %.4e\n", fesc_local, 1.292 - 0.245*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));	
+        Grid[grid_position].Nion_HI += pow(10,GalGrid[p].Photons_HI[i])*fesc_local; 
+        Grid[grid_position].Nion_HeI += pow(10,GalGrid[p].Photons_HeI[i])*fesc_local; 
+        Grid[grid_position].Nion_HeII += pow(10,GalGrid[p].Photons_HeII[i])*fesc_local; 
       }
     }
       
@@ -190,5 +196,49 @@ void count_grid_properties(int GridNr) // Count number of galaxies/halos in the 
   }
 
   printf("At redshift %.3f (Snapshot %d) there was %d galaxies, %d halos and %d diffuse particles with [%.4e, %.4e, %.4e] {HI, HeI, HeII}  ionizing Photons emitted per second ([%.4e %.4e %.4e] s^-1 Mpc^-3) and %.4e (Msun) halo mass.\n", ZZ[ListOutputGrid[GridNr]], ListOutputGrid[GridNr], GalCount, HaloCount, DiffuseCount, totPhotons_HI, totPhotons_HeI, totPhotons_HeII, totPhotons_HI / pow(BoxSize/Hubble_h,3), totPhotons_HeI / pow(BoxSize/Hubble_h, 3), totPhotons_HeII / pow(BoxSize/Hubble_h,3), HaloMass*1e10/Hubble_h);
+
+}
+
+void normalize_photon(int GridNr)
+{
+
+  int i;
+  double totPhotons_HI_normgrid = 0, totPhotons_HI = 0;
+  char buf[1000], tag[1000];
+  double *NormGrid;
+  FILE *load_fd; 
+
+  if ((NGrid - 1 - GridNr) < 10)
+    sprintf(tag, "00");
+  else if ((NGrid - 1 - GridNr) < 100 && (NGrid - 1 - GridNr) >= 10)
+    sprintf(tag, "0");
+  else
+    sprintf(tag, "");
+
+
+  NormGrid = malloc(CUBE(GridSize) * sizeof(double));
+
+  sprintf(buf, "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_nionHI_%s%d", tag, (NGrid-1) - GridNr);
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+
+  for (i = 0; i < CUBE(GridSize); ++i)
+  {
+    fread(&NormGrid[i], 1, sizeof(double), load_fd);
+    totPhotons_HI_normgrid += NormGrid[i];
+    totPhotons_HI += Grid[i].Nion_HI; 
+  }
+
+  double ratio = totPhotons_HI_normgrid/totPhotons_HI;
+
+  for (i = 0; i < CUBE(GridSize); ++i)
+  {  
+    Grid[i].Nion_HI = Grid[i].Nion_HI * ratio;
+  }
+
+  printf("Total photons from normalization grid is %.4e compared to the %.4e photons from fescPrescription %d giving a ratio of %.4e.\n", totPhotons_HI_normgrid, totPhotons_HI, fescPrescription, ratio); 
 
 }

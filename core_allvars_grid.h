@@ -117,7 +117,8 @@ struct GALAXY_GRID
   float *Photons_HI;
   float *Photons_HeI;
   float *Photons_HeII;
-
+  double *MfiltGnedin;
+  double *MfiltSobacchi;
 }*GalGrid;
 
 struct GRID
@@ -284,7 +285,8 @@ extern int *ICSCount;
 extern double SourceEfficiency;
 extern int PhotonPrescription;
 extern int Verbose;
-extern double f_esc; 
+extern int fescPrescription;
+extern double fesc; 
 
 extern double tot_Halomass;
 #endif

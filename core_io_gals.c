@@ -95,6 +95,12 @@ void load_gals(char *fname)
     GalGrid[i].Photons_HeII = malloc(sizeof(float) * MAXSNAPS);
     fread(GalGrid[i].Photons_HeII, sizeof(float), MAXSNAPS, load_fd);
 
+    GalGrid[i].MfiltGnedin = malloc(sizeof(double) * MAXSNAPS);
+    fread(GalGrid[i].MfiltGnedin, sizeof(double), MAXSNAPS, load_fd);
+
+    GalGrid[i].MfiltSobacchi = malloc(sizeof(double) * MAXSNAPS);
+    fread(GalGrid[i].MfiltSobacchi, sizeof(double), MAXSNAPS, load_fd);
+
   }
 
   fclose(load_fd);
@@ -115,6 +121,8 @@ void free_gals(void)
       free(GalGrid[i].Photons_HI);
       free(GalGrid[i].Photons_HeI);
       free(GalGrid[i].Photons_HeII);
+      free(GalGrid[i].MfiltGnedin);
+      free(GalGrid[i].MfiltSobacchi); 
     }
 
     myfree(GalGrid);

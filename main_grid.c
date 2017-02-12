@@ -26,14 +26,13 @@ int main(int argc, char **argv)
 
   for (GridNr = 0; GridNr < NGrid; ++GridNr)
   {
-    init_grid(GridNr); // Initialize the grid.
+    init_grid(GridNr); // Initialize the grid.  
 //    update_grid_diffuse(GridNr); // Read in all the diffuse gas.
     for (filenr = FirstFile; filenr < LastFile + 1; ++filenr)
     {
-#ifdef DEBUG_FILES
       if(filenr % 30 == 0)
       printf("Doing file %d.\n", filenr);
-#endif
+
     //  load_halos(filenr); // Load the halos.
     //  update_grid_halo(totNHalos, GridNr); // Update the properties associated with halos
     //  myfree(Halo); // Don't need halos anymore.
@@ -70,7 +69,8 @@ int main(int argc, char **argv)
 //      printf("Done File %d.\n\n", filenr);
     }
   
-
+    if (fescPrescription == 1)
+	    normalize_photon(GridNr);
 //    update_grid_density(GridNr); // Go through the grid and convert to overdensity.
     if (PhotonPrescription == 0) 
       update_grid_nion_halo(GridNr); // If we are using a halo-based photon prescription, calculate the number of photons based on halo mass.
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     if (Verbose == 1)
       count_grid_properties(GridNr); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
     save_grid(GridNr); // Saves grid.
-
+ 
   }
 
   myfree(Grid);

@@ -141,8 +141,12 @@ void read_parameter_file(char *fname)
   addr[nt] = &Verbose;
   id[nt++] = INT;
 
-  strcpy(tag[nt], "f_esc");
-  addr[nt] = &f_esc;
+  strcpy(tag[nt], "fescPrescription");
+  addr[nt] = &fescPrescription;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "fesc");
+  addr[nt] = &fesc;
   id[nt++] = DOUBLE;
 
   if((fd = fopen(fname, "r")))

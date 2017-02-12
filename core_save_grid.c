@@ -31,22 +31,29 @@ void save_grid(int GridNr)
           sprintf(name_HI, "%s/Halos_fgamma_%.0f_%s_nionHI_%s%d", GridOutputDir, SourceEfficiency, FileNameGalaxies, tag, (NGrid-1) - GridNr); 
   else
   {
-          sprintf(name_HI, "%s/Galaxies_%s_fesc%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, f_esc, tag, (NGrid - 1) - GridNr); 
-          sprintf(name_HeI, "%s/Galaxies_%s_fesc%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, f_esc, tag, (NGrid - 1) - GridNr); 
-          sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, f_esc, tag, (NGrid - 1) - GridNr); 
-
+    if (fescPrescription == 0)
+    {
+      sprintf(name_HI, "%s/Galaxies_%s_fesc%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeI, "%s/Galaxies_%s_fesc%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+    } else if (fescPrescription == 1)
+    {
+      sprintf(name_HI, "%s/Galaxies_%s_fesc%.2f_Kimm__nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeI, "%s/Galaxies_%s_fesc%.2f_Kimm_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_Kimm_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+    }
           // Only calculate Helium ionizing photons if we aren't using Halo-prescription.
-          if (!(file_HeI = fopen(name_HeI,"w")))
-          {
-          printf("can't open file `%s'\n", name_HeI);
-          exit(0);
-          }
+    if (!(file_HeI = fopen(name_HeI,"w")))
+    {
+      printf("can't open file `%s'\n", name_HeI);
+      exit(0);
+    }
 
-          if (!(file_HeII = fopen(name_HeII,"w")))
-          {
-          printf("can't open file `%s'\n", name_HeII);
-          exit(0);
-          }
+    if (!(file_HeII = fopen(name_HeII,"w")))
+    {
+      printf("can't open file `%s'\n", name_HeII);
+      exit(0);
+    }
 
   }
 

@@ -121,6 +121,7 @@ int *ICSCount;
 double SourceEfficiency;
 int PhotonPrescription;
 int Verbose;
-double f_esc;
+int fescPrescription;
+double fesc;
 
 double tot_Halomass;

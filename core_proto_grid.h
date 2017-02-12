@@ -22,6 +22,7 @@ void update_grid_diffuse(int GridNr);
 void update_grid_density(int GridNr);
 void update_grid_nion_halo(int GridNr);
 void count_grid_properties(int GridNr);
+void normalize_photon(int GridNr); 
 
 const char* getfield(char* line, int num);
 
