@@ -14,10 +14,11 @@ FILE* file_HeI = NULL;
 FILE* file_HeII = NULL;
 FILE* save_density = NULL;
 FILE* file_redshift = NULL;
+FILE* file_count = NULL;
 
 void save_grid(int GridNr)
 {
-  char name_HI[1000], name_HeI[1000], name_HeII[1000], file_density[1000], tag[1000]; 
+  char name_HI[1000], name_HeI[1000], name_HeII[1000], file_density[1000], tag[1000], name_count[1000]; 
   int i;
 
   if ((NGrid -1 - GridNr) < 10)
@@ -38,11 +39,12 @@ void save_grid(int GridNr)
       sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
     } else if (fescPrescription == 1)
     {
-      sprintf(name_HI, "%s/Galaxies_%s_fesc%.2f_Kimm__nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
-      sprintf(name_HeI, "%s/Galaxies_%s_fesc%.2f_Kimm_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
-      sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_Kimm_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HI, "%s/Galaxies_%s_fesc%.2f_KimmFiducial__nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeI, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
     }
-          // Only calculate Helium ionizing photons if we aren't using Halo-prescription.
+    
+    // Only calculate Helium ionizing photons if we aren't using Halo-prescription.
     if (!(file_HeI = fopen(name_HeI,"w")))
     {
       printf("can't open file `%s'\n", name_HeI);
@@ -63,6 +65,13 @@ void save_grid(int GridNr)
     exit(0);
   }
 
+  sprintf(name_count, "%s/Galaxies_%s_fesc%.2f_count_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+
+  if (!(file_count = fopen(name_count,"w")))
+  {
+    printf("can't open file `%s'\n", name_count);
+    exit(0);
+  }
 
   sprintf(file_density, "%s/density_%s_%s%d", GridOutputDir, FileNameGalaxies, tag, (NGrid-1) - GridNr);
   if (!(save_density = fopen(file_density,"w")))
@@ -79,6 +88,7 @@ void save_grid(int GridNr)
       fwrite(&Grid[i].Nion_HeI, sizeof(double), 1, file_HeI);
       fwrite(&Grid[i].Nion_HeII, sizeof(double), 1, file_HeII); 
     }
+    fwrite(&Grid[i].Count, sizeof(int), 1, file_count);
     //fwrite(&Grid[i].Density, sizeof(double), 1, save_density);
   }
 

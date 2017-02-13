@@ -39,7 +39,7 @@ void update_grid_properties(int p, int merged, int GridNr)
         if (fescPrescription == 0)
 		fesc_local = fesc;
 	else if (fescPrescription == 1)
-		fesc_local = pow(10,1.292 - 0.245*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
+		fesc_local = pow(10,1.0 - 0.2*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
 //	printf("%.4e %.4e\n", fesc_local, 1.292 - 0.245*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));	
         Grid[grid_position].Nion_HI += pow(10,GalGrid[p].Photons_HI[i])*fesc_local; 
         Grid[grid_position].Nion_HeI += pow(10,GalGrid[p].Photons_HeI[i])*fesc_local; 
