@@ -958,18 +958,37 @@ def plot_power(ZZ, k, Power, Error, labels, OutputDir, output_tag):
 #########
 
 
-def Reionization_Redshift(ionized_cells, redshift_array, z):
+def Reionization_Redshift(ionized_cells, density, redshift_array, z):
 
     print
     print "Checking to see what cells were reionized at redshift %.2f." %(z)
+
+    tot_density = 0.0
+    tot_density_std = 0.0
+    count = 0.0
 
     for i in xrange(0, GridSize):
         for j in xrange(0, GridSize):
             for k in xrange(0, GridSize):
                 if (ionized_cells[i,j,k] > 0.9 and redshift_array[i,j,k] == 0):
-                    redshift_array[i,j,k] = z
+		    tot_density += density[i,j,k]
+		    count += 1.0
 
-    return redshift_array
+    if (count > 0.0):
+	density_z_mean = tot_density/count
+    	for i in xrange(0, GridSize):
+            for j in xrange(0, GridSize):
+            	for k in xrange(0, GridSize):
+                    if (ionized_cells[i,j,k] > 0.9 and redshift_array[i,j,k] == 0):
+                    	redshift_array[i,j,k] = z
+                        tot_density_std += (density[i,j,k] - density_z_mean)**2 	
+		        
+	tot_density_std = np.sqrt(tot_density_std / count)
+    else:
+	density_z_mean = 0.0
+	tot_density_std = 0.0
+
+    return redshift_array, density_z_mean, tot_density_std
 
 ##########
 
@@ -1100,7 +1119,7 @@ def plot_redshifts(redshift, ZZ, lowerZ, upperZ, OutputDir, output_tag):
 
 	ax = plt.subplot(111)
 	
-	im = ax.imshow(redshift[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,BoxSize,0,BoxSize], cmap = 'dark2', vmin = ZZ[lowerZ], vmax = ZZ[upperZ-1]) 
+	im = ax.imshow(redshift[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,BoxSize,0,BoxSize], cmap = 'Dark2', vmin = ZZ[lowerZ], vmax = ZZ[upperZ-1]) 
 
 	cbar = plt.colorbar(im, ax = ax)
 	cbar.set_label(r'$z_{\mathrm{reion}}$')
@@ -1129,29 +1148,89 @@ def save_redshifts(redshift, OutputDir, output_tag):
 
 
 ##########
+
+def plot_density_redshift(ZZ, density_mean, density_std, labels, OutputDir, output_tag): 
+
+	ax = plt.subplot(111)
+
+	for i in xrange(0, len(density_mean)):
+		ax.errorbar(density_mean[i], ZZ, fmt = 'o', xerr = density_std[i], yerr = 0, label = labels[i], color = colours[i])
+
+	ax.set_xlim([0.1, 1.6])
+	ax.set_ylim([min(ZZ), max(ZZ)])
+
+	ax.set_xlabel(r'$\Delta$')
+	ax.set_ylabel(r'$z_\mathrm{reion}$')
+
+    	leg = plt.legend(loc='upper left', numpoints=1,labelspacing=0.1)
+    	leg.draw_frame(False)  # Don't want a box frame
+   	for t in leg.get_texts():  # Reduce the size of the text
+        	t.set_fontsize('medium')
+
+
+	outputFile = OutputDir + output_tag + output_format 		
+	plt.savefig(outputFile)  # Save the figure
+	print 'Saved file to', outputFile
+			
+	plt.close()
+	
+##########
+
+def plot_density_photons(ZZ, nion, density, count, labels, OutputDir, output_tag): 
+
+	ax = plt.subplot(111)
+
+	for i in xrange(0, len(nion)):
+		w = np.where((nion[i].ravel() > 0.0))
+		
+		ax.scatter((density[i].ravel())[w], np.log10(((nion[i].ravel())[w])/((count[i].ravel())[w])), label = labels[i], color = colours[i], alpha = 0.5)
+		#ax.scatter((density[i].ravel())[w], np.log10(((nion[i].ravel())[w])), label = labels[i], color = colours[i])
+
+	ax.set_xlim([0.1, 10])
+	ax.set_ylim([40, 60])
+
+	ax.set_xlabel(r'$\Delta$')
+	ax.set_ylabel(r'$\dot{N}_\Gamma$')
+
+    	leg = plt.legend(loc='upper left', numpoints=1,labelspacing=0.1)
+    	leg.draw_frame(False)  # Don't want a box frame
+   	for t in leg.get_texts():  # Reduce the size of the text
+        	t.set_fontsize('medium')
+
+
+	outputFile = OutputDir + output_tag + output_format 		
+	plt.savefig(outputFile)  # Save the figure
+	print 'Saved file to', outputFile
+			
+	plt.close()
+
+##########
+
 if __name__ == '__main__':
 
     import os
 
-    output_tags = ["Local", "Ionized"]
-    model_tags = [r"Base $\texttt{SAGE}$", r"Recursive $\texttt{SAGE}$"]
+    output_tags = ["Constant", "Kimm"]
+    model_tags = [r"$f_\mathrm{esc} = 0.15$", r"$\mathrm{Kimm} f_\mathrm{esc}$"]
 
     print "Model 1 is %s." %(output_tags[0])
     print "Model 2 is %s." %(output_tags[1])
 
-    model = 'PicsForMeeting'
+    model = 'Differentfesc'
     OutputDir = "./ionization_plots/" + model + '/'
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir) 
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_fesc0.15_DRAGONSPhotHI"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_reionmine_fesc0.15_DRAGONSPhotHI"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_Kimm_fesc0.15"
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_nionHI" 
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_reionmine_DRAGONS_z5.000_fesc0.15_nionHI"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_KimmFiducial__nionHI"
     filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
     filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens" 
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_fesc0.15_DRAGONSPhotHI"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_reionmine_fesc0.15_DRAGONSPhotHI"
-
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_Kimm_fesc0.15_DRAGONSPhotHI"
+    filepath_count_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_count" 
+    filepath_count_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_count" 
+    
     snaplist = np.arange(24, 78)
 
     ZZ = np.empty(len(snaplist))
@@ -1186,9 +1265,15 @@ if __name__ == '__main__':
     Photo_Std_model1 = []
     Photo_Std_model2 = []
 
-
     redshift_array_model1 = np.zeros((GridSize, GridSize, GridSize))
     redshift_array_model2 = np.zeros((GridSize, GridSize, GridSize))
+
+    density_z_mean_model1 = np.zeros((upperZ - lowerZ))
+    density_z_mean_model2 = np.zeros((upperZ - lowerZ))
+
+    density_z_std_model1 = np.zeros((upperZ - lowerZ))
+    density_z_std_model2 = np.zeros((upperZ - lowerZ))
+
 
     MC_lower = 20 # Not Snapshot number, but rather the index of the snapshot in snaplist.  
     MC_upper = 40
@@ -1273,6 +1358,19 @@ if __name__ == '__main__':
         photofield_model2.shape = (GridSize, GridSize, GridSize)
 	fd.close()
 
+        fname_count = filepath_count_model1 + number_tag_mine
+        print "Loading counts for %s Model from file %s." %(model_tags[0], fname_count)
+        fd = open(fname_count, 'rb')
+        count_model1 = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.int32)
+        count_model1.shape = (GridSize, GridSize, GridSize)
+	fd.close()
+
+        fname_count = filepath_count_model2 + number_tag_mine
+        print "Loading counts for %s Model from file %s." %(model_tags[1], fname_count)
+        fd = open(fname_count, 'rb')
+        count_model2 = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.int32)
+        count_model2.shape = (GridSize, GridSize, GridSize)
+	fd.close()
 
         ##########################################################################
         ## Clean up/reduce the data; this will be fed into the other functions. ##
@@ -1330,8 +1428,8 @@ if __name__ == '__main__':
         #mass_frac_model1.append(calculate_mass_frac(ionized_cells_clean_model1, density_model1))
         #mass_frac_model2.append(calculate_mass_frac(ionized_cells_clean_model2, density_model2))
 
-        nion_total_model1.append(calculate_total_nion(model_tags[0], nion_model1))
-        nion_total_model2.append(calculate_total_nion(model_tags[1], nion_model2))
+        #nion_total_model1.append(calculate_total_nion(model_tags[0], nion_model1))
+        #nion_total_model2.append(calculate_total_nion(model_tags[1], nion_model2))
         
 	#plot_nionfield(ZZ[i], nion_model1, OutputDir, "Nion" + output_tags[0] + '_' + str(i))
 	#plot_nionfield(ZZ[i], nion_model1, OutputDir, "Nion" + output_tags[1] + '_' + str(i))
@@ -1345,8 +1443,8 @@ if __name__ == '__main__':
 	        calculate_bubble_MC(ZZ[i], ionized_cells_model1, OutputDir, output_tags[0])
         	calculate_bubble_MC(ZZ[i], ionized_cells_model2, OutputDir, output_tags[1])
 
-        redshift_array_model1 = Reionization_Redshift(ionized_cells_model1, redshift_array_model1, ZZ[i])
-        redshift_array_model2 = Reionization_Redshift(ionized_cells_model2, redshift_array_model2, ZZ[i])
+        #redshift_array_model1, density_z_mean_model1[i], density_z_std_model1[i] = Reionization_Redshift(ionized_cells_model1, density_model1, redshift_array_model1, ZZ[i])
+        #redshift_array_model2, density_z_mean_model2[i], density_z_std_model2[i] = Reionization_Redshift(ionized_cells_model2, density_model2, redshift_array_model2, ZZ[i])
 
 	#plot_photofield(ZZ[i], photofield_model1, OutputDir, "PhotHIField_" + output_tags[0] + '_' + str(i))
 	#plot_photofield(ZZ[i], photofield_model2, OutputDir, "PhotHIField_" + output_tags[1] + '_' + str(i))
@@ -1357,10 +1455,10 @@ if __name__ == '__main__':
  	#Photo_Mean_model2.append(np.mean(photofield_model2))
 	#Photo_Std_model1.append(np.std(photofield_model1))
 	#Photo_Std_model2.append(np.std(photofield_model2))
+        plot_density_photons(ZZ[i], [nion_model1, nion_model2], [density_model1, density_model2], [count_model1, count_model2], output_tags, OutputDir, "density_photons_mean" + str(i))
 
-
-    plot_redshifts(redshift_array_model1, ZZ, lowerZ, upperZ, OutputDir, "zreiond3_" + output_tags[0])
-    plot_redshifts(redshift_array_model2, ZZ, lowerZ, upperZ, OutputDir, "zreiond3_" + output_tags[1])
+    #plot_redshifts(redshift_array_model1, ZZ, lowerZ, upperZ, OutputDir, "zreiond3_" + output_tags[0])
+    #plot_redshifts(redshift_array_model2, ZZ, lowerZ, upperZ, OutputDir, "zreiond3_" + output_tags[1])
 
     #save_redshifts(redshift_array_model1, OutputDir, "ReionizationRedshift_" + output_tags[0])
     #save_redshifts(redshift_array_model2, OutputDir, "ReionizationRedshift_" + output_tags[1])
@@ -1373,3 +1471,5 @@ if __name__ == '__main__':
     #photon_baryon(lowerZ, upperZ, ZZ, [nion_total_model1, nion_total_model2], Hubble_h, OB, Y, model_tags, OutputDir, "nion_total2")
     #analytic_HII(nion_total_model1, ZZ, upperZ, snaplist, OutputDir, "Q_Analytic")	
     #plot_photo_mean(ZZ, [Photo_Mean_model1, Photo_Mean_model2], [Photo_Std_model1, Photo_Std_model2], model_tags, OutputDir, "Mean_Photo")
+    #plot_density_redshift(ZZ, [density_z_mean_model1, density_z_mean_model2], [density_z_std_model1, density_z_std_model2], model_tags, OutputDir, "density_redshift_" + output_tags[0])
+

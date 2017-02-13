@@ -9,7 +9,7 @@ import pylab as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 from numpy import *
-from random import sample, seed
+from random import sample, seed, randint
 from os.path import getsize as getFileSize
 import math
 import random
@@ -879,6 +879,34 @@ def PhotonsVsStellarMass(Simulation, SnapListZ, Mass, Photons):
 
 ##
 
+def fesc(simulation, SnapListZ, mass, fesc):
+
+    Output_Tag = "fesc_mass_fiducial"
+
+    dilute = 1e100
+    ax = plt.subplot(111)
+
+
+    for i in xrange(0, len(SnapListZ)):
+    	if(len(mass[i]) > dilute): 
+		w = random.sample(range(0, len(mass[i])), dilute)
+	else:
+		w = range(0, len(mass[i])) 
+	print len(mass[i])
+	print "Max mass is %.4f and min is %.4f" %(max(mass[i][w]), min(mass[i][w]))
+	label = "z = %.4f" %(SnapListZ[i])
+    	ax.scatter(mass[i][w], fesc[i][w], label = label, alpha = 0.5, color = colours[i])
+
+    leg = plt.legend(loc=1, numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize('medium')
+
+
+    outputFile = './' + Output_Tag + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
 
 ##
 
@@ -937,7 +965,7 @@ if (Simulation == 1 or Simulation == 2):
 
     #SnapList_MySim = np.arange(22,78) 
 
-    SnapList_MySim = [30, 45, 50, 60, 65, 70, 78] 
+    SnapList_MySim = [78]
     # Snapshots for z = [6, 7, 8] are [78, 64, 51] 
     print "Snapshots analyzing are", SnapList_MySim
 
@@ -1023,6 +1051,8 @@ MfiltSobacchi_MySim2 = []
 
 LymanAlpha_MySim2 = []
 fesc_LymanAlpha_MySim2 = fesc_MySim2
+
+fesc_Kimm_MySim2 = []
 
 ## Millennium Initialization ##
 
@@ -1159,6 +1189,8 @@ if (Simulation == 1 or Simulation == 2):
 
       LymanAlpha_MySim2.append(np.log10(0.68*(1.0-fesc_MySim2)*fesc_LymanAlpha_MySim2 * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_Central_MySim2[i]) 
 
+      fesc_Kimm_MySim2.append(10**(1.00 - 0.2 * mass_Central_MySim2[i]))
+
       SnapListZ_MySim.append(AllVars.SnapZ[SnapList_MySim[i]])
       SnapListZ.append(AllVars.SnapZ[SnapList_MySim[i]])
 
@@ -1258,4 +1290,5 @@ def Calculate_HaloPartStellarMass(ZZ, HaloPart, StellarMass, BoundLow, BoundHigh
 #StarFormationRate(Simulation, SnapListZ_MySim, SFR_G_MySim, SFR_G_MySim2)
 #PhotonsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
 #LymanAlphaLF(Simulation, SnapListZ_MySim, LymanAlpha_MySim2, len(SnapList_MySim))
-PhotonsVsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
+#PhotonsVsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
+fesc(Simulation, SnapListZ_MySim, mass_Central_MySim2, fesc_Kimm_MySim2)
