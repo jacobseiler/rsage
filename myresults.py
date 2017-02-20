@@ -47,7 +47,6 @@ linestyles = ['-', '--', '-.', ':']
 
 Output_Format = ".png"
 
-
 def multiply(n):
 	total = 1
 	for i in xrange(0, len(n)):
@@ -182,13 +181,16 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
     ## Plot Parameters ##
     binwidth = 0.1
     Observations = 1
-    Output_Tag = "512_vs_1024"
+    Output_Tag = "lowSF_new"
     Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probaility histogram.
+    errorwidth = 2
+    delta = 0.05
+    caps = 5
     ##
 
     ## Normalization and Titles for MySim ##
     for i in xrange(0, MySim_Len): 
-        tmp = '512: z = %.2f' %(Redshift[i])
+        tmp = 'Fiducial: z = %.2f' %(Redshift[i])
         title.append(tmp)
 
         AllVars.Set_Params_Mysim()
@@ -199,7 +201,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
     ## Normalization and Titles for MySim2 ## 
     for i in xrange(0, MySim_Len): 
-        tmp = '1024: z = %.2f' %(Redshift[i])
+        tmp = 'Noreion Reionmine: z = %.2f' %(Redshift[i])
         title.append(tmp)
 
         AllVars.Set_Params_Mysim()
@@ -242,12 +244,12 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 ### If we want to put observations on the figure ###
 
     if Observations == 1:
-    	Gonzalez_z6 = np.array([[7.77, -2.0956, -1.8596, -2.3539],
-                                [8.27, -2.1742, -1.9494, -2.4101],
-                                [8.77, -2.5674, -2.3876, -2.7921],
-                                [9.27, -2.8483, -2.6573, -3.0843],
-                                [9.77, -3.5787, -3.3764, -3.8258],
-                                [10.27, -4.3202, -4.0281, -4.5674]], dtype = np.float32)
+    	Gonzalez_z6 = np.array([[7.77 + delta, -2.0956, -1.8596, -2.3539],
+                                [8.27 + delta, -2.1742, -1.9494, -2.4101],
+                                [8.77 + delta, -2.5674, -2.3876, -2.7921],
+                                [9.27 + delta, -2.8483, -2.6573, -3.0843],
+                                [9.77 + delta, -3.5787, -3.3764, -3.8258],
+                                [10.27 + delta, -4.3202, -4.0281, -4.5674]], dtype = np.float32)
 
                                 #plt.errorbar(Gonzalez_z6[:,0], 10**Gonzalez_z6[:,1], yerr= (10**Gonzalez_z6[:,3], 10**Gonzalez_z6[:,2]) , alpha=0.75, lw=1.0, marker='o', ls='none', label = 'Gonzalez 2011, z = 6', color = 'cyan')
 
@@ -260,15 +262,15 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
 #plt.errorbar(Gonzalez_z7[:,0], 10**Gonzalez_z7[:,1], yerr= (10**Gonzalez_z7[:,3], 10**Gonzalez_z7[:,2]) , alpha=0.75, lw=1.0, marker='o', ls='none'    , label = 'Gonzalez 2011, z = 7', color = 'magenta')
 
-        Song_z6 = np.array([[7.25, -1.47, -1.47 + 0.35, -1.47 - 0.23],
-                            [7.75, -1.81, -1.81 + 0.23, -1.81 - 0.28],
-                            [8.25, -2.26, -2.26 + 0.21, -2.26 - 0.16],
-                            [8.75, -2.65, -2.65 + 0.15, -2.65 - 0.15],
-                            [9.25, -3.14, -3.14 + 0.12, -3.14 - 0.11],
-                            [9.75, -3.69, -3.69 + 0.12, -3.69 - 0.13],
-                            [10.25, -4.27, -4.27 + 0.38, -4.27 - 0.86]], dtype = np.float32)
+        Song_z6 = np.array([[7.25 - delta, -1.47, -1.47 + 0.35, -1.47 - 0.23],
+                            [7.75 - delta, -1.81, -1.81 + 0.23, -1.81 - 0.28],
+                            [8.25 - delta, -2.26, -2.26 + 0.21, -2.26 - 0.16],
+                            [8.75 - delta, -2.65, -2.65 + 0.15, -2.65 - 0.15],
+                            [9.25 - delta, -3.14, -3.14 + 0.12, -3.14 - 0.11],
+                            [9.75 - delta, -3.69, -3.69 + 0.12, -3.69 - 0.13],
+                            [10.25 - delta, -4.27, -4.27 + 0.38, -4.27 - 0.86]], dtype = np.float32)
 
-        plt.errorbar(Song_z6[:,0], 10**Song_z6[:,1], yerr= (10**Song_z6[:,1] - 10**Song_z6[:,3], 10**Song_z6[:,2] - 10**Song_z6[:,1]), xerr = 0.25, alpha = 1.0, lw=2.0, marker='o', ls='none', label = 'Song 2015, z = 6', color = '#bd0026')
+        plt.errorbar(Song_z6[:,0], 10**Song_z6[:,1], yerr= (10**Song_z6[:,1] - 10**Song_z6[:,3], 10**Song_z6[:,2] - 10**Song_z6[:,1]), xerr = 0.25, capsize = caps, elinewidth = errorwidth, alpha = 1.0, lw=2.0, marker='o', ls='none', label = 'Song 2015, z = 6', color = '#bd0026')
 
         Song_z7 = np.array([[7.25, -1.63, -1.63 + 0.54, -1.63 - 0.54],
                             [7.75, -2.07, -2.07 + 0.45, -2.07 - 0.41],
@@ -279,7 +281,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
                             [10.25, -4.61, -4.61 + 0.72, -4.61 - 0.82],
                             [10.75, -5.24, -5.24 + 0.90, -5.25 - 0.57]], dtype = np.float32)
 
-        plt.errorbar(Song_z7[:,0], 10**Song_z7[:,1], yerr= (10**Song_z7[:,1] - 10**Song_z7[:,3], 10**Song_z7[:,2] - 10**Song_z7[:,1]), xerr = 0.25, alpha=0.75, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 7', color = 'blue')
+        plt.errorbar(Song_z7[:,0], 10**Song_z7[:,1], yerr= (10**Song_z7[:,1] - 10**Song_z7[:,3], 10**Song_z7[:,2] - 10**Song_z7[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 7', color = 'blue')
 
         Song_z8 = np.array([[7.25, -1.73, -1.73 + 1.01, -1.73 - 0.84],
                             [7.75, -2.28, -2.28 + 0.84, -2.28 - 0.64],
@@ -289,7 +291,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
                             [9.75, -5.31, -5.31 + 1.01, -5.31 - 1.64]], dtype = np.float32)
 
 
-        plt.errorbar(Song_z8[:,0], 10**Song_z8[:,1], yerr= (10**Song_z8[:,1] - 10**Song_z8[:,3], 10**Song_z8[:,2] - 10**Song_z8[:,1]), xerr = 0.25, alpha=0.75, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 8', color = 'green')
+        plt.errorbar(Song_z8[:,0], 10**Song_z8[:,1], yerr= (10**Song_z8[:,1] - 10**Song_z8[:,3], 10**Song_z8[:,2] - 10**Song_z8[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 8', color = 'green')
 
     leg = plt.legend(loc=1, numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
@@ -432,16 +434,16 @@ def Central_Galaxy_Projection(Simulation, Redshift, Mass, Photons):
 
 ##
 
-def FilteringMass(Simulation, SnapListZ, Gnedin, Sobacchi, Gnedinv2, Mvir, MySim_Len):
+def FilteringMass(Simulation, SnapListZ, Gnedin, Sobacchi, Sobacchi2, Mvir, Mvir2, MySim_Len):
 
-    title = ["Gnedin", "Sobacchi", "Gnedin Masstouse", "Mvir"]
+    title = ["Gnedin", "Sobacchi 1024", "Sobacchi 512", "Mvir 1024", "Mvir 512"]
     Normalization = []
  
 
     ## Plot Parameters ##
     binwidth = 0.1
     Observations = 0
-    Output_Tag = "Filtering_Mass_to_Use"
+    Output_Tag = "1024_512_Filteringqithqei"
 
     ##
 
@@ -451,55 +453,73 @@ def FilteringMass(Simulation, SnapListZ, Gnedin, Sobacchi, Gnedinv2, Mvir, MySim
     Gnedin_Mean = np.zeros((len(SnapListZ)))
     Gnedin_Std = np.zeros((len(SnapListZ)))
 
-    Gnedin_Masstouse_Mean = np.zeros((len(SnapListZ)))
-    Gnedin_Masstouse_Std = np.zeros((len(SnapListZ)))
-
-
     Sobacchi_Mean = np.zeros((len(SnapListZ)))
     Sobacchi_Std = np.zeros((len(SnapListZ)))
+
+    Sobacchi_Mean2 = np.zeros((len(SnapListZ)))
+    Sobacchi_Std2 = np.zeros((len(SnapListZ)))
 
     Mvir_Mean = np.zeros((len(SnapListZ)))
     Mvir_Std = np.zeros((len(SnapListZ)))
 
+    Mvir_Mean2 = np.zeros((len(SnapListZ)))
+    Mvir_Std2 = np.zeros((len(SnapListZ)))
 
-    print "Sobacchi", Sobacchi
     print "SNAPSHOTS", SnapListZ
     for i in xrange(0, len(SnapListZ)):
 	Gnedin_Mean[i] = np.mean(Gnedin[i])
 	Gnedin_Std[i] = np.std(Gnedin[i])
+
+	Mvir_Mean[i] = np.mean(10**Mvir[i])
+	Mvir_Std[i] = np.std(10**Mvir[i])
+
+	Mvir_Mean2[i] = np.mean(10**Mvir2[i])
+	Mvir_Std2[i] = np.std(10**Mvir2[i])
+
 
 	w = np.where(Sobacchi[i] > 1.0)[0]
 
 	Sobacchi_Mean[i] = np.mean(Sobacchi[i][w])
 	Sobacchi_Std[i] = np.std(Sobacchi[i][w])
 
-	Mvir_Mean[i] = np.mean(10**Mvir[i][w])
-	Mvir_Std[i] = np.std(10**Mvir[i][w])
- 
-	Gnedin_Masstouse_Mean[i] = np.mean(Gnedinv2[i])
-	Gnedin_Masstouse_Std[i] = np.std(Gnedinv2[i])
+
+	w2 = np.where(Sobacchi2[i] > 1.0)[0]
+
+	print "w2", w2
+	Sobacchi_Mean2[i] = np.mean(Sobacchi2[i][w2])
+	Sobacchi_Std2[i] = np.std(Sobacchi2[i][w2])
+
+	print "Mvir min", min(Mvir[i])
 
     fig = plt.figure()
     ax = plt.subplot(111)
           
     ax.plot(SnapListZ, np.log10(Gnedin_Mean), color = 'r', linestyle = '--', label = title[0])
-#    ax.fill_between(SnapListZ, np.log10(Gnedin_Mean)-0.434*Gnedin_Std/Gnedin_Mean, np.log10(Gnedin_Mean)+0.434*Gnedin_Std[i]/Gnedin_Mean, alpha = 0.5, color = 'r')	
     print "Gnedin_Mean", Gnedin_Mean
-#    print "Gnedin_Std", Gnedin_Std
+
 
     print "Sobacchi_Mean", np.log10(Sobacchi_Mean)
     print "Sobacchi_Std", np.log10(Sobacchi_Std)
-
     ax.plot(SnapListZ, np.log10(Sobacchi_Mean), color = 'b', linestyle = '-', label = title[1])
     ax.fill_between(SnapListZ, np.log10(Sobacchi_Mean)-0.434*Sobacchi_Std/Sobacchi_Mean, np.log10(Sobacchi_Mean)+0.434*Sobacchi_Std/Sobacchi_Mean, alpha = 0.5, color = 'b')	
 
+
+    ax.plot(SnapListZ, np.log10(Sobacchi_Mean2), color = 'g', linestyle = '-', label = title[2])
+    ax.fill_between(SnapListZ, np.log10(Sobacchi_Mean2)-0.434*Sobacchi_Std2/Sobacchi_Mean2, np.log10(Sobacchi_Mean2)+0.434*Sobacchi_Std2/Sobacchi_Mean2, alpha = 0.5, color = 'g')	
+
+
     print "Mvir_Mean", np.log10(Mvir_Mean)
     print "Mvir_Std", np.log10(Mvir_Std)
-    ax.plot(SnapListZ, np.log10(Mvir_Mean), color = 'k', linestyle = '-', label = r"$M_{\mathrm{vir}}$")
-    ax.fill_between(SnapListZ, np.log10(Mvir_Mean)-0.434*Mvir_Std/Mvir_Mean, np.log10(Mvir_Mean)+0.434*Mvir_Std/Mvir_Mean, alpha = 0.5, color = 'k')
+    ax.plot(SnapListZ, np.log10(Mvir_Mean), color = 'k', linestyle = '-', label = title[3])
+    ax.fill_between(SnapListZ, np.log10(Mvir_Mean)-0.434*Mvir_Std/Mvir_Mean, np.log10(Mvir_Mean)+0.434*Mvir_Std/Mvir_Mean, alpha = 0.2, color = 'k')
 
-    ax.plot(SnapListZ, np.log10(Gnedin_Masstouse_Mean), color = 'b', linestyle = '-', label = title[2])
 
+    print "Mvir_Mean2", np.log10(Mvir_Mean2)
+    print "Mvir_Std2", np.log10(Mvir_Std2)
+
+    ax.plot(SnapListZ, np.log10(Mvir_Mean2), color = 'c', linestyle = '-', label = title[4])
+    ax.fill_between(SnapListZ, np.log10(Mvir_Mean2)-0.434*Mvir_Std2/Mvir_Mean2, np.log10(Mvir_Mean2)+0.434*Mvir_Std2/Mvir_Mean2, alpha = 0.2, color = 'c')
+ 
     ax.set_xlabel(r"z", fontsize = label_size + extra_size)
     ax.set_ylabel(r"$\mathrm{log}_{10} \: M_\odot$", fontsize = label_size + extra_size)
 
@@ -609,10 +629,10 @@ def PhotonsStellarMass(Simulation, SnapListZ, Mass, Photons):
 	for i in xrange(0, len(bounds)-1):
 		for j in xrange(0, len(SnapListZ)):
 			w = np.where((Mass[j] >= bounds[i]) & (Mass[j] < bounds[i+1]))[0]
-			print "Redshift %.4f, bounds %d-%d" %(SnapListZ[j], bounds[i], bounds[i+1])
-			print "len(w)", len(w)
-			print "W", w
-			print "Photons[j][w]", Photons[j][w]
+#			print "Redshift %.4f, bounds %d-%d" %(SnapListZ[j], bounds[i], bounds[i+1])
+#			print "len(w)", len(w)
+#			print "W", w
+#			print "Photons[j][w]", Photons[j][w]
 
 			if (len(w) > 0):
 				photons_mean.append(Sum_Log(Photons[j][w]))
@@ -665,8 +685,8 @@ def LymanAlphaLF(Simulation, Redshift, LymanAlpha, MySim_Len):
 
     print LymanAlpha
     ## Plot Parameters ##
-    binwidth = 0.1
-    Observations = 0
+    binwidth = 0.05
+    Observations = 1
     Output_Tag = "Test_LymanAlpha"
     Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probaility histogram.
     ##
@@ -715,7 +735,7 @@ def LymanAlphaLF(Simulation, Redshift, LymanAlpha, MySim_Len):
 
     plt.yscale('log', nonposy='clip')
 
-#    plt.axis([6, 11.5, 1e-6, 1e-1])
+    plt.axis([42, 44, 1e-6, 1e-1])
 
     ax.set_xlabel(r'$\log_{10}\ L_{\mathrm{Ly}\alpha}\ [\mathrm{erg} \: \mathrm{s}^{-1}]$')
     ax.set_ylabel(r'$\Phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')
@@ -724,12 +744,21 @@ def LymanAlphaLF(Simulation, Redshift, LymanAlpha, MySim_Len):
 ### If we want to put observations on the figure ###
 
     if Observations == 1:
-    	Konno_2014 = np.array([[42.5, 2.5e-4, 5e-4, 1e-4],
-                               	[42.65, 9.5e-5, 5e-5, 2e-4],  
-                               	[42.85, 2e-5, 7.5e-5, 3e-6]], dtype = np.float32) 
+    	Konno_2014_z73 = np.array([[42.5, 2.5e-4, 5e-4, 1e-4],
+                               	[42.65, 9.5e-5, 2e-4, 5e-5],  
+                               	[42.85, 2e-5, 3e-6, 7.5e-5]], dtype = np.float32) 
 
-        plt.errorbar(Konno_2014[:,0], Konno_2014[:,1], yerr= (Konno_2014[:,1] - Konno_2014[:,3], 10**Song_z6[:,2] - 10**Song_z6[:,1]), xerr = 0.25, alpha = 1.0, lw=2.0, marker='o', ls='none', label = 'Song 2015, z = 6', color = '#bd0026')
-    
+        plt.errorbar(Konno_2014_z73[:,0], Konno_2014_z73[:,1], yerr= (Konno_2014_z73[:,1] - Konno_2014_z73[:,3], Konno_2014_z73[:,2] - Konno_2014_z73[:,1]), xerr = 0.0, alpha = 1.0, lw=2.0, marker='o', ls='none', label = 'Konno et al. (2014), z = 7.3', color = '#bd0026')
+   
+    	Ouchi_2010_z66 = np.array([[42.5, 9.5e-4, 1.1e-3, 7e-4],
+                               	[42.65, 5e-4, 5.5e-4, 4.0e-4],  
+                               	[42.85, 2.5e-4, 3.5e-4, 2e-4],
+				[43.05, 5.5e-5, 9.0e-5, 1.5e-5]], dtype = np.float32)
+#				[43.50, 9.0e-6, 0.8e-5, 5.0e-5]], dtype = np.float32) 
+
+        plt.errorbar(Ouchi_2010_z66[:,0], Ouchi_2010_z66[:,1], yerr= (Ouchi_2010_z66[:,1] - Ouchi_2010_z66[:,3], Ouchi_2010_z66[:,2] - Ouchi_2010_z66[:,1]), xerr = 0.0, alpha = 1.0, lw=2.0, marker='o', ls='none', label = 'Ouchi et al. (2010), z = 6.6', color = 'b')
+
+ 
     leg = plt.legend(loc=1, numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
@@ -832,7 +861,7 @@ def PhotonsVsStellarMass(Simulation, SnapListZ, Mass, Photons):
     low_mass = 7
     high_mass = 12
    
-    Output_Tag = "PhotonsVsStellarMass"
+    Output_Tag = "PhotonsVsStellarMassTQhiehtibt"
 
     Limits = [low_mass, high_mass, 53, 57]
 
@@ -861,6 +890,9 @@ def PhotonsVsStellarMass(Simulation, SnapListZ, Mass, Photons):
  
     ax.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval)) 
     ax.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
+
+    ax.set_xlabel(r'$\log_{10}\ M_{\mathrm{*}}\ (M_{\odot})$') 
+    ax.set_ylabel(r'$\dot{N}_\gamma dM_\mathrm{*}$')
             
     ax.set_xlim(Limits[0:2])
     ax.set_ylim(Limits[2:4])
@@ -910,9 +942,233 @@ def fesc(simulation, SnapListZ, mass, fesc):
 
 ##
 
+def UVLF(Simulation, Redshift, MUV, MUV_Obs, MySim_Len):
+
+    title = []
+    Normalization = []
+
+    ## Plot Parameters ##
+    binwidth = 0.1
+    Observations = 1
+    Output_Tag = "MUV_lowSF_new"
+    Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probaility histogram.
+    errorwidth = 2
+    delta = 0.05
+    caps = 5
+    ##
+
+    ## Normalization and Titles for MySim ##
+    for i in xrange(0, MySim_Len): 
+        tmp = 'Noreion: z = %.2f' %(Redshift[i])
+        title.append(tmp)
+
+        AllVars.Set_Params_Mysim()
+        norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
+    
+        Normalization.append(norm)
+
+
+    ## Normalization and Titles for MySim2 ## 
+    for i in xrange(0, MySim_Len): 
+        tmp = 'Reionmine: z = %.2f' %(Redshift[i])
+        title.append(tmp)
+
+        AllVars.Set_Params_Mysim()
+        norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
+    
+        Normalization.append(norm)
+
+### Plotting ###
+
+    plt.figure()  
+    ax = plt.subplot(111)  
+
+### Plots the Histograms ###
+
+    for i in xrange(0, len(MUV)):
+
+        (counts, Bin_Edges, Bin_Middle) = Calculate_Histogram(MUV[i], binwidth, Frequency)
+        if (i < MySim_Len):
+            ls = '-'
+        else:
+            ls = '--'
+        plt.plot(Bin_Middle, counts / Normalization[i], colours[i], linestyle = ls, label = title[i])
+
+        (counts, Bin_Edges, Bin_Middle) = Calculate_Histogram(MUV_Obs[i], binwidth, Frequency)
+        plt.plot(Bin_Middle, counts / Normalization[i], colours[i], linestyle = '-.', label = 'Observed')
+##
+
+    plt.yscale('log', nonposy='clip')
+
+    plt.axis([-23, -16, 1e-6, 1e-1])
+
+    ax.set_xlabel(r'$M_{1600}$')
+    ax.set_ylabel(r'$\Phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
+
+### If we want to put observations on the figure ###
+
+    if Observations == 1:
+    	Bouwens_z6 = np.array([[-22.52 + delta, 0.000002, 0.00004, 0.000000000001],
+                                [-22.02 + delta, 0.000015, 0.000015 + 0.000006, 0.000015 - 0.000006],
+                                [-21.52 + delta, 0.000043, 0.000043 + 0.000012, 0.000043 - 0.000012],
+                                [-21.02 + delta, 0.000176, 0.000176 + 0.000025, 0.000176 - 0.000025],
+                                [-20.52 + delta, 0.000320, 0.000320 + 0.000041, 0.000320 - 0.000041],
+                                [-19.52 + delta, 0.000698, 0.000698 + 0.000083, 0.000698 - 0.000083],
+				[-18.77 + delta, 0.001900, 0.001900 + 0.000320, 0.001900 - 0.000320],
+				[-17.77 + delta, 0.006680, 0.006680 + 0.001380, 0.006680 - 0.001380],
+				[-16.77 + delta, 0.013640, 0.013640 + 0.004200, 0.013640 - 0.004200]], dtype = np.float32)
+
+	plt.errorbar(Bouwens_z6[:,0], Bouwens_z6[:,1], yerr= (Bouwens_z6[:,1] - Bouwens_z6[:,3], Bouwens_z6[:,2] - Bouwens_z6[:,1]) , alpha=0.75, lw=1.0, marker='o', ls='none', label = 'Gonzalez 2011, z = 6', color = 'cyan')
+
+	
+	####################
+	### DRAGONS DATA ###
+	####################
+
+	## Intrinsic ##
+    	fname = "/home/jseiler/SAGE-stuff/output/lfintrinsic/lfint_z6.dat"
+	fd = open(fname, 'rb')
+	M, Phi = np.loadtxt(fd, dtype = np.float32, skiprows=1, unpack=True)  
+	plt.plot(M, 10**Phi, color = 'k', label = 'DRAGONS - Intrinsic')
+
+	## Observed ##
+    	fname = "/home/jseiler/SAGE-stuff/output/lfobserved/lf_z6.dat"
+	fd = open(fname, 'rb')
+	M, Phi = np.loadtxt(fd, dtype = np.float32, skiprows=1, unpack=True)  	
+	plt.plot(M, 10**Phi, color = 'g', label = 'DRAGONS - Observed')
+
+
+        Gonzalez_z7 = np.array([[7.75, -2.1828, -1.7463, -2.5858],
+                                [8.26, -2.25, -1.8694, -2.2631],
+                                [8.77, -2.7425, -2.3731, -3.1231],
+                                [9.27, -3.0672, -2.6753, -3.4142],
+                                [9.76, -3.8731, -3.4831, -4.2537]], dtype = np.float32)
+
+#plt.errorbar(Gonzalez_z7[:,0], 10**Gonzalez_z7[:,1], yerr= (10**Gonzalez_z7[:,3], 10**Gonzalez_z7[:,2]) , alpha=0.75, lw=1.0, marker='o', ls='none'    , label = 'Gonzalez 2011, z = 7', color = 'magenta')
+
+        Song_z6 = np.array([[7.25 - delta, -1.47, -1.47 + 0.35, -1.47 - 0.23],
+                            [7.75 - delta, -1.81, -1.81 + 0.23, -1.81 - 0.28],
+                            [8.25 - delta, -2.26, -2.26 + 0.21, -2.26 - 0.16],
+                            [8.75 - delta, -2.65, -2.65 + 0.15, -2.65 - 0.15],
+                            [9.25 - delta, -3.14, -3.14 + 0.12, -3.14 - 0.11],
+                            [9.75 - delta, -3.69, -3.69 + 0.12, -3.69 - 0.13],
+                            [10.25 - delta, -4.27, -4.27 + 0.38, -4.27 - 0.86]], dtype = np.float32)
+
+#        plt.errorbar(Song_z6[:,0], 10**Song_z6[:,1], yerr= (10**Song_z6[:,1] - 10**Song_z6[:,3], 10**Song_z6[:,2] - 10**Song_z6[:,1]), xerr = 0.25, capsize = caps, elinewidth = errorwidth, alpha = 1.0, lw=2.0, marker='o', ls='none', label = 'Song 2015, z = 6', color = '#bd0026')
+
+        Song_z7 = np.array([[7.25, -1.63, -1.63 + 0.54, -1.63 - 0.54],
+                            [7.75, -2.07, -2.07 + 0.45, -2.07 - 0.41],
+                            [8.25, -2.49, -2.49 + 0.38, -2.49 - 0.32],
+                            [8.75, -2.96, -2.96 + 0.32, -2.96 - 0.30],
+                            [9.25, -3.47, -3.47 + 0.32, -3.47 - 0.35],
+                            [9.75, -4.11, -4.11 + 0.41, -4.11 - 0.57],
+                            [10.25, -4.61, -4.61 + 0.72, -4.61 - 0.82],
+                            [10.75, -5.24, -5.24 + 0.90, -5.25 - 0.57]], dtype = np.float32)
+
+ #       plt.errorbar(Song_z7[:,0], 10**Song_z7[:,1], yerr= (10**Song_z7[:,1] - 10**Song_z7[:,3], 10**Song_z7[:,2] - 10**Song_z7[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 7', color = 'blue')
+
+        Song_z8 = np.array([[7.25, -1.73, -1.73 + 1.01, -1.73 - 0.84],
+                            [7.75, -2.28, -2.28 + 0.84, -2.28 - 0.64],
+                            [8.25, -2.88, -2.88 + 0.75, -2.88 - 0.57],
+                            [8.75, -3.45, -3.45 + 0.57, -3.45 - 0.60],
+                            [9.25, -4.21, -4.21 + 0.63, -4.21 - 0.78],
+                            [9.75, -5.31, -5.31 + 1.01, -5.31 - 1.64]], dtype = np.float32)
+
+
+#        plt.errorbar(Song_z8[:,0], 10**Song_z8[:,1], yerr= (10**Song_z8[:,1] - 10**Song_z8[:,3], 10**Song_z8[:,2] - 10**Song_z8[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 8', color = 'green')
+
+    leg = plt.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize('medium')
+
+    outputFile = './' + Output_Tag + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
+ 
+##
+
+def SFR_Hist(Simulation, Redshift, SFR, MySim_Len):
+
+    title = []
+    Normalization = []
+
+    ## Plot Parameters ##
+    binwidth = 0.1
+    Observations = 1
+    Output_Tag = "SFR_Hist_lowSF_new"
+    Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probaility histogram.
+    errorwidth = 2
+    delta = 0.05
+    caps = 5
+    ##
+
+    ## Normalization and Titles for MySim ##
+    for i in xrange(0, MySim_Len): 
+        tmp = 'Noreion: z = %.2f' %(Redshift[i])
+        title.append(tmp)
+
+        AllVars.Set_Params_Mysim()
+        norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
+    
+        Normalization.append(norm)
+
+
+    ## Normalization and Titles for MySim2 ## 
+    for i in xrange(0, MySim_Len): 
+        tmp = 'Reionmine: z = %.2f' %(Redshift[i])
+        title.append(tmp)
+
+        AllVars.Set_Params_Mysim()
+        norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
+    
+        Normalization.append(norm)
+
+### Plotting ###
+
+    plt.figure()  
+    ax = plt.subplot(111)  
+
+### Plots the Histograms ###
+
+    for i in xrange(0, len(SFR)):
+
+        (counts, Bin_Edges, Bin_Middle) = Calculate_Histogram(SFR[i], binwidth, Frequency)
+        if (i < MySim_Len):
+            ls = '-'
+        else:
+            ls = '--'
+        plt.plot(Bin_Middle, np.log10(counts / Normalization[i]), colours[i], linestyle = ls, label = title[i])
+
+##
+
+    #plt.yscale('log', nonposy='clip')
+
+    plt.axis([-4, 4, -6, 0.2])
+
+    ax.set_xlabel(r'$\log_{10}\ SFR [(M_{\odot}) \mathrm{yr}^{-1}$')
+    ax.set_ylabel(r'$\Phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
+
+    leg = plt.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize('medium')
+
+    outputFile = './' + Output_Tag + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
+##
 #################################
 
 Simulation = 1 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
+
+AllVars.Set_Constants()
+
+print 1.0/AllVars.A_to_m * 1.0/AllVars.c_in_ms * (1.0/AllVars.W_to_ergs)
 
 
 binwidth = 0.1
@@ -944,36 +1200,43 @@ if (Simulation == 1 or Simulation == 2):
     #H_MySim2 = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/Rockstar_output/Halos_noLL/Ltrees/lhalotree.bin', 0, 26)
     
     # 512 
-    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/fiducial_z5.038', 0, 26, 100)
-    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/fiducial_MergedGalaxies', 0, 26, 100)
-    G_MySim = ReadScripts.Join_Arrays(GG_MySim, G_Merged_MySim, Gal_Desc)
-
-    # 1024
-    #GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/noreion_reionmine_DRAGONS_z5.000', 0, 124, 101)
-    #G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/noreion_reionmine_DRAGONS_MergedGalaxies', 0, 124, 101)
+    #GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/fiducial_z5.038', 0, 26, 100)
+    #G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/fiducial_MergedGalaxies', 0, 26, 100)
     #G_MySim = ReadScripts.Join_Arrays(GG_MySim, G_Merged_MySim, Gal_Desc)
 
+    # 1024
+    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/noreion_lowSF_z5.000', 0, 124, 101)
+    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/noreion_lowSF_MergedGalaxies', 0, 124, 101)
+    G_MySim = ReadScripts.Join_Arrays(GG_MySim, G_Merged_MySim, Gal_Desc)
+
     # 512
-    #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/noreion_myreion_512_z5.038', 0, 26, 100)
-    #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/noreion_myreion_512_MergedGalaxies', 0, 26, 100)
-    #G_MySim2 = ReadScripts.Join_Arrays(GG_MySim, G_Merged_MySim, Gal_Desc)
+    #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/noreion_z5.038', 0, 26, 100)
+    #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/noreion_z5.038', 0, 26, 100)
+    #G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
+
+    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/tmp_z5.038', 0, 26, 100)
+    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/tmp_z5.038', 0, 26, 100)
+    G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
+
 
     # 1024
-    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/noreion_z5.000', 0, 124, 101)
-    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/noreion_MergedGalaxies', 0, 124, 101)
-    G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
+    #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/noreion_reionmine_DRAGONS_z5.000', 0, 124, 101)
+    #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/noreion_reionmine_DRAGONS_MergedGalaxies', 0, 124, 101)
+    #G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
 
     #SnapList_MySim = np.arange(22,78) 
 
+    #SnapList_MySim = [30, 35, 40, 50, 60, 70, 78]
+
     SnapList_MySim = [78]
-    # Snapshots for z = [6, 7, 8] are [78, 64, 51] 
+    #SnapList_MySim = [78, 64,51]
+    # Snapshots for z = [6, 7, 8] are [78, 64, 51]
+    # Snapshots for z = [7.23, 6.69] are [60, 67] (used for LyAlpha Luminosity) 
     print "Snapshots analyzing are", SnapList_MySim
 
 
 
 SnapListZ = []
-
-AllVars.Set_Constants()
 
 HaloPart_Low = 41 # Bounds for where we define the cutoff for a 'Dark Matter Halo'. Below this we can't be sure of the results.
 HaloPart_High = 51
@@ -1012,7 +1275,7 @@ SFR_G_MySim = []
 sSFR_G_MySim = []
 Metallicity_Tremonti_G_MySim = []
 HaloPart_MySim = []
-fesc_MySim = 0.05
+fesc_MySim = 0.15
 
 mass_Central_MySim = []
 Photons_HI_Central_MySim = []
@@ -1026,7 +1289,12 @@ MfiltGnedin_MySim = []
 MfiltSobacchi_MySim = []
 
 LymanAlpha_MySim = []
-fesc_LymanAlpha_MySim = fesc_MySim
+fesc_LymanAlpha_MySim = 0.3
+
+LUV_MySim = []
+MUV_MySim = []
+
+MUV_Obs_MySim = []
 
 ## MySim Model 2 ##
 
@@ -1038,7 +1306,7 @@ SFR_G_MySim2 = []
 sSFR_G_MySim2 = []
 Metallicity_Tremonti_G_MySim2 = []
 HaloPart_MySim2 = []
-fesc_MySim2 = 0.05
+fesc_MySim2 = 0.15
 
 mass_Central_MySim2 = []
 Photons_HI_Central_MySim2 = []
@@ -1050,7 +1318,10 @@ MfiltGnedin_MySim2 = []
 MfiltSobacchi_MySim2 = []
 
 LymanAlpha_MySim2 = []
-fesc_LymanAlpha_MySim2 = fesc_MySim2
+fesc_LymanAlpha_MySim2 = 0.3 
+
+LUV_MySim2 = []
+MUV_MySim2 = []
 
 fesc_Kimm_MySim2 = []
 
@@ -1128,14 +1399,13 @@ if (Simulation == 1 or Simulation == 2):
     
       Photons_HI_Tot_G_MySim.append(np.log10(Sum_Log(Photons_HI_G_MySim[i])))
  
-      SFR_G_MySim.append(np.log10(G_MySim.GridSFR[w_G_MySim[i], SnapList_MySim[i]]))
+      SFR_G_MySim.append(np.log10(G_MySim.GridSFR[w_G_MySim[i], SnapList_MySim[i]])) # Msun yr^-1.  Log Units.
       sSFR_G_MySim.append(SFR_G_MySim[i] - mass_G_MySim[i])
       HaloPart_MySim.append(G_MySim.Len[w_G_MySim[i]])
       
 
       Metallicity_Tremonti_G_MySim.append(np.log10(G_MySim.GridZ[w_G_MySim[i], SnapList_MySim[i]] / 0.02) + 9.0)
 
-      print SFR_G_MySim[i]
       print "There were %d galaxies for snapshot %d (Redshift %.4f) for model1." %(len(w_G_MySim[i]), SnapList_MySim[i], AllVars.SnapZ[SnapList_MySim[i]])
 
       mass_Central_MySim.append(np.log10(G_MySim.GridCentralGalaxyMass[w_G_MySim[i], SnapList_MySim[i]] * 1.0e10 / AllVars.Hubble_h))
@@ -1149,7 +1419,28 @@ if (Simulation == 1 or Simulation == 2):
       #MfiltSobacchi_MySim.append(G_MySim.MfiltSobacchi[w_Ionized_MySim[i], SnapList_MySim[i]])
       MfiltSobacchi_MySim.append(G_MySim.MfiltSobacchi[w_G_MySim[i], SnapList_MySim[i]])
 
-      LymanAlpha_MySim.append(np.log10(0.68*(1.0-fesc_MySim)*fesc_LymanAlpha_MySim * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_Central_MySim[i]) 
+      LymanAlpha_MySim.append(np.log10(0.68*(1.0-fesc_MySim)*fesc_LymanAlpha_MySim * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_G_MySim[i]) 
+
+      LUV_MySim.append((SFR_G_MySim[i] + 39.927)) # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
+      MUV_MySim.append(AllVars.Luminosity_to_ABMag(LUV_MySim[i], 1600))
+
+       
+      dust = np.zeros((len(LUV_MySim[i])))
+      for p in xrange(0, len(LUV_MySim[i])):
+		if (MUV_MySim[i][p] <= -18.8):
+			beta = -0.24*(MUV_MySim[i][p] + 18.8) - 2.22
+		else:
+			beta = -0.08*(MUV_MySim[i][p] + 18.8) - 2.22
+
+		dust[p] = 4.43 + 1.99*beta
+		if (dust[p] < 0):
+			dust[p] = 0
+      
+      Flux = AllVars.Luminosity_to_Flux(LUV_MySim[i], 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units. 
+      Flux_Observed = Flux - 0.4*dust	
+	
+      f_nu = AllVars.spectralflux_wavelength_to_frequency(10**Flux_Observed, 1600) # Spectral flux density in Janksy.
+      MUV_Obs_MySim.append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
  
       ## Model 2 Calculations ##
 
@@ -1185,9 +1476,9 @@ if (Simulation == 1 or Simulation == 2):
       w_Ionized_MySim2.append(np.where((G_MySim2.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim2.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.Photons_HI[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.MfiltSobacchi[:, SnapList_MySim[i]] < 1.0))[0])
 
       MfiltGnedin_MySim2.append(G_MySim2.MfiltGnedin[w_G_MySim2[i], SnapList_MySim[i]])
-      MfiltSobacchi_MySim2.append(G_MySim2.MfiltSobacchi[w_Ionized_MySim2[i], SnapList_MySim[i]])
+      MfiltSobacchi_MySim2.append(G_MySim2.MfiltSobacchi[w_G_MySim2[i], SnapList_MySim[i]])
 
-      LymanAlpha_MySim2.append(np.log10(0.68*(1.0-fesc_MySim2)*fesc_LymanAlpha_MySim2 * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_Central_MySim2[i]) 
+      LymanAlpha_MySim2.append(np.log10(0.68*(1.0-fesc_MySim2)*fesc_LymanAlpha_MySim2 * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_G_MySim2[i]) 
 
       fesc_Kimm_MySim2.append(10**(1.00 - 0.2 * mass_Central_MySim2[i]))
 
@@ -1272,23 +1563,28 @@ def Calculate_HaloPartStellarMass(ZZ, HaloPart, StellarMass, BoundLow, BoundHigh
 
 
 #print "For 512 model:"
-#HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, HaloPart_Low, HaloPart_High)
+HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, HaloPart_Low, HaloPart_High)
 
 #print "For 1024 model:"
-#HaloPartStellarMass_MySim2 = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim2, mass_G_MySim2, HaloPart_Low, HaloPart_High)
+HaloPartStellarMass_MySim2 = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim2, mass_G_MySim2, HaloPart_Low, HaloPart_High)
 
+
+
+mass_G_MySim2 = []
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-#StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim2, len(SnapList_MySim))
+StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim2, len(SnapList_MySim))
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
 #CentralGalaxy_Projection(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_MySim2), (Photons_G_MySim + Photons_G_MySim2))
-#FilteringMass(Simulation, SnapListZ_MySim, MfiltGnedin_MySim, MfiltSobacchi_MySim, MfiltGnedin_MySim2, mass_Central_MySim, len(SnapList_MySim))
+#FilteringMass(Simulation, SnapListZ_MySim, MfiltGnedin_MySim2, MfiltSobacchi_MySim, MfiltSobacchi_MySim2, mass_Central_MySim, mass_Central_MySim2, len(SnapList_MySim))
 #PlotScripts.Plot_Scatter_SixPanel((mass_Central_model1 + mass_Central_model1 + mass_Central_model3), (Photons_Central_model1 + Photons_G_model1 + Photons_G_model3), 1, 2, ['Halos', 'Fiducial Gal', 'NoSN Gal'], [min_mass_H, max_mass_H, -2, 1], [r'Log Halo Mass [$M_{\odot}$]', r'Log (Halo/Galaxy Ionizing Photons) [s$^{-1}$]'], 2, SnapListZ, 'CentralStellar_Photons_Difference_Fiducial_NoSN', '.png')
 #StarFormationRate(Simulation, SnapListZ_MySim, SFR_G_MySim, SFR_G_MySim2)
 #PhotonsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
 #LymanAlphaLF(Simulation, SnapListZ_MySim, LymanAlpha_MySim2, len(SnapList_MySim))
 #PhotonsVsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
-fesc(Simulation, SnapListZ_MySim, mass_Central_MySim2, fesc_Kimm_MySim2)
+#fesc(Simulation, SnapListZ_MySim, mass_Central_MySim2, fesc_Kimm_MySim2)
+UVLF(Simulation, SnapListZ, (MUV_MySim + MUV_MySim2), (MUV_Obs_MySim), len(SnapList_MySim))
+SFR_Hist(Simulation, SnapListZ, (SFR_G_MySim), len(SnapList_MySim)) 

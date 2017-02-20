@@ -124,6 +124,32 @@ def plot_filtervalues(z, Mfilt):
     print 'Saved file to', outputFile
     plt.close()
 
+##
+
+def plot_mod(Sob, Gnedin):
+
+    ax = plt.subplot(111)
+
+    print len(Sob)
+    print len(Gnedin)
+
+    plt.hist(Sob, bins = 20, label = "Sobacchi", normed = True)
+    plt.hist(Gnedin, bins = 20, label = "Gnedin", normed = True)	
+	
+    leg = plt.legend(loc= 1, numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize('medium')
+
+
+    outputFile = './Sob_Gnedin' + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
+
+
+
+##
 if __name__ == '__main__':
 
     #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_filter_1024_DRAGONS.dat" 
@@ -132,13 +158,18 @@ if __name__ == '__main__':
     #fd.close()
 
 
-    fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/whateven.dat"
-    fd = open(fname_filtervalues, 'rb')
-    z, Mfilt = np.loadtxt(fd, dtype = np.float32, unpack=True)  
-    fd.close()
-
-    print Mfilt
+    #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/whateven.dat"
+    #fd = open(fname_filtervalues, 'rb')
+    #z, Mfilt = np.loadtxt(fd, dtype = np.float32, unpack=True)  
+    #fd.close()
 
     #plot_filtervalues(z, Mfilt, Mvir, Mod)
-    plot_filtervalues(z, Mfilt)
+    #plot_filtervalues(z, Mfilt)
+
+    fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_mod.dat"
+    fd = open(fname_filtervalues, 'rb')
+    Sob, Gnedin = np.loadtxt(fd, dtype = np.float32, unpack=True)  
+    fd.close()
+    
+    plot_mod(Sob, Gnedin)
 
