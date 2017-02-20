@@ -291,9 +291,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 
   for (j = 0; j < MAXSNAPS; ++j)
   {  
-      myfwrite(&g->MfiltSobacchi[j], sizeof(double), 1, fp);
-      if(g->MfiltSobacchi[j] > 1.0)
-      printf("%.4f %.10e\n", ZZ[j], g->MfiltSobacchi[j]);
+      myfwrite(&g->MfiltSobacchi[j], sizeof(double), 1, fp);   
   }
   free(g->MfiltSobacchi);
 

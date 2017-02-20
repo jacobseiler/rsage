@@ -242,9 +242,9 @@ double do_myreionization(int gal, double Zcurr, int ReturnMfilt)
     reionization_modifier = pow(2.0, -Mfilt/Mvir);
 
       //printf("%.4f %.4e %.4e %.4e\n", Zcurr, Mfilt, Mvir, reionization_modifier);
-      //printf("PhotHI = %.4e \t z = %.4f \t z_reion = %.4f \t Mfilt = %.4e \t Mvir = %.4e \t Reionization_Modifier = %.4e\n", PhotHI, z, z_reion, Mfilt, Mvir, reionization_modifier);
+      //printf("PhotHI = %.4e \t z = %.4f \t z_reion = %.4f \t Mfilt = %.4e \t Mvir = %.4e \t Reionization_Modifier = %.4e\n", PhotHI, Zcurr, z_reion, Mfilt, Mvir, reionization_modifier);
       //reionization_modifier = do_reionization(centralgal, Zcurr);
-    
+      //printf("%.4e %.4e\n", reionization_modifier, do_reionization(gal, Zcurr, 0)); 
   }
   else
   {
@@ -254,8 +254,7 @@ double do_myreionization(int gal, double Zcurr, int ReturnMfilt)
  
   if (ReturnMfilt == 1)
   {
-
-
+	
 	return Mfilt;
   }
   else
