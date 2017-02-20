@@ -271,7 +271,8 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
   //printf("%d\n", Gal[centralgal].Type);
   //printf("%d %d\n", Gal[centralgal].HaloNr, halonr);
   if (Gal[centralgal].Type != 0 || Gal[centralgal].HaloNr != halonr)
-    printf("STUPID ASS SAGE!\n");
+        printf("ARGHHH %d %d %d\n", Gal[centralgal].Type, Gal[centralgal].HaloNr, halonr);
+
 
 
 //	assert(Gal[centralgal].Type == 0 && Gal[centralgal].HaloNr == halonr);
