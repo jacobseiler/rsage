@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import numpy as np
+
 def Set_Params_MiniMill():
     
     print "Setting parameters to Mini Millennium."
@@ -131,7 +133,13 @@ def Set_Constants():
     global Ionized_Mass_H
     global LymanAlpha_Energy
     global eV_to_erg
-
+    global M_Bol_Sun
+    global L_Sun
+    global W_to_ergs
+    global A_to_m
+    global c_in_ms
+    global pc_to_m
+    global m_to_cm
 
     Proton_Mass = 1.6726219e-24 # Grams.
     Solar_Mass = 1.98855e33 # Grams.
@@ -140,3 +148,62 @@ def Set_Constants():
     Ionized_Mass_H = 0.53 # Molecular mass of ionized H.
     LymanAlpha_Energy = 10.2 # Energy of Lyman Alpha photon in eV.
     eV_to_erg = 1.6202e-12 # Conversion from eV to erg. 
+    M_Bol_Sun = 4.74 # Bolometric magnitude of the sun.
+    L_Sun = 3.828e26 # Luminosity of the Sun in W.
+    W_to_ergs = 1.0e7 # Watts to erg s^-1.
+    A_to_m = 1.0e-10 # Angstroms to meters.
+    c_in_ms = 3.0e8 # Speed of light in m s^-1 
+    pc_to_m = 3.086e16 # Parsec to metres. 
+    m_to_cm = 1.0e2 # Meters to centimetres.
+
+def spectralflux_wavelength_to_frequency(Flux, Wavelength):
+
+    # For a given spectral flux at a specific wavelength (f_lamba), this function converts it to the spectral flux density at a specific frequency (f_nu).
+
+    ### INPUT ###
+    # Flux: The spectral flux density in units of erg s^-1 A^-1 cm^-2
+    # Wavelength: The wavelength we are determining the spectral flux density at in units of Angstroms (A).
+
+    ### OUTPUT ###
+    # f_nu: The spectral flux density at a specific frequency in units of Janksy (W Hz^-1 m^-2).
+
+    f_nu = 3.34e4 * pow(Wavelength, 2) * Flux
+  
+    return f_nu
+
+def Luminosity_to_Flux(Luminosity, Distance):
+
+    # Converts a luminosity to an observed flux at some distance.
+    ## NOTE THAT INPUT AND OUTPUT ARE IN LOG UNITS.
+
+    ### INPUT ###
+    # Luminosity: The intrinisic luminosity being converted in units of erg s^-1 A^-1. <<<NOTE MUST BE IN LOG UNITS>>>.
+    # Distance: The distance at which the flux is being observed in units of parsec.
+
+    ### OUTPUT ###
+    # Flux: The observed flux in units of erg s^-1 A^-1 cm^-2. 
+
+    F = Luminosity - np.log10(4*np.pi*pow(Distance * pc_to_m * m_to_cm, 2.0))
+
+    return F
+
+def Luminosity_to_ABMag(Luminosity, Wavelength):
+     
+    # Converts an intrinsic luminosity into absolute AB magnitude at a specified wavelength.
+    ## NOTE THAT INPUT IS IN LOG.
+
+    ### INPUT ###
+    # Luminosity: The intrinsic luminosity of the star in units of erg s^-1 A^-1.  <<NOTE MUST BE IN LOG UNITS>>>.
+    # Wavelength: The wavelength we want the magnitude at.
+
+    ### OUTPUT ###
+    # M: The absolute magnitude in the AB system.
+
+    Flux = Luminosity_to_Flux(Luminosity, 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units. 
+    f_nu = spectralflux_wavelength_to_frequency(10**Flux, 1600) # Spectral flux density in Janksy.
+    M = -2.5 * np.log10(f_nu) + 8.90 # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
+
+    print "Flux from AllVars.py", Flux
+    print "M from AllVars.py", M
+    return M
+

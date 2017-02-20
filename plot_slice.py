@@ -64,6 +64,13 @@ def stromgren_sphere(Q, T, z, Y):
 	print "Stromgren Radius for a flux of %.3e photons per second at a redshift %.3f and an electron temperature of %.3e is %.3e Mpc/h" %(Q, z, T_e, R)
 	return R
 
+def T_naught(z, OB, h, OM):
+	# T0 brightness temperature from Hutter et al (2016)
+	# Output in units of mK.
+
+	T0 = 28.5 * ((1.0+z)/10.0)**(0.5) * OB/0.042 * h/0.73 * (OM/0.24)**(-0.5) 
+	return T0
+
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
 plt.rc('lines', linewidth='2.0')
@@ -85,7 +92,7 @@ linestyles = ['-', '--', '-.', ':']
 
 Output_Format = ".png"
 
-GridSize = 128
+GridSize = 256
 BoxSize = 100.0 # Mpc/h
 Ratio = BoxSize/GridSize 
 Hubble_h = 0.678 
@@ -1206,28 +1213,102 @@ def plot_density_photons(ZZ, nion, density, count, labels, OutputDir, output_tag
 
 ##########
 
+def plot_twentyone(ZZ, ionized_cells, density, OutputDir, output_tag):
+
+	ax = plt.subplot(111)
+
+	T = T_naught(ZZ, OB, Hubble_h, OM)	
+	
+	brightness = T * density * ionized_cells
+	im = ax.imshow(brightness[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,BoxSize,0,BoxSize], cmap = 'afmhot_r', norm = colors.LogNorm(vmin = 1, vmax = 150))
+
+	cbar = plt.colorbar(im, ax = ax)
+	cbar.set_label(r'$\delta T_b$')
+				    
+	ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
+	ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
+
+	ax.set_xlim([0.0, BoxSize]) 
+	ax.set_ylim([0.0, BoxSize])
+
+	title = r"$z = %.3f$" %(ZZ)
+        ax.set_title(title)
+
+	outputFile = OutputDir + output_tag + output_format 		
+	plt.savefig(outputFile)  # Save the figure
+	print 'Saved file to', outputFile
+			
+	plt.close()	
+
+
+##########
+
+def twentyone_slice(ZZ, z_index, ionized_cells, density, brightness_slice):
+
+	T = T_naught(ZZ, OB, Hubble_h, OM)
+	
+	brightness = T * density * ionized_cells
+
+	for i in xrange(0, GridSize):
+		brightness_slice[z_index, i] = brightness[i,i,i]	
+
+
+	return brightness_slice
+
+##########
+
+def plot_twentyone_slice(ZZ, brightness_slice, OutputDir, output_tag):
+
+	ax = plt.subplot(111)
+
+	print brightness_slice
+	print len(brightness_slice)
+	print ZZ[-1]
+	print ZZ[0]
+	im = ax.imshow(brightness_slice.T, interpolation='bilinear', extent =[ZZ[-1], ZZ[0],0,BoxSize], cmap = 'afmhot_r', origin='low', aspect='auto')
+
+	cbar = plt.colorbar(im, ax = ax)
+	cbar.set_label(r'$\delta T_b$')
+				    
+	ax.set_xlabel(r'$z$')
+	ax.set_ylabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
+
+	ax.set_xlim([ZZ[-1], ZZ[0]]) 
+	ax.set_ylim([0.0, GridSize])
+
+	outputFile = OutputDir + output_tag + output_format 		
+	plt.savefig(outputFile)  # Save the figure
+	print 'Saved file to', outputFile
+			
+    	plt.tight_layout()
+
+	plt.close()	
+	
+
+##########
+
 if __name__ == '__main__':
 
     import os
 
-    output_tags = ["Constant", "Kimm"]
-    model_tags = [r"$f_\mathrm{esc} = 0.15$", r"$\mathrm{Kimm} f_\mathrm{esc}$"]
+    output_tags = ["512_noreion_reionmine", "512_noreion_reionmine"]
+    model_tags = [r"$512 NoReion$", r"$512 Noreion_Reionmine$"]
 
     print "Model 1 is %s." %(output_tags[0])
     print "Model 2 is %s." %(output_tags[1])
 
-    model = 'Differentfesc'
+    model = 'test'
     OutputDir = "./ionization_plots/" + model + '/'
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir) 
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_fesc0.15_DRAGONSPhotHI"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_Kimm_fesc0.15"
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_512_fesc0.40_DRAGONSPhotHI"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_512_fesc0.40_DRAGONSPhotHI"
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_nionHI" 
     filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_KimmFiducial__nionHI"
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens" 
+    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/densfield_output/512/256/snap_50.dens.dat"
+    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/densfield_output/512/256/snap_50.dens.dat" 
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_fesc0.15_DRAGONSPhotHI"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_Kimm_fesc0.15_DRAGONSPhotHI"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_512_fesc0.40_DRAGONSPhotHI"
     filepath_count_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_count" 
     filepath_count_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_count" 
     
@@ -1237,7 +1318,8 @@ if __name__ == '__main__':
     
     for i in xrange(0, len(snaplist)):
 	ZZ[i] = AllVars.SnapZ[snaplist[i]]  
- 
+    z_index = 0 
+
     lowerZ = 0 
     upperZ = len(ZZ) 
     volume_frac_model1 = []
@@ -1257,6 +1339,8 @@ if __name__ == '__main__':
     k_model2 = []
     PowerSpectra_Error_model2 = []
 
+    calculate_power = 0
+
     Redshift_Power = []
 
     Photo_Mean_model1 = []
@@ -1274,6 +1358,7 @@ if __name__ == '__main__':
     density_z_std_model1 = np.zeros((upperZ - lowerZ))
     density_z_std_model2 = np.zeros((upperZ - lowerZ))
 
+    brightness_slice = np.zeros((upperZ - lowerZ, GridSize), dtype = np.float32)
 
     MC_lower = 20 # Not Snapshot number, but rather the index of the snapshot in snaplist.  
     MC_upper = 40
@@ -1299,7 +1384,7 @@ if __name__ == '__main__':
             number_tag_anne = '_%d' %(i)
             number_tag_mine = '_0%d' %(i)
 
-	
+	'''
         fname_ionized_model1 = filepath_model1 + number_tag_anne 
         print
         print "Loading in data for %s Model from file %s" %(model_tags[0], fname_ionized_model1)
@@ -1329,21 +1414,21 @@ if __name__ == '__main__':
         nion_model2 = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.float64)
         nion_model2.shape = (GridSize, GridSize, GridSize)
 	fd.close()
-
-        fname_density = filepath_density_model1 + number_tag_mine 
+	'''
+        fname_density = filepath_density_model1 #+ number_tag_mine 
         print "Loading density data for %s Model from file %s." %(model_tags[0], fname_density)
         fd = open(fname_density, 'rb')
         density_model1 = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.float64)
         density_model1.shape = (GridSize, GridSize, GridSize)
 	fd.close()
 
-        fname_density = filepath_density_model2 + number_tag_mine
+        fname_density = filepath_density_model2 #+ number_tag_mine
         print "Loading density data for %s Model from file %s." %(model_tags[1], fname_density)
         fd = open(fname_density, 'rb')
         density_model2 = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.float64)
         density_model2.shape = (GridSize, GridSize, GridSize)
 	fd.close() 
-
+	'''
         fname_photofield = filepath_photofield_model1 + number_tag_anne
         print "Loading photoionization data for %s Model from file %s." %(model_tags[0], fname_photofield)
         fd = open(fname_photofield, 'rb')
@@ -1371,7 +1456,7 @@ if __name__ == '__main__':
         count_model2 = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.int32)
         count_model2.shape = (GridSize, GridSize, GridSize)
 	fd.close()
-
+	'''
         ##########################################################################
         ## Clean up/reduce the data; this will be fed into the other functions. ##
         ##########################################################################
@@ -1386,7 +1471,7 @@ if __name__ == '__main__':
 
         ##########################################################################
 
-	if (i == 30):	
+	if (i == 30 and calculate_power == 1):	
 		## Model 1 ##
 		Brightness_model1 = 27.0*(1.0-ionized_cells_model1)*density_model1*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
 
@@ -1434,8 +1519,8 @@ if __name__ == '__main__':
 	#plot_nionfield(ZZ[i], nion_model1, OutputDir, "Nion" + output_tags[0] + '_' + str(i))
 	#plot_nionfield(ZZ[i], nion_model1, OutputDir, "Nion" + output_tags[1] + '_' + str(i))
 
-        #plot_density(ZZ[i], density_model1, OutputDir, "Density_" + output_tags[0] + str(i))
-        #plot_density(ZZ[i], density_model2, OutputDir, "Density_" + output_tags[1] + str(i))
+        plot_density(ZZ[i], density_model1, OutputDir, "Density_" + output_tags[0] + str(i))
+        plot_density(ZZ[i], density_model2, OutputDir, "Density_" + output_tags[1] + str(i))
         
         #plot_density_numbers(ZZ[i], density_model1, OutputDir, "DensityNumbers" + str(i))
 	
@@ -1455,7 +1540,12 @@ if __name__ == '__main__':
  	#Photo_Mean_model2.append(np.mean(photofield_model2))
 	#Photo_Std_model1.append(np.std(photofield_model1))
 	#Photo_Std_model2.append(np.std(photofield_model2))
-        plot_density_photons(ZZ[i], [nion_model1, nion_model2], [density_model1, density_model2], [count_model1, count_model2], output_tags, OutputDir, "density_photons_mean" + str(i))
+        #plot_density_photons(ZZ[i], [nion_model1, nion_model2], [density_model1, density_model2], [count_model1, count_model2], output_tags, OutputDir, "density_photons_mean" + str(i))
+	#plot_twentyone(ZZ[i], ionized_cells_model1, density_model1, OutputDir, "21cm" + output_tags[0] + str(i))
+
+	#brightness_slice = twentyone_slice(ZZ[i], z_index, ionized_cells_model1, density_model1, brightness_slice)	
+	
+	z_index += 1
 
     #plot_redshifts(redshift_array_model1, ZZ, lowerZ, upperZ, OutputDir, "zreiond3_" + output_tags[0])
     #plot_redshifts(redshift_array_model2, ZZ, lowerZ, upperZ, OutputDir, "zreiond3_" + output_tags[1])
@@ -1473,3 +1563,4 @@ if __name__ == '__main__':
     #plot_photo_mean(ZZ, [Photo_Mean_model1, Photo_Mean_model2], [Photo_Std_model1, Photo_Std_model2], model_tags, OutputDir, "Mean_Photo")
     #plot_density_redshift(ZZ, [density_z_mean_model1, density_z_mean_model2], [density_z_std_model1, density_z_std_model2], model_tags, OutputDir, "density_redshift_" + output_tags[0])
 
+    #plot_twentyone_slice(ZZ, brightness_slice, OutputDir, "21cm_Slice") 
