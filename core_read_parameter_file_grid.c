@@ -145,6 +145,22 @@ void read_parameter_file(char *fname)
   addr[nt] = &fescPrescription;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "MH_min");
+  addr[nt] = &MH_min;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "MH_max");
+  addr[nt] = &MH_max;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "kappa");
+  addr[nt] = &kappa;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "delta");
+  addr[nt] = &delta; 
+  id[nt++] = DOUBLE;
+
   strcpy(tag[nt], "fesc");
   addr[nt] = &fesc;
   id[nt++] = DOUBLE;

@@ -62,6 +62,16 @@ void init(void)
   }
 
   tot_Halomass = 0;
+
+  if (fescPrescription == 2)
+  {
+    beta = (delta - kappa)/(MH_max - MH_min);	
+    alpha = pow(10, kappa - beta * MH_min); 
+    printf("kappa = %.4f \t MH_min = %.4f \t pow(10,MH_min = %.4e \t -beta = %.4f\n", kappa, MH_min, pow(10, MH_min), beta);
+    printf("\n\nUsing an fesc prescription that scales with halo mass.\n");
+    printf("The smallest halo mass is %.4e and is fixed to have fesc = %.4e, and the largest halo mass is %.4e and is fixed to have fesc = %.4e\n", pow(10,MH_min),  pow(10, kappa), pow(10, MH_max), pow(10, delta)); 
+    printf("This results in a power law of the form fesc = A*MH^B with A = %.4e and B = %.4e\n\n", alpha, beta);
+  }
 }
 
 

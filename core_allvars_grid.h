@@ -289,4 +289,11 @@ extern int fescPrescription;
 extern double fesc; 
 
 extern double tot_Halomass;
+
+extern double MH_min;
+extern double MH_max;
+extern double alpha;
+extern double beta;
+extern double kappa;
+extern double delta;
 #endif

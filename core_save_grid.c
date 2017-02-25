@@ -39,11 +39,15 @@ void save_grid(int GridNr)
       sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
     } else if (fescPrescription == 1)
     {
-      sprintf(name_HI, "%s/Galaxies_%s_fesc%.2f_KimmFiducial__nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HI, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
       sprintf(name_HeI, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
       sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+    } else if (fescPrescription == 2)
+    {
+      sprintf(name_HI, "%s/Galaxies_%s_alpha%.2fbeta%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeI, "%s/Galaxies_%s_alpha%.2fbeta%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeII, "%s/Galaxies_%s_alpha%.2fbeta%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
     }
-    
     // Only calculate Helium ionizing photons if we aren't using Halo-prescription.
     if (!(file_HeI = fopen(name_HeI,"w")))
     {

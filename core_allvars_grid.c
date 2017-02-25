@@ -104,7 +104,6 @@ double Reionization_z0;
 double Reionization_zr;
 double ThresholdSatDisruption;
 
-
 int MAXSNAPS;
 int NOUT;
 int ListOutputSnaps[ABSOLUTEMAXSNAPS];
@@ -125,3 +124,10 @@ int fescPrescription;
 double fesc;
 
 double tot_Halomass;
+
+double MH_min;
+double MH_max;
+double alpha;
+double beta;
+double kappa;
+double delta;

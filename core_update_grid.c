@@ -28,7 +28,7 @@ void update_grid_properties(int p, int merged, int GridNr)
     if (i > ListOutputGrid[GridNr]) break; // If the current snapshot redshift is lower than an output redshift, proceed to next one.
 
     //These are instantaneous properties measured at a specific redshift. //
-    if((i == ListOutputGrid[GridNr]) && (GalGrid[p].StellarMass[i] > 0.0) & (GalGrid[p].SFR[i] > 0.0)) // Only want to take those galaxies with a non-zero stellar mass (they actually exist and are evolving).
+    if((i == ListOutputGrid[GridNr]) && (GalGrid[p].StellarMass[i] > 0.0) & (GalGrid[p].SFR[i] > 0.0) & (GalGrid[p].CentralGalaxyMass[i] > 0.0)) // Only want to take those galaxies with a non-zero stellar mass (they actually exist and are evolving).
     {
 	
       Grid[grid_position].Sfr += GalGrid[p].SFR[i];
@@ -40,7 +40,10 @@ void update_grid_properties(int p, int merged, int GridNr)
 		fesc_local = fesc;
 	else if (fescPrescription == 1)
 		fesc_local = pow(10,1.0 - 0.2*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
-//	printf("%.4e %.4e\n", fesc_local, 1.292 - 0.245*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));	
+        else if (fescPrescription == 2)
+		fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));	
+
+//	printf("Alpha = %.4e \t log10(alpha) = %.4e \t beta = %.4e \t GalGrid[p].CentralGalaxyMass[i] = %.4e \t fesc = %.4e\n", alpha, log10(alpha), beta, GalGrid[p].CentralGalaxyMass[i], fesc_local); 
         Grid[grid_position].Nion_HI += pow(10,GalGrid[p].Photons_HI[i])*fesc_local; 
         Grid[grid_position].Nion_HeI += pow(10,GalGrid[p].Photons_HeI[i])*fesc_local; 
         Grid[grid_position].Nion_HeII += pow(10,GalGrid[p].Photons_HeII[i])*fesc_local; 
