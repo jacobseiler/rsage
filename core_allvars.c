@@ -87,8 +87,6 @@ double BlackHoleGrowthRate;
 double Reionization_z0;
 double Reionization_zr;
 double ThresholdSatDisruption;
-
-
 // more misc 
 double UnitLength_in_cm,
   UnitTime_in_s,

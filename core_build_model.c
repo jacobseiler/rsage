@@ -268,6 +268,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
   double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;
 
   centralgal = Gal[0].CentralGal;
+ 
   //printf("%d\n", Gal[centralgal].Type);
   //printf("%d %d\n", Gal[centralgal].HaloNr, halonr);
   if (Gal[centralgal].Type != 0 || Gal[centralgal].HaloNr != halonr)
