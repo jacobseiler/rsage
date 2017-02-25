@@ -150,6 +150,77 @@ def plot_mod(Sob, Gnedin):
 
 
 ##
+
+def dust_dist():
+
+    MUV = np.arange(-24, -16, 0.1)
+
+    beta = np.zeros((len(MUV)))
+    A_Mean = np.zeros((len(MUV)))
+    #for i in xrange(0, len(beta)):
+    for i in xrange(20, 21):
+	print "Doing MUV %.4f" %(MUV[i])
+	if (MUV[i] <= -18.8):
+		beta[i] = -0.24*(MUV[i] + 18.8) - 2.22
+	else:
+		beta[i] = -0.08*(MUV[i] + 18.8) - 2.22 
+	    
+
+	dist = np.random.normal(beta[i], 0.34, 10000)
+	A = 4.43 + 1.99*dist
+	#A[A < 0] = 0
+	
+	#A_Mean[i] = np.mean(A)
+	
+
+    ax = plt.subplot(111)
+
+    #ax.plot(MUV, A_Mean)
+    ax.hist(A, bins = 20, normed = True) 
+
+    ax.set_xlabel("MUV")
+    ax.set_ylabel(r"$\langle A_\lambda \rangle$")
+
+    outputFile = './Adist' + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
+
+##
+
+def A_Dist():
+
+    MUV = np.arange(-24, -16, 0.1)
+    MUV_idx = 23
+
+    beta = np.zeros((len(MUV))) 
+
+    print "Doing MUV %.4f" %(MUV[MUV_idx])
+    if (MUV[MUV_idx] <= -18.8):
+	beta = -0.24*(MUV[MUV_idx] + 18.8) - 2.22
+    else:
+	beta = -0.08*(MUV[MUV_idx] + 18.8) - 2.22 
+	    
+
+    dist = np.random.normal(beta, 0.34, 10000)
+    A = 4.43 + 1.99*dist
+
+    ax = plt.subplot(111)
+
+    ax.hist(A, bins = 20, normed = True) 
+
+    ax.set_xlabel(r"$A_\lambda$")
+    ax.set_ylabel(r"$P\left(A_\lambda\right)$")
+
+    outputFile = './ADist' + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
+
+
+
+##
+
 if __name__ == '__main__':
 
     #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_filter_1024_DRAGONS.dat" 
@@ -166,10 +237,12 @@ if __name__ == '__main__':
     #plot_filtervalues(z, Mfilt, Mvir, Mod)
     #plot_filtervalues(z, Mfilt)
 
-    fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_mod.dat"
-    fd = open(fname_filtervalues, 'rb')
-    Sob, Gnedin = np.loadtxt(fd, dtype = np.float32, unpack=True)  
-    fd.close()
+    #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_mod.dat"
+    #fd = open(fname_filtervalues, 'rb')
+    #Sob, Gnedin = np.loadtxt(fd, dtype = np.float32, unpack=True)  
+    #fd.close()
     
-    plot_mod(Sob, Gnedin)
+    #plot_mod(Sob, Gnedin)
 
+    #dust_dist()
+    A_Dist()

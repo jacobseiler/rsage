@@ -92,7 +92,7 @@ linestyles = ['-', '--', '-.', ':']
 
 Output_Format = ".png"
 
-GridSize = 256
+GridSize = 128
 BoxSize = 100.0 # Mpc/h
 Ratio = BoxSize/GridSize 
 Hubble_h = 0.678 
@@ -1297,14 +1297,14 @@ if __name__ == '__main__':
     print "Model 1 is %s." %(output_tags[0])
     print "Model 2 is %s." %(output_tags[1])
 
-    model = 'test'
+    model = 'fescMH'
     OutputDir = "./ionization_plots/" + model + '/'
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir) 
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_512_fesc0.40_DRAGONSPhotHI"
     filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_512_fesc0.40_DRAGONSPhotHI"
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_nionHI" 
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_KimmFiducial__nionHI"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_alpha3.62beta-0.43_nionHI"
     filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/densfield_output/512/256/snap_50.dens.dat"
     filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/densfield_output/512/256/snap_50.dens.dat" 
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_fesc0.15_DRAGONSPhotHI"
@@ -1384,7 +1384,7 @@ if __name__ == '__main__':
             number_tag_anne = '_%d' %(i)
             number_tag_mine = '_0%d' %(i)
 
-	'''
+
         fname_ionized_model1 = filepath_model1 + number_tag_anne 
         print
         print "Loading in data for %s Model from file %s" %(model_tags[0], fname_ionized_model1)
@@ -1414,7 +1414,7 @@ if __name__ == '__main__':
         nion_model2 = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.float64)
         nion_model2.shape = (GridSize, GridSize, GridSize)
 	fd.close()
-	'''
+	
         fname_density = filepath_density_model1 #+ number_tag_mine 
         print "Loading density data for %s Model from file %s." %(model_tags[0], fname_density)
         fd = open(fname_density, 'rb')
@@ -1428,7 +1428,7 @@ if __name__ == '__main__':
         density_model2 = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.float64)
         density_model2.shape = (GridSize, GridSize, GridSize)
 	fd.close() 
-	'''
+
         fname_photofield = filepath_photofield_model1 + number_tag_anne
         print "Loading photoionization data for %s Model from file %s." %(model_tags[0], fname_photofield)
         fd = open(fname_photofield, 'rb')
@@ -1456,7 +1456,7 @@ if __name__ == '__main__':
         count_model2 = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.int32)
         count_model2.shape = (GridSize, GridSize, GridSize)
 	fd.close()
-	'''
+	
         ##########################################################################
         ## Clean up/reduce the data; this will be fed into the other functions. ##
         ##########################################################################
@@ -1513,14 +1513,14 @@ if __name__ == '__main__':
         #mass_frac_model1.append(calculate_mass_frac(ionized_cells_clean_model1, density_model1))
         #mass_frac_model2.append(calculate_mass_frac(ionized_cells_clean_model2, density_model2))
 
-        #nion_total_model1.append(calculate_total_nion(model_tags[0], nion_model1))
-        #nion_total_model2.append(calculate_total_nion(model_tags[1], nion_model2))
+        nion_total_model1.append(calculate_total_nion(model_tags[0], nion_model1))
+        nion_total_model2.append(calculate_total_nion(model_tags[1], nion_model2))
         
 	#plot_nionfield(ZZ[i], nion_model1, OutputDir, "Nion" + output_tags[0] + '_' + str(i))
 	#plot_nionfield(ZZ[i], nion_model1, OutputDir, "Nion" + output_tags[1] + '_' + str(i))
 
-        plot_density(ZZ[i], density_model1, OutputDir, "Density_" + output_tags[0] + str(i))
-        plot_density(ZZ[i], density_model2, OutputDir, "Density_" + output_tags[1] + str(i))
+        #plot_density(ZZ[i], density_model1, OutputDir, "Density_" + output_tags[0] + str(i))
+        #plot_density(ZZ[i], density_model2, OutputDir, "Density_" + output_tags[1] + str(i))
         
         #plot_density_numbers(ZZ[i], density_model1, OutputDir, "DensityNumbers" + str(i))
 	
@@ -1557,7 +1557,7 @@ if __name__ == '__main__':
 
     #plot_bubble_MC(MC_ZZ, model_tags, output_tags, OutputDir, "BubbleSizes")
     #plot_global_frac(ZZ, [volume_frac_model1, volume_frac_model2], [mass_frac_model1, mass_frac_model2], model_tags, OutputDir, "GlobalFraction")
-    #plot_total_nion(ZZ, [nion_total_model1, nion_total_model2], model_tags, OutputDir, "nion_total")
+    plot_total_nion(ZZ, [nion_total_model1, nion_total_model2], model_tags, OutputDir, "nion_total")
     #photon_baryon(lowerZ, upperZ, ZZ, [nion_total_model1, nion_total_model2], Hubble_h, OB, Y, model_tags, OutputDir, "nion_total2")
     #analytic_HII(nion_total_model1, ZZ, upperZ, snaplist, OutputDir, "Q_Analytic")	
     #plot_photo_mean(ZZ, [Photo_Mean_model1, Photo_Mean_model2], [Photo_Std_model1, Photo_Std_model2], model_tags, OutputDir, "Mean_Photo")
