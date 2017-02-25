@@ -381,9 +381,6 @@ def Plot_Scatter(Data_x, Data_y, Labels_Graph, Limits, Log, Labels_Axis, Legend_
     ax = plt.subplot(111)
   
     for i in xrange(0, len(Data_x)):
-  
-	print Data_x[i]
-	print Data_y[i]
       
         if (len(Data_x[i]) > dilute):
             w = sample(range(len(Data_x[i])), dilute)
