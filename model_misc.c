@@ -216,9 +216,15 @@ double dmax(double x, double y)
 double get_virial_mass(int halonr)
 {
   if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].Mvir >= 0.0)
-    return Halo[halonr].Mvir;   /* take spherical overdensity mass estimate */ 
+  {
+
+    return Halo[halonr].Mvir;   /* take spherical overdensity mass estimate */
+  } 
   else
+  {
+
     return Halo[halonr].Len * PartMass;
+  }
 }
 
 
@@ -267,7 +273,6 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 {
     int x_grid, y_grid, z_grid, grid_position, step;
     int SnapCurr = Halo[halonr].SnapNum;
-
     x_grid = Gal[p].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
     y_grid = Gal[p].Pos[1]*GridSize/BoxSize;
     z_grid = Gal[p].Pos[2]*GridSize/BoxSize; 
@@ -296,6 +301,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     Gal[p].GridZ[SnapCurr] = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas); // Metallicity at this snapshot.
     Gal[p].GridCentralGalaxyMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
     //printf("Gal[p].Halonr = %d \t %.4e \t get_virial = %.4e \t Halo[halonr].Mvir = %.4e\n", halonr, Gal[p].GridCentralGalaxyMass[SnapCurr], get_virial_mass(halonr), Halo[halonr].Mvir);
+//    printf("Gal[p].Halonr = %d \t %.4e \t get_virial = %.4e \t Halo[halonr].Mvir = %.4e\n", halonr, Gal[p].GridCentralGalaxyMass[SnapCurr], get_virial_mass(halonr), Halo[halonr].Mvir);
     float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
     float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; 
     calculate_photons(Gal[p].GridSFR[SnapCurr]*SFR_conversion, Gal[p].GridZ[SnapCurr], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
