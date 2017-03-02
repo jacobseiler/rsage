@@ -72,6 +72,14 @@ void init(void)
     printf("The smallest halo mass is %.4e and is fixed to have fesc = %.4e, and the largest halo mass is %.4e and is fixed to have fesc = %.4e\n", pow(10,MH_min),  pow(10, kappa), pow(10, MH_max), pow(10, delta)); 
     printf("This results in a power law of the form fesc = A*MH^B with A = %.4e and B = %.4e\n\n", alpha, beta);
   }
+  else if (fescPrescription == 3)
+  {
+    beta = (delta - kappa)/(sSFR_max - sSFR_min);	
+    alpha = pow(10, kappa - beta * sSFR_min); 
+    printf("\n\nUsing an fesc prescription that scales with specific star formation rate.\n");
+    printf("The smallest specific star formation rate is %.4e and is fixed to have fesc = %.4e, and the largest specific star formation rate is %.4e and is fixed to have fesc = %.4e\n", pow(10,sSFR_min),  pow(10, kappa), pow(10, sSFR_max), pow(10, delta)); 
+    printf("This results in a power law of the form fesc = A*sSFR^B with A = %.4e and B = %.4e\n\n", alpha, beta);
+  }
 }
 
 

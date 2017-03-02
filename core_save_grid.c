@@ -44,11 +44,23 @@ void save_grid(int GridNr)
       sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
     } else if (fescPrescription == 2)
     {
-      sprintf(name_HI, "%s/Galaxies_%s_alpha%.2fbeta%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
-      sprintf(name_HeI, "%s/Galaxies_%s_alpha%.2fbeta%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
-      sprintf(name_HeII, "%s/Galaxies_%s_alpha%.2fbeta%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HI, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeI, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeII, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+    } else if (fescPrescription == 3)
+    {
+      sprintf(name_HI, "%s/Galaxies_%s_sSFR_alpha%.2fbeta%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeI, "%s/Galaxies_%s_sSFR_alpha%.2fbeta%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeII, "%s/Galaxies_%s_sSFR_alpha%.2fbeta%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+    } else if (fescPrescription == 4)
+    {
+      sprintf(name_HI, "%s/Galaxies_%s_supersteepslope_nionHI_%s%d", GridOutputDir, FileNameGalaxies, tag, (NGrid - 1) - GridNr); 
+      //sprintf(name_HeI, "%s/Galaxies_%s_slope_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, tag, (NGrid - 1) - GridNr); 
+      //sprintf(name_HeII, "%s/Galaxies_%s_slope_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, tag, (NGrid - 1) - GridNr); 
     }
+
     // Only calculate Helium ionizing photons if we aren't using Halo-prescription.
+    /*
     if (!(file_HeI = fopen(name_HeI,"w")))
     {
       printf("can't open file `%s'\n", name_HeI);
@@ -60,7 +72,7 @@ void save_grid(int GridNr)
       printf("can't open file `%s'\n", name_HeII);
       exit(0);
     }
-
+    */
   }
 
   if (!(file_HI = fopen(name_HI,"w")))
@@ -89,8 +101,8 @@ void save_grid(int GridNr)
     fwrite(&Grid[i].Nion_HI, sizeof(double), 1, file_HI);
     if (PhotonPrescription != 0)
     {
-      fwrite(&Grid[i].Nion_HeI, sizeof(double), 1, file_HeI);
-      fwrite(&Grid[i].Nion_HeII, sizeof(double), 1, file_HeII); 
+//      fwrite(&Grid[i].Nion_HeI, sizeof(double), 1, file_HeI);
+//      fwrite(&Grid[i].Nion_HeII, sizeof(double), 1, file_HeII); 
     }
     fwrite(&Grid[i].Count, sizeof(int), 1, file_count);
     //fwrite(&Grid[i].Density, sizeof(double), 1, save_density);
@@ -102,8 +114,8 @@ void save_grid(int GridNr)
  
   if (PhotonPrescription != 0)
   {
-    fclose(file_HeI);
-    fclose(file_HeII);
+//    fclose(file_HeI);
+//    fclose(file_HeII);
     file_HeI = NULL;
     file_HeII = NULL;
   }

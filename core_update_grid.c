@@ -36,13 +36,19 @@ void update_grid_properties(int p, int merged, int GridNr)
       Grid[grid_position].StellarMass += GalGrid[p].StellarMass[i];
       if (PhotonPrescription == 1)  // If our photon prescription is using the galaxy photon calculated from the STARBURST spectra.
       {
-        if (fescPrescription == 0)
+        if (fescPrescription == 0 || fescPrescription == 4)
 		fesc_local = fesc;
 	else if (fescPrescription == 1)
 		fesc_local = pow(10,1.0 - 0.2*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
         else if (fescPrescription == 2)
-		fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));	
-
+		fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
+	else if (fescPrescription == 3)	
+		fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].SFR[i] / (GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h))); // Note that StellarMass is in units of 1.0e10 Msun h^-1 whereas SFR is in units of Msun yr^-1.
+        if (fesc_local > 1.0)
+        {
+		fesc_local = 1.0;
+                fprintf(stderr, "Had fesc_local = %.4f for galaxy %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun) and SFR %.4e (log Msun yr^-1)", fesc_local, p, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]));
+        }
 //	printf("Alpha = %.4e \t log10(alpha) = %.4e \t beta = %.4e \t GalGrid[p].CentralGalaxyMass[i] = %.4e \t fesc = %.4e\n", alpha, log10(alpha), beta, GalGrid[p].CentralGalaxyMass[i], fesc_local); 
         Grid[grid_position].Nion_HI += pow(10,GalGrid[p].Photons_HI[i])*fesc_local; 
         Grid[grid_position].Nion_HeI += pow(10,GalGrid[p].Photons_HeI[i])*fesc_local; 
@@ -245,3 +251,26 @@ void normalize_photon(int GridNr)
   printf("Total photons from normalization grid is %.4e compared to the %.4e photons from fescPrescription %d giving a ratio of %.4e.\n", totPhotons_HI_normgrid, totPhotons_HI, fescPrescription, ratio); 
 
 }
+
+void normalize_slope_photons(int GridNr)
+{
+  
+   int i;
+   double totPhotons = 0, targetPhotons = pow(10,-0.8*ZZ[ListOutputGrid[GridNr]] + 64.3); 
+
+
+   for (i = 0; i < CUBE(GridSize); ++i)
+   {
+      totPhotons += Grid[i].Nion_HI;
+   }
+
+   double ratio = targetPhotons/totPhotons;
+
+   for (i = 0; i < CUBE(GridSize); ++i)
+   {
+     Grid[i].Nion_HI = Grid[i].Nion_HI * ratio;
+   }
+
+   printf("The total number of photons in the grid is %.4e.  We only want %.4e photons for redshift %.4e giving a ratio of %.4e.\n", totPhotons, targetPhotons, ZZ[ListOutputGrid[GridNr]], ratio);
+}
+
