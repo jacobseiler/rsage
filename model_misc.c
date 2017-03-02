@@ -144,8 +144,13 @@ void init_galaxy(int p, int halonr)
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi.", sizeof(float)*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
-
-
+ /*
+  if (NULL == (Gal[p].EjectedFraction = malloc(sizeof(Gal[p].EjectedFraction) * MAXSNAPS)))
+  {   
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi.", sizeof(Gal[p].EjectedFraction)*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+ */
   for (j = 0; j < MAXSNAPS; ++j)
   {
     Gal[p].GridHistory[j] = -1;
@@ -158,6 +163,7 @@ void init_galaxy(int p, int halonr)
     Gal[p].GridPhotons_HeII[j] = 0.0;
     Gal[p].MfiltGnedin[j] = 1.0;
     Gal[p].MfiltSobacchi[j] = 1.0;
+//    Gal[p].EjectedFraction[j] = -1.0;
   }
  
 }
@@ -281,7 +287,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 
     if(grid_position > CUBE(GridSize) || grid_position < 0) // Sanity check to ensure that no Grid Positions are outside the box.
     {
-	printf("Found a Grid Position outside the bounds of the box or negative; grid_position = %d, Galaxy Index = %d, halonr = %d\n", grid_position, p, halonr);
+	fprintf(stderr, "Found a Grid Position outside the bounds of the box or negative; grid_position = %d, Galaxy Index = %d, halonr = %d\n", grid_position, p, halonr);
 	exit(0);
     }
 
@@ -313,6 +319,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     {  
       Gal[p].MfiltSobacchi[SnapCurr] = do_myreionization(centralgal, ZZ[SnapCurr], 1); 
     }
+//    Gal[p].EjectedFraction[SnapCurr] = Gal[p].EjectedMass/(Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass);
 }
 
 // INPUT:

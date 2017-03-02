@@ -295,7 +295,13 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   }
   free(g->MfiltSobacchi);
 
-
+  /*
+  for (j = 0; j < MAXSNAPS; ++j)
+  {  
+      myfwrite(&g->EjectedFraction[j], sizeof(g->EjectedFraction), 1, fp);   
+  }
+  free(g->EjectedFraction);
+  */
 }
 
 void finalize_galaxy_file(int filenr)

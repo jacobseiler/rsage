@@ -188,6 +188,7 @@ struct GALAXY
   float *GridPhotons_HeII;
   double *MfiltGnedin;
   double *MfiltSobacchi;
+//  float *EjectedFraction;
  
 }
 *Gal, *HaloGal, *MergedGal;
