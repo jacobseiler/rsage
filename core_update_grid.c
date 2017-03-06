@@ -43,14 +43,25 @@ void update_grid_properties(int p, int merged, int GridNr)
         else if (fescPrescription == 2)
 		fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
 	else if (fescPrescription == 3)	
-		fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].SFR[i] / (GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h))); // Note that StellarMass is in units of 1.0e10 Msun h^-1 whereas SFR is in units of Msun yr^-1.
+		fesc_local = beta * GalGrid[p].EjectedFraction[i] + alpha;
+	fesc_local = GalGrid[p].EjectedFraction[i];	
         if (fesc_local > 1.0)
         {
 		fesc_local = 1.0;
                 fprintf(stderr, "Had fesc_local = %.4f for galaxy %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun) and SFR %.4e (log Msun yr^-1)", fesc_local, p, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]));
         }
+	if (fesc_local < 0.0)
+        {
+		fesc_local = 0.0;
+                fprintf(stderr, "Had fesc_local = %.4f for galaxy %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun) and SFR %.4e (log Msun yr^-1)", fesc_local, p, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]));
+	}
 //	printf("Alpha = %.4e \t log10(alpha) = %.4e \t beta = %.4e \t GalGrid[p].CentralGalaxyMass[i] = %.4e \t fesc = %.4e\n", alpha, log10(alpha), beta, GalGrid[p].CentralGalaxyMass[i], fesc_local); 
-        Grid[grid_position].Nion_HI += pow(10,GalGrid[p].Photons_HI[i])*fesc_local; 
+        Grid[grid_position].Nion_HI += pow(10,GalGrid[p].Photons_HI[i])*fesc_local;
+	if (Grid[grid_position].Nion_HI < 0.0 || Grid[grid_position].Nion_HI > 1e100)
+        {
+		fprintf(stderr, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid cell = %d, Galaxy Number = %d, Snapshot = %d, GalGrid[p].Photons_HI[i] = %.4e, fesc_local = %.4e\n", grid_position, p, i, GalGrid[p].Photons_HI[i], fesc_local);
+		exit(0);
+        }
         Grid[grid_position].Nion_HeI += pow(10,GalGrid[p].Photons_HeI[i])*fesc_local; 
         Grid[grid_position].Nion_HeII += pow(10,GalGrid[p].Photons_HeII[i])*fesc_local; 
       }
@@ -197,6 +208,8 @@ void count_grid_properties(int GridNr) // Count number of galaxies/halos in the 
   {
     GalCount += Grid[i].Count;
     HaloCount += Grid[i].HaloCount;
+    if (Grid[i].Nion_HI < 0.0)
+	fprintf(stderr, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid Number = %d, Grid[i].Nion_HI = %.4e\n", i, Grid[i].Nion_HI); 
     totPhotons_HI += Grid[i].Nion_HI;
     totPhotons_HeI += Grid[i].Nion_HeI;
     totPhotons_HeII += Grid[i].Nion_HeII;

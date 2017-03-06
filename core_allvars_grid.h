@@ -119,6 +119,8 @@ struct GALAXY_GRID
   float *Photons_HeII;
   double *MfiltGnedin;
   double *MfiltSobacchi;
+  float *EjectedFraction;
+  float *Pad;
 }*GalGrid;
 
 struct GRID

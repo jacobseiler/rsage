@@ -49,9 +49,10 @@ void save_grid(int GridNr)
       sprintf(name_HeII, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
     } else if (fescPrescription == 3)
     {
-      sprintf(name_HI, "%s/Galaxies_%s_sSFR_alpha%.2fbeta%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
-      sprintf(name_HeI, "%s/Galaxies_%s_sSFR_alpha%.2fbeta%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
-      sprintf(name_HeII, "%s/Galaxies_%s_sSFR_alpha%.2fbeta%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+      printf("Alpha = %.4f\n", alpha);
+      sprintf(name_HI, "%s/Galaxies_%s_Ejected_alpha%.3fbeta%.3f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, alpha, beta, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeI, "%s/Galaxies_%s_Ejected_alpha%.3fbeta%.3f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, alpha, beta, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HeII, "%s/Galaxies_%s_Ejected_alpha%.3fbeta%.3f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, alpha, beta, tag, (NGrid - 1) - GridNr); 
     } else if (fescPrescription == 4)
     {
       sprintf(name_HI, "%s/Galaxies_%s_supersteepslope_nionHI_%s%d", GridOutputDir, FileNameGalaxies, tag, (NGrid - 1) - GridNr); 
@@ -83,6 +84,7 @@ void save_grid(int GridNr)
 
   sprintf(name_count, "%s/Galaxies_%s_fesc%.2f_count_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
 
+  /*
   if (!(file_count = fopen(name_count,"w")))
   {
     printf("can't open file `%s'\n", name_count);
@@ -95,7 +97,7 @@ void save_grid(int GridNr)
     printf("can't open file `%s'\n", file_density);
     exit(0);
   }
-
+  */
   for (i = 0; i < CUBE(GridSize); ++i)
   {
     fwrite(&Grid[i].Nion_HI, sizeof(double), 1, file_HI);
@@ -104,13 +106,12 @@ void save_grid(int GridNr)
 //      fwrite(&Grid[i].Nion_HeI, sizeof(double), 1, file_HeI);
 //      fwrite(&Grid[i].Nion_HeII, sizeof(double), 1, file_HeII); 
     }
-    fwrite(&Grid[i].Count, sizeof(int), 1, file_count);
+//    fwrite(&Grid[i].Count, sizeof(int), 1, file_count);
     //fwrite(&Grid[i].Density, sizeof(double), 1, save_density);
   }
 
-  printf("Saved Snapshot %d to files %s and %s (and HeI and HeII if not using Halo prescription).\n", ListOutputGrid[GridNr], file_density, name_HI);
+  printf("Saved Snapshot %d to file %s.\n", ListOutputGrid[GridNr], name_HI);
   fclose(file_HI);
-  fclose(save_density);
  
   if (PhotonPrescription != 0)
   {
