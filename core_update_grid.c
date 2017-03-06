@@ -43,8 +43,7 @@ void update_grid_properties(int p, int merged, int GridNr)
         else if (fescPrescription == 2)
 		fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
 	else if (fescPrescription == 3)	
-		fesc_local = beta * GalGrid[p].EjectedFraction[i] + alpha;
-	fesc_local = GalGrid[p].EjectedFraction[i];	
+		fesc_local = beta * GalGrid[p].EjectedFraction[i] + alpha;	
         if (fesc_local > 1.0)
         {
 		fesc_local = 1.0;
