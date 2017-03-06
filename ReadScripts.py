@@ -85,7 +85,6 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         if (Contain_TreeInfo == 1):
             Ntrees = np.fromfile(fin, np.dtype(np.int32), 1)  # Read number of trees in file
         NtotHalos = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Read number of gals in file.
-	print "offset = %d \t NtotHalos = %d" %(offset, NtotHalos)
         if (Contain_TreeInfo == 1):
             GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
 	

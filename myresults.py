@@ -973,20 +973,28 @@ def fesc(simulation, SnapListZ, mass, fesc):
 
     Output_Tag = "fesc_mass"
 
-    dilute = 1e100
+
+    low_mass = 0
+    high_mass = 10
+
     ax = plt.subplot(111)
 
+    bins = np.arange(low_mass,high_mass, binwidth)
+    bins_mid = bins + binwidth/2.0
+    bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.
 
-    for i in xrange(0, len(SnapListZ)):
-    	if(len(mass[i]) > dilute): 
-		w = random.sample(range(0, len(mass[i])), dilute)
-	else:
-		w = range(0, len(mass[i])) 
-	print len(mass[i])
-	print "Max mass is %.4f and min is %.4f" %(max(mass[i][w]), min(mass[i][w]))
-	label = "z = %.4f" %(SnapListZ[i])
-    	ax.scatter(mass[i][w], fesc[i][w], label = label, alpha = 0.5, color = colours[i])
-
+    for i in xrange(1, len(mass)):
+	    fesc_sum = [] 
+	    for j in xrange(0, len(bins)-1):
+		w = np.where((mass[i-1] >= bins[j]) & (mass[i-1] < bins[j+1]))[0]
+		if (len(w) != 0):
+			fesc_sum.append(fesc[i-1][w]/len(w))
+		else:
+			fesc_sum.append(nan)
+		
+	    tmp = 'z = %.2f' %(SnapListZ[i])
+	    ax.plot(bins_mid, fesc_sum, color = colours[i], label = tmp) 
+		
     leg = plt.legend(loc=1, numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
@@ -1486,16 +1494,23 @@ def EjectedFracVsStellarMass(Simulation, Redshift, mass, EjectedFraction, MySim_
     title = []
     Output_Tag = "EjectedFrac"
 
-    print "mass =", mass
-    print "EjectedFraction =", EjectedFraction
-    ## Normalization and Titles for MySim2 ## 
-    for i in xrange(0, MySim_Len): 
-        tmp = 'Reionmine: z = %.2f' %(Redshift[i])
- 
-    	plt.scatter(mass[i], EjectedFraction[i], label = tmp, color = colours[i])
+    bins = np.arange(low_mass,high_mass, binwidth)
+    bins_mid = bins + binwidth/2.0
+    bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.
 
-    #plt.axis([0, 10, 0, 1.0])
-    leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    for i in xrange(1, len(mass)):
+	    ejected_sum = [] 
+	    for j in xrange(0, len(bins)-1):
+		w = np.where((mass[i-1] >= bins[j]) & (mass[i-1] < bins[j+1]))[0]
+		if (len(w) != 0):
+			ejected_sum.append(EjectedFraction[i-1][w]/len(w))
+		else:
+			ejected_sum.append(nan)
+		
+	    tmp = 'z = %.2f' %(SnapListZ[i])
+	    ax.plot(bins_mid, ejected_sum, color = colours[i], label = tmp) 
+		
+    leg = plt.legend(loc=1, numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize('medium')
