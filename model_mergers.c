@@ -432,15 +432,23 @@ void add_galaxy_to_merger_list(int p)
 
   if (NULL == (MergedGal[MergedNr].MfiltGnedin = malloc(sizeof(double) * MAXSNAPS)))
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate MfiltGnedin in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate MfiltGnedin in model_mergers.c.", sizeof(double)*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
   if (NULL == (MergedGal[MergedNr].MfiltSobacchi = malloc(sizeof(double) * MAXSNAPS)))
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate MfiltSobacchi in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate MfiltSobacchi in model_mergers.c.", sizeof(double)*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
+
+ 
+  if (NULL == (MergedGal[MergedNr].EjectedFraction = malloc(sizeof(float) * MAXSNAPS)))
+  {   
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate EjectedFraction in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+  
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
@@ -458,8 +466,21 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].GridPhotons_HeI[j] = 0;    
     MergedGal[MergedNr].GridPhotons_HeII[j] = 0;   
     MergedGal[MergedNr].MfiltGnedin[j] = Gal[p].MfiltGnedin[j];
-    MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j]; 
+    MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
+    MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
   }
+
+  free(Gal[p].GridHistory);
+  free(Gal[p].GridStellarMass);
+  free(Gal[p].GridSFR);
+  free(Gal[p].GridZ);
+  free(Gal[p].GridCentralGalaxyMass);
+  free(Gal[p].GridPhotons_HI);
+  free(Gal[p].GridPhotons_HeI);
+  free(Gal[p].GridPhotons_HeII);
+  free(Gal[p].MfiltGnedin);
+  free(Gal[p].MfiltSobacchi);
+  free(Gal[p].EjectedFraction);
 
   ++MergedNr;
 }

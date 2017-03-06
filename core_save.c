@@ -78,7 +78,9 @@ void save_galaxies(int filenr, int tree)
     {
       if(HaloGal[i].SnapNum == ListOutputSnaps[n])
       { 	        
-	
+
+	if (HaloGal[i].SnapNum < 30)
+		printf("%d\n", HaloGal[i].SnapNum);	
         prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
         write_gridarray(&HaloGal[i], save_fd[n]);
@@ -231,7 +233,12 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   int j; 
   float SFR; 
 
+  ++count;
+
   double SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+
+  
+  
 
   for (j = 0; j < MAXSNAPS; ++j)
   { 
@@ -276,13 +283,13 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
       myfwrite(&g->GridPhotons_HeI[j], sizeof(float), 1, fp);
   }
   free(g->GridPhotons_HeI);
-
+ 
   for (j = 0; j < MAXSNAPS; ++j)
   {  
-      myfwrite(&g->GridPhotons_HeII[j], sizeof(float), 1, fp);
+     myfwrite(&g->GridPhotons_HeII[j], sizeof(float), 1, fp);
   }
   free(g->GridPhotons_HeII);
-
+ 
   for (j = 0; j < MAXSNAPS; ++j)
   {  
       myfwrite(&g->MfiltGnedin[j], sizeof(double), 1, fp);
@@ -290,18 +297,23 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   free(g->MfiltGnedin);
 
   for (j = 0; j < MAXSNAPS; ++j)
-  {  
+  { 
       myfwrite(&g->MfiltSobacchi[j], sizeof(double), 1, fp);   
   }
   free(g->MfiltSobacchi);
 
-  /*
   for (j = 0; j < MAXSNAPS; ++j)
   {  
-      myfwrite(&g->EjectedFraction[j], sizeof(g->EjectedFraction), 1, fp);   
+     myfwrite(&g->EjectedFraction[j], sizeof(float), 1, fp); 
   }
-  free(g->EjectedFraction);
-  */
+  free(g->EjectedFraction); 
+
+  for (j = 0; j < MAXSNAPS; ++j)
+  {  
+     float pad = -999.0;
+     myfwrite(&pad, sizeof(float), 1, fp);  
+  }
+ 
 }
 
 void finalize_galaxy_file(int filenr)
@@ -316,7 +328,7 @@ void finalize_galaxy_file(int filenr)
     // seek to the beginning.
     fseek( save_fd[n], 0, SEEK_SET );
 
-    myfwrite(&Ntrees, sizeof(int), 1, save_fd[n]);
+    myfwrite(&Ntrees, sizeof(int), 1, save_fd[n]); 
     myfwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
     myfwrite(TreeNgals[n], sizeof(int), Ntrees, save_fd[n]);
 
@@ -350,12 +362,12 @@ void save_merged_galaxies(int filenr, int tree)
 
 
   // first update mergeIntoID to point to the correct galaxy in the output  
-    
+   
+  /* 
   for(i = 0; i < MergedNr; i++)
     if(MergedGal[i].mergeIntoID > -1)
       MergedGal[i].mergeIntoID = OutputGalOrder[MergedGal[i].mergeIntoID];    
-  
-
+  */
   // now prepare and write galaxies    
   // only open the file if it is not already open.
   

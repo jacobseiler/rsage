@@ -188,7 +188,7 @@ struct GALAXY
   float *GridPhotons_HeII;
   double *MfiltGnedin;
   double *MfiltSobacchi;
-//  float *EjectedFraction;
+  float *EjectedFraction;
  
 }
 *Gal, *HaloGal, *MergedGal;
@@ -233,7 +233,7 @@ struct GRID_OUTPUT
   double StellarMass;
   double Diffuse;
   double MfiltGnedin;
-  double MfiltSobacchi; 
+
 };
 
 extern int    FirstFile;    // first and last file for processing 

@@ -117,7 +117,7 @@ void init_galaxy(int p, int halonr)
 
   if (NULL == (Gal[p].GridPhotons_HI = malloc(sizeof(float) * MAXSNAPS))) 
   {
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate GridPhotons_HI.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HI.", sizeof(float)*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
@@ -135,22 +135,23 @@ void init_galaxy(int p, int halonr)
 
   if (NULL == (Gal[p].MfiltGnedin = malloc(sizeof(double) * MAXSNAPS)))
   {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltGnedin.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltGnedin.", sizeof(double)*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
   if (NULL == (Gal[p].MfiltSobacchi = malloc(sizeof(double) * MAXSNAPS)))
   {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi.", sizeof(double)*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
- /*
-  if (NULL == (Gal[p].EjectedFraction = malloc(sizeof(Gal[p].EjectedFraction) * MAXSNAPS)))
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi.", sizeof(Gal[p].EjectedFraction)*MAXSNAPS);
+ 
+  if (NULL == (Gal[p].EjectedFraction = malloc(sizeof(float) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate EjectedFraction.", sizeof(float)*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
- */
+  
+
   for (j = 0; j < MAXSNAPS; ++j)
   {
     Gal[p].GridHistory[j] = -1;
@@ -163,7 +164,7 @@ void init_galaxy(int p, int halonr)
     Gal[p].GridPhotons_HeII[j] = 0.0;
     Gal[p].MfiltGnedin[j] = 1.0;
     Gal[p].MfiltSobacchi[j] = 1.0;
-//    Gal[p].EjectedFraction[j] = -1.0;
+    Gal[p].EjectedFraction[j] = -1.0;
   }
  
 }
@@ -294,8 +295,13 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     Gal[p].GridPos = grid_position; 
 
     // NOTE: We use the Snapshot number of the FOF-Halo (i.e. the main halo the galaxy belongs to) because the snapshot number of the galaxy has been shifted by -1. //
-    // This is self-consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. // 
-  
+    // This is self-consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. //
+    if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
+	Gal[p].EjectedFraction[SnapCurr] = 0.0;
+    else 
+        Gal[p].EjectedFraction[SnapCurr] = Gal[p].EjectedMass/(Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass);
+    if (Gal[p].EjectedFraction[SnapCurr] < 0.0 || Gal[p].EjectedFraction[SnapCurr] > 1.0)
+       fprintf(stderr, "Found ejected fraction = %.4e \t p = %d \t Gal[p].EjectedMass = %.4e \t Gal[p].HotGas = %.4e \t Gal[p].ColdGas = %.4e\n\n", Gal[p].EjectedFraction[SnapCurr], p, Gal[p].EjectedMass, Gal[p].HotGas, Gal[p].ColdGas); 
     Gal[p].GridHistory[SnapCurr] = grid_position; // Remember the grid history of the galaxy over the Snapshot range.
     Gal[p].GridStellarMass[SnapCurr] = Gal[p].StellarMass; // Stellar mass at this snapshot.
 
@@ -319,7 +325,6 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     {  
       Gal[p].MfiltSobacchi[SnapCurr] = do_myreionization(centralgal, ZZ[SnapCurr], 1); 
     }
-//    Gal[p].EjectedFraction[SnapCurr] = Gal[p].EjectedMass/(Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass);
 }
 
 // INPUT:
