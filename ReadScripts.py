@@ -2,6 +2,7 @@
 import matplotlib
 matplotlib.use('Agg')
 
+import sys
 import os
 import numpy as np
 import pylab as plt
@@ -18,6 +19,7 @@ from matplotlib.colors import LogNorm
 import time
 from matplotlib.ticker import MultipleLocator
 from os.path import getsize as getFileSize
+from numpy import inf 
 
 def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File, Last_File):
     # Initialize variables.
@@ -65,6 +67,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
     # Open each file in turn and read in the preamble variables and structure.
     print "Reading in files."
     for fnr in xrange(First_File,Last_File+1):
+	
         if (Dot == 1):
             fname = Model_Name+'.'+str(fnr)  # Complete filename
         else:
@@ -82,12 +85,14 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         if (Contain_TreeInfo == 1):
             Ntrees = np.fromfile(fin, np.dtype(np.int32), 1)  # Read number of trees in file
         NtotHalos = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Read number of gals in file.
+	print "offset = %d \t NtotHalos = %d" %(offset, NtotHalos)
         if (Contain_TreeInfo == 1):
             GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
+	
         print ":   Reading N=", NtotHalos, "   \t Objects from file: ", fname
  
         GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
-       
+  
         FileIndexRanges.append((offset,offset+NtotHalos))
         
         # Slice the file array into the global array
@@ -142,7 +147,7 @@ def ReadHalos(DirName, First_File, Last_File):
 
     return Read_SAGE_Objects(DirName, Halo_Desc, 1, 1, First_File, Last_File)
 
-'''
+
 def ReadGals_Post_Processed_SAGE(DirName, First_File, Last_File, MAXSNAPS):
 
     Galdesc_full = [
@@ -215,7 +220,7 @@ def ReadGals_Post_Processed_SAGE(DirName, First_File, Last_File, MAXSNAPS):
 
     return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File), Gal_Desc)
 
-'''
+
        
 def ReadGals_SAGE_Photons(DirName, First_File, Last_File, MAXSNAPS):
 
@@ -274,21 +279,23 @@ def ReadGals_SAGE_Photons(DirName, First_File, Last_File, MAXSNAPS):
          ('GridZ', (np.float32, MAXSNAPS)),
          ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
          ('Photons_HI', (np.float32, MAXSNAPS)),
-         ('Photons_HeI', (np.float32, MAXSNAPS)),
-         ('Photons_HeII', (np.float32, MAXSNAPS)),
+         ('Photons_HeI', (np.float32, MAXSNAPS)), 
+         ('Photons_HeII', (np.float32, MAXSNAPS)), 
          ('MfiltGnedin', (np.dtype('d'), MAXSNAPS)),
-         ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS))
+         ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
+         ('EjectedFraction', (np.float32, MAXSNAPS)), 
+         ('Pad', (np.float32, MAXSNAPS)) 
          ]
                              
     print "Reading in SAGE files (Post STARBURST)."
-
+    print len(Galdesc_full)
     names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
     formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
-    Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True) 
-    
+    Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)  
+ 
     return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File), Gal_Desc)
 
-'''
+
 def ReadGals_STARBURST_SAGE(DirName, First_File, Last_File, MAXSNAPS):
 
     Galdesc_full = [
@@ -362,7 +369,7 @@ def ReadGals_STARBURST_SAGE(DirName, First_File, Last_File, MAXSNAPS):
     
     return (Read_SAGE_Objects(DirName, Gal_Desc, 0, 0, First_File, Last_File), Gal_Desc)
 
-'''
+
 def Join_Arrays(Array1, Array2, Desc):
     
     print "Joining arrays."

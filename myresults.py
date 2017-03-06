@@ -971,7 +971,7 @@ def PhotonsVsStellarMass(Simulation, SnapListZ, Mass, Photons):
 
 def fesc(simulation, SnapListZ, mass, fesc):
 
-    Output_Tag = "fesc_mass_fiducial"
+    Output_Tag = "fesc_mass"
 
     dilute = 1e100
     ax = plt.subplot(111)
@@ -1276,7 +1276,7 @@ def SFR_Hist(Simulation, Redshift, SFR, MySim_Len):
     ## Plot Parameters ##
     binwidth = 0.1
     Observations = 1
-    Output_Tag = "SFR_Hist_verylowSF"
+    Output_Tag = "SFR_Hist_reionmine"
     Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probaility histogram.
     errorwidth = 2
     delta = 0.05
@@ -1285,7 +1285,7 @@ def SFR_Hist(Simulation, Redshift, SFR, MySim_Len):
 
     ## Normalization and Titles for MySim ##
     for i in xrange(0, MySim_Len): 
-        tmp = 'Noreion: z = %.2f' %(Redshift[i])
+        tmp = 'Noreion reionmine MH Beta: z = %.2f' %(Redshift[i])
         title.append(tmp)
 
         AllVars.Set_Params_Mysim()
@@ -1296,7 +1296,7 @@ def SFR_Hist(Simulation, Redshift, SFR, MySim_Len):
 
     ## Normalization and Titles for MySim2 ## 
     for i in xrange(0, MySim_Len): 
-        tmp = 'Reionmine: z = %.2f' %(Redshift[i])
+        tmp = 'Noreion reionmine fesc = 0.15: z = %.2f' %(Redshift[i])
         title.append(tmp)
 
         AllVars.Set_Params_Mysim()
@@ -1480,6 +1480,30 @@ def sSFR_Hist(Simulation, Redshift, sSFR, MySim_Len):
     plt.close()
 ##
 
+def EjectedFracVsStellarMass(Simulation, Redshift, mass, EjectedFraction, MySim_Len):
+
+    print "Ejected Mass vs Stellar Mass"
+    title = []
+    Output_Tag = "EjectedFrac"
+
+    print "mass =", mass
+    print "EjectedFraction =", EjectedFraction
+    ## Normalization and Titles for MySim2 ## 
+    for i in xrange(0, MySim_Len): 
+        tmp = 'Reionmine: z = %.2f' %(Redshift[i])
+ 
+    	plt.scatter(mass[i], EjectedFraction[i], label = tmp, color = colours[i])
+
+    #plt.axis([0, 10, 0, 1.0])
+    leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize('medium')
+
+    outputFile = './' + Output_Tag + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
 
 
 ##
@@ -1530,8 +1554,8 @@ if (Simulation == 1 or Simulation == 2):
 
     # 1024
 
-    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/march/noreion_reionmine_MH_pos_z5.000', 0, 124, 101)
-    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/march/noreion_reionmine_MH_pos_MergedGalaxies', 0, 124, 101)
+    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_z5.000', 0, 124, 101)
+    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_MergedGalaxies', 0, 124, 101)
 
     G_MySim = ReadScripts.Join_Arrays(GG_MySim, G_Merged_MySim, Gal_Desc)
 
@@ -1546,17 +1570,17 @@ if (Simulation == 1 or Simulation == 2):
 
 
     # 1024
-    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/march/noreion_reionmine_z5.000', 0, 124, 101)
-    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/march/noreion_reionmine_MergedGalaxies', 0, 124, 101)
+    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_z5.000', 0, 124, 101)
+    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_MergedGalaxies', 0, 124, 101)
     G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
 
-    SnapList_MySim = np.arange(22,78) 
+    #SnapList_MySim = np.arange(22,78) 
 
     #SnapList_MySim = [30, 35, 40, 50, 60, 70, 78]
     #SnapList_MySim = [99, 78, 64, 51, 43, 37]
-    # Snapshots = z [5, 6, 7, 8, 9, 10] are [8, 64, 51, 43, 37] (used for UVLF) 
+    # Snapshots = z [5, 6, 7, 8, 9, 10] are [99, 78, 64, 51, 43, 37] (used for UVLF) 
 
-    #SnapList_MySim = [78, 64,51]
+    SnapList_MySim = [78, 64,51]
     # Snapshots for z = [6, 7, 8] are [78, 64, 51]
     # Snapshots for z = [7.23, 6.69] are [60, 67] (used for LyAlpha Luminosity)
 
@@ -1627,6 +1651,11 @@ MUV_MySim = []
 
 MUV_Obs_MySim = []
 mean_A_MySim = []
+
+EjectedFraction_MySim = []
+
+fesc_local_MySim = []
+
 ## MySim Model 2 ##
 
 w_G_MySim2 = []
@@ -1657,7 +1686,7 @@ MUV_MySim2 = []
 MUV_Obs_MySim2 = []
 mean_A_MySim2 = []
 
-fesc_Kimm_MySim2 = []
+fesc_local_MySim2 = []
 
 ## Millennium Initialization ##
 
@@ -1745,7 +1774,6 @@ if (Simulation == 1 or Simulation == 2):
 
       HaloPart_MySim.append(G_MySim.Len[w_G_MySim[i]])
       
-
       Metallicity_Tremonti_G_MySim.append(np.log10(G_MySim.GridZ[w_G_MySim[i], SnapList_MySim[i]] / 0.02) + 9.0)
 
       print "There were %d galaxies for snapshot %d (Redshift %.4f) for model1." %(len(w_G_MySim[i]), SnapList_MySim[i], AllVars.SnapZ[SnapList_MySim[i]])
@@ -1792,7 +1820,7 @@ if (Simulation == 1 or Simulation == 2):
 	      f_nu = AllVars.spectralflux_wavelength_to_frequency(10**Flux_Observed, 1600) # Spectral flux density in Janksy.
 	      MUV_Obs_MySim.append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
-
+      EjectedFraction_MySim.append(G_MySim.EjectedFraction[w_G_MySim[i], SnapList_MySim[i]])
 
       ## Model 2 Calculations ##
 
@@ -1832,7 +1860,7 @@ if (Simulation == 1 or Simulation == 2):
 
       LymanAlpha_MySim2.append(np.log10(0.68*(1.0-fesc_MySim2)*fesc_LymanAlpha_MySim2 * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_G_MySim2[i]) 
 
-      fesc_Kimm_MySim2.append(10**(1.00 - 0.2 * mass_Central_MySim2[i]))
+      fesc_local_MySim2.append(10**(1.00 - 0.2 * mass_Central_MySim2[i]))
 
       print "Calculating intrinsic Mag"
       LUV_MySim2.append((SFR_G_MySim2[i] + 39.927)) # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
@@ -1944,10 +1972,10 @@ print sSFR_G_MySim
 print "Minimum sSFR is %.4e and maximum sSFR is %.4e (log Msun)" %(sSFR_min_MySim, sSFR_max_MySim)
 
 #print "For 512 model:"
-HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, HaloPart_Low, HaloPart_High)
+#HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, HaloPart_Low, HaloPart_High)
 
 #print "For 1024 model:"
-HaloPartStellarMass_MySim2 = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim2, mass_G_MySim2, HaloPart_Low, HaloPart_High)
+#HaloPartStellarMass_MySim2 = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim2, mass_G_MySim2, HaloPart_Low, HaloPart_High)
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
@@ -1956,15 +1984,16 @@ HaloPartStellarMass_MySim2 = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_M
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
 #CentralGalaxy_Projection(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_MySim2), (Photons_G_MySim + Photons_G_MySim2))
-FilteringMass(Simulation, SnapListZ_MySim, MfiltGnedin_MySim2, MfiltSobacchi_MySim, MfiltSobacchi_MySim2, mass_Central_MySim, mass_Central_MySim2, len(SnapList_MySim))
+#FilteringMass(Simulation, SnapListZ_MySim, MfiltGnedin_MySim2, MfiltSobacchi_MySim, MfiltSobacchi_MySim2, mass_Central_MySim, mass_Central_MySim2, len(SnapList_MySim))
 #PlotScripts.Plot_Scatter_SixPanel((mass_Central_model1 + mass_Central_model1 + mass_Central_model3), (Photons_Central_model1 + Photons_G_model1 + Photons_G_model3), 1, 2, ['Halos', 'Fiducial Gal', 'NoSN Gal'], [min_mass_H, max_mass_H, -2, 1], [r'Log Halo Mass [$M_{\odot}$]', r'Log (Halo/Galaxy Ionizing Photons) [s$^{-1}$]'], 2, SnapListZ, 'CentralStellar_Photons_Difference_Fiducial_NoSN', '.png')
 #StarFormationRate(Simulation, SnapListZ_MySim, SFR_G_MySim, SFR_G_MySim2)
 #PhotonsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
 #LymanAlphaLF(Simulation, SnapListZ_MySim, LymanAlpha_MySim2, len(SnapList_MySim))
 #PhotonsVsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
-#fesc(Simulation, SnapListZ_MySim, mass_Central_MySim2, fesc_Kimm_MySim2)
+fesc(Simulation, SnapListZ_MySim, mass_Central_MySim2, fesc_Kimm_MySim2)
 #UVLF(Simulation, SnapListZ, (MUV_MySim), (MUV_Obs_MySim), len(SnapList_MySim), r"Recursive $SAGE, f_\mathrm{esc} \: \propto \: M_H^{-\beta}$", "MH_pos_UVLF")
 #UVLF(Simulation, SnapListZ, (MUV_MySim2), (MUV_Obs_MySim2), len(SnapList_MySim), r"Recursive $SAGE, f_\mathrm{esc} = 0.10$", "fesc0.10_UVLF")
-#SFR_Hist(Simulation, SnapListZ, (SFR_G_MySim), len(SnapList_MySim)) 
+#SFR_Hist(Simulation, SnapListZ, (SFR_G_MySim + SFR_G_MySim2), len(SnapList_MySim)) 
 #SFRVsStellarMass(Simulation, SnapListZ, mass_G_MySim, SFR_G_MySim)
 #sSFR_Hist(Simulation, SnapListZ, (sSFR_G_MySim), len(SnapList_MySim)) 
+#EjectedFracVsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim, EjectedFraction_MySim, len(SnapList_MySim))

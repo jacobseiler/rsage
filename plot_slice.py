@@ -19,6 +19,7 @@ from matplotlib.colors import LogNorm
 import time
 from scipy.ndimage.filters import generic_filter as gf
 from matplotlib.ticker import MultipleLocator
+import matplotlib.gridspec as gridspec
 
 from astropy import units as u
 from astropy import cosmology
@@ -426,7 +427,7 @@ def plot_photo_mean(ZZ, Photo_Mean, Photo_Std, labels, OutputDir, output_tag):
 	ax = plt.subplot(111)
 	for p in xrange(0, len(Photo_Mean)):
 
-		plt.scatter(ZZ[0:len(Photo_Mean[p])], np.log10(Photo_Mean[p]), color = colours[p], marker = markers[p], label = labels[p])
+		plt.scatter(ZZ[0:len(Photo_Mean[p])], np.log10(Photo_Mean[p]), color = colors[p], marker = markers[p], label = labels[p])
 
 	plt.xlabel(r"$\mathrm{z}$", size = label_size + extra_size)
         plt.ylabel(r"$\mathrm{log}_{10} \: \langle \Gamma_\mathrm{HI}\rangle \: \: [\mathrm{s}^{-1}]$")
@@ -1701,43 +1702,178 @@ def plot_combined_global_nion(ZZ, total_nion, volume_frac, labels, OutputDir, ou
 
 ##########
 
+
+def plot_nine_panel_slices(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, model_tags, OutputDir, output_tag):	
+
+
+	fig = plt.figure(figsize = (16,12))
+	gs1 = gridspec.GridSpec(3,3)
+	gs1.update(wspace=0.00, hspace=0.0) # set the spacing between axes. 
+	for i in xrange(1, 9 + 1):
+        	ax = plt.subplot(gs1[i-1]) 
+
+		model_index = int((i-1) % 3) # Every 3rd step it flips back to the first model.
+		count_index = int(floor((i-1)/3)) # Every 3rd step it increments to the next fraction we're plotting.	
+		snapshot_index = MC_Snaps[model_index, count_index] # Corresponding snapshot that we are loading for this model and HI fraction.
+		
+		print "Model index = %d \t count_index = %d \t Snapshot_index = %d" %(model_index, count_index, snapshot_index)
+		if (snapshot_index < 10):
+        		number_tag_anne = '_0%d' %(snapshot_index)
+        		number_tag_mine = '_00%d' %(snapshot_index)
+        	else:
+        		number_tag_anne = '_%d' %(snapshot_index)
+	        	number_tag_mine = '_0%d' %(snapshot_index)
+
+	
+		if snapshot_index < 0 or ZZ[snapshot_index] < 5 or ZZ[snapshot_index] > 20 or snapshot_index > 150:
+			ionized_cells = np.zeros((GridSizes[model_index], GridSizes[model_index], GridSizes[model_index]))
+		else:	
+			fname = filepaths[model_index] + number_tag_anne 
+			print
+			print "Loading in data for %s Model from file %s" %(model_tags[model_index], fname)
+			fd = open(fname, 'rb')
+			ionized_cells = np.fromfile(fd, count = GridSizes[model_index]*GridSizes[model_index]*GridSizes[model_index], dtype = np.float64)	
+			ionized_cells.shape = (GridSizes[model_index], GridSizes[model_index], GridSizes[model_index])
+			fd.close()
+
+			ionized_cells = 1 - ionized_cells
+
+		im = ax.imshow(ionized_cells[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='none', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = 0, vmax = 1, cmap = 'afmhot_r')
+				    
+		ax.set_xlim([0.0, BoxSize]) 
+		ax.set_ylim([0.0, BoxSize])
+
+		if (i == 1 or i == 2 or i == 3):
+			title = r"%s" %(model_tags[i-1])
+			ax.set_title(title, fontsize = legend_size + 6)
+
+		if (i == 1 or i == 4 or i == 7):
+			tmp = (r"$x_\mathrm{HI} = %.3f$") %(fractions_HI[count_index])
+			ax.text(-0.65,0.5, tmp, transform = ax.transAxes, fontsize = legend_size + 6)
+
+		frame1 = plt.gca()
+		frame1.axes.get_xaxis().set_visible(False)
+		frame1.axes.get_yaxis().set_visible(False)
+		ax.set_aspect('equal')
+	
+    	fig.subplots_adjust(right = None, hspace = 0.0, wspace = 0.0)
+
+	outputFile = OutputDir + output_tag + output_format 
+	plt.savefig(outputFile)  # Save the figure
+	print 'Saved file to', outputFile
+			
+	plt.close()
+
+##########
+
+def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, model_tags, OutputDir, output_tag):	
+
+
+	fig = plt.figure(figsize = (16,12))
+	gs1 = gridspec.GridSpec(3,3)
+	gs1.update(wspace=0.00, hspace=0.0) # set the spacing between axes. 
+	for i in xrange(1, 9 + 1):
+        	ax = plt.subplot(gs1[i-1]) 
+
+		model_index = int((i-1) % 3) # Every 3rd step it flips back to the first model.
+		count_index = int(floor((i-1)/3)) # Every 3rd step it increments to the next fraction we're plotting.	
+		snapshot_index = MC_Snaps[model_index, count_index] # Corresponding snapshot that we are loading for this model and HI fraction.
+		
+		if (snapshot_index < 10):
+        		number_tag_anne = '_0%d' %(snapshot_index)
+        		number_tag_mine = '_00%d' %(snapshot_index)
+        	else:
+        		number_tag_anne = '_%d' %(snapshot_index)
+	        	number_tag_mine = '_0%d' %(snapshot_index)
+
+	
+		if snapshot_index < 0 or snapshot_index > 150:
+			ionized_cells = np.zeros((GridSizes[model_index], GridSizes[model_index], GridSizes[model_index]))
+		elif ZZ[snapshot_index] < 5 or ZZ[snapshot_index] > 20 :	
+			ionized_cells = np.zeros((GridSizes[model_index], GridSizes[model_index], GridSizes[model_index]))
+		else:
+			fname = filepaths[model_index] + number_tag_anne 
+			print
+			print "Loading in data for %s Model from file %s" %(model_tags[model_index], fname)
+			fd = open(fname, 'rb')
+			ionized_cells = np.fromfile(fd, count = GridSizes[model_index]*GridSizes[model_index]*GridSizes[model_index], dtype = np.float64)	
+			ionized_cells.shape = (GridSizes[model_index], GridSizes[model_index], GridSizes[model_index])
+			fd.close()
+
+		print np.amax(np.log10(ionized_cells[:,:,cut_slice:cut_slice+1].mean(axis = -1)))
+		im = ax.imshow(np.log10(ionized_cells[:,:,cut_slice:cut_slice+1].mean(axis = -1)), interpolation='none', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = -15, vmax = -8, cmap = 'Purples')
+				    
+		ax.set_xlim([0.0, BoxSize]) 
+		ax.set_ylim([0.0, BoxSize])
+
+		if (i == 1 or i == 2 or i == 3):
+			title = r"%s" %(model_tags[i-1])
+			ax.set_title(title, fontsize = legend_size + 6)
+
+		if (i == 1 or i == 4 or i == 7):
+			tmp = (r"$x_\mathrm{HI} = %.3f$") %(fractions_HI[count_index])
+			ax.text(-0.65,0.5, tmp, transform = ax.transAxes, fontsize = legend_size + 6)
+
+		frame1 = plt.gca()
+		frame1.axes.get_xaxis().set_visible(False)
+		frame1.axes.get_yaxis().set_visible(False)
+		ax.set_aspect('equal')
+
+
+	cax = fig.add_axes([0.9, 0.1, 0.03, 0.8])
+	cbar = fig.colorbar(im, cax=cax, ticks = np.arange(-15, -7))
+	cbar.ax.set_ylabel(r"$\log_{10} \: \Gamma \: [\mathrm{s}^{-1}]$",  rotation = 90, fontsize = legend_size)		
+	cbar.ax.tick_params(labelsize = legend_size - 2)
+
+	outputFile = OutputDir + output_tag + output_format 
+	plt.savefig(outputFile)  # Save the figure
+	print 'Saved file to', outputFile
+			
+	plt.close()
+
+##########
+
 if __name__ == '__main__':
 
     import os
  
-    output_tags = ["fesc0.10", "MHpos", "MHneg"]
-    model_tags = [r"$f_\mathrm{esc} = 0.15$", r"$f_\mathrm{esc} \: \propto \: M_H^{\beta}$", r"$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$"]
+    output_tags = ["fesc0.20", "MHneg", "Ejected"]
+    model_tags = [r"$N = 128^3$", r"$N = 64^3$", r"$N = 256$"]
+#    model_tags = [r"$f_\mathrm{esc} = 0.25$", r"$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Ejected}$"]
     #model_tags = [r"$f_\mathrm{esc} = 0.15$", r"$\mathrm{Constant \: Slope}$", r"$\mathrm{Steep \: Slope}$"] 
 
     print "Model 1 is %s." %(output_tags[0])
     print "Model 2 is %s." %(output_tags[1])
 
-    model = 'HaloComp'
+    model = 'GridCompClean'
     GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 128
+    GridSize_model2 = 64
+    GridSize_model3 = 256
 
 
     OutputDir = "./ionization_plots/" + model + '/'
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir) 
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_fesc0.15_DRAGONSPhotHI"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_MH_pos"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_january/XHII_noreion_MH_neg"
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_nionHI"
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.25"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_grid64_fesc0.25"
+    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_grid256_fesc0.25"
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_fesc0.20_nionHI"
     #filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/February_input/Galaxies_noreion_SF0.01_z5.000_slope_nionHI"
     #filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/February_input/Galaxies_noreion_SF0.01_z5.000_supersteepslope_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/February_input/Galaxies_noreion_z5.000_alpha-5.62beta0.43_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/February_input/Galaxies_noreion_z5.000_alpha3.62beta-0.43_nionHI"
+    #filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_MH_alpha3.62beta-0.43_nionHI"
+    #filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_Ejected_alpha0.001beta0.999_nionHI"
+
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_grid64_z5.000_fesc0.25_nionHI"
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_grid256_z5.000_fesc0.25_nionHI"
     filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/densfield_output/512/256/snap_50.dens.dat"
     filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/densfield_output/512/256/snap_50.dens.dat" 
     filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/densfield_output/512/256/snap_50.dens.dat" 
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_fesc0.15_DRAGONSPhotHI"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_steepslope"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_january/PhotHI_noreion_steepslope"
-    filepath_count_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_grid256_z5.000_fesc0.15_count" 
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.25"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_grid64_fesc0.25"
+    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_grid256_fesc0.25"
+    filepath_count_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_count" 
     filepath_count_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_count" 
-    filepath_count_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_count" 
+    filepath_count_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_grid256_z5.000_fesc0.15_count" 
     
     snaplist = np.arange(24, 78)
 
@@ -1806,14 +1942,14 @@ if __name__ == '__main__':
     for i in xrange(0, len(MC_snaps)):
 	MC_ZZ[i] = AllVars.SnapZ[MC_snaps[i]]
 
-    #fractions_HI = [0.75, 0.50, 0.25] 
-    #delta_HI = [0.03, 0.06, 0.06]
-
-    fractions_HI = [0.90, 0.05] 
+    fractions_HI = [0.90, 0.05]
     delta_HI = [0.01, 0.03]
 
+    #fractions_HI = [0.75, 0.50, 0.25] 
+    #delta_HI = [0.01, 0.03, 0.05]
 
     MC_ZZ = np.empty((3, len(fractions_HI)))
+    MC_Snaps = np.empty((3, len(fractions_HI)))
 
     do_MC = 0
     count_MC_model1 = 0
@@ -2042,18 +2178,21 @@ if __name__ == '__main__':
 	
 	if ((calculate_volume_frac(ionized_cells_model1, GridSize_model1) < (fractions_HI[count_MC_model1 % len(fractions_HI)]) + delta_HI[count_MC_model1 % len(fractions_HI)]) and (calculate_volume_frac(ionized_cells_model1, GridSize_model1) > (fractions_HI[count_MC_model1 % len(fractions_HI)]) - delta_HI[count_MC_model1 % len(fractions_HI)])):
 		MC_ZZ[0,count_MC_model1] = ZZ[i]
+		MC_Snaps[0, count_MC_model1] = i
 		print "Model1 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model1], ZZ[i])
 		do_MC = 1
 		count_MC_model1 += 1
 		
 	if (calculate_volume_frac(ionized_cells_model2, GridSize_model2) < (fractions_HI[count_MC_model2 % len(fractions_HI)]) + delta_HI[count_MC_model2 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model2, GridSize_model2) > (fractions_HI[count_MC_model2 % len(fractions_HI)]) - delta_HI[count_MC_model2 % len(fractions_HI)]):
 		MC_ZZ[1,count_MC_model2] = ZZ[i]
+		MC_Snaps[1, count_MC_model2] = i
 		print "Model2 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model2], ZZ[i])
 		do_MC = 1
 		count_MC_model2 += 1
 
 	if (calculate_volume_frac(ionized_cells_model3, GridSize_model3) < (fractions_HI[count_MC_model3 % len(fractions_HI)]) + delta_HI[count_MC_model3 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model3, GridSize_model3) > (fractions_HI[count_MC_model3 % len(fractions_HI)]) - delta_HI[count_MC_model3 % len(fractions_HI)]):
 		MC_ZZ[2,count_MC_model3] = ZZ[i]
+		MC_Snaps[2, count_MC_model3] = i
 		print "Model3 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model3], ZZ[i])
 		do_MC = 1
 		count_MC_model3 += 1
@@ -2119,7 +2258,7 @@ if __name__ == '__main__':
 
     #plot_bubble_MC(MC_ZZ, fractions_HI, model_tags, output_tags, [GridSize_model1, GridSize_model2, GridSize_model3], OutputDir, "BubbleSizes")
     plot_global_frac(ZZ, [mass_frac_model1, mass_frac_model2, mass_frac_model3], [volume_frac_model1, volume_frac_model2, volume_frac_model3], MC_ZZ, model_tags, OutputDir, "GlobalFraction_HaloComp")
-    plot_total_nion(ZZ, [nion_total_model1, nion_total_model2, nion_total_model3], model_tags, OutputDir, "Nion_HaloComp")
+    plot_total_nion(ZZ, [nion_total_model1, nion_total_model2, nion_total_model3], model_tags, OutputDir, "Nion_HaloComp_SF0.01_new")
     #photon_baryon(lowerZ, upperZ, ZZ, [nion_total_model1, nion_total_model2], Hubble_h, OB, Y, model_tags, OutputDir, "nion_total2")
     #analytic_HII(nion_total_model1, ZZ, upperZ, snaplist, OutputDir, "Q_Analytic")	
     #plot_photo_mean(ZZ, [Photo_Mean_model1, Photo_Mean_model2], [Photo_Std_model1, Photo_Std_model2], model_tags, OutputDir, "Mean_Photo")
@@ -2130,4 +2269,6 @@ if __name__ == '__main__':
     plot_deltat_deltaN(ZZ, [nion_total_model1, nion_total_model2, nion_total_model3], model_tags, OutputDir, "NionSpeed_HaloComp")
     #plot_combined_global_nion(ZZ, [nion_total_model1, nion_total_model2, nion_total_model3], [volume_frac_model1, volume_frac_model2, volume_frac_model3], model_tags, OutputDir, "Combined")
 
+    #plot_nine_panel_slices(ZZ, [filepath_model1, filepath_model2, filepath_model3], [GridSize_model1, GridSize_model2, GridSize_model3], MC_Snaps, fractions_HI, model_tags, OutputDir, "9PanelSlices")
+    #plot_nine_panel_photHI(ZZ, [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3], [GridSize_model1, GridSize_model2, GridSize_model3], MC_Snaps, fractions_HI, model_tags, OutputDir, "9PanelSlices_PhotHI")
     print "t_BigBang = %.4e Gyr.  t(z = 6) = %.4f Gyr" %(t_BigBang, cosmo.lookback_time(6).value)

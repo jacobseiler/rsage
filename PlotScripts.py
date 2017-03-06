@@ -949,7 +949,3 @@ def Plot_HeatMap_SixPanel(Data_x, Data_y, Difference, Multiple_Scatter, Labels_G
     plt.close()
 
 #####
-
-
-
-
