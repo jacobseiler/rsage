@@ -133,3 +133,4 @@ double alpha;
 double beta;
 double kappa;
 double delta;
+int HaloPartCut;

@@ -34,7 +34,7 @@ void save_grid(int GridNr)
   {
     if (fescPrescription == 0)
     {
-      sprintf(name_HI, "%s/Galaxies_%s_fesc%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      sprintf(name_HI, "%s/Galaxies_%s_fesc%.2f_HaloPartCut%d_nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, tag, (NGrid - 1) - GridNr); 
       sprintf(name_HeI, "%s/Galaxies_%s_fesc%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
       sprintf(name_HeII, "%s/Galaxies_%s_fesc%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
     } else if (fescPrescription == 1)

@@ -120,7 +120,7 @@ struct GALAXY_GRID
   double *MfiltGnedin;
   double *MfiltSobacchi;
   float *EjectedFraction;
-  float *Pad;
+  int *LenHistory; 
 }*GalGrid;
 
 struct GRID
@@ -300,4 +300,5 @@ extern double alpha;
 extern double beta;
 extern double kappa;
 extern double delta;
+extern int HaloPartCut;
 #endif

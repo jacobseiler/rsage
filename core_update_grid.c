@@ -28,7 +28,7 @@ void update_grid_properties(int p, int merged, int GridNr)
     if (i > ListOutputGrid[GridNr]) break; // If the current snapshot redshift is lower than an output redshift, proceed to next one.
 
     //These are instantaneous properties measured at a specific redshift. //
-    if((i == ListOutputGrid[GridNr]) && (GalGrid[p].StellarMass[i] > 0.0) & (GalGrid[p].SFR[i] > 0.0) & (GalGrid[p].CentralGalaxyMass[i] > 0.0)) // Only want to take those galaxies with a non-zero stellar mass (they actually exist and are evolving).
+    if((i == ListOutputGrid[GridNr]) && (GalGrid[p].StellarMass[i] > 0.0) & (GalGrid[p].SFR[i] > 0.0) & (GalGrid[p].CentralGalaxyMass[i] > 0.0) & (GalGrid[p].LenHistory[i] > HaloPartCut)) // Only want to take those galaxies with a non-zero stellar mass (they actually exist and are evolving).
     {
 	
       Grid[grid_position].Sfr += GalGrid[p].SFR[i];
