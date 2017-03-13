@@ -72,6 +72,7 @@ int main(int argc, char **argv)
 
   struct stat filestatus;
   FILE *fd;
+ 
   
 #ifdef MPI
   MPI_Init(&argc, &argv);

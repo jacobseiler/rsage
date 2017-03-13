@@ -189,6 +189,7 @@ struct GALAXY
   double *MfiltGnedin;
   double *MfiltSobacchi;
   float *EjectedFraction;
+  int *LenHistory;
  
 }
 *Gal, *HaloGal, *MergedGal;

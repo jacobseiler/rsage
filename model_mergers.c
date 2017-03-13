@@ -382,73 +382,77 @@ void add_galaxy_to_merger_list(int p)
   MergedGal[MergedNr].infallVvir = Gal[p].infallVvir;
   MergedGal[MergedNr].infallVmax = Gal[p].infallVmax;
 
-  if (NULL == (MergedGal[MergedNr].GridHistory = malloc(sizeof(int) * MAXSNAPS))) 
+  if (NULL == (MergedGal[MergedNr].GridHistory = malloc(sizeof(*(MergedGal[MergedNr].GridHistory)) * MAXSNAPS))) 
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate GridHistory in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridHistory in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridHistory))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].GridStellarMass = malloc(sizeof(float) * MAXSNAPS))) 
+  if (NULL == (MergedGal[MergedNr].GridStellarMass = malloc(sizeof(*(MergedGal[MergedNr].GridStellarMass)) * MAXSNAPS))) 
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate GridStellarMass in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridStellarMass in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridStellarMass))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].GridSFR = malloc(sizeof(float) * MAXSNAPS))) 
+  if (NULL == (MergedGal[MergedNr].GridSFR = malloc(sizeof(*(MergedGal[MergedNr].GridSFR)) * MAXSNAPS))) 
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate GridSFR in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridSFR))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].GridZ = malloc(sizeof(float) * MAXSNAPS))) 
+  if (NULL == (MergedGal[MergedNr].GridZ = malloc(sizeof(*(MergedGal[MergedNr].GridZ)) * MAXSNAPS))) 
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate GridZ in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridZ in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridZ))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].GridCentralGalaxyMass = malloc(sizeof(float) * MAXSNAPS))) 
+  if (NULL == (MergedGal[MergedNr].GridCentralGalaxyMass = malloc(sizeof(*(MergedGal[MergedNr].GridCentralGalaxyMass)) * MAXSNAPS))) 
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate GridCentralGalaxyMass in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridCentralGalaxyMass in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridCentralGalaxyMass))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].GridPhotons_HI = malloc(sizeof(float) * MAXSNAPS))) 
+  if (NULL == (MergedGal[MergedNr].GridPhotons_HI = malloc(sizeof(*(MergedGal[MergedNr].GridPhotons_HI)) * MAXSNAPS))) 
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate GridPhotons_HI in model_Mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HI in model_Mergers.c.", sizeof(*(MergedGal[MergedNr].GridPhotons_HI))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].GridPhotons_HeI = malloc(sizeof(float) * MAXSNAPS))) 
+  if (NULL == (MergedGal[MergedNr].GridPhotons_HeI = malloc(sizeof(*(MergedGal[MergedNr].GridPhotons_HeI)) * MAXSNAPS))) 
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate GridPhotons_HeI in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HeI in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridPhotons_HeI))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].GridPhotons_HeII = malloc(sizeof(float) * MAXSNAPS))) 
+  if (NULL == (MergedGal[MergedNr].GridPhotons_HeII = malloc(sizeof(*(MergedGal[MergedNr].GridPhotons_HeII)) * MAXSNAPS))) 
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate GridPhotons_HeII in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HeII in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridPhotons_HeII))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].MfiltGnedin = malloc(sizeof(double) * MAXSNAPS)))
+  if (NULL == (MergedGal[MergedNr].MfiltGnedin = malloc(sizeof(*(MergedGal[MergedNr].MfiltGnedin)) * MAXSNAPS)))
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate MfiltGnedin in model_mergers.c.", sizeof(double)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltGnedin in model_mergers.c.", sizeof(*(MergedGal[MergedNr].MfiltGnedin))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].MfiltSobacchi = malloc(sizeof(double) * MAXSNAPS)))
+  if (NULL == (MergedGal[MergedNr].MfiltSobacchi = malloc(sizeof(*(MergedGal[MergedNr].MfiltSobacchi)) * MAXSNAPS)))
   {   
-    fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate MfiltSobacchi in model_mergers.c.", sizeof(double)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi in model_mergers.c.", sizeof(*(MergedGal[MergedNr].MfiltSobacchi))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
-
  
-  if (NULL == (MergedGal[MergedNr].EjectedFraction = malloc(sizeof(float) * MAXSNAPS)))
+  if (NULL == (MergedGal[MergedNr].EjectedFraction = malloc(sizeof(*(MergedGal[MergedNr].EjectedFraction)) * MAXSNAPS)))
   {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate EjectedFraction in model_mergers.c.", sizeof(float)*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate EjectedFraction in model_mergers.c.", sizeof(*(MergedGal[MergedNr].EjectedFraction))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
   
+  if (NULL == (MergedGal[MergedNr].LenHistory = malloc(sizeof(*(MergedGal[MergedNr].LenHistory)) * MAXSNAPS)))
+  {   
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate LenHistory in model_mergers.c.", sizeof(*(MergedGal[MergedNr].LenHistory))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
@@ -468,6 +472,7 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].MfiltGnedin[j] = Gal[p].MfiltGnedin[j];
     MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
     MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
+    MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j]; 
   }
 
   free(Gal[p].GridHistory);
@@ -481,6 +486,7 @@ void add_galaxy_to_merger_list(int p)
   free(Gal[p].MfiltGnedin);
   free(Gal[p].MfiltSobacchi);
   free(Gal[p].EjectedFraction);
+  free(Gal[p].LenHistory);
 
   ++MergedNr;
 }

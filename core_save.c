@@ -78,9 +78,6 @@ void save_galaxies(int filenr, int tree)
     {
       if(HaloGal[i].SnapNum == ListOutputSnaps[n])
       { 	        
-
-	if (HaloGal[i].SnapNum < 30)
-		printf("%d\n", HaloGal[i].SnapNum);	
         prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
         write_gridarray(&HaloGal[i], save_fd[n]);
@@ -242,78 +239,77 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 
   for (j = 0; j < MAXSNAPS; ++j)
   { 
-      myfwrite(&g->GridHistory[j], sizeof(int), 1, fp);
-
+      myfwrite(&g->GridHistory[j], sizeof(*(g->GridHistory)), 1, fp);
   }
   free(g->GridHistory);
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
-      myfwrite(&g->GridStellarMass[j], sizeof(float), 1, fp);
+      myfwrite(&g->GridStellarMass[j], sizeof(*(g->GridStellarMass)), 1, fp);
   }
   free(g->GridStellarMass);
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
       SFR = g->GridSFR[j]*SFR_conversion;    
-      myfwrite(&SFR, sizeof(float), 1, fp);
+      myfwrite(&SFR, sizeof(*(g->GridSFR)), 1, fp);
   }
   free(g->GridSFR);
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
-      myfwrite(&g->GridZ[j], sizeof(float), 1, fp);
+      myfwrite(&g->GridZ[j], sizeof(*(g->GridZ)), 1, fp);
   }
   free(g->GridZ);
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
-      myfwrite(&g->GridCentralGalaxyMass[j], sizeof(float), 1, fp);
+      myfwrite(&g->GridCentralGalaxyMass[j], sizeof(*(g->GridCentralGalaxyMass)), 1, fp);
   }
   free(g->GridCentralGalaxyMass);  
 
   for (j = 0; j < MAXSNAPS; ++j)
   { 
-      myfwrite(&g->GridPhotons_HI[j], sizeof(float), 1, fp);
+      myfwrite(&g->GridPhotons_HI[j], sizeof(*(g->GridPhotons_HI)), 1, fp);
   }
   free(g->GridPhotons_HI);
 
   for (j = 0; j < MAXSNAPS; ++j)
   { 
-      myfwrite(&g->GridPhotons_HeI[j], sizeof(float), 1, fp);
+      myfwrite(&g->GridPhotons_HeI[j], sizeof(*(g->GridPhotons_HeI)), 1, fp);
   }
   free(g->GridPhotons_HeI);
  
   for (j = 0; j < MAXSNAPS; ++j)
   {  
-     myfwrite(&g->GridPhotons_HeII[j], sizeof(float), 1, fp);
+     myfwrite(&g->GridPhotons_HeII[j], sizeof(*(g->GridPhotons_HeII)), 1, fp);
   }
   free(g->GridPhotons_HeII);
  
   for (j = 0; j < MAXSNAPS; ++j)
   {  
-      myfwrite(&g->MfiltGnedin[j], sizeof(double), 1, fp);
+      myfwrite(&g->MfiltGnedin[j], sizeof(*(g->MfiltGnedin)), 1, fp);
   }
   free(g->MfiltGnedin);
 
   for (j = 0; j < MAXSNAPS; ++j)
   { 
-      myfwrite(&g->MfiltSobacchi[j], sizeof(double), 1, fp);   
+      myfwrite(&g->MfiltSobacchi[j], sizeof(*(g->MfiltSobacchi)), 1, fp);   
   }
   free(g->MfiltSobacchi);
 
   for (j = 0; j < MAXSNAPS; ++j)
   {  
-     myfwrite(&g->EjectedFraction[j], sizeof(float), 1, fp); 
+     myfwrite(&g->EjectedFraction[j], sizeof(*(g->EjectedFraction)), 1, fp); 
   }
   free(g->EjectedFraction); 
 
   for (j = 0; j < MAXSNAPS; ++j)
   {  
-     float pad = -999.0;
-     myfwrite(&pad, sizeof(float), 1, fp);  
+     myfwrite(&g->LenHistory[j], sizeof(*(g->LenHistory)), 1, fp);  
   }
- 
+  free(g->LenHistory); 
+
 }
 
 void finalize_galaxy_file(int filenr)
