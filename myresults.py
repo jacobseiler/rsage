@@ -45,7 +45,7 @@ colours = ['r', 'b', 'g', 'm', 'c', 'k', 'y']
 markers = ['x', 'o', 'x', 'o', 'D', 's']
 linestyles = ['-', '--', '-.', ':']
 
-Output_Format = ".png"
+Output_Format = ".eps"
 
 def calculate_beta(MUV, z):
 	
@@ -103,7 +103,7 @@ def multiply(n):
 		print "%.4e" %(total)
 	return total
 
-def Calculate_Histogram(Data, Bin_Width, Weights):
+def Calculate_Histogram(Data, Bin_Width, Weights, min_hist=None, max_hist=None):
 
 # This calculates the counts and Bin_Edges for a given set of data.
 
@@ -111,20 +111,29 @@ def Calculate_Histogram(Data, Bin_Width, Weights):
 # Data is an array containing the data to be binned.
 # Bin_Width is the width of the bins.
 # Weights is either 0 or 1.  0: Denotes that the histogram should be a frequency (count) histogram. 1: Denotes that the histogram should be a probability histogram.
+# min_hist: Minimum value that will be binned.  OPTIONAL: If not specified will be given by the minimum of the data - 10 times the binwidth.
+# max_hist: Minimum value that will be binned.  OPTIONAL: If not specified will be given by the maximum of the data - 10 times the binwidth.
+
 
 ## Output ##
 # Counts: The count (either frequency or probability) in each bin.
 # Bin_Edges: The location of the edges of the bins.
 # Bin_Middle: The middle of the bins.
 
-    mi = np.floor(min(Data)) - 10*Bin_Width
-    ma = np.floor(max(Data)) + 10*Bin_Width
-    NB = (ma - mi) / Bin_Width
+    if (min_hist == None): 
+	mi = np.floor(min(Data)) - 10*Bin_Width
+	ma = np.floor(max(Data)) + 10*Bin_Width
+    else:
+	print "EQHTQEIT"
+	mi = min_hist 
+	ma = max_hist 
 
-    print "The maximum of the data is %.4e" %(max(Data))
-    print "The minimum of the data is %.4e" %(min(Data))
+    print "The minimum of the data being binned is %.4e" %(mi)
+    print "The maximum of the data being binned is %.4e" %(ma) 
+	    
+    NB = (ma - mi) / Bin_Width 
 
-    print "The total of the data is %.4e" %(sum(Data))
+#    print "The total of the data being binned is %.4e" %(sum(Data[Data >= mi and Data <= ma]))
 
     if (Weights == 0):
         (counts, Bin_Edges) = np.histogram(Data, range=(mi, ma), bins=NB)
@@ -233,7 +242,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
     Output_Tag = "SMF_MHneg_vs_fiducial"
 
-    Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probaility histogram.
+    Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probability histogram.
     errorwidth = 2
     delta = 0.05
     caps = 5
@@ -292,8 +301,8 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
     plt.axis([6, 11.5, 1e-6, 1e-1])
 
-    ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}}\ (M_{\odot})$')
-    ax.set_ylabel(r'$\Phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')
+    ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}} \:[M_{\odot}]$')
+    ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$')
     ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
 
 ### If we want to put observations on the figure ###
@@ -348,13 +357,13 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
         plt.errorbar(Song_z8[:,0], 10**Song_z8[:,1], yerr= (10**Song_z8[:,1] - 10**Song_z8[:,3], 10**Song_z8[:,2] - 10**Song_z8[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 8', color = 'green')
 
-    leg = plt.legend(loc='lower left', numpoints=1, labelspacing=0.1)
+    leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize('medium')
 
     outputFile = './' + Output_Tag + Output_Format
-    plt.savefig(outputFile)  # Save the figure
+    plt.savefig(outputFile, dpi=1600)  # Save the figure
     print 'Saved file to', outputFile
     plt.close()
  
@@ -969,37 +978,23 @@ def PhotonsVsStellarMass(Simulation, SnapListZ, Mass, Photons):
 
 ##
 
-def fesc(simulation, SnapListZ, mass, fesc):
+def fesc(simulation, SnapListZ, fesc):
 
-    Output_Tag = "fesc_mass"
-
-
-    low_mass = 0
-    high_mass = 10
+    Output_Tag = "fesc_Part100"
 
     ax = plt.subplot(111)
+    avg = []
+    std = []
 
-    bins = np.arange(low_mass,high_mass, binwidth)
-    bins_mid = bins + binwidth/2.0
-    bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.
+    for i in xrange(0, len(SnapListZ)):
+	    avg.append(np.mean(fesc[i]))
+	    std.append(np.std(fesc[i]))
+	    
+    ax.plot(SnapListZ, avg)  
+    ax.fill_between(SnapListZ, np.subtract(avg,std), np.add(avg,std), color = 'r', alpha = 0.5)
 
-    for i in xrange(1, len(mass)):
-	    fesc_sum = [] 
-	    for j in xrange(0, len(bins)-1):
-		w = np.where((mass[i-1] >= bins[j]) & (mass[i-1] < bins[j+1]))[0]
-		if (len(w) != 0):
-			fesc_sum.append(fesc[i-1][w]/len(w))
-		else:
-			fesc_sum.append(nan)
-		
-	    tmp = 'z = %.2f' %(SnapListZ[i])
-	    ax.plot(bins_mid, fesc_sum, color = colours[i], label = tmp) 
-		
-    leg = plt.legend(loc=1, numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize('medium')
-
+    ax.set_xlabel(r'$z$')
+    ax.set_ylabel(r'$f_\mathrm{esc}$')
 
     outputFile = './' + Output_Tag + Output_Format
     plt.savefig(outputFile)  # Save the figure
@@ -1492,34 +1487,120 @@ def EjectedFracVsStellarMass(Simulation, Redshift, mass, EjectedFraction, MySim_
 
     print "Ejected Mass vs Stellar Mass"
     title = []
-    Output_Tag = "EjectedFrac"
+    Output_Tag = "EjectedFrac_MH_10part"
+    ax = plt.subplot(111)
+
+    binwidth = 0.2
+    low_mass = 3
+    high_mass = 14
 
     bins = np.arange(low_mass,high_mass, binwidth)
     bins_mid = bins + binwidth/2.0
     bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.
 
-    for i in xrange(1, len(mass)):
+    print mass
+    print EjectedFraction
+    print bins
+
+    for i in xrange(0, len(Redshift)):
 	    ejected_sum = [] 
 	    for j in xrange(0, len(bins)-1):
-		w = np.where((mass[i-1] >= bins[j]) & (mass[i-1] < bins[j+1]))[0]
+		w = np.where((mass[i] >= bins[j]) & (mass[i] < bins[j+1]))[0]
 		if (len(w) != 0):
-			ejected_sum.append(EjectedFraction[i-1][w]/len(w))
+			ejected_sum.append(np.sum(EjectedFraction[i][w])/len(w))
 		else:
 			ejected_sum.append(nan)
-		
-	    tmp = 'z = %.2f' %(SnapListZ[i])
+	
+	    print "bins_mid", bins_mid
+            print "ejected_sum", ejected_sum	
+	    tmp = 'z = %.2f' %(Redshift[i])
 	    ax.plot(bins_mid, ejected_sum, color = colours[i], label = tmp) 
-		
+	
+    #ax.set_xlabel(r'$\log_{10}\ M_{\mathrm{*}}\ [M_{\odot}]$') 
+    ax.set_xlabel(r'$\log_{10}\ M_{\mathrm{H}}\ [M_{\odot}]$') 
+    ax.set_ylabel(r'$\mathrm{Ejected \: Fraction}$')
+   	
     leg = plt.legend(loc=1, numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize('medium')
+
 
     outputFile = './' + Output_Tag + Output_Format
     plt.savefig(outputFile)  # Save the figure
     print 'Saved file to', outputFile
     plt.close()
 
+    fig = plt.figure()
+    ax = plt.subplot(211)
+
+    Output_Tag = "EjectedFrac_MH_Dist_10Part"
+
+    '''
+    low_mass = 8
+    high_mass = 14
+    binwidth = 0.5
+    mass_edges = np.arange(low_mass, high_mass, binwidth)
+
+    low_fraction = 0
+    high_fraction = 1
+    ejected_edges = np.arange(low_fraction, high_fraction + 0.05, 0.05)
+    
+    H, xedges, yedges = np.histogram2d(mass[3], EjectedFraction[3], bins = (mass_edges, ejected_edges), normed = True)
+    H = H.T
+
+    ax.imshow(H, interpolation='nearest', origin = 'low', extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', cmap = 'Purples')
+    '''
+
+    hb = ax.hexbin(mass[3], EjectedFraction[3], cmap = 'inferno', gridsize = 50)
+    fig.colorbar(hb, ax = ax)
+
+    ax = plt.subplot(212)
+
+    hb = ax.hexbin(mass[3], EjectedFraction[3], cmap = 'inferno', gridsize = 50, bins = 'log')
+    fig.colorbar(hb, ax = ax)
+    outputFile = './' + Output_Tag + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
+
+
+##
+
+def HaloPartCount(Simulation, Redshift, HaloCount, MySim_Len): 
+
+    ax = plt.subplot(111)
+    binwidth = 1
+    Frequency = 0
+
+    Output_Tag = "HaloPartCount"
+
+    for i in xrange(0, len(Redshift)):
+
+        (counts, Bin_Edges, Bin_Middle) = Calculate_Histogram(HaloCount[i], binwidth, Frequency, 0, 200)
+        if (i < MySim_Len):
+            ls = '-'
+        else:
+            ls = '--'
+	label = r"$z = %.2f$" %(Redshift[i])
+        ax.plot(Bin_Middle, counts / 1, colours[i], linestyle = ls, label = label)
+
+    ax.set_yscale('log', nonposy='clip')
+
+    ax.set_xlabel(r'$\mathrm{Number \: Halo \: Particles}$')
+    ax.set_ylabel(r'$\mathrm{Count}$')
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(10))
+
+
+    leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+	t.set_fontsize('medium')
+
+    outputFile = './' + Output_Tag + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
 
 ##
 
@@ -1529,14 +1610,6 @@ Simulation = 1 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kin
 
 AllVars.Set_Constants()
 AllVars.Set_Params_Mysim()
-
-
-binwidth = 0.1
-low_mass = 8
-high_mass = 12
-
-bins = np.arange(low_mass,high_mass+binwidth, binwidth)
-bins_mid = bins + binwidth/2.0
 
 if (Simulation == 0 or Simulation == 2):
     H_Millennium = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/millennium_trees/trees_063', 0, 7)
@@ -1548,7 +1621,6 @@ if (Simulation == 0 or Simulation == 2):
     GG_Millennium2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('./results/millennium_post_processed/noreion_z0.000', 0, 7, 64)
     G_Merged_Millennium2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('./results/millennium_post_processed/noreion_z0.000', 0, 7, 64)
     G_Millennium2 = ReadScripts.Join_Arrays(GG_Millennium2, G_Merged_Millennium2, Gal_Desc)
-
 
     SnapList_Millennium = [15] 
     print "Snapshots analyzing are", SnapList_Millennium
@@ -1569,8 +1641,8 @@ if (Simulation == 1 or Simulation == 2):
 
     # 1024
 
-    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_z5.000', 0, 124, 101)
-    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_MergedGalaxies', 0, 124, 101)
+    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
+    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
 
     G_MySim = ReadScripts.Join_Arrays(GG_MySim, G_Merged_MySim, Gal_Desc)
 
@@ -1585,23 +1657,41 @@ if (Simulation == 1 or Simulation == 2):
 
 
     # 1024
-    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_z5.000', 0, 124, 101)
-    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_MergedGalaxies', 0, 124, 101)
-    G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
+    #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_z5.000', 0, 124, 101)
+    #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_MergedGalaxies', 0, 124, 101)
+    #G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
 
     #SnapList_MySim = np.arange(22,78) 
 
     #SnapList_MySim = [30, 35, 40, 50, 60, 70, 78]
-    #SnapList_MySim = [99, 78, 64, 51, 43, 37]
+    #SnapList_MySim = [99, 78, 64, 51, 43, 37] 
     # Snapshots = z [5, 6, 7, 8, 9, 10] are [99, 78, 64, 51, 43, 37] (used for UVLF) 
 
     SnapList_MySim = [78, 64,51]
     # Snapshots for z = [6, 7, 8] are [78, 64, 51]
     # Snapshots for z = [7.23, 6.69] are [60, 67] (used for LyAlpha Luminosity)
-
  
     print "Snapshots analyzing are", SnapList_MySim
     
+HaloCut = 100
+print "Len at Snapshot 99"
+print G_MySim.LenHistory[:, 99]
+print "Greater than %d particles" %(HaloCut)
+print G_MySim.LenHistory[:, 99][G_MySim.LenHistory[:,99] > HaloCut]
+print len(G_MySim.LenHistory[:, 99][G_MySim.LenHistory[:,99] > HaloCut])
+
+print "Len at Snapshot 78"
+print G_MySim.LenHistory[:, 78]
+print "Greater than %d particles" %(HaloCut)
+print G_MySim.LenHistory[:, 78][G_MySim.LenHistory[:,78] > HaloCut]
+print len(G_MySim.LenHistory[:, 78][G_MySim.LenHistory[:,78] > HaloCut])
+
+print "Len at Snapshot 37"
+print G_MySim.LenHistory[:, 37]
+print "Greater than %d particles" %(HaloCut)
+print G_MySim.LenHistory[:, 37][G_MySim.LenHistory[:,37] > HaloCut]
+print len(G_MySim.LenHistory[:, 37][G_MySim.LenHistory[:,37] > HaloCut])
+
 
 HaloPart_Low = 41 # Bounds for where we define the cutoff for a 'Dark Matter Halo'. Below this we can't be sure of the results.
 HaloPart_High = 51
@@ -1671,6 +1761,9 @@ EjectedFraction_MySim = []
 
 fesc_local_MySim = []
 
+HaloCount_MySim = []
+HaloCut_MySim = 0
+
 ## MySim Model 2 ##
 
 w_G_MySim2 = []
@@ -1703,6 +1796,7 @@ mean_A_MySim2 = []
 
 fesc_local_MySim2 = []
 
+HaloCut_MySim2 = 100
 ## Millennium Initialization ##
 
 w_H_Millennium = []
@@ -1773,7 +1867,9 @@ if (Simulation == 1 or Simulation == 2):
       ## Model 1 Calculations ##
 
       #w_G_MySim.append(np.where((G_MySim.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim.GridCentralGalaxyMass[:,SnapList_MySim[i]] > 0.0) & (G_MySim.GridZ[:, SnapList_MySim[i]] > 0.0))[0])
-      w_G_MySim.append(np.where((G_MySim.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim.Photons_HI[:, SnapList_MySim[i]] > 0.0))[0])
+      w_G_MySim.append(np.where((G_MySim.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim.Photons_HI[:, SnapList_MySim[i]] > 0.0) & (G_MySim.LenHistory[:, SnapList_MySim[i]] > HaloCut_MySim))[0])
+
+      HaloCount_MySim.append(G_MySim.LenHistory[w_G_MySim[i], SnapList_MySim[i]])
       mass_G_MySim.append(np.log10(G_MySim.GridStellarMass[w_G_MySim[i], SnapList_MySim[i]] * 1.0e10 / AllVars.Hubble_h))
       Photons_HI_G_MySim.append(G_MySim.Photons_HI[w_G_MySim[i], SnapList_MySim[i]] + np.log10(fesc_MySim))
     
@@ -1836,9 +1932,10 @@ if (Simulation == 1 or Simulation == 2):
 	      MUV_Obs_MySim.append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
       EjectedFraction_MySim.append(G_MySim.EjectedFraction[w_G_MySim[i], SnapList_MySim[i]])
+      fesc_local_MySim.append(EjectedFraction_MySim[i]*0.999 + 0.001)
 
       ## Model 2 Calculations ##
-
+      '''
       ## Halos ##
 
 #      w_H_MySim2.append(np.where((H_MySim2.SnapNum == SnapList_MySim[i]) & (H_MySim2.Mvir > 0.0))[0]) 
@@ -1906,7 +2003,7 @@ if (Simulation == 1 or Simulation == 2):
 	      f_nu = AllVars.spectralflux_wavelength_to_frequency(10**Flux_Observed, 1600) # Spectral flux density in Janksy.
 	      MUV_Obs_MySim2.append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
-
+     '''
 if (Simulation == 0 or Simulation == 2):
     for i in xrange(0, len(SnapList_Millennium)):
 
@@ -1989,12 +2086,15 @@ print "Minimum sSFR is %.4e and maximum sSFR is %.4e (log Msun)" %(sSFR_min_MySi
 #print "For 512 model:"
 #HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, HaloPart_Low, HaloPart_High)
 
+low = 45
+high = 55
 #print "For 1024 model:"
-#HaloPartStellarMass_MySim2 = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim2, mass_G_MySim2, HaloPart_Low, HaloPart_High)
+HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, low, high)
+mass_G_MySim2 = []
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-#StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim2, len(SnapList_MySim))
+StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim))
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
@@ -2005,10 +2105,12 @@ print "Minimum sSFR is %.4e and maximum sSFR is %.4e (log Msun)" %(sSFR_min_MySi
 #PhotonsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
 #LymanAlphaLF(Simulation, SnapListZ_MySim, LymanAlpha_MySim2, len(SnapList_MySim))
 #PhotonsVsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
-fesc(Simulation, SnapListZ_MySim, mass_Central_MySim2, fesc_Kimm_MySim2)
+#fesc(Simulation, SnapListZ_MySim, mass_Central_MySim2, fesc_Kimm_MySim2)
 #UVLF(Simulation, SnapListZ, (MUV_MySim), (MUV_Obs_MySim), len(SnapList_MySim), r"Recursive $SAGE, f_\mathrm{esc} \: \propto \: M_H^{-\beta}$", "MH_pos_UVLF")
 #UVLF(Simulation, SnapListZ, (MUV_MySim2), (MUV_Obs_MySim2), len(SnapList_MySim), r"Recursive $SAGE, f_\mathrm{esc} = 0.10$", "fesc0.10_UVLF")
 #SFR_Hist(Simulation, SnapListZ, (SFR_G_MySim + SFR_G_MySim2), len(SnapList_MySim)) 
 #SFRVsStellarMass(Simulation, SnapListZ, mass_G_MySim, SFR_G_MySim)
 #sSFR_Hist(Simulation, SnapListZ, (sSFR_G_MySim), len(SnapList_MySim)) 
-#EjectedFracVsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim, EjectedFraction_MySim, len(SnapList_MySim))
+#fesc(Simulation, SnapListZ_MySim, fesc_local_MySim)
+#EjectedFracVsStellarMass(Simulation, SnapListZ_MySim, mass_Central_MySim, EjectedFraction_MySim, len(SnapList_MySim))
+#HaloPartCount(Simulation, SnapListZ_MySim, HaloCount_MySim, len(SnapList_MySim))

@@ -91,7 +91,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         print ":   Reading N=", NtotHalos, "   \t Objects from file: ", fname
  
         GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
-  
+	
         FileIndexRanges.append((offset,offset+NtotHalos))
         
         # Slice the file array into the global array
@@ -220,7 +220,8 @@ def ReadGals_Post_Processed_SAGE(DirName, First_File, Last_File, MAXSNAPS):
     return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File), Gal_Desc)
 
 
-       
+    
+## Using this one ##   
 def ReadGals_SAGE_Photons(DirName, First_File, Last_File, MAXSNAPS):
 
     Galdesc_full = [
@@ -282,8 +283,8 @@ def ReadGals_SAGE_Photons(DirName, First_File, Last_File, MAXSNAPS):
          ('Photons_HeII', (np.float32, MAXSNAPS)), 
          ('MfiltGnedin', (np.dtype('d'), MAXSNAPS)),
          ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
-         ('EjectedFraction', (np.float32, MAXSNAPS)), 
-         ('Pad', (np.float32, MAXSNAPS)) 
+         ('EjectedFraction', (np.float32, MAXSNAPS)),  
+         ('LenHistory', (np.int32, MAXSNAPS)) 
          ]
                              
     print "Reading in SAGE files (Post STARBURST)."
