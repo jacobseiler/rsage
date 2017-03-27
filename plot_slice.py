@@ -88,9 +88,9 @@ plt.rc('lines', linewidth='2.0')
 plt.rc('legend', numpoints=1, fontsize='x-large')
 plt.rc('text', usetex=True)
 
-label_size = 12
+label_size = 20 # 12 for paper.
 extra_size = 2
-legend_size = 20
+legend_size = 16 # 20 for paper.
 plt.rc('xtick', labelsize=label_size)
 plt.rc('ytick', labelsize=label_size)
 plt.rc('text', usetex=True)
@@ -102,7 +102,7 @@ time_xlim = [315, 930]
 time_subplot_label = 350 # Location (in 'Time Since Big Bang [Myr^-1]) of subplot identifier (a), (b), (c) etc.
 z_plot = np.arange(6, 14)  #Range of redshift we wish to plot. 
 
-colors = ['r', 'b', 'g', 'c', 'm']
+colors = ['r', 'b', 'g', 'c', 'm', 'k']
 markers = ['x', 'o', '^', 's', 'D']
 linestyles = ['-', '--', '-.', ':']
 
@@ -120,7 +120,7 @@ AllVars.Set_Constants()
 
 cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
-output_format = ".eps"
+output_format = ".pdf"
 
 def plot_single(z, filepath, ionized_cells, Ncells, OutputDir, output_tag):
 # Plots the ionization bubbles for a single set of cells.
@@ -142,7 +142,7 @@ def plot_single(z, filepath, ionized_cells, Ncells, OutputDir, output_tag):
 	im = ax.imshow(ionized_cells[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='none', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = 0, vmax = 1, cmap = 'afmhot_r')
 
 	cbar = plt.colorbar(im, ax = ax)
-	cbar.set_label(r'$1 - Q$')				
+	cbar.set_label(r'$1 - x_\mathrm{HII}$')				
 				    
 	ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
 	ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
@@ -150,7 +150,7 @@ def plot_single(z, filepath, ionized_cells, Ncells, OutputDir, output_tag):
 	ax.set_xlim([0.0, BoxSize]) 
 	ax.set_ylim([0.0, BoxSize])
 
-	title = r"z = %.3f, $\langle x_{HI} = %.3f \rangle$" %(z, calculate_volume_frac(ionized_cells, Ncells))
+	title = r"z = %.3f, $\langle x_{HI} = %.3f \rangle$" %(z, 1.0 - calculate_volume_frac(ionized_cells, Ncells))
 	ax.set_title(title)
 
 	#outputFile = OutputDir + output_tag + '_z' + str(z) + output_format 
@@ -377,8 +377,8 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, labels, OutputDir, outpu
 
 	fig = plt.figure()
 	
-	ax1 = plt.subplot2grid((3,1), (0,0), rowspan =2)
-	ax3 = plt.subplot2grid((3,1), (2,0))
+	ax1 = plt.subplot2grid((3,1), (0,0), rowspan =3)
+	#ax3 = plt.subplot2grid((3,1), (2,0))
 
 	t = np.empty(len(volume_frac[0]))
 	
@@ -391,48 +391,55 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, labels, OutputDir, outpu
 		if (i != 1):
 			tmp = r"%s, $\Delta t = %.2f \: \mathrm{Myr}$" %(labels[i], dt)
 		else:
-			tmp = r"%s, $\Delta t = \: ?$" %(labels[i]) 
-		ax1.plot(t, volume_frac[i], color = colors[i], label = tmp, ls = linestyles[i])
-		ax3.plot(t, np.subtract(volume_frac[i], volume_frac[0]), color = colors[i])	
-        
-	ax3.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size + 3.0)
-	ax1.set_ylabel(r"$\langle x_{HI}\rangle$", size = label_size + 3.0)
-	ax3.set_ylabel(r"$\langle x_{HI}\rangle - {\langle x_{HI}\rangle}_{f_\mathrm{esc} = 0.25}$", size = label_size)
+			tmp = r"%s, $\Delta t = %.2f \: \mathrm{Myr}$" %(labels[i], dt)
+			#tmp = r"%s, $\Delta t = \: ?$" %(labels[i]) 
+		ax1.plot(t, volume_frac[i], color = colors[i], label = tmp, ls = linestyles[i], lw = 3)
+		#ax3.plot(t, np.subtract(volume_frac[i], volume_frac[0]), color = colors[i])	
 
+ 	ax1.set_ylabel(r"$\langle x_{HI}\rangle$", size = label_size)       
+	ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
+
+	'''
+	ax3.set_ylabel(r"$\langle x_{HI}\rangle - {\langle x_{HI}\rangle}_{f_\mathrm{esc} = 0.25}$", size = label_size - 5)
+	for tick in ax3.yaxis.get_major_ticks():
+		tick.label.set_fontsize(label_size - 5)
+	'''
         leg = ax1.legend(loc='lower left', numpoints=1, labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
-            t.set_fontsize(legend_size - 2)
+            t.set_fontsize(legend_size + 3)
 
     	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
     	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
-	ax3.set_yticks(np.arange(0, 1.0, 0.2))
-    	ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+
+#	ax3.set_yticks(np.arange(-0.4, 1.0, 0.4))
+ #   	ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
  	
 
 	ax1.set_ylim([-0.1, 1.1])
 	ax1.set_xlim(time_xlim)
-	ax3.set_xlim(time_xlim)
-	
-	ax1.text(0.075, 0.965, '(c)', horizontalalignment='center', verticalalignment='center', transform = ax1.transAxes)
+#	ax3.set_xlim(time_xlim)
+#	ax3.set_ylim([-0.5, 0.5])	
+
+	#ax1.text(0.075, 0.965, '(c)', horizontalalignment='center', verticalalignment='center', transform = ax1.transAxes)
 	
 	## Creating a second x-axis on the top to track redshift. ##
 
 	ax2 = ax1.twiny()
-	ax4 = ax3.twiny()	
+#	ax4 = ax3.twiny()	
 
 	t_plot = (t_BigBang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
 	z_labels = ["$%d$" % x for x in z_plot] # Properly Latex-ize the labels.
 
-	ax2.set_xlabel(r"$z$", size = label_size + 1.5)
+	ax2.set_xlabel(r"$z$", size = label_size)
 	ax2.set_xlim(time_xlim)
 	ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
 	ax2.set_xticklabels(z_labels) # But label them as redshifts.
 
-	ax4.set_xlabel(r"$z$", size = label_size + 1.5)
-	ax4.set_xlim(time_xlim)
-	ax4.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
-	ax4.set_xticklabels(z_labels) # But label them as redshifts.
+#	ax4.set_xlabel(r"$z$", size = label_size)
+#	ax4.set_xlim(time_xlim)
+#	ax4.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
+#	ax4.set_xticklabels(z_labels) # But label them as redshifts.
 
 	plt.tight_layout()
 
@@ -496,27 +503,46 @@ def plot_total_nion(ZZ, total_nion, labels, OutputDir, output_tag):
 	print 
 	print "Plotting the total number of ionizing photons" 
 
-	ax = plt.subplot(111)
+	ax1 = plt.subplot2grid((3,1), (0,0), rowspan =3)
+#	ax3 = plt.subplot2grid((3,1), (2,0))
+
+	nion = np.empty((len(total_nion), len(total_nion[0])))
 
 	for p in xrange(0, len(total_nion)):
-		nion = np.empty(len(total_nion[p]))
 		for i in xrange(0, len(total_nion[p])):
-			nion[i] = np.log10(total_nion[p][i] / ((AllVars.BoxSize / AllVars.Hubble_h)**3))	
+			nion[p][i] = np.log10(total_nion[p][i] / ((AllVars.BoxSize / AllVars.Hubble_h)**3))	
+
+	for p in xrange(0, len(total_nion)):
 	
-		plt.plot((t_BigBang- cosmo.lookback_time(ZZ[0:len(total_nion[p])]).value) * 1.0e3, nion, color = colors[p], label = labels[p], ls = linestyles[p])
+		ax1.plot((t_BigBang- cosmo.lookback_time(ZZ[0:len(total_nion[p])]).value) * 1.0e3, nion[p], color = colors[p], label = labels[p], ls = linestyles[p], lw = 3)
+#		ax3.plot((t_BigBang- cosmo.lookback_time(ZZ[0:len(total_nion[p])]).value) * 1.0e3, np.subtract(nion[p], nion[0]), color = colors[p], ls = linestyles[p])
 
-	ax.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr}^{-1}\mathrm{]}$")	
-        ax.set_ylabel(r"$\mathrm{log}_{10} \: \dot{N}_{\mathrm{HI}} \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$")
 
-    	ax.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
-    	ax.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
-	ax.set_xlim(time_xlim)
+	ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
+#	ax3.set_ylabel(r"$\mathrm{log}_{10} \: \dot{N}_{\mathrm{HI}} / \dot{N}_\mathrm{HI, \: f_{esc} = 0.25}$", size = label_size - 5)
+        ax1.set_ylabel(r"$\mathrm{log}_{10} \: \dot{N}_{\mathrm{HI}} \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$", fontsize = label_size)
 
-        leg = plt.legend(loc='lower right', numpoints=1,
+
+    	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
+    	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+	ax1.set_xlim(time_xlim)
+	ax1.set_ylim([48.0, 51.5])
+
+	'''
+	ax3.set_xlim(time_xlim)
+	ax3.set_ylim([-0.3, 0.30])
+	ax3.set_yticks(np.arange(-0.20, 0.30, 0.20))
+    	ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+
+
+	for tick in ax3.yaxis.get_major_ticks():
+		tick.label.set_fontsize(label_size - 5)
+	'''
+        leg = ax1.legend(loc='lower right', numpoints=1,
                          labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
-            t.set_fontsize(legend_size)
+            t.set_fontsize(legend_size + 3)
 
 
 	bouwens_z = np.arange(6,16) # Redshift range for the observations.
@@ -529,28 +555,35 @@ def plot_total_nion(ZZ, total_nion, labels, OutputDir, output_tag):
 	bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
 
 
-	ax.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.3, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-	ax.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.5, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+	ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.3, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+	ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.5, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
 
 
-	ax.text(0.075, 0.965, '(a)', horizontalalignment='center', verticalalignment='center', transform = ax.transAxes)
-	ax.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center')
-	ax.text(350, 50.5, r"$95\%$", horizontalalignment='center', verticalalignment = 'center')
+#	ax1.text(0.075, 0.965, '(a)', horizontalalignment='center', verticalalignment='center', transform = ax.transAxes)
+	ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
+	ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
 
 	## Creating a second x-axis on the top to track redshift. ##
 
-	ax2 = ax.twiny()
+	ax2 = ax1.twiny()
+	#ax4 = ax3.twiny()
 	
 	t_plot = (t_BigBang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
 	z_labels = ["$%d$" % x for x in z_plot] # Properly Latex-ize the labels.
 
-	ax2.set_xlabel(r"$z$")
+	ax2.set_xlabel(r"$z$", fontsize = label_size)
 	ax2.set_xlim(time_xlim)
 	ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
 	ax2.set_xticklabels(z_labels) # But label them as redshifts.
 
+	#ax4.set_xlabel(r"$z$", size = label_size)
+	#ax4.set_xlim(time_xlim)
+	#ax4.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
+	#ax4.set_xticklabels(z_labels) # But label them as redshifts.
+
 	##
 
+	plt.tight_layout()
 
 	outputFile = OutputDir + output_tag + output_format 			
 	plt.savefig(outputFile)  # Save the figure
@@ -886,7 +919,7 @@ def plot_bubble_MC(ZZ, fractions_HI, model_tags, file_tags, Ncell, OutputDir, ou
 
 	MCDir = OutputDir + 'MC/'
 	
-	ax = plt.subplot(111)
+	ax1 = plt.subplot(111)
 	for p in xrange(0, len(fractions_HI)):
 		for q in xrange(0, len(file_tags)): 
 
@@ -903,16 +936,17 @@ def plot_bubble_MC(ZZ, fractions_HI, model_tags, file_tags, Ncell, OutputDir, ou
 			R *= BoxSize/Ncell[q] 
 			print("Maximum radius after scaling is %.4f Mpc/h.") %(max(R))	
 
-			binwidth = 1*BoxSize/Ncell[q]
+			binwidth = 2*BoxSize/Ncell[q]
 
-			R_low = 0.5*BoxSize/Ncell[q]
+			R_low = binwidth/2 
             		if max(R) > BoxSize/2:
-		                R_high = BoxSize/2 + 0.5*BoxSize/Ncell[q]
+		                R_high = BoxSize/2 + binwidth/2 
 			else:
-		                R_high = max(R) + 0.5*BoxSize/Ncell[q]
-		        R_high = max(R) + 0.5*BoxSize/Ncell[q]
-			NB = (R_high - R_low) / binwidth
-                
+		                R_high = max(R) + binwidth/2 
+		        R_high = max(R) + binwidth/2 
+			NB = np.ceil((R_high - R_low) / binwidth)
+               
+			print np.ceil(NB) 
 			(counts, binedges) = np.histogram(R, range=(R_low, R_high), bins=NB, density = True)
 
 			# Set the x-axis values to be the centre of the bins
@@ -922,30 +956,29 @@ def plot_bubble_MC(ZZ, fractions_HI, model_tags, file_tags, Ncell, OutputDir, ou
                         print max(counts)
 			if q == 0:
 				#label = "z = %.3f" %(ZZ[q][p])
-				label = r"$x_\mathrm{HI} = %.3f$" %(fractions_HI[p])
+				label = r"$x_\mathrm{HI} = %.2f$" %(fractions_HI[p])
 			else:
 				label = ""
-			plt.plot(xaxeshisto, counts, ls = linestyles[q%len(linestyles)], label = label, color = colors[p%len(colors)])	
+			ax1.plot(xaxeshisto, counts, ls = linestyles[q%len(linestyles)], label = label, color = colors[p%len(colors)], lw = 2)	
 
 	for q in xrange(0, len(model_tags)):
-		plt.plot(-1, -5, ls = linestyles[q], label = model_tags[q], color = 'k')
+		ax1.plot(-1, -5, ls = linestyles[q], label = model_tags[q], color = 'k', lw = 2)
 
-        plt.xscale('log', nonposy='clip')
-	plt.axis([0, BoxSize, 0.0, 0.7])
+        ax1.set_xscale('log', nonposy='clip')
+	ax1.set_xlim([0, BoxSize])
+	ax1.set_ylim([0.0, 0.7])
 
-	plt.xlabel(r'$R \: (h^{-1} \mathrm{Mpc})$')
-	plt.ylabel(r'$R \: \: dP/dR$')
+	ax1.set_xlabel(r'$R \: [h^{-1}\mathrm{Mpc}]$', fontsize = label_size)
+	ax1.set_ylabel(r'$R \: \: dP/dR$', fontsize = label_size)
 
-	leg = plt.legend(loc='upper left', numpoints=1,
+    	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
+	leg = ax1.legend(loc='upper left', numpoints=1,
 			 labelspacing=0.1)
 	leg.draw_frame(False)  # Don't want a box frame
 	for t in leg.get_texts():  # Reduce the size of the text
 		   t.set_fontsize(legend_size)
 
-    	ax.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
-    	ax.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
-
-
+	plt.tight_layout()
 
 	outputFile = OutputDir + output_tag + output_format 
 	plt.savefig(outputFile)  # Save the figure
@@ -961,6 +994,7 @@ def Power_Spectrum(ionized_cells, Ncell):
 
 ## Input ##
 # ionized_cells is the array that contains the ionization data.
+# Ncells is the number of cells along one dimension (Number of cells = Ncell^3).
 
 ## Output ##
 # k_mid: The middle point for each of the k-space bins.
@@ -972,14 +1006,14 @@ def Power_Spectrum(ionized_cells, Ncell):
     mid_point = Ncell/2 # Middle of the Grid.
     
     n1 = arange(0, Ncell)
-    n1[1+mid_point:] -= Ncell 
-    n2 = n1**2
+    n1[1+mid_point:] -= Ncell # Moves to 0, 1, 2, ..., Ncell/2, -Ncell/2, ..., -1  
+    n2 = n1**2 
     n_mag = np.sqrt(add.outer(add.outer(n2, n2), n2)).ravel() # Finding the magnitude of k-space vectors.
     
-    n_bins = (-1,) + tuple(arange(mid_point-1)+1.5) + (BoxSize*2,)
-    
+    n_bins = (-1,) + tuple(arange(mid_point-1)+1.5) + (Ncell*2,)
+     
     k_bins = digitize(n_mag, n_bins) - 1 # Digitize basically takes an input array (N_Mag) and bins each value according to the binedges defined by N_bins.  The indices of the bin that each element of N_Mag belongs to is returned.
-    
+
     k_multiplier = 2.0 * np.pi / BoxSize # Moving from real-space to k-space.
     
     k_min = (array(n_bins) * k_multiplier)[:-1] # Lower bound for each of the k-space bins.
@@ -987,65 +1021,72 @@ def Power_Spectrum(ionized_cells, Ncell):
     
     k_max = (array(n_bins) * k_multiplier)[1:] # Upper bound for each of the k-space bins.
     k_max[-1] = mid_point * k_multiplier * sqrt(3.0) 
-
+  
     k_volume = bincount(k_bins) * (k_multiplier)**3 # Volume in k-space (Number of cells of a specified type, divided by the volume of each cell).
     
     ##
     
-    PowSpec_3D = (np.abs(np.fft.fftn(ionized_cells))**2).ravel() # Fourier transform into 3D Power Spectrum.
+    PowSpec_3D = ((np.abs(np.fft.fftn(ionized_cells)))**2).ravel() # Fourier transform into 3D Power Spectrum.
 
-    PowSpec_1D = bincount(k_bins, weights=PowSpec_3D) # Takes the 3D Power Spectrum and bins the values into the k-space bins.
-    PowSpec_1D /= k_volume # Normalize by the volume of the bins.  Necessary as spheres of larger radii occupy more volume by definition.
+    v1 = bincount(k_bins, weights=PowSpec_3D) # Takes the 3D Power Spectrum and bins the values into the k-space bins.
+    PowSpec_1D = v1 * (1.0/k_volume) # Normalize by the volume of the bins.  Necessary as spheres of larger radii occupy more volume by definition.
     
     # Calculate the error in the 1D Power Spectrum.
     v2 = bincount(k_bins, weights = (PowSpec_3D**2)) # Second Order
     v0 = bincount(k_bins) # Zeroth Order
     
-    error = sqrt((v2*v0 - PowSpec_1D**2)/(v0-1)) / k_volume
+    error = sqrt((v2*v0 - v1**2)/(v0-1.0)) / k_volume
     
     k_mid = 0.5 * (k_max + k_min) # Middle point for each of the bins in k-space.
-#    PowSpec_1D *= k_mid**3 / 2 / (np.pi**2) / (BoxSize**3) 
 
-    return k_mid, PowSpec_1D, error
+    return k_mid, PowSpec_1D, (error/PowSpec_1D)
 
 ##########
 
-def plot_power(ZZ, k, Power, Error, labels, OutputDir, output_tag):
+def plot_power(fractions_HI, k, Power, Error, model_tags, OutputDir, output_tag):
 
-	ax = plt.subplot(111)
+	ax1 = plt.subplot(111)
+
+	print len(Power)
+	print len(Power[0])	
+	
 	for p in xrange(0, len(k)):
-		print Power[p]
-		plt.scatter(k[p], Power[p], color = colours[p], marker = markers[0], label = labels[p]) 
+		for q in xrange(0, len(k[0])):
+			if p == 0:	
+				label = r"$x_\mathrm{HI} = %.2f$" %(fractions_HI[q])
+			else:
+				label = ""	
+			ax1.plot(k[p][q], Power[p][q], color = colors[q], ls = linestyles[p], label = label, lw = 2) 
+			if (p == 0):
+				error = Error[p][q] * Power[p][q] 
+				ax1.fill_between(k[p][q], Power[p][q] - error, Power[p][q] + error, color = colors[q], alpha = 0.3)	
+	for p in xrange(0, len(model_tags)):
+		ax1.plot(-1, -5, ls = linestyles[p], label = model_tags[p], color = 'k', lw = 2)
 
-	for p in xrange(0, len(ZZ)):
-		label = "z = %.3f" %(ZZ[p])
-		plt.scatter(1e100, 1e100, color = 'k', marker = markers[0], label = label) 
-
-	plt.xlabel(r'$k \: \left[\mathrm{Mpc}^{-1}h\right]$', size = label_size + extra_size)
+	ax1.set_xlabel(r'$k \: \left[\mathrm{Mpc}^{-1}h\right]$', size = label_size + extra_size)
 	#plt.ylabel( r'$P\left(k\right) \: \: \left[\mathrm{Mpc}^3 h^{-3}\right]$', size = label_size + extra_size)
-	plt.ylabel( r'$\bar{\delta T_b^2} \Delta_{21}^2 \left[\mathrm{mK}^2\right]$', size = label_size + extra_size)
+	ax1.set_ylabel( r'$\bar{\delta T_b^2} \Delta_{21}^2 \left[\mathrm{mK}^2\right]$', size = label_size + extra_size)
 
-        plt.xscale('log', nonposy='clip')
-        plt.yscale('log', nonposy='clip')
-        leg = plt.legend(loc='upper left', numpoints=1,
+        ax1.set_xscale('log', nonposy='clip')
+        ax1.set_yscale('log', nonposy='clip')
+        leg = ax1.legend(loc='lower right', numpoints=1,
                          labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize(legend_size)
 
-	plt.axis([0.5e-1, 1e1, np.amin(Power[:]), np.amax(Power[:])])	
+	ax1.set_xlim([0.4e-1, 6])
+	ax1.set_ylim([np.amin(Power[:]), np.amax(Power[:])])	
     	#ax.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
     	#ax.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
+ 
+	plt.tight_layout()
 
 	outputFile = OutputDir + output_tag + output_format 			
 	plt.savefig(outputFile)  # Save the figure
 	print 'Saved file to', outputFile
 			
 	plt.close()	
-
-
-
-
 
 #########
 
@@ -1942,20 +1983,20 @@ def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
 			else:
 				tau[i] = tau[i+1] + (( numerator / H) * (ZZ[i] - ZZ[i+1]) * (1 + Y/(4 * (1-Y)))) 
 
-			tau *= n_HI(ZZ[i], Hubble_h, OB, Y) * AllVars.c_in_ms * AllVars.Sigmat
-
+			
+			'''
 			if (i == len(ZZ) - 1):
 				print "z = %.4f \t 1-Volume_frac = %.4e \t numerator = %.4e \t tau[%d] = %.4e \t tau[%d] = %.4e \t nHI = %.4e \t H = %.4e \t numerator / H = %4e" %(ZZ[i], 1 - volume_frac[0][i], numerator, i, tau[i], i, tau[i], n_HI(ZZ[i], Hubble_h, OB, Y), H, numerator / H)
 			else: 
 				print "z = %.4f \t 1-Volume_frac = %.4e \t numerator = %.4e \t tau[%d] = %.4e \t tau[%d] = %.4e \t nHI = %.4e \t H = %.4e \t numerator / H = %4e" %(ZZ[i], 1 - volume_frac[0][i], numerator, i+1, tau[i+1], i, tau[i], n_HI(ZZ[i], Hubble_h, OB, Y), H, numerator / H) 
-				
+			'''	
 
 
 		if p < len(volume_frac):
 			label = model_tags[p]
 		else:
 			label = label_planck
-
+		tau *= n_HI(0, Hubble_h, OB, Y) * AllVars.c_in_ms * AllVars.Sigmat
 		ax.plot(ZZ, tau, label = label, color = colors[p], ls = linestyles[p])	
 
 	ax.set_xlabel(r"$z$")
@@ -2040,7 +2081,7 @@ if __name__ == '__main__':
 
     ##### MH Comparison #####
 
-
+    '''
     output_tags = ["fesc0.25", "MH_pos", "MH_neg"]
     model_tags = [r"$f_\mathrm{esc} = 0.25$", r"$f_\mathrm{esc} \: \propto \: M_H^{\beta}$", r"$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$"]
 
@@ -2061,17 +2102,18 @@ if __name__ == '__main__':
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.25"
     filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_MH_pos"
     filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_MH_neg"
-
+    '''
 
     ###########################
 
     ##### Ejected Comparison #####
 
-    '''
+
     output_tags = ["fesc0.25", "MH_neg", "Ejected"]
     model_tags = [r"$f_\mathrm{esc} = 0.25$", r"$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$", r"$f_\mathrm{esc} \: \propto \: m_\mathrm{ejected}$"]
 
-    model = 'EjectedCompClean'
+    #model = 'EjectedCompClean'
+    model = 'PerthImages'
     GridSize_model1 = 128
     GridSize_model2 = 128
     GridSize_model3 = 128
@@ -2079,22 +2121,48 @@ if __name__ == '__main__':
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.25"
     filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_MH_neg"
     filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc_Ejected"
-    #filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_fesc0.25_nionHI"
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut10_fesc0.25/Galaxies_LenHistory_SF0.01_noreion_z5.000_fesc0.25_HaloPartCut10_nionHI"
-    #filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_MH_alpha3.62beta-0.43_nionHI" 
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut10_fescMHneg//Galaxies_LenHistory_SF0.01_noreion_z5.000_MH_alpha3.62beta-0.43_nionHI"
-    #filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_Ejected_alpha0.001beta0.999_nionHI" 
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut10_fescEjected//Galaxies_LenHistory_SF0.01_noreion_z5.000_Ejected_alpha0.100beta0.900_nionHI"
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_fesc0.25_nionHI"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_MH_alpha3.62beta-0.43_nionHI"  
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_Ejected_alpha0.001beta0.999_nionHI"  
     filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
     filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
     filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens" 
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.25"
     filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_MH_neg"
     filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc_Ejected"
-    '''
+
+    
 
     ###########################   
    
+    ##### HaloCut Comparison #####
+
+    '''
+    output_tags = ["fesc0.25", "MH_neg", "Ejected"]
+    model_tags = [r"$f_\mathrm{esc} = 0.25$", r"$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$", r"$f_\mathrm{esc} \: \propto \: m_\mathrm{ejected}$"]
+
+    model = 'HaloPartCut10'
+    GridSize_model1 = 128
+    GridSize_model2 = 128
+    GridSize_model3 = 128
+
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fesc0.25_HaloPartCut10/XHII"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fescMHneg_HaloPartCut10/XHII"
+    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fescEjected_HaloPartCut10/XHII"
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut10_fesc0.25/Galaxies_LenHistory_SF0.01_noreion_z5.000_fesc0.25_HaloPartCut10_nionHI" 
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut10_fescMHneg/Galaxies_LenHistory_SF0.01_noreion_z5.000_MH_alpha3.62beta-0.43_nionHI"
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut10_fescEjected/Galaxies_LenHistory_SF0.01_noreion_z5.000_Ejected_alpha0.100beta0.900_nionHI"
+    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens" 
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fesc0.25_HaloPartCut10/PhotHI"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fescMHneg_HaloPartCut10/PhotHI"
+    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fescEjected_HaloPartCut10/PhotHI"
+    '''
+
+    ###########################   
+
+
 
     OutputDir = "./ionization_plots/" + model + '/'
     if not os.path.exists(OutputDir):
@@ -2134,10 +2202,6 @@ if __name__ == '__main__':
     k_model3 = []
     PowerSpectra_Error_model3 = []
 
-    calculate_power = 0
-
-    Redshift_Power = []
-
     Photo_Mean_model1 = []
     Photo_Mean_model2 = []
     Photo_Mean_model3 = []
@@ -2170,7 +2234,10 @@ if __name__ == '__main__':
     fractions_HI = [0.90, 0.01]
     delta_HI = [0.01, 0.01]
 
-    #fractions_HI = [0.75, 0.50, 0.25] 
+    #fractions_HI = [0.75, 0.50, 0.25, 0.10, 0.01]
+    #delta_HI = [0.01, 0.03, 0.05, 0.05, 0.01]
+
+    #fractions_HI = [0.75, 0.50, 0.25]
     #delta_HI = [0.01, 0.03, 0.05]
 
     MC_ZZ = np.empty((3, len(fractions_HI)))
@@ -2182,6 +2249,11 @@ if __name__ == '__main__':
     count_MC_model3 = 0
 
     calculate_MC = 0 # 0 to NOT calculate the MC bubbles, 1 to calculate them. 
+
+    do_power_model1 = 0
+    do_power_model2 = 0
+    do_power_model3 = 0
+    calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calcualte it. 
 
     for i in xrange(lowerZ, upperZ):
 
@@ -2345,38 +2417,10 @@ if __name__ == '__main__':
         #ionized_cells_clean_model2[w2] = 1
 
         ##########################################################################
-
-	if (i == 30 and calculate_power == 1):	
-		## Model 1 ##
-		Brightness_model1 = 27.0*(1.0-ionized_cells_model1)*density_model1*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
-
-		Mean_Brightness_model1 = np.mean(Brightness_model1)
-		delta_model1 = Brightness_model1/Mean_Brightness_model1 - 1	
-
-	        (k_Bins , PowSpec, Error) = Power_Spectrum(delta_model1)
-        	PowerSpectra_model1.append(PowSpec * k_Bins**3 / (2*np.pi*np.pi*BoxSize**3)) 
-        	k_model1.append(k_Bins)
-        	PowerSpectra_Error_model1.append(Error)
-
-		## Model 2 ##
-		Brightness_model2 = 27.0*(1.0-ionized_cells_model2)*density_model2*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
-		Mean_Brightness_model2 = np.mean(Brightness_model2)
-		delta_model2 = Brightness_model2/Mean_Brightness_model2 - 1	
-
-        	(k_Bins , PowSpec, Error) = Power_Spectrum(delta_model2)
-        	PowerSpectra_model2.append(PowSpec * k_Bins**3 / (2*np.pi*np.pi*BoxSize**3)) 
-        	k_model2.append(k_Bins)
-        	PowerSpectra_Error_model2.append(Error)
-
-		Redshift_Power.append(ZZ[i])
-
-		print "Mean_Brightness_model1", Mean_Brightness_model1
-		print "Mean_Brightness_model2", Mean_Brightness_model2
-
-
        
         #plot_single(ZZ[i], fname_ionized_model1, ionized_cells_model1, GridSize_model1, OutputDir, output_tags[0] + str(i)) 
         #plot_single(ZZ[i], fname_ionized_model2, ionized_cells_model2, GridSize_model2, OutputDir, output_tags[1] + str(i)) 
+        #plot_single(ZZ[i], fname_ionized_model3, ionized_cells_model3, GridSize_model3, OutputDir, output_tags[2] + '_' + str(i)) 
         #plot_comparison(ZZ[i], ionized_cells_clean_model1, ionized_cells_clean_model2, nion_model1, nion_model2, OutputDir, model_tags, "Comparison" + str(i))
         #plot_sources(ZZ[i], fname_nion_model1, nion_model1, OutputDir, model_tags[0] + "_nion")
         #plot_sources(ZZ[i], fname_nion_model2, nion_model2, OutputDir, model_tags[1] + "_nion")
@@ -2406,6 +2450,7 @@ if __name__ == '__main__':
 		MC_Snaps[0, count_MC_model1] = i
 		print "Model1 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model1], ZZ[i])
 		do_MC = 1
+		do_power_model1 = 1
 		count_MC_model1 += 1
 		
 	if (calculate_volume_frac(ionized_cells_model2, GridSize_model2) < (fractions_HI[count_MC_model2 % len(fractions_HI)]) + delta_HI[count_MC_model2 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model2, GridSize_model2) > (fractions_HI[count_MC_model2 % len(fractions_HI)]) - delta_HI[count_MC_model2 % len(fractions_HI)]):
@@ -2413,6 +2458,7 @@ if __name__ == '__main__':
 		MC_Snaps[1, count_MC_model2] = i
 		print "Model2 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model2], ZZ[i])
 		do_MC = 1
+		do_power_model2 = 1
 		count_MC_model2 += 1
 
 	if (calculate_volume_frac(ionized_cells_model3, GridSize_model3) < (fractions_HI[count_MC_model3 % len(fractions_HI)]) + delta_HI[count_MC_model3 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model3, GridSize_model3) > (fractions_HI[count_MC_model3 % len(fractions_HI)]) - delta_HI[count_MC_model3 % len(fractions_HI)]):
@@ -2420,6 +2466,7 @@ if __name__ == '__main__':
 		MC_Snaps[2, count_MC_model3] = i
 		print "Model3 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model3], ZZ[i])
 		do_MC = 1
+		do_power_model3 = 1
 		count_MC_model3 += 1
 
 
@@ -2428,6 +2475,52 @@ if __name__ == '__main__':
         	calculate_bubble_MC(ZZ[i], ionized_cells_model2, GridSize_model2, OutputDir, output_tags[1])
         	calculate_bubble_MC(ZZ[i], ionized_cells_model3, GridSize_model3, OutputDir, output_tags[2])
 		do_MC = 0
+
+	if (do_power_model1 == 1 and calculate_power == 1):
+		## Model 1 ##
+		Brightness_model1 = 27.0*(1.0-ionized_cells_model1)*density_model1*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
+
+		Mean_Brightness_model1 = np.mean(Brightness_model1)
+		delta_model1 = Brightness_model1/Mean_Brightness_model1 - 1	
+
+	        (k_Bins , PowSpec, Error) = Power_Spectrum(delta_model1, GridSize_model1)
+        	PowerSpectra_model1.append(Mean_Brightness_model1**2 * PowSpec * k_Bins**3 / (2*np.pi*np.pi*BoxSize**3))  
+        	k_model1.append(k_Bins)
+        	PowerSpectra_Error_model1.append(Error)
+
+		do_power_model1 = 0
+		print "Mean_Brightness_model1", Mean_Brightness_model1
+
+	if (do_power_model2 == 1 and calculate_power == 1):
+	
+		## Model 2 ##
+		Brightness_model2 = 27.0*(1.0-ionized_cells_model2)*density_model2*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
+		Mean_Brightness_model2 = np.mean(Brightness_model2)
+		delta_model2 = Brightness_model2/Mean_Brightness_model2 - 1	
+
+        	(k_Bins , PowSpec, Error) = Power_Spectrum(delta_model2, GridSize_model2)
+
+        	PowerSpectra_model2.append(Mean_Brightness_model2**2 * PowSpec * k_Bins**3 / (2*np.pi*np.pi*BoxSize**3)) 
+        	k_model2.append(k_Bins)
+        	PowerSpectra_Error_model2.append(Error)
+
+		do_power_model2 = 0	
+		print "Mean_Brightness_model2", Mean_Brightness_model2
+
+	if (do_power_model3 == 1 and calculate_power == 1):
+
+		## Model 3 ##
+		Brightness_model3 = 27.0*(1.0-ionized_cells_model3)*density_model3*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
+		Mean_Brightness_model3 = np.mean(Brightness_model3)
+		delta_model3 = Brightness_model3/Mean_Brightness_model3 - 1	
+
+        	(k_Bins , PowSpec, Error) = Power_Spectrum(delta_model3, GridSize_model3) 
+        	PowerSpectra_model3.append(Mean_Brightness_model3**2 * PowSpec * k_Bins**3 / (2*np.pi*np.pi*BoxSize**3)) 
+        	k_model3.append(k_Bins)
+        	PowerSpectra_Error_model3.append(Error)	
+
+		do_power_model3 = 0
+		print "Mean_Brightness_model3", Mean_Brightness_model3
 
         #redshift_array_model1, density_z_mean_model1[i], density_z_std_model1[i] = Reionization_Redshift(ionized_cells_model1, density_model1, redshift_array_model1, ZZ[i], GridSize_model1)
         #redshift_array_model2, density_z_mean_model2[i], density_z_std_model2[i] = Reionization_Redshift(ionized_cells_model2, density_model2, redshift_array_model2, ZZ[i], GridSize_model2)
@@ -2460,14 +2553,9 @@ if __name__ == '__main__':
 
     if (MC_ZZ[1][-1] < 5 or MC_ZZ[1][-1] > 1000):
 	MC_ZZ[1][-1] = ZZ[-1]
-	MC_ZZ[1][-1] = 6.0
-
-    print MC_ZZ[2][-1]
+ 
     if (MC_ZZ[2][-1] < 5 or MC_ZZ[2][-1] > 1000):
 	MC_ZZ[2][-1] = ZZ[-1]
-
-
-
 
     print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)
@@ -2479,11 +2567,11 @@ if __name__ == '__main__':
     #save_redshifts(redshift_array_model2, OutputDir, "ReionizationRedshift_" + output_tags[1])
     #save_redshifts(redshift_array_model3, OutputDir, "ReionizationRedshift_" + output_tags[2])
  
-    #plot_power(Redshift_Power, [k_model1, k_model2], [PowerSpectra_model1, PowerSpectra_model2], [PowerSpectra_Error_model1, PowerSpectra_Error_model2], model_tags, OutputDir, "PowerSpectrum")
+    #plot_power(fractions_HI, [k_model1, k_model2, k_model3], [PowerSpectra_model1, PowerSpectra_model2, PowerSpectra_model3], [PowerSpectra_Error_model1, PowerSpectra_Error_model2, PowerSpectra_Error_model3], model_tags, OutputDir, "PowerSpectrum")
 
     #plot_bubble_MC(MC_ZZ, fractions_HI, model_tags, output_tags, [GridSize_model1, GridSize_model2, GridSize_model3], OutputDir, "BubbleSizes")
-    #plot_global_frac(ZZ, [mass_frac_model1, mass_frac_model2, mass_frac_model3], [volume_frac_model1, volume_frac_model2, volume_frac_model3], MC_ZZ, model_tags, OutputDir, "GlobalFraction")
-    #plot_total_nion(ZZ, [nion_total_model1, nion_total_model2, nion_total_model3], model_tags, OutputDir, "Nion_MHdiff2")
+    plot_global_frac(ZZ, [mass_frac_model1, mass_frac_model2, mass_frac_model3], [volume_frac_model1, volume_frac_model2, volume_frac_model3], MC_ZZ, model_tags, OutputDir, "GlobalFraction")
+    #plot_total_nion(ZZ, [nion_total_model1, nion_total_model2, nion_total_model3], model_tags, OutputDir, "Nion")
     #photon_baryon(lowerZ, upperZ, ZZ, [nion_total_model1, nion_total_model2], Hubble_h, OB, Y, model_tags, OutputDir, "nion_total2")
     #analytic_HII(nion_total_model1, ZZ, upperZ, snaplist, OutputDir, "Q_Analytic")	
     #plot_photo_mean(ZZ, [Photo_Mean_model1, Photo_Mean_model2, Photo_Mean_model3], [Photo_Std_model1, Photo_Std_model2, Photo_Std_model3], model_tags, OutputDir, "Mean_Photo")
@@ -2497,5 +2585,5 @@ if __name__ == '__main__':
     #plot_nine_panel_slices(ZZ, [filepath_model1, filepath_model2, filepath_model3], [GridSize_model1, GridSize_model2, GridSize_model3], MC_Snaps, fractions_HI, model_tags, OutputDir, "9PanelSlices")
     #plot_nine_panel_photHI(ZZ, [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3], [GridSize_model1, GridSize_model2, GridSize_model3], MC_Snaps, fractions_HI, model_tags, OutputDir, "9PanelSlices_PhotHI")
 
-    plot_optical_depth(ZZ, [volume_frac_model1, volume_frac_model2, volume_frac_model3], model_tags, OutputDir, "OpticalDepth2")
+    #plot_optical_depth(ZZ, [volume_frac_model1, volume_frac_model2, volume_frac_model3], model_tags, OutputDir, "OpticalDepth")
     print "t_BigBang = %.4e Gyr.  t(z = 6) = %.4f Gyr" %(t_BigBang, cosmo.lookback_time(6).value)

@@ -20,6 +20,9 @@ from io import StringIO
 from collections import Counter
 from matplotlib.colors import LogNorm
 from mpl_toolkits.axes_grid1 import AxesGrid
+from astropy import units as u
+from astropy import cosmology
+
 
 import matplotlib.ticker as mtick
 import PlotScripts
@@ -33,19 +36,29 @@ plt.rc('lines', linewidth='2.0')
 plt.rc('legend', numpoints=1, fontsize='x-large')
 plt.rc('text', usetex=True)
 
-label_size = 12
+label_size = 20
 extra_size = 2
-plt.rc('xtick', labelsize=label_size)
-plt.rc('ytick', labelsize=label_size)
+talk_fontsize = 20
+talk_legendsize = 18
+plt.rc('xtick', labelsize=talk_fontsize)
+plt.rc('ytick', labelsize=talk_fontsize)
 plt.rc('text', usetex=True)
 tick_interval = 0.25
 np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
- 
-colours = ['r', 'b', 'g', 'm', 'c', 'k', 'y']
-markers = ['x', 'o', 'x', 'o', 'D', 's']
+
+colors = ['r', 'b', 'g', 'c', 'm', 'k']
+markers = ['x', 'o', '^', 's', 'D']
 linestyles = ['-', '--', '-.', ':']
 
-Output_Format = ".eps"
+AllVars.Set_Constants()
+AllVars.Set_Params_Mysim()
+cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
+t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
+z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
+time_xlim = [315, 930]
+time_tick_interval = 25
+
+Output_Format = ".pdf"
 
 def calculate_beta(MUV, z):
 	
@@ -240,7 +253,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
     binwidth = 0.1
     Observations = 1
 
-    Output_Tag = "SMF_MHneg_vs_fiducial"
+    Output_Tag = "SMF_Perth"
 
     Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probability histogram.
     errorwidth = 2
@@ -287,7 +300,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
             ls = '-'
         else:
             ls = '--'
-        plt.plot(Bin_Middle, counts / Normalization[i], colours[i], linestyle = ls, label = title[i])
+        plt.plot(Bin_Middle, counts / Normalization[i], color = colors[i], linestyle = ls, label = title[i])
 
 ##
 
@@ -301,8 +314,8 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
     plt.axis([6, 11.5, 1e-6, 1e-1])
 
-    ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}} \:[M_{\odot}]$')
-    ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$')
+    ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}} \:[M_{\odot}]$', fontsize = talk_fontsize)
+    ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = talk_fontsize)
     ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
 
 ### If we want to put observations on the figure ###
@@ -360,10 +373,12 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
     leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize('medium')
+        t.set_fontsize(talk_legendsize)
+
+    plt.tight_layout()
 
     outputFile = './' + Output_Tag + Output_Format
-    plt.savefig(outputFile, dpi=1600)  # Save the figure
+    plt.savefig(outputFile)  # Save the figure
     print 'Saved file to', outputFile
     plt.close()
  
@@ -498,16 +513,10 @@ def Central_Galaxy_Projection(Simulation, Redshift, Mass, Photons):
 
 ##
 
-def FilteringMass(Simulation, SnapListZ, Gnedin, Sobacchi, Sobacchi2, Mvir, Mvir2, MySim_Len):
+def FilteringMass(Simulation, SnapListZ, Mass, Sobacchi_idx, MySim_Len, model_tags):
 
-    title = ["", "", "", "", ""] 
+    
 
-    title[0] = "Gnedin"
-    title[1] = r'Sobacchi Recursive $\texttt{SAGE}, f_\mathrm{esc} \: \propto \: M_H^{\beta}$'
-    title[2] = r'Sobacchi Recursive $\texttt{SAGE}, f_\mathrm{esc}  0.15$'
-    title[3] = r"$M_\mathrm{Vir} \: \mathrm{Base} \: \texttt{SAGE}$"
-    #title[4] = r"$M_\mathrm{Vir} \: \mathrm{Recursive} \texttt{SAGE}  \: f_\mathrm{esc} \: \propto \: M_H^\beta$"
-    title[4] = r"$M_\mathrm{Vir} \: \mathrm{Recursive} \: \texttt{SAGE}  \: f_\mathrm{esc} = 0.15$"
  
     Normalization = []
  
@@ -538,15 +547,21 @@ def FilteringMass(Simulation, SnapListZ, Gnedin, Sobacchi, Sobacchi2, Mvir, Mvir
     Mvir_Std2 = np.zeros((len(SnapListZ)))
 
     print "SNAPSHOTS", SnapListZ
-    for i in xrange(0, len(SnapListZ)):
-	Gnedin_Mean[i] = np.mean(Gnedin[i])
-	Gnedin_Std[i] = np.std(Gnedin[i])
+    for i in xrange(0, len(Mass)):
 
-	Mvir_Mean[i] = np.mean(10**Mvir[i])
-	Mvir_Std[i] = np.std(10**Mvir[i])
+	Mean = np.zeros((len(SnapListZ)))
+    	for j in xrange(0, len(SnapListZ)):
+		if(i in Sobacchi_idx == True): 
+			Mean[j] = np.mean(Mass[i][j])
+			Std[j] = np.std(Mass[i][j])
+		else:
+			y = 10
+	ax1.plot(SnapListZ, np.log10(Mean), color = colors[i], linestyle = linestyles[i], label = model_tags[i], lw = 3)
+	ax1.fill_between(SnapListZ, np.log10(Mean) - 0.434*Std/Mean, np.log10(Mean) + 0.434*Std/Mean, alpha = 0.3, color = colors[i])
 
-	Mvir_Mean2[i] = np.mean(10**Mvir2[i])
-	Mvir_Std2[i] = np.std(10**Mvir2[i])
+
+
+
 
 
 	w = np.where(Sobacchi[i] > 1.0)[0]
@@ -566,30 +581,28 @@ def FilteringMass(Simulation, SnapListZ, Gnedin, Sobacchi, Sobacchi2, Mvir, Mvir
     fig = plt.figure()
     ax = plt.subplot(111)
           
-    ax.plot(SnapListZ, np.log10(Gnedin_Mean), color = 'r', linestyle = '--', label = title[0])
+    ax.plot(SnapListZ, np.log10(Gnedin_Mean), color = 'r', linestyle = '--', label = model_tags[0], lw = 3)
     print "Gnedin_Mean", Gnedin_Mean
-
 
     print "Sobacchi_Mean", np.log10(Sobacchi_Mean)
     print "Sobacchi_Std", np.log10(Sobacchi_Std)
-    ax.plot(SnapListZ, np.log10(Sobacchi_Mean), color = 'b', linestyle = '-', label = title[1])
-    ax.fill_between(SnapListZ, np.log10(Sobacchi_Mean)-0.434*Sobacchi_Std/Sobacchi_Mean, np.log10(Sobacchi_Mean)+0.434*Sobacchi_Std/Sobacchi_Mean, alpha = 0.5, color = 'b')	
+    ax.plot(SnapListZ, np.log10(Sobacchi_Mean), color = 'b', linestyle = '-', label = model_tags[1], lw = 3)
+    ax.fill_between(SnapListZ, np.log10(Sobacchi_Mean)-0.434*Sobacchi_Std/Sobacchi_Mean, np.log10(Sobacchi_Mean)+0.434*Sobacchi_Std/Sobacchi_Mean, alpha = 0.3, color = 'b')	
 
 
-    ax.plot(SnapListZ, np.log10(Sobacchi_Mean2), color = 'g', linestyle = '-', label = title[2])
-    ax.fill_between(SnapListZ, np.log10(Sobacchi_Mean2)-0.434*Sobacchi_Std2/Sobacchi_Mean2, np.log10(Sobacchi_Mean2)+0.434*Sobacchi_Std2/Sobacchi_Mean2, alpha = 0.5, color = 'g')	
-
+    ax.plot(SnapListZ, np.log10(Sobacchi_Mean2), color = 'g', linestyle = '-', label = model_tags[2])
+    ax.fill_between(SnapListZ, np.log10(Sobacchi_Mean2)-0.434*Sobacchi_Std2/Sobacchi_Mean2, np.log10(Sobacchi_Mean2)+0.434*Sobacchi_Std2/Sobacchi_Mean2, alpha = 0.3, color = 'g')	
 
     print "Mvir_Mean", np.log10(Mvir_Mean)
     print "Mvir_Std", np.log10(Mvir_Std)
-    ax.plot(SnapListZ, np.log10(Mvir_Mean), color = 'k', linestyle = '-', label = title[3])
+    ax.plot(SnapListZ, np.log10(Mvir_Mean), color = 'k', linestyle = '-', label = model_tags[3])
     ax.fill_between(SnapListZ, np.log10(Mvir_Mean)-0.434*Mvir_Std/Mvir_Mean, np.log10(Mvir_Mean)+0.434*Mvir_Std/Mvir_Mean, alpha = 0.2, color = 'k')
 
-    ax.plot(SnapListZ, np.log10(Mvir_Mean2), color = 'c', linestyle = '-', label = title[4])
-    ax.fill_between(SnapListZ, np.log10(Mvir_Mean2)-0.434*Mvir_Std2/Mvir_Mean2, np.log10(Mvir_Mean2)+0.434*Mvir_Std2/Mvir_Mean2, alpha = 0.2, color = 'c')
+    #ax.plot(SnapListZ, np.log10(Mvir_Mean2), color = 'c', linestyle = '-', label = model_tags[4])
+    #ax.fill_between(SnapListZ, np.log10(Mvir_Mean2)-0.434*Mvir_Std2/Mvir_Mean2, np.log10(Mvir_Mean2)+0.434*Mvir_Std2/Mvir_Mean2, alpha = 0.2, color = 'c')
  
-    ax.set_xlabel(r"z", fontsize = label_size + extra_size)
-    ax.set_ylabel(r"$\mathrm{log}_{10} \: M_\odot$", fontsize = label_size + extra_size)
+    ax.set_xlabel(r"z", fontsize = label_size)
+    ax.set_ylabel(r"$\mathrm{log}_{10} \: M_\odot$", fontsize = label_size)
 
     ax.set_xlim([5.5,13])
     ax.set_ylim([6,13])
@@ -978,24 +991,53 @@ def PhotonsVsStellarMass(Simulation, SnapListZ, Mass, Photons):
 
 ##
 
-def fesc(simulation, SnapListZ, fesc):
+def fesc(simulation, SnapListZ, fesc, model_tags, Output_Tag):
 
-    Output_Tag = "fesc_Part100"
+    ax1 = plt.subplot(111)
 
-    ax = plt.subplot(111)
-    avg = []
-    std = []
-
+    t = np.empty(len(SnapListZ))
+        
     for i in xrange(0, len(SnapListZ)):
-	    avg.append(np.mean(fesc[i]))
-	    std.append(np.std(fesc[i]))
-	    
-    ax.plot(SnapListZ, avg)  
-    ax.fill_between(SnapListZ, np.subtract(avg,std), np.add(avg,std), color = 'r', alpha = 0.5)
+	t[i] = (t_BigBang - cosmo.lookback_time(SnapListZ[i]).value) * 1.0e3   
 
-    ax.set_xlabel(r'$z$')
-    ax.set_ylabel(r'$f_\mathrm{esc}$')
+    print SnapListZ
+    print t
+    print len(t)
 
+    for j in xrange(0, len(fesc)):
+	avg = []
+	std = []
+	
+    	for i in xrange(0, len(SnapListZ)):
+	    	avg.append(np.mean(fesc[j][i]))
+	    	std.append(np.std(fesc[j][i]))
+    	ax1.plot(t, avg, color = colors[j], ls = linestyles[j], label = model_tags[j], lw = 3)  
+    	ax1.fill_between(t, np.subtract(avg,std), np.add(avg,std), color = colors[j], alpha = 0.25)
+
+    ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
+    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
+    ax1.set_xlim(time_xlim)
+    ax1.set_ylim([-0.05, 0.7])
+
+    ax2 = ax1.twiny()
+
+    t_plot = (t_BigBang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
+    z_labels = ["$%d$" % x for x in z_plot] # Properly Latex-ize the labels.
+
+    ax2.set_xlabel(r"$z$", size = label_size)
+    ax2.set_xlim(time_xlim)
+    ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
+    ax2.set_xticklabels(z_labels) # But label them as redshifts.
+
+    ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
+    ax1.set_ylabel(r'$f_\mathrm{esc}$', fontsize = talk_fontsize)
+
+    leg = ax1.legend(loc=1, numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(talk_legendsize)
+
+    plt.tight_layout()
     outputFile = './' + Output_Tag + Output_Format
     plt.savefig(outputFile)  # Save the figure
     print 'Saved file to', outputFile
@@ -1483,24 +1525,22 @@ def sSFR_Hist(Simulation, Redshift, sSFR, MySim_Len):
     plt.close()
 ##
 
-def EjectedFracVsStellarMass(Simulation, Redshift, mass, EjectedFraction, MySim_Len):
+def EjectedFracVsStellarMass(Simulation, Redshift, mass, EjectedFraction, MySim_Len, Output_Tag):
 
     print "Ejected Mass vs Stellar Mass"
     title = []
-    Output_Tag = "EjectedFrac_MH_10part"
-    ax = plt.subplot(111)
 
-    binwidth = 0.2
+    fig = plt.figure()
+
+    ax1 = plt.subplot(211)
+
+    binwidth = 0.1
     low_mass = 3
     high_mass = 14
 
     bins = np.arange(low_mass,high_mass, binwidth)
     bins_mid = bins + binwidth/2.0
     bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.
-
-    print mass
-    print EjectedFraction
-    print bins
 
     for i in xrange(0, len(Redshift)):
 	    ejected_sum = [] 
@@ -1511,59 +1551,50 @@ def EjectedFracVsStellarMass(Simulation, Redshift, mass, EjectedFraction, MySim_
 		else:
 			ejected_sum.append(nan)
 	
-	    print "bins_mid", bins_mid
-            print "ejected_sum", ejected_sum	
+	    ax1.scatter(np.mean(mass[i]), 0.3, s = 30, color = colors[i])
+
 	    tmp = 'z = %.2f' %(Redshift[i])
-	    ax.plot(bins_mid, ejected_sum, color = colours[i], label = tmp) 
+	    ax1.plot(bins_mid, ejected_sum, color = colors[i], label = tmp) 
 	
-    #ax.set_xlabel(r'$\log_{10}\ M_{\mathrm{*}}\ [M_{\odot}]$') 
-    ax.set_xlabel(r'$\log_{10}\ M_{\mathrm{H}}\ [M_{\odot}]$') 
-    ax.set_ylabel(r'$\mathrm{Ejected \: Fraction}$')
-   	
-    leg = plt.legend(loc=1, numpoints=1, labelspacing=0.1)
+#    ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{H}}\ [M_{\odot}]$') 
+    ax1.set_ylabel(r'$\mathrm{Ejected \: Fraction}$', size = label_size)
+    ax1.set_xlim([8.5, 12])
+    ax1.set_ylim([-0.05, 0.6])   
+
+    ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
+    ax1.set_xticklabels([])
+   
+
+    leg = ax1.legend(loc=1, numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize('medium')
 
+    ax2 = plt.subplot(212)
+
+    hb = ax2.hexbin(mass[3], EjectedFraction[3], cmap = 'inferno', gridsize = 50, bins = 'log')
+    counts = hb.get_array()
+
+    cax = fig.add_axes([0.95, 0.14, 0.03, 0.38])
+    cbar = fig.colorbar(hb, cax=cax, ticks = np.arange(0, max(counts)+0.2, 0.4))
+    cbar.ax.set_ylabel(r"$\log_{10} N$",  rotation = 90, fontsize = label_size) 
+    cbar.ax.tick_params(labelsize = label_size - 2) 
+
+    ax2.set_xlabel(r'$\log_{10}\ M_{\mathrm{H}}\ [M_{\odot}]$', size = label_size) 
+    ax2.set_ylabel(r'$\mathrm{Ejected \: Fraction}$', size = label_size)
+
+    ax2.set_xlim([8.5, 12])
+    ax2.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+    ax2.yaxis.set_minor_locator(mtick.MultipleLocator(0.025)) 
+
+    fig.subplots_adjust(right = None, hspace = 0.0, wspace = 0.0)
+    plt.tight_layout()
 
     outputFile = './' + Output_Tag + Output_Format
-    plt.savefig(outputFile)  # Save the figure
+    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print 'Saved file to', outputFile
     plt.close()
-
-    fig = plt.figure()
-    ax = plt.subplot(211)
-
-    Output_Tag = "EjectedFrac_MH_Dist_10Part"
-
-    '''
-    low_mass = 8
-    high_mass = 14
-    binwidth = 0.5
-    mass_edges = np.arange(low_mass, high_mass, binwidth)
-
-    low_fraction = 0
-    high_fraction = 1
-    ejected_edges = np.arange(low_fraction, high_fraction + 0.05, 0.05)
-    
-    H, xedges, yedges = np.histogram2d(mass[3], EjectedFraction[3], bins = (mass_edges, ejected_edges), normed = True)
-    H = H.T
-
-    ax.imshow(H, interpolation='nearest', origin = 'low', extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', cmap = 'Purples')
-    '''
-
-    hb = ax.hexbin(mass[3], EjectedFraction[3], cmap = 'inferno', gridsize = 50)
-    fig.colorbar(hb, ax = ax)
-
-    ax = plt.subplot(212)
-
-    hb = ax.hexbin(mass[3], EjectedFraction[3], cmap = 'inferno', gridsize = 50, bins = 'log')
-    fig.colorbar(hb, ax = ax)
-    outputFile = './' + Output_Tag + Output_Format
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-    plt.close()
-
 
 ##
 
@@ -1607,9 +1638,6 @@ def HaloPartCount(Simulation, Redshift, HaloCount, MySim_Len):
 #################################
 
 Simulation = 1 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
-
-AllVars.Set_Constants()
-AllVars.Set_Params_Mysim()
 
 if (Simulation == 0 or Simulation == 2):
     H_Millennium = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/millennium_trees/trees_063', 0, 7)
@@ -1661,52 +1689,39 @@ if (Simulation == 1 or Simulation == 2):
     #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_MergedGalaxies', 0, 124, 101)
     #G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
 
-    #SnapList_MySim = np.arange(22,78) 
-
-    #SnapList_MySim = [30, 35, 40, 50, 60, 70, 78]
-    #SnapList_MySim = [99, 78, 64, 51, 43, 37] 
+#    SnapList_MySim = np.arange(22,78) 
+    
+   # SnapList_MySim = [30, 35, 40, 50, 60, 70, 78]
+    SnapList_MySim = [99, 78, 64, 51, 43, 37] 
     # Snapshots = z [5, 6, 7, 8, 9, 10] are [99, 78, 64, 51, 43, 37] (used for UVLF) 
 
-    SnapList_MySim = [78, 64,51]
+    #SnapList_MySim = [78, 64,51]
     # Snapshots for z = [6, 7, 8] are [78, 64, 51]
     # Snapshots for z = [7.23, 6.69] are [60, 67] (used for LyAlpha Luminosity)
  
     print "Snapshots analyzing are", SnapList_MySim
     
-HaloCut = 100
-print "Len at Snapshot 99"
-print G_MySim.LenHistory[:, 99]
-print "Greater than %d particles" %(HaloCut)
-print G_MySim.LenHistory[:, 99][G_MySim.LenHistory[:,99] > HaloCut]
-print len(G_MySim.LenHistory[:, 99][G_MySim.LenHistory[:,99] > HaloCut])
-
-print "Len at Snapshot 78"
-print G_MySim.LenHistory[:, 78]
-print "Greater than %d particles" %(HaloCut)
-print G_MySim.LenHistory[:, 78][G_MySim.LenHistory[:,78] > HaloCut]
-print len(G_MySim.LenHistory[:, 78][G_MySim.LenHistory[:,78] > HaloCut])
-
-print "Len at Snapshot 37"
-print G_MySim.LenHistory[:, 37]
-print "Greater than %d particles" %(HaloCut)
-print G_MySim.LenHistory[:, 37][G_MySim.LenHistory[:,37] > HaloCut]
-print len(G_MySim.LenHistory[:, 37][G_MySim.LenHistory[:,37] > HaloCut])
-
-
 HaloPart_Low = 41 # Bounds for where we define the cutoff for a 'Dark Matter Halo'. Below this we can't be sure of the results.
 HaloPart_High = 51
 
 calculate_observed_LF = 0
 
 '''
-GG_model2, Gal_Desc = ReadScripts.ReadGals_STARBURST_Millennium('./results/millennium_post_processed/Photons_NoReion_NewSave', 0, 7, 64)
-G_Merged_model2, Merged_Desc = ReadScripts.ReadGals_STARBURST_Millennium('./results/millennium_post_processed/Photons_Merged_NoReion_NewSave', 0, 7, 64)
-G_model2 = ReadScripts.Join_Arrays(GG_model2, G_Merged_model2, Gal_Desc)
+countSnap_low = 30
+countSnap_high = 99
 
-GG_model3, Gal_Desc = ReadScripts.ReadGals_STARBURST_Millennium('./results/millennium_post_processed/Photons_NoSN_NewSave', 0, 7, 64)
-G_Merged_model3, Merged_Desc = ReadScripts.ReadGals_STARBURST_Millennium('./results/millennium_post_processed/Photons_Merged_NoSN_NewSave', 0, 7, 64)
-G_model3 = ReadScripts.Join_Arrays(GG_model3, G_Merged_model3, Gal_Desc)
+idx_low = [i for i in range(len(G_MySim.GridHistory)) if G_MySim.GridHistory[i,countSnap_low] != -1] # Indices for all galaxies that exist at snapshot 'countSnap_low'.
+numgals_low = len(idx_low)
+
+numgals_high = len(G_MySim.GridHistory[G_MySim.GridHistory[idx_low, countSnap_high] != -1])
+ 
+
+print numgals_low
+print numgals_high
 '''
+
+
+#HaloPartCount(Simulation, SnapListZ_MySim, HaloCount_MySim, len(SnapList_MySim))
 ## Halo Initialization ##
 
 w_H_MySim = []
@@ -1760,9 +1775,11 @@ mean_A_MySim = []
 EjectedFraction_MySim = []
 
 fesc_local_MySim = []
+fesc_local2_MySim = []
+fesc_local3_MySim = []
 
 HaloCount_MySim = []
-HaloCut_MySim = 0
+HaloCut_MySim = 100
 
 ## MySim Model 2 ##
 
@@ -1876,12 +1893,6 @@ if (Simulation == 1 or Simulation == 2):
       Photons_HI_Tot_G_MySim.append(np.log10(Sum_Log(Photons_HI_G_MySim[i])))
  
       SFR_G_MySim.append(np.log10(G_MySim.GridSFR[w_G_MySim[i], SnapList_MySim[i]])) # Msun yr^-1.  Log Units.
-      sSFR_G_MySim.append(SFR_G_MySim[i] - mass_G_MySim[i])
-      if (min(sSFR_G_MySim[i]) < sSFR_min_MySim):
-      	sSFR_min_MySim = min(sSFR_G_MySim[i])
-
-      if (max(sSFR_G_MySim[i]) > sSFR_max_MySim):
-      	sSFR_max_MySim = max(sSFR_G_MySim[i])
 
       HaloPart_MySim.append(G_MySim.Len[w_G_MySim[i]])
       
@@ -1932,8 +1943,11 @@ if (Simulation == 1 or Simulation == 2):
 	      MUV_Obs_MySim.append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
       EjectedFraction_MySim.append(G_MySim.EjectedFraction[w_G_MySim[i], SnapList_MySim[i]])
-      fesc_local_MySim.append(EjectedFraction_MySim[i]*0.999 + 0.001)
 
+      fesc_local_MySim.append(0.25)
+      fesc_local2_MySim.append(pow(10,3.62) * pow(pow(10,mass_Central_MySim[i]),-0.43)) 
+      fesc_local3_MySim.append(EjectedFraction_MySim[i]*0.999 + 0.001)
+	
       ## Model 2 Calculations ##
       '''
       ## Halos ##
@@ -2080,9 +2094,6 @@ def Calculate_HaloPartStellarMass(ZZ, HaloPart, StellarMass, BoundLow, BoundHigh
 
 	return Mass
 
-print sSFR_G_MySim
-print "Minimum sSFR is %.4e and maximum sSFR is %.4e (log Msun)" %(sSFR_min_MySim, sSFR_max_MySim)
-
 #print "For 512 model:"
 #HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, HaloPart_Low, HaloPart_High)
 
@@ -2094,12 +2105,12 @@ mass_G_MySim2 = []
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim))
+#StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim))
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
-#CentralGalaxy_Projection(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_MySim2), (Photons_G_MySim + Photons_G_MySim2))
-#FilteringMass(Simulation, SnapListZ_MySim, MfiltGnedin_MySim2, MfiltSobacchi_MySim, MfiltSobacchi_MySim2, mass_Central_MySim, mass_Central_MySim2, len(SnapList_MySim))
+#CentralGalaxy_Projection(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_MySim2), (Photons_G_MySim + Photons_G_MySim2))  
+#FilteringMass(Simulation, SnapListZ_MySim, [MfiltGnedin_MySim, MfiltSobacchi_MySim, 10**mass_Central_MySim], len(SnapList_MySim), [r"\mathrm{Gnedin}", r'Sobacchi Recursive $\texttt{SAGE}, f_\mathrm{esc} \: \propto \: M_H^{\beta}$', r"$M_\mathrm{Vir} \: \mathrm{Base} \: \texttt{SAGE}$"])
 #PlotScripts.Plot_Scatter_SixPanel((mass_Central_model1 + mass_Central_model1 + mass_Central_model3), (Photons_Central_model1 + Photons_G_model1 + Photons_G_model3), 1, 2, ['Halos', 'Fiducial Gal', 'NoSN Gal'], [min_mass_H, max_mass_H, -2, 1], [r'Log Halo Mass [$M_{\odot}$]', r'Log (Halo/Galaxy Ionizing Photons) [s$^{-1}$]'], 2, SnapListZ, 'CentralStellar_Photons_Difference_Fiducial_NoSN', '.png')
 #StarFormationRate(Simulation, SnapListZ_MySim, SFR_G_MySim, SFR_G_MySim2)
 #PhotonsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
@@ -2111,6 +2122,6 @@ StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + m
 #SFR_Hist(Simulation, SnapListZ, (SFR_G_MySim + SFR_G_MySim2), len(SnapList_MySim)) 
 #SFRVsStellarMass(Simulation, SnapListZ, mass_G_MySim, SFR_G_MySim)
 #sSFR_Hist(Simulation, SnapListZ, (sSFR_G_MySim), len(SnapList_MySim)) 
-#fesc(Simulation, SnapListZ_MySim, fesc_local_MySim)
-#EjectedFracVsStellarMass(Simulation, SnapListZ_MySim, mass_Central_MySim, EjectedFraction_MySim, len(SnapList_MySim))
+#fesc(Simulation, SnapListZ_MySim, [fesc_local_MySim, fesc_local2_MySim, fesc_local3_MySim], [r'$f_\mathrm{esc} = 0.25$', r'$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$', r'$f_\mathrm{esc} \: \propto \: m_\mathrm{Ejected}$'], "fesc_HaloPartCut100")
+EjectedFracVsStellarMass(Simulation, SnapListZ_MySim, mass_Central_MySim, EjectedFraction_MySim, len(SnapList_MySim), "EjectedMass_HaloMass_HaloPartCut100")
 #HaloPartCount(Simulation, SnapListZ_MySim, HaloCount_MySim, len(SnapList_MySim))
