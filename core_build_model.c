@@ -74,7 +74,7 @@ void construct_galaxies(int halonr, int tree, int filenr)
 
 int join_galaxies_of_progenitors(int halonr, int ngalstart)
 {
-  int ngal, prog, mother_halo=-1, i, j, first_occupied, lenmax, lenoccmax, centralgal;
+  int ngal, prog, i, mother_halo=-1, j, first_occupied, lenmax, lenoccmax, centralgal;
   double previousMvir, previousVvir, previousVmax;
   int step;
 
@@ -112,6 +112,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
   {
     for(i = 0; i < HaloAux[prog].NGalaxies; i++)
     {
+
 			assert(ngal < FoF_MaxGals);
 
       // This is the cruical line in which the properties of the progenitor galaxies 
@@ -152,13 +153,14 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 					
           Gal[ngal].Len = Halo[halonr].Len;
           Gal[ngal].Vmax = Halo[halonr].Vmax;
+	  Gal[ngal].VmaxHistory[Gal[ngal].SnapNum] = Halo[halonr].Vmax;
 
 					Gal[ngal].deltaMvir = get_virial_mass(halonr) - Gal[ngal].Mvir;
 
           if(get_virial_mass(halonr) > Gal[ngal].Mvir)
           {
             Gal[ngal].Rvir = get_virial_radius(halonr);  // use the maximum Rvir in model
-            Gal[ngal].Vvir = get_virial_velocity(halonr);  // use the maximum Vvir in model
+            Gal[ngal].Vvir = get_virial_velocity(halonr);  // use the maximum Vvir in model 
           }
           Gal[ngal].Mvir = get_virial_mass(halonr);
 
@@ -250,12 +252,20 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
     {
 			assert(centralgal == -1);
       centralgal = i;
+  
     }
   }
 
   for(i = ngalstart; i < ngal; i++)
+  {
     Gal[i].CentralGal = centralgal;
-
+//    fprintf(stderr, "Central gal Pre-fix = %d \t ngal = %d\n", Gal[i].CentralGal, ngal); 
+    if (centralgal == -1)
+    {
+	Gal[i].CentralGal = 0;
+//    fprintf(stderr, "Central gal Post fix= %d\n", Gal[i].CentralGal);
+    } 
+  }
   return ngal;
 
 }
@@ -273,7 +283,6 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
   //printf("%d %d\n", Gal[centralgal].HaloNr, halonr);
   if (Gal[centralgal].Type != 0 || Gal[centralgal].HaloNr != halonr)
         printf("ARGHHH %d %d %d\n", Gal[centralgal].Type, Gal[centralgal].HaloNr, halonr);
-
 
 
 //	assert(Gal[centralgal].Type == 0 && Gal[centralgal].HaloNr == halonr);
@@ -316,10 +325,14 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
       coolingGas = cooling_recipe(p, deltaT / STEPS);
       cool_gas_onto_galaxy(p, coolingGas);
 
-      // stars form and then explode! 
+      // stars form and then explode!
+      if(step == 0)
+        do_previous_SN(p, centralgal, halonr);
+	 
       starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step);
 
     }
+
 
     // check for satellite disruption and merger events 
     for(p = 0; p < ngal; p++)
@@ -331,11 +344,12 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
         deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
         Gal[p].MergTime -= deltaT / STEPS;
-        
+
         // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
         // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
         currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - ((double)step + 1.0) / (double)STEPS);
         galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
+
         if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= ThresholdSatDisruption)))        
         {
           if(Gal[p].Type==1) 
@@ -350,20 +364,33 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
           if(Gal[p].MergTime > 0.0)  // disruption has occured!
           {
+
+
             disrupt_satellite_to_ICS(merger_centralgal, p);
+
 	    update_grid_array(p, halonr, step, centralgal); // Updates the grid before it's added to the merger list.
+
             add_galaxy_to_merger_list(p);
+	
+
+
           }
           else
           {
             if(Gal[p].MergTime <= 0.0)  // a merger has occured! 
             {
               time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);   
+
               deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step);
+
 	      update_grid_array(p, halonr, step, centralgal); // Updates the grid before it's added to the merger list.
+
 //	      if (Gal[p].GridSFR[Halo[halonr].SnapNum] == 0)
 //		printf("GOT A ZERO FROM MERGER!\n");
+
               add_galaxy_to_merger_list(p);
+
+
             }
           } 
         }
@@ -373,6 +400,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
   } // Go on to the next STEPS substep
 
+  
 
   for(p = 0; p < ngal; ++p)
   { 
@@ -447,14 +475,16 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
     
     if(Gal[p].mergeType == 0)
     {
+        if(NumGals > MaxGals)
+        {
+	  printf("ngal = %d \t MaxGals = %d\n", NumGals, MaxGals);
 			assert(NumGals < MaxGals);
+        }
 
       Gal[p].SnapNum = Halo[currenthalo].SnapNum;
       HaloGal[NumGals++] = Gal[p];
       HaloAux[currenthalo].NGalaxies++;
     }
   }
-
-
 }
 

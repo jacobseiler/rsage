@@ -59,14 +59,15 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
     mass_ratio = mi / ma;
   else
     mass_ratio = 1.0;
-
   add_galaxies_together(merger_centralgal, p);
 
   // grow black hole through accretion from cold disk during mergers, a la Kauffmann & Haehnelt (2000) 
   if(AGNrecipeOn)
+  {
     grow_black_hole(merger_centralgal, mass_ratio);
-  
+  }
   // starburst recipe similar to Somerville et al. 2001
+
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step);
 
   if(mass_ratio > 0.1)
@@ -147,7 +148,10 @@ void quasar_mode_wind(int gal, float BHaccrete)
 
 void add_galaxies_together(int t, int p)
 {
-  int step;
+   // t is the index of the central galaxy for the merger.
+   // p is the index of the merging galaxy.
+
+  int step, i;
 
   Gal[t].ColdGas += Gal[p].ColdGas;
   Gal[t].MetalsColdGas += Gal[p].MetalsColdGas;
@@ -176,6 +180,18 @@ void add_galaxies_together(int t, int p)
     Gal[t].SfrBulgeColdGas[step] += Gal[p].SfrDiskColdGas[step] + Gal[p].SfrBulgeColdGas[step];
     Gal[t].SfrBulgeColdGasMetals[step] += Gal[p].SfrDiskColdGasMetals[step] + Gal[p].SfrBulgeColdGasMetals[step];
   }
+
+
+
+  // Our delayed SN scheme requires the stars formed by current galaxy and also its progenitors; so need to go back through the central galaxy of the merger and add all the stars from the merging galaxy.
+  for(i = 0; i < Gal[t].SnapNum + 1; ++i) // Careful that we add up to the current snapshot number (inclusive) as we need to account for the stars just formed.
+  {
+    Gal[t].SNStars[i] += Gal[p].SNStars[i]; 
+  }
+  
+
+  Gal[t].PreviousReheatedMass[Gal[t].SnapNum] += Gal[p].PreviousReheatedMass[Gal[p].SnapNum];
+  
 }
 
 
@@ -204,8 +220,8 @@ void make_bulge_from_burst(int p)
 
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step)
 {
-  double stars, reheated_mass, ejected_mass, fac, metallicity, eburst;
-  double FracZleaveDiskVal;
+  double stars, reheated_mass_current, reheated_energy_current, ejected_mass_current, ejected_metals_current, mass_stars_nova_current, fac, metallicity, eburst;
+  double FracZleaveDiskVal; 
 
   // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
   // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more accurate then previous. 
@@ -216,41 +232,49 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   else
     eburst = 0.56 * pow(mass_ratio, 0.7);
 
+
   stars = eburst * Gal[merger_centralgal].ColdGas;
   if(stars < 0.0)
     stars = 0.0;
-
+  
+  Gal[merger_centralgal].SNStars[Gal[merger_centralgal].SnapNum] += stars; 
+ 
   // this bursting results in SN feedback on the cold/hot gas 
   if(SupernovaRecipeOn == 1)
-    reheated_mass = FeedbackReheatingEpsilon * stars;
+  {
+    calculate_current_SN(merger_centralgal, stars, &reheated_mass_current, &reheated_energy_current, &ejected_metals_current, &mass_stars_nova_current);
+    calculate_ejected_mass(merger_centralgal, centralgal, &reheated_mass_current, reheated_energy_current, &ejected_mass_current);
+  }
   else
-    reheated_mass = 0.0;
+  {
+    reheated_mass_current = 0.0;
+    mass_stars_nova_current = 0.0;
+    ejected_metals_current = 0.0;
+  }
 
-	assert(reheated_mass >= 0.0);
+  assert(reheated_mass_current >= 0.0);
 
   // can't use more cold gas than is available! so balance SF and feedback 
-  if((stars + reheated_mass) > Gal[merger_centralgal].ColdGas)
+  if((stars + reheated_mass_current) > Gal[merger_centralgal].ColdGas)
   {
-    fac = Gal[merger_centralgal].ColdGas / (stars + reheated_mass);
+    fac = Gal[merger_centralgal].ColdGas / (stars + reheated_mass_current);
     stars *= fac;
-    reheated_mass *= fac;
+    reheated_mass_current *= fac;
   }
 
-  // determine ejection
-  if(SupernovaRecipeOn == 1)
-  {
-    if(Gal[centralgal].Vvir > 0.0)
-			ejected_mass = 
-				(FeedbackEjectionEfficiency * (EtaSNcode * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) - 
-					FeedbackReheatingEpsilon) * stars;
-		else
-			ejected_mass = 0.0;
-		
-    if(ejected_mass < 0.0)
-      ejected_mass = 0.0;
-  }
-  else
-    ejected_mass = 0.0;
+  metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
+  Gal[merger_centralgal].ColdGas += mass_stars_nova_current; // Add back the mass of this SN episode directly to the cold ISM.
+  Gal[merger_centralgal].MetalsColdGas += metallicity * mass_stars_nova_current;
+  Gal[merger_centralgal].StellarMass -= mass_stars_nova_current;
+  Gal[merger_centralgal].MetalsStellarMass -= metallicity * mass_stars_nova_current;
+
+  Gal[merger_centralgal].SNStars[Gal[merger_centralgal].SnapNum] += stars;
+
+  if(Gal[merger_centralgal].StellarMass < 0.0)
+    Gal[merger_centralgal].StellarMass = 0.0;
+  if(Gal[merger_centralgal].MetalsStellarMass < 0.0)
+    Gal[merger_centralgal].MetalsStellarMass = 0.0;
+
 
   // starbursts add to the bulge
   Gal[merger_centralgal].SfrBulge[step] += stars / dt;
@@ -260,16 +284,16 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   //Gal[merger_centralgal].deltaSfr[Gal[merger_centralgal].SnapNum] += stars / dt;
 
   metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
-  update_from_star_formation(merger_centralgal, stars, metallicity);
+  update_from_star_formation(merger_centralgal, stars, metallicity, mass_stars_nova_current);
 
-  Gal[merger_centralgal].BulgeMass += (1 - RecycleFraction) * stars;
-  Gal[merger_centralgal].MetalsBulgeMass += metallicity * (1 - RecycleFraction) * stars;
+  Gal[merger_centralgal].BulgeMass += (stars - mass_stars_nova_current);
+  Gal[merger_centralgal].MetalsBulgeMass += metallicity * (stars - mass_stars_nova_current);
 
   // recompute the metallicity of the cold phase
   metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
 
   // update from feedback 
-  update_from_feedback(merger_centralgal, centralgal, reheated_mass, ejected_mass, metallicity);
+  update_from_feedback(merger_centralgal, centralgal, reheated_mass_current, ejected_mass_current, metallicity);
 
   // check for disk instability
   if(DiskInstabilityOn && mode == 0)
@@ -412,6 +436,7 @@ void add_galaxy_to_merger_list(int p)
     exit(EXIT_FAILURE);
   }
 
+  /*
   if (NULL == (MergedGal[MergedNr].GridPhotons_HI = malloc(sizeof(*(MergedGal[MergedNr].GridPhotons_HI)) * MAXSNAPS))) 
   {   
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HI in model_Mergers.c.", sizeof(*(MergedGal[MergedNr].GridPhotons_HI))*MAXSNAPS);
@@ -429,6 +454,7 @@ void add_galaxy_to_merger_list(int p)
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HeII in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridPhotons_HeII))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
+  */
 
   if (NULL == (MergedGal[MergedNr].MfiltGnedin = malloc(sizeof(*(MergedGal[MergedNr].MfiltGnedin)) * MAXSNAPS)))
   {   
@@ -454,6 +480,26 @@ void add_galaxy_to_merger_list(int p)
     exit(EXIT_FAILURE);
   }
 
+  if (NULL == (MergedGal[MergedNr].SNStars = malloc(sizeof(*(MergedGal[MergedNr].SNStars)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate SNStars in model_mergers.c.", sizeof(*(MergedGal[MergedNr].SNStars))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  if (NULL == (MergedGal[MergedNr].PreviousReheatedMass = malloc(sizeof(*(MergedGal[MergedNr].PreviousReheatedMass)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate PreviousReheatedMass in model_mergers.c.", sizeof(*(MergedGal[MergedNr].PreviousReheatedMass))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  
+  if (NULL == (MergedGal[MergedNr].VmaxHistory = malloc(sizeof(*(MergedGal[MergedNr].VmaxHistory)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate VmaxHistory in model_mergers.c.", sizeof(*(MergedGal[MergedNr].VmaxHistory))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+  
+
   for (j = 0; j < MAXSNAPS; ++j)
   {
     MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
@@ -466,13 +512,13 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
     MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
     MergedGal[MergedNr].GridCentralGalaxyMass[j] = Gal[p].GridCentralGalaxyMass[j];
-    MergedGal[MergedNr].GridPhotons_HI[j] = 0;    
-    MergedGal[MergedNr].GridPhotons_HeI[j] = 0;    
-    MergedGal[MergedNr].GridPhotons_HeII[j] = 0;   
     MergedGal[MergedNr].MfiltGnedin[j] = Gal[p].MfiltGnedin[j];
     MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
     MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
     MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j]; 
+    MergedGal[MergedNr].SNStars[j] = Gal[p].SNStars[j];
+    MergedGal[MergedNr].PreviousReheatedMass[j] = Gal[p].PreviousReheatedMass[j];
+    MergedGal[MergedNr].VmaxHistory[j] = Gal[p].VmaxHistory[j];
   }
 
   free(Gal[p].GridHistory);
@@ -480,13 +526,13 @@ void add_galaxy_to_merger_list(int p)
   free(Gal[p].GridSFR);
   free(Gal[p].GridZ);
   free(Gal[p].GridCentralGalaxyMass);
-  free(Gal[p].GridPhotons_HI);
-  free(Gal[p].GridPhotons_HeI);
-  free(Gal[p].GridPhotons_HeII);
   free(Gal[p].MfiltGnedin);
   free(Gal[p].MfiltSobacchi);
   free(Gal[p].EjectedFraction);
   free(Gal[p].LenHistory);
+  free(Gal[p].SNStars);
+  free(Gal[p].PreviousReheatedMass);
+  free(Gal[p].VmaxHistory);
 
   ++MergedNr;
 }

@@ -29,14 +29,14 @@ ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 else
-    CC = cc  # sets the C-compiler
+    CC = gcc  # sets the C-compiler
 endif
 
 
 
 GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
 GSL_LIBS = -L/usr/local/lib
-OPTIMIZE = -g -O0 -Wall  # optimization and warning flags
+OPTIMIZE = -g -O0 -Wall  -Wshadow # optimization and warning flags
 
 LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
 

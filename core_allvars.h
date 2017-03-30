@@ -183,14 +183,16 @@ struct GALAXY
   float *GridSFR;
   float *GridZ;
   float *GridCentralGalaxyMass;
-  float *GridPhotons_HI;
-  float *GridPhotons_HeI;
-  float *GridPhotons_HeII;
+//  float *GridPhotons_HI;
+//  float *GridPhotons_HeI;
+//  float *GridPhotons_HeII;
   double *MfiltGnedin;
   double *MfiltSobacchi;
   float *EjectedFraction;
   int *LenHistory;
- 
+  double *SNStars;
+  double *PreviousReheatedMass;
+  double *VmaxHistory;
 }
 *Gal, *HaloGal, *MergedGal;
 
@@ -356,4 +358,17 @@ extern int lowmass_halo;
 extern double smallest_mass;
 
 extern double count;
+
+extern double IMF_norm;
+extern double Eta_SNII;
+extern double m_SNII;
+extern int N_SFH;
+
+extern double alpha_energy;
+extern double V_energy;
+extern double beta_energy;
+extern double alpha_mass;
+extern double V_mass;
+extern double beta_mass; 
+extern double epsilon_mass_max;
 #endif  // #ifndef ALLVARS_H

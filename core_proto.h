@@ -48,7 +48,7 @@ double do_reionization(int centralgal, double Zcurr, int ReturnMfilt);
 double do_myreionization(int centralgal, double Zcurr, int ReturnMfilt);
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step);
-void update_from_star_formation(int p, double stars, double metallicity);
+void update_from_star_formation(int p, double stars, double metallicity, double mass_stars_nova);
 void update_from_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double metallicity);
 void make_bulge_from_burst(int p);
 void grow_black_hole(int merger_centralgal, double mass_ratio);
@@ -82,3 +82,13 @@ void grid_update_mass_metals_mass(double mass, double mass_metals, int GridPos, 
 
 void update_grid_array(int p, int halonr, int steps_completed, int centralgal);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
+
+void do_previous_SN(int p, int centralgal, int halonr);
+void calculate_previous_SN(int p, int N_SFH, double *reheated_mass, double *reheated_energy, int centralgal, double *ejected_metals, double *mass_stars_nova);
+//void calculate_previous_ejected_metals(int p, int N_SFH, double *ejected_metals, double *mass_stars_nova); 
+void calculate_current_SN(int p, double stars, double *reheated_mass, double *reheated_energy, double *ejected_metals, double *mass_stars_nova);
+//void calculate_current_ejected_metals(int p, double stars, double *ejected_metals, double *mass_stars_nova); 
+double calculate_Delta_Eta(double m_low, double m_high, int function);
+double integrand_Delta_Eta(double m, void *param);
+double integrand_Delta_m(double m, void *param);
+void calculate_ejected_mass(int p, int centralgal, double *reheated_mass, double reheated_energy, double *ejected_mass);

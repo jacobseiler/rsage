@@ -101,8 +101,8 @@ void load_tree(int filenr, int nr)
   myfread(Halo, TreeNHalos[nr], sizeof(struct halo_data), load_fd);
 
   MaxGals = (int)(MAXGALFAC * TreeNHalos[nr]);
-  if(MaxGals < 10000)
-    MaxGals = 100000;
+  
+  MaxGals = 100000;
 
   MaxMergedGals = MaxGals;
   FoF_MaxGals = 100000;

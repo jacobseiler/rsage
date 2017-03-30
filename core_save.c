@@ -77,7 +77,8 @@ void save_galaxies(int filenr, int tree)
     for(i = 0; i < NumGals; i++)
     {
       if(HaloGal[i].SnapNum == ListOutputSnaps[n])
-      { 	        
+      { 	       
+        
         prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
         write_gridarray(&HaloGal[i], save_fd[n]);
@@ -234,9 +235,6 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 
   double SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
 
-  
-  
-
   for (j = 0; j < MAXSNAPS; ++j)
   { 
       myfwrite(&g->GridHistory[j], sizeof(*(g->GridHistory)), 1, fp);
@@ -268,23 +266,13 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   }
   free(g->GridCentralGalaxyMass);  
 
+  
   for (j = 0; j < MAXSNAPS; ++j)
-  { 
-      myfwrite(&g->GridPhotons_HI[j], sizeof(*(g->GridPhotons_HI)), 1, fp);
+  {
+      float tmp = g->SNStars[j]; 
+      myfwrite(&tmp, sizeof(float), 1, fp); 
   }
-  free(g->GridPhotons_HI);
-
-  for (j = 0; j < MAXSNAPS; ++j)
-  { 
-      myfwrite(&g->GridPhotons_HeI[j], sizeof(*(g->GridPhotons_HeI)), 1, fp);
-  }
-  free(g->GridPhotons_HeI);
- 
-  for (j = 0; j < MAXSNAPS; ++j)
-  {  
-     myfwrite(&g->GridPhotons_HeII[j], sizeof(*(g->GridPhotons_HeII)), 1, fp);
-  }
-  free(g->GridPhotons_HeII);
+  free(g->SNStars);
  
   for (j = 0; j < MAXSNAPS; ++j)
   {  
@@ -309,7 +297,10 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
      myfwrite(&g->LenHistory[j], sizeof(*(g->LenHistory)), 1, fp);  
   }
   free(g->LenHistory); 
-
+  
+  
+  free(g->PreviousReheatedMass);
+  free(g->VmaxHistory);
 }
 
 void finalize_galaxy_file(int filenr)

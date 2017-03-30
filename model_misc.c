@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <time.h>
 #include <gsl/gsl_rng.h>
+#include <time.h>
 #include <assert.h>
 
 #include "core_allvars.h"
@@ -115,6 +115,7 @@ void init_galaxy(int p, int halonr)
     exit(EXIT_FAILURE);
   }
 
+  /*
   if (NULL == (Gal[p].GridPhotons_HI = malloc(sizeof(*(Gal[p].GridPhotons_HI)) * MAXSNAPS))) 
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HI.", sizeof(*(Gal[p].GridPhotons_HI))*MAXSNAPS);
@@ -132,6 +133,7 @@ void init_galaxy(int p, int halonr)
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HeII.", sizeof(*(Gal[p].GridPhotons_HeII))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
+  */
 
   if (NULL == (Gal[p].MfiltGnedin = malloc(sizeof(*(Gal[p].MfiltGnedin)) * MAXSNAPS)))
   {
@@ -157,6 +159,25 @@ void init_galaxy(int p, int halonr)
     exit(EXIT_FAILURE);
   }
 
+  if (NULL == (Gal[p].SNStars = malloc(sizeof(*(Gal[p].SNStars)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate SNStars.", sizeof(*(Gal[p].SNStars))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  if (NULL == (Gal[p].PreviousReheatedMass = malloc(sizeof(*(Gal[p].PreviousReheatedMass)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate PreviousReheatedMass.", sizeof(*(Gal[p].PreviousReheatedMass))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+ 
+  if (NULL == (Gal[p].VmaxHistory = malloc(sizeof(*(Gal[p].VmaxHistory)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate VmaxHistory.", sizeof(*(Gal[p].VmaxHistory))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+  
+  
   for (j = 0; j < MAXSNAPS; ++j)
   {
     Gal[p].GridHistory[j] = -1;
@@ -164,13 +185,16 @@ void init_galaxy(int p, int halonr)
     Gal[p].GridSFR[j] = 0.0;
     Gal[p].GridZ[j] = -1;
     Gal[p].GridCentralGalaxyMass[j] = -1.0;
-    Gal[p].GridPhotons_HI[j] = 0.0;
-    Gal[p].GridPhotons_HeI[j] = 0.0;
-    Gal[p].GridPhotons_HeII[j] = 0.0;
+//    Gal[p].GridPhotons_HI[j] = 0.0;
+//    Gal[p].GridPhotons_HeI[j] = 0.0;
+//    Gal[p].GridPhotons_HeII[j] = 0.0;
     Gal[p].MfiltGnedin[j] = 1.0;
     Gal[p].MfiltSobacchi[j] = 1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
+    Gal[p].SNStars[j] = 0.0;
+    Gal[p].PreviousReheatedMass[j] = 0.0;
+    Gal[p].VmaxHistory[j] = 0.0;
   }
  
 }
@@ -314,12 +338,12 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     Gal[p].GridCentralGalaxyMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
     //printf("Gal[p].Halonr = %d \t %.4e \t get_virial = %.4e \t Halo[halonr].Mvir = %.4e\n", halonr, Gal[p].GridCentralGalaxyMass[SnapCurr], get_virial_mass(halonr), Halo[halonr].Mvir);
 //    printf("Gal[p].Halonr = %d \t %.4e \t get_virial = %.4e \t Halo[halonr].Mvir = %.4e\n", halonr, Gal[p].GridCentralGalaxyMass[SnapCurr], get_virial_mass(halonr), Halo[halonr].Mvir);
-    float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
-    float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; 
-    calculate_photons(Gal[p].GridSFR[SnapCurr]*SFR_conversion, Gal[p].GridZ[SnapCurr], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
-    Gal[p].GridPhotons_HI[SnapCurr] = Ngamma_HI; 
-    Gal[p].GridPhotons_HeI[SnapCurr] = Ngamma_HeI; 
-    Gal[p].GridPhotons_HeII[SnapCurr] = Ngamma_HeII; 
+//    float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
+//    float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; 
+//    calculate_photons(Gal[p].GridSFR[SnapCurr]*SFR_conversion, Gal[p].GridZ[SnapCurr], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
+//    Gal[p].GridPhotons_HI[SnapCurr] = Ngamma_HI; 
+//    Gal[p].GridPhotons_HeI[SnapCurr] = Ngamma_HeI; 
+//    Gal[p].GridPhotons_HeII[SnapCurr] = Ngamma_HeII; 
     Gal[p].MfiltGnedin[SnapCurr] = do_reionization(centralgal, ZZ[SnapCurr], 1);
     if (ReionizationOn == 2)
     {  

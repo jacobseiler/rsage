@@ -106,15 +106,6 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
 {
   double reionization_modifier, strippedGas, strippedGasMetals, metallicity;
   
-  int x_grid, y_grid, z_grid, grid_position;
-
-  x_grid = Halo[halonr].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
-  y_grid = Halo[halonr].Pos[1]*GridSize/BoxSize;
-  z_grid = Halo[halonr].Pos[2]*GridSize/BoxSize; 
-
-  grid_position = (x_grid*GridSize+y_grid)*GridSize+z_grid; // Convert the grid (x,y,z) to a 1D value.
-
-  
   if(ReionizationOn == 1)
   {
     reionization_modifier = do_reionization(centralgal, ZZ[Halo[halonr].SnapNum], 0); 

@@ -158,6 +158,11 @@ void read_parameter_file(char *fname)
   addr[nt] = &EtaSN;
   id[nt++] = DOUBLE;
 
+  strcpy(tag[nt], "N_SFH");
+  addr[nt] = &N_SFH;
+  id[nt++] = INT;
+
+
   strcpy(tag[nt], "Yield");
   addr[nt] = &Yield;
   id[nt++] = DOUBLE;

@@ -130,3 +130,16 @@ int lowmass_halo;
 double smallest_mass;
 
 double count;
+
+double IMF_norm;
+double Eta_SNII;
+double m_SNII;
+int N_SFH;
+
+double alpha_energy;
+double V_energy;
+double beta_energy;
+double alpha_mass;
+double V_mass;
+double beta_mass; 
+double epsilon_mass_max;

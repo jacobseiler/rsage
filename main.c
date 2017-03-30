@@ -72,8 +72,7 @@ int main(int argc, char **argv)
 
   struct stat filestatus;
   FILE *fd;
- 
-  
+  printf("%ld %ld\n", sizeof(float), sizeof(double)); 
 #ifdef MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
@@ -174,7 +173,7 @@ int main(int argc, char **argv)
       for(halonr = 0; halonr < TreeNHalos[tree]; halonr++)
         if(HaloAux[halonr].DoneFlag == 0)	
         construct_galaxies(halonr, tree, filenr);
-      
+    
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);
       free_galaxies_and_tree();

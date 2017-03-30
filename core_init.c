@@ -28,7 +28,8 @@ void init(void)
   for(i = 0; i < Snaplistlen; i++)
   {
     ZZ[i] = 1 / AA[i] - 1;
-    Age[i] = time_to_present(ZZ[i]); 
+    Age[i] = time_to_present(ZZ[i]);
+
   }
 
   a0 = 1.0 / (1.0 + Reionization_z0);
@@ -46,6 +47,24 @@ void init(void)
   lowmass_halo = 0;
 
   count = 0;
+
+  IMF_norm = 0.380417; // IMF Norm calculated from Chabrier IMF.
+  //IMF_norm = 0.1706; // IM Normalization calculated from Salpeter IMF.
+
+  Eta_SNII = IMF_norm/0.1706 * 7.432e-3; //Number fraction of stars that will end their lives as type II supernovae.
+  m_SNII = IMF_norm/0.1706 * 0.144; // Mass fraction of stars that will end their lives as type II supernovae.
+  // This number was obtained by using the Mutch et al. (2016) value and then rescaling using the IMF normalization for a Chabrier IMF.
+  // They used a Salpeter IMF and gotten (Phi_norm, Eta_SNII) = (0.1706, 7.432e-3).
+  // As I calculated Phi_norm = 0.380417 this then corresponds to an Eta_SNII that is ~2.299 times larger than theirs.
+
+  alpha_energy = 0.18;
+  beta_energy = 3.2;
+  V_energy = 70.0;
+  alpha_mass = 4.0;
+  beta_mass = 3.2;
+  V_mass = 70.0;
+  epsilon_mass_max = 10.0;
+
 }
 
 
