@@ -91,7 +91,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         print ":   Reading N=", NtotHalos, "   \t Objects from file: ", fname
  
         GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
-	
+
         FileIndexRanges.append((offset,offset+NtotHalos))
         
         # Slice the file array into the global array
@@ -219,9 +219,6 @@ def ReadGals_Post_Processed_SAGE(DirName, First_File, Last_File, MAXSNAPS):
 
     return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File), Gal_Desc)
 
-
-    
-## Using this one ##   
 def ReadGals_SAGE_Photons(DirName, First_File, Last_File, MAXSNAPS):
 
     Galdesc_full = [
@@ -281,6 +278,80 @@ def ReadGals_SAGE_Photons(DirName, First_File, Last_File, MAXSNAPS):
          ('Photons_HI', (np.float32, MAXSNAPS)),
          ('Photons_HeI', (np.float32, MAXSNAPS)), 
          ('Photons_HeII', (np.float32, MAXSNAPS)), 
+         ('MfiltGnedin', (np.dtype('d'), MAXSNAPS)),
+         ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
+         ('EjectedFraction', (np.float32, MAXSNAPS)),  
+         ('LenHistory', (np.int32, MAXSNAPS)) 
+         ]
+                             
+    print "Reading in SAGE files (Post STARBURST)."
+    print len(Galdesc_full)
+    names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
+    formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
+    Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)  
+ 
+    return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File), Gal_Desc)
+    
+## Using this one ##   
+def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS):
+
+    Galdesc_full = [
+         ('SnapNum'                      , np.int32),
+         ('Type'                         , np.int32),
+         ('GalaxyIndex'                  , np.int64),
+         ('CentralGalaxyIndex'           , np.int64),
+         ('SAGEHaloIndex'                , np.int32),
+         ('SAGETreeIndex'                , np.int32),
+         ('SimulationFOFHaloIndex'       , np.int32),
+         ('mergeType'                    , np.int32),
+         ('mergeIntoID'                  , np.int32),
+         ('mergeIntoSnapNum'             , np.int32),
+         ('dT'                           , np.float32),
+         ('Pos'                          , (np.float32, 3)),
+         ('Vel'                          , (np.float32, 3)),
+         ('Spin'                         , (np.float32, 3)),
+         ('Len'                          , np.int32),
+         ('Mvir'                         , np.float32),
+         ('CentralMvir'                  , np.float32),
+         ('Rvir'                         , np.float32),
+         ('Vvir'                         , np.float32),
+         ('Vmax'                         , np.float32),
+         ('VelDisp'                      , np.float32),
+         ('ColdGas'                      , np.float32),
+         ('StellarMass'                  , np.float32),
+         ('BulgeMass'                    , np.float32),
+         ('HotGas'                       , np.float32),
+         ('EjectedMass'                  , np.float32),
+         ('BlackHoleMass'                , np.float32),
+         ('IntraClusterStars'            , np.float32),
+         ('MetalsColdGas'                , np.float32),
+         ('MetalsStellarMass'            , np.float32),
+         ('MetalsBulgeMass'              , np.float32),
+         ('MetalsHotGas'                 , np.float32),
+         ('MetalsEjectedMass'            , np.float32),
+         ('MetalsIntraClusterStars'      , np.float32),
+         ('SfrDisk'                      , np.float32),
+         ('SfrBulge'                     , np.float32),
+         ('SfrDiskZ'                     , np.float32),
+         ('SfrBulgeZ'                    , np.float32),                  
+         ('DiskRadius'                   , np.float32),                  
+         ('Cooling'                      , np.float32),                  
+         ('Heating'                      , np.float32),
+         ('QuasarModeBHaccretionMass'    , np.float32),
+         ('TimeOfLastMajorMerger'         , np.float32),
+         ('TimeOfLastMinorMerger'         , np.float32),
+         ('OutflowRate'                  , np.float32),
+         ('infallMvir'                   , np.float32),
+         ('infallVvir'                   , np.float32),
+         ('infallVmax'                   , np.float32),
+         ('GridHistory', (np.int32, MAXSNAPS)), # Array index 48 
+         ('GridStellarMass', (np.float32, MAXSNAPS)),
+         ('GridSFR', (np.float32, MAXSNAPS)),
+         ('GridZ', (np.float32, MAXSNAPS)),
+         ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
+         ('SNStars', (np.float32, MAXSNAPS)),
+         #('Photons_HeI', (np.float32, MAXSNAPS)), 
+         #('Photons_HeII', (np.float32, MAXSNAPS)), 
          ('MfiltGnedin', (np.dtype('d'), MAXSNAPS)),
          ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
