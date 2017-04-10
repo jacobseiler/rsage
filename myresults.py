@@ -622,7 +622,7 @@ def FilteringMass(Simulation, SnapListZ, Mass, Sobacchi_idx, MySim_Len, model_ta
 
 ##
 
-def StarFormationRate(Simulation, SnapListZ, SFR1, SFR2):
+def StarFormationRate_Redshift(Simulation, SnapListZ, SFR1, SFR2):
 
     title = [r"$\mathrm{Noreion Reionmine}$", r"$\mathrm{Noreion}$"]
  
@@ -1633,6 +1633,51 @@ def HaloPartCount(Simulation, Redshift, HaloCount, MySim_Len):
 
 ##
 
+def SFR(Simulation, Redshift, Mass, SFR, MySim_Len, Output_Tag):
+
+    ax = plt.subplot(111)
+
+    '''
+    binwidth = 0.1
+    Frequency = 0  
+
+    for i in xrange(0, len(Redshift)):
+ 
+        (counts, Bin_Edges, Bin_Middle) = Calculate_Histogram(SFR[i], binwidth, Frequency, -7, 3)
+        if (i < MySim_Len):
+            ls = '-'
+        else:
+            ls = '--'
+	label = r"$z = %.2f$" %(Redshift[i])
+        ax.plot(Bin_Middle, counts / 1, colors[i], linestyle = ls, label = label)
+
+    ax.set_yscale('log', nonposy='clip')
+
+    ax.set_xlabel(r'$\mathrm{SFR}$')
+    ax.set_ylabel(r'$\mathrm{Count}$')
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(10))
+    '''
+
+    for i in xrange(0, len(Redshift)):
+	label = r"$z = %.2f$" %(Redshift[i])
+	ax.scatter(Mass, SFR, color = colors[i], alpha = 0.2, label = label)
+
+    ax.set_xlabel(r'$m_*$', size = label_size)
+    ax.set_ylabel(r'$\mathrm{SFR}$', size = label_size) 
+
+    leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+	t.set_fontsize('medium')
+
+    outputFile = './' + Output_Tag + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
+
+##
+
+
 #################################
 
 Simulation = 1 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
@@ -1667,8 +1712,8 @@ if (Simulation == 1 or Simulation == 2):
 
     # 1024
 
-    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NSFH_4_Chabrier_ConstTinyEpsilon_z5.000', 0, 124, 101)
-    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NSFH_4_Chabrier_ConstTinyEpsilon_MergedGalaxies', 0, 124, 101)
+    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_z5.000', 0, 124, 101)
+    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_MergedGalaxies', 0, 124, 101)
 
     #GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
     #G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
@@ -1691,7 +1736,8 @@ if (Simulation == 1 or Simulation == 2):
     #G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
 
 #    SnapList_MySim = np.arange(22,78) 
-    
+
+
    # SnapList_MySim = [30, 35, 40, 50, 60, 70, 78]
     #SnapList_MySim = [99, 78, 64, 51, 43, 37] 
     # Snapshots = z [5, 6, 7, 8, 9, 10] are [99, 78, 64, 51, 43, 37] (used for UVLF) 
@@ -2106,14 +2152,14 @@ mass_G_MySim2 = []
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim), "ChabrierTinyConstEpsilon")
+StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim), "IRA")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
 #CentralGalaxy_Projection(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_MySim2), (Photons_G_MySim + Photons_G_MySim2))  
 #FilteringMass(Simulation, SnapListZ_MySim, [MfiltGnedin_MySim, MfiltSobacchi_MySim, 10**mass_Central_MySim], len(SnapList_MySim), [r"\mathrm{Gnedin}", r'Sobacchi Recursive $\texttt{SAGE}, f_\mathrm{esc} \: \propto \: M_H^{\beta}$', r"$M_\mathrm{Vir} \: \mathrm{Base} \: \texttt{SAGE}$"])
 #PlotScripts.Plot_Scatter_SixPanel((mass_Central_model1 + mass_Central_model1 + mass_Central_model3), (Photons_Central_model1 + Photons_G_model1 + Photons_G_model3), 1, 2, ['Halos', 'Fiducial Gal', 'NoSN Gal'], [min_mass_H, max_mass_H, -2, 1], [r'Log Halo Mass [$M_{\odot}$]', r'Log (Halo/Galaxy Ionizing Photons) [s$^{-1}$]'], 2, SnapListZ, 'CentralStellar_Photons_Difference_Fiducial_NoSN', '.png')
-#StarFormationRate(Simulation, SnapListZ_MySim, SFR_G_MySim, SFR_G_MySim2)
+#StarFormationRate_Redshift(Simulation, SnapListZ_MySim, SFR_G_MySim, SFR_G_MySim2)
 #PhotonsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
 #LymanAlphaLF(Simulation, SnapListZ_MySim, LymanAlpha_MySim2, len(SnapList_MySim))
 #PhotonsVsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
@@ -2126,3 +2172,4 @@ StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + m
 #fesc(Simulation, SnapListZ_MySim, [fesc_local_MySim, fesc_local2_MySim, fesc_local3_MySim], [r'$f_\mathrm{esc} = 0.25$', r'$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$', r'$f_\mathrm{esc} \: \propto \: m_\mathrm{Ejected}$'], "fesc_HaloPartCut100")
 #EjectedFracVsStellarMass(Simulation, SnapListZ_MySim, mass_Central_MySim, EjectedFraction_MySim, len(SnapList_MySim), "EjectedMass_HaloMass_HaloPartCut100")
 #HaloPartCount(Simulation, SnapListZ_MySim, HaloCount_MySim, len(SnapList_MySim))
+#SFR(Simulation, SnapListZ, mass_G_MySim, SFR_G_MySim, len(SnapList_MySim), "SFR")
