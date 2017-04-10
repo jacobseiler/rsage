@@ -325,14 +325,13 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
       coolingGas = cooling_recipe(p, deltaT / STEPS);
       cool_gas_onto_galaxy(p, coolingGas);
 
-      // stars form and then explode!
-      if(step == 0)
+      // If we are doing delayed SN (N_SFH != 0) then let's do that. 
+      if(step == 0 && N_SFH != 0)
         do_previous_SN(p, centralgal, halonr);
 	 
       starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step);
 
     }
-
 
     // check for satellite disruption and merger events 
     for(p = 0; p < ngal; p++)

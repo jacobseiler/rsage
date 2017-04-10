@@ -2,6 +2,7 @@
 #define ALLVARS_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <gsl/gsl_rng.h>
 #include "core_simulation.h"
 
@@ -193,6 +194,9 @@ struct GALAXY
   double *SNStars;
   double *PreviousReheatedMass;
   double *VmaxHistory;
+
+  double StellarAge;
+
 }
 *Gal, *HaloGal, *MergedGal;
 
@@ -278,6 +282,8 @@ extern int ThisTask, NTask, nodeNameLen;
 extern char *ThisNode;
 #endif
 
+extern int IMF;
+
 extern double Omega;
 extern double OmegaLambda;
 extern double PartMass;
@@ -360,6 +366,7 @@ extern double smallest_mass;
 extern double count;
 
 extern double IMF_norm;
+extern double IMF_slope;
 extern double Eta_SNII;
 extern double m_SNII;
 extern int N_SFH;

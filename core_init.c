@@ -48,19 +48,29 @@ void init(void)
 
   count = 0;
 
-  IMF_norm = 0.380417; // IMF Norm calculated from Chabrier IMF.
-  //IMF_norm = 0.1706; // IM Normalization calculated from Salpeter IMF.
+  if (IMF == 1)
+  {
+    // Salpeter IMF //
+    IMF_norm =0.1706;
+    IMF_slope = -2.35;
+    Eta_SNII = 7.432e-3; //Number fraction of stars that will end their lives as type II supernovae.
+    m_SNII = 0.144; // Mass fraction of stars that will end their lives as type II supernovae.
 
-  Eta_SNII = IMF_norm/0.1706 * 7.432e-3; //Number fraction of stars that will end their lives as type II supernovae.
-  m_SNII = IMF_norm/0.1706 * 0.144; // Mass fraction of stars that will end their lives as type II supernovae.
-  // This number was obtained by using the Mutch et al. (2016) value and then rescaling using the IMF normalization for a Chabrier IMF.
-  // They used a Salpeter IMF and gotten (Phi_norm, Eta_SNII) = (0.1706, 7.432e-3).
-  // As I calculated Phi_norm = 0.380417 this then corresponds to an Eta_SNII that is ~2.299 times larger than theirs.
+  } else if (IMF == 2)
+  {
+    // Chabrier IMF //
+    IMF_norm = 0.23638; 
+    IMF_slope = -2.3;
+    Eta_SNII = 1.1893e-2; //Number fraction of stars that will end their lives as type II supernovae.
+    m_SNII = 0.23638; // Mass fraction of stars that will end their lives as type II supernovae.
 
-  alpha_energy = 0.18;
-  beta_energy = 3.2;
+  }
+ 
   V_energy = 70.0;
-  alpha_mass = 4.0;
+  alpha_energy = 0.5;
+  beta_energy = 2.0;
+  
+  alpha_mass = 0.0;
   beta_mass = 3.2;
   V_mass = 70.0;
   epsilon_mass_max = 10.0;

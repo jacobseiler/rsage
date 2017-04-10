@@ -4,6 +4,7 @@
 #include <math.h>
 #include <time.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "core_allvars.h"
 #include "core_proto.h"
@@ -220,8 +221,12 @@ void make_bulge_from_burst(int p)
 
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step)
 {
-  double stars, reheated_mass_current, reheated_energy_current, ejected_mass_current, ejected_metals_current, mass_stars_nova_current, fac, metallicity, eburst;
+  double stars, eburst;
   double FracZleaveDiskVal; 
+  double reheated_mass = 0.0; 
+  double mass_metals_new = 0.0; 
+  double mass_stars_recycled = 0.0; 
+  double ejected_mass = 0.0;
 
   // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
   // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more accurate then previous. 
@@ -236,81 +241,27 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   stars = eburst * Gal[merger_centralgal].ColdGas;
   if(stars < 0.0)
     stars = 0.0;
-  
-  Gal[merger_centralgal].SNStars[Gal[merger_centralgal].SnapNum] += stars; 
  
-  // this bursting results in SN feedback on the cold/hot gas 
   if(SupernovaRecipeOn == 1)
   {
-    calculate_current_SN(merger_centralgal, stars, &reheated_mass_current, &reheated_energy_current, &ejected_metals_current, &mass_stars_nova_current);
-    calculate_ejected_mass(merger_centralgal, centralgal, &reheated_mass_current, reheated_energy_current, &ejected_mass_current);
-  }
-  else
-  {
-    reheated_mass_current = 0.0;
-    mass_stars_nova_current = 0.0;
-    ejected_metals_current = 0.0;
-  }
-
-  assert(reheated_mass_current >= 0.0);
-
-  // can't use more cold gas than is available! so balance SF and feedback 
-  if((stars + reheated_mass_current) > Gal[merger_centralgal].ColdGas)
-  {
-    fac = Gal[merger_centralgal].ColdGas / (stars + reheated_mass_current);
-    stars *= fac;
-    reheated_mass_current *= fac;
+    do_current_SN(merger_centralgal, centralgal, halonr, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass);    
+  } else
+  { 
+    if(stars > Gal[merger_centralgal].ColdGas) // We do this check in 'do_current_SN()' but if SupernovaRecipeOn == 0 then we don't do the check.
+    {
+      double factor = Gal[merger_centralgal].ColdGas / stars; 
+      stars *= factor; 
+    }
   }
 
-  metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
-  Gal[merger_centralgal].ColdGas += mass_stars_nova_current; // Add back the mass of this SN episode directly to the cold ISM.
-  Gal[merger_centralgal].MetalsColdGas += metallicity * mass_stars_nova_current;
-  Gal[merger_centralgal].StellarMass -= mass_stars_nova_current;
-  Gal[merger_centralgal].MetalsStellarMass -= metallicity * mass_stars_nova_current;
-
-  Gal[merger_centralgal].SNStars[Gal[merger_centralgal].SnapNum] += stars;
-
-  if(Gal[merger_centralgal].StellarMass < 0.0)
-    Gal[merger_centralgal].StellarMass = 0.0;
-  if(Gal[merger_centralgal].MetalsStellarMass < 0.0)
-    Gal[merger_centralgal].MetalsStellarMass = 0.0;
-
-
-  // starbursts add to the bulge
-  Gal[merger_centralgal].SfrBulge[step] += stars / dt;
-  Gal[merger_centralgal].SfrBulgeColdGas[step] += Gal[merger_centralgal].ColdGas;
-  Gal[merger_centralgal].SfrBulgeColdGasMetals[step] += Gal[merger_centralgal].MetalsColdGas;
-
-  //Gal[merger_centralgal].deltaSfr[Gal[merger_centralgal].SnapNum] += stars / dt;
-
-  metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
-  update_from_star_formation(merger_centralgal, stars, metallicity, mass_stars_nova_current);
-
-  Gal[merger_centralgal].BulgeMass += (stars - mass_stars_nova_current);
-  Gal[merger_centralgal].MetalsBulgeMass += metallicity * (stars - mass_stars_nova_current);
-
-  // recompute the metallicity of the cold phase
-  metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
-
-  // update from feedback 
-  update_from_feedback(merger_centralgal, centralgal, reheated_mass_current, ejected_mass_current, metallicity);
+  update_from_star_formation(merger_centralgal, stars, dt, step, true); 
+  update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
 
   // check for disk instability
   if(DiskInstabilityOn && mode == 0)
     if(mass_ratio < ThreshMajorMerger)
     check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step);
 
-  // formation of new metals - instantaneous recycling approximation - only SNII 
-  if(Gal[merger_centralgal].ColdGas > 1e-8 && mass_ratio < ThreshMajorMerger)
-  {
-    FracZleaveDiskVal = FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
-    Gal[merger_centralgal].MetalsColdGas += Yield * (1.0 - FracZleaveDiskVal) * stars;
-    Gal[centralgal].MetalsHotGas += Yield * FracZleaveDiskVal * stars;
-    // Gal[centralgal].MetalsEjectedMass += Yield * FracZleaveDiskVal * stars;
-  }
-  else
-    Gal[centralgal].MetalsHotGas += Yield * stars;
-    // Gal[centralgal].MetalsEjectedMass += Yield * stars;
 }
 
 

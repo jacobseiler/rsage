@@ -53,6 +53,8 @@ int ThisTask, NTask, nodeNameLen;
 char *ThisNode;
 #endif
 
+int IMF;
+
 double Omega;
 double OmegaLambda;
 double Hubble_h;
@@ -132,6 +134,7 @@ double smallest_mass;
 double count;
 
 double IMF_norm;
+double IMF_slope;
 double Eta_SNII;
 double m_SNII;
 int N_SFH;

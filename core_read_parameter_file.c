@@ -162,6 +162,9 @@ void read_parameter_file(char *fname)
   addr[nt] = &N_SFH;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "IMF");
+  addr[nt] = &IMF;
+  id[nt++] = INT;
 
   strcpy(tag[nt], "Yield");
   addr[nt] = &Yield;
