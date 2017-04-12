@@ -244,7 +244,7 @@ def Photon_Totals(Simulation, Redshift, Photons, Mysim_Len):
 
     PlotScripts.Plot_Scatter(Redshift, Photons, title, [4.5, 15.5, 53, 58.3], [0,0], ['z', r'Log Ionizing Photons [s$^{-1}$]'], 1, 2, OutputFile, '.png')  
 
-def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_Len, Output_Tag):
+def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_Len, Model_Tags, Output_Tag):
 
     title = []
     Normalization = []
@@ -263,7 +263,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
     for i in xrange(0, MySim_Len): 
 
         #tmp = r'Recursive $\texttt{SAGE}, f_\mathrm{esc} \: \propto \: M_H^\beta$: z = %.2f' %(Redshift[i])
-        tmp = r'Base $\texttt{SAGE}$: z = %.2f' %(Redshift[i])
+        tmp = r'z = %.2f' %(Redshift[i])
 
         title.append(tmp)
 
@@ -274,16 +274,17 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
 
     ## Normalization and Titles for MySim2 ## 
+    
     for i in xrange(0, MySim_Len): 
         #tmp = r'Recursive $\texttt{SAGE}, f_\mathrm{esc} \: \propto \: M_H^{-\beta}$: z = %.2f' %(Redshift[i])
-        tmp = r'Recursive $\texttt{SAGE}, f_\mathrm{esc} = 0.15$: z = %.2f' %(Redshift[i])
+        tmp = r'Delayed: z = %.2f' %(Redshift[i])
         title.append(tmp)
 
         AllVars.Set_Params_Mysim()
         norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
     
         Normalization.append(norm)
-
+   
 ### Plotting ###
 
     plt.figure()  
@@ -295,12 +296,18 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
         (counts, Bin_Edges, Bin_Middle) = Calculate_Histogram(Mass[i], binwidth, Frequency)
         if (i < MySim_Len):
-            ls = '-'
+            ls = linestyles[0]
+	    label = title[i]
         else:
-            ls = '--'
-        plt.plot(Bin_Middle, counts / Normalization[i], color = colors[i], linestyle = ls, label = title[i])
+            ls = linestyles[1]
+	    label = ''
+        plt.plot(Bin_Middle, counts / Normalization[i], color = colors[i], linestyle = ls, label = label)
 
 ##
+
+### Manually enter in the labels for the different simulations. ###
+    for i in xrange(0, 2):
+	    plt.plot(1e100, 1e100, color = 'k', ls = linestyles[i], label = Model_Tags[i])
 
 ### Draws a vertical line to denote lower bounds for what is an 'acceptable' Stellar Mass ### 
 
@@ -368,7 +375,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
         plt.errorbar(Song_z8[:,0], 10**Song_z8[:,1], yerr= (10**Song_z8[:,1] - 10**Song_z8[:,3], 10**Song_z8[:,2] - 10**Song_z8[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 8', color = 'green')
 
-    leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg = plt.legend(loc='lower left', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(talk_legendsize)
@@ -1677,10 +1684,333 @@ def SFR(Simulation, Redshift, Mass, SFR, MySim_Len, Output_Tag):
 
 ##
 
+def BaryonFraction(G, G2):
+
+
+	print 'Plotting the average baryon fraction vs halo mass'
+
+        seed(2222)
+    
+        plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+        
+        HaloMass = np.log10(G.Mvir * 1.0e10 / AllVars.Hubble_h)
+        Baryons = G.StellarMass + G.ColdGas + G.HotGas + G.EjectedMass + G.IntraClusterStars + G.BlackHoleMass
+
+        HaloMass2 = np.log10(G2.Mvir * 1.0e10 / AllVars.Hubble_h)
+        Baryons2 = G2.StellarMass + G2.ColdGas + G2.HotGas + G2.EjectedMass + G2.IntraClusterStars + G2.BlackHoleMass
+
+
+        MinHalo = 8.0
+        MaxHalo = 12.5
+        Interval = 0.1
+        Nbins = int((MaxHalo-MinHalo)/Interval)
+        HaloRange = np.arange(MinHalo, MaxHalo, Interval)
+        
+        MeanCentralHaloMass = []
+        MeanBaryonFraction = []
+        MeanBaryonFractionU = []
+        MeanBaryonFractionL = []
+
+        MeanStars = []
+        MeanCold = []
+        MeanHot = []
+        MeanEjected = []
+        MeanICS = []
+        MeanBH = []
+
+        MeanCentralHaloMass2 = []
+        MeanBaryonFraction2 = []
+        MeanBaryonFractionU2 = []
+        MeanBaryonFractionL2 = []
+
+        MeanStars2 = []
+        MeanCold2 = []
+        MeanHot2 = []
+        MeanEjected2 = []
+        MeanICS2 = []
+        MeanBH2 = []
+
+
+        for i in xrange(Nbins-1):
+            
+            w1 = np.where((G.Type == 0) & (HaloMass >= HaloRange[i]) & (HaloMass < HaloRange[i+1]))[0]
+            HalosFound = len(w1)
+            
+            if HalosFound > 2:  
+                
+                BaryonFraction = []
+                CentralHaloMass = []
+                
+                Stars = []
+                Cold = []
+                Hot = []
+                Ejected = []
+                ICS = []
+                BH = []
+                
+                for j in xrange(HalosFound):
+                    
+                    w2 = np.where(G.CentralGalaxyIndex == G.CentralGalaxyIndex[w1[j]])[0]
+                    CentralAndSatellitesFound = len(w2)
+                    
+                    if CentralAndSatellitesFound > 0:
+                        BaryonFraction.append(sum(Baryons[w2]) / G.Mvir[w1[j]])
+                        CentralHaloMass.append(np.log10(G.Mvir[w1[j]] * 1.0e10 / AllVars.Hubble_h))
+
+                        Stars.append(sum(G.StellarMass[w2]) / G.Mvir[w1[j]])
+                        Cold.append(sum(G.ColdGas[w2]) / G.Mvir[w1[j]])
+                        Hot.append(sum(G.HotGas[w2]) / G.Mvir[w1[j]])
+                        Ejected.append(sum(G.EjectedMass[w2]) / G.Mvir[w1[j]])
+                        ICS.append(sum(G.IntraClusterStars[w2]) / G.Mvir[w1[j]])
+                        BH.append(sum(G.BlackHoleMass[w2]) / G.Mvir[w1[j]])                        
+                                
+                MeanCentralHaloMass.append(np.mean(CentralHaloMass))
+                MeanBaryonFraction.append(np.mean(BaryonFraction))
+                MeanBaryonFractionU.append(np.mean(Ejected) + np.var(Ejected))
+                MeanBaryonFractionL.append(np.mean(Ejected) - np.var(Ejected))
+                
+                MeanStars.append(np.mean(Stars))
+                MeanCold.append(np.mean(Cold))
+                MeanHot.append(np.mean(Hot))
+                MeanEjected.append(np.mean(Ejected))
+                MeanICS.append(np.mean(ICS))
+                MeanBH.append(np.mean(BH))
+
+	    w1 = np.where((G2.Type == 0) & (HaloMass2 >= HaloRange[i]) & (HaloMass2 < HaloRange[i+1]))[0]
+	    HalosFound = len(w1)
+
+	    if HalosFound > 2:  
+		    
+	        BaryonFraction2 = []
+		CentralHaloMass2 = []
+		    
+		Stars2 = []
+		Cold2 = []
+		Hot2 = []
+		Ejected2 = []
+		ICS2 = []
+		BH2 = []
+		    
+		for j in xrange(HalosFound):
+			
+		    w2 = np.where(G2.CentralGalaxyIndex == G2.CentralGalaxyIndex[w1[j]])[0]
+		    CentralAndSatellitesFound = len(w2)
+			
+		    if CentralAndSatellitesFound > 0:
+			BaryonFraction2.append(sum(Baryons2[w2]) / G2.Mvir[w1[j]])
+			CentralHaloMass2.append(np.log10(G2.Mvir[w1[j]] * 1.0e10 / AllVars.Hubble_h))
+
+			Stars2.append(sum(G2.StellarMass[w2]) / G2.Mvir[w1[j]])
+			Cold2.append(sum(G2.ColdGas[w2]) / G2.Mvir[w1[j]])
+			Hot2.append(sum(G2.HotGas[w2]) / G2.Mvir[w1[j]])
+			Ejected2.append(sum(G2.EjectedMass[w2]) / G2.Mvir[w1[j]])
+			ICS2.append(sum(G2.IntraClusterStars[w2]) / G2.Mvir[w1[j]])
+			BH2.append(sum(G2.BlackHoleMass[w2]) / G2.Mvir[w1[j]])                        
+				    
+		MeanCentralHaloMass2.append(np.mean(CentralHaloMass2))
+		MeanBaryonFraction2.append(np.mean(BaryonFraction2))
+		MeanBaryonFractionU2.append(np.mean(Ejected2) + np.var(Ejected2))
+		MeanBaryonFractionL2.append(np.mean(Ejected2) - np.var(Ejected2))
+		    
+		MeanStars2.append(np.mean(Stars2))
+		MeanCold2.append(np.mean(Cold2))
+		MeanHot2.append(np.mean(Hot2))
+		MeanEjected2.append(np.mean(Ejected2))
+		MeanICS2.append(np.mean(ICS2))
+		MeanBH.append(np.mean(BH))
+
+	    print '  ', i, HaloRange[i], HalosFound
+        
+        plt.plot(MeanCentralHaloMass, MeanBaryonFraction, 'k-', label='TOTAL')#, color='purple', alpha=0.3)
+        plt.fill_between(MeanCentralHaloMass, MeanBaryonFractionU, MeanBaryonFractionL, facecolor='purple', alpha=0.25)
+        plt.fill_between(MeanCentralHaloMass2, MeanBaryonFractionU2, MeanBaryonFractionL2, facecolor='cyan', alpha=0.25)
+        
+        plt.plot(MeanCentralHaloMass, MeanStars, 'm', label='Stars')
+        plt.plot(MeanCentralHaloMass, MeanCold, label='Cold', color='blue')
+        plt.plot(MeanCentralHaloMass, MeanHot, label='Hot', color='red')
+        plt.plot(MeanCentralHaloMass, MeanEjected, label='Ejected', color='green')
+        plt.plot(MeanCentralHaloMass, MeanICS, label='ICS', color='yellow')
+
+        plt.plot(MeanCentralHaloMass2, MeanStars2, 'm--')
+        plt.plot(MeanCentralHaloMass2, MeanCold2, color = 'blue', ls = '--')
+        plt.plot(MeanCentralHaloMass2, MeanHot2, color = 'red', ls = '--')
+        plt.plot(MeanCentralHaloMass2, MeanEjected2, color = 'green', ls = '--')
+        plt.plot(MeanCentralHaloMass2, MeanICS2, color = 'yellow', ls = '--')
+
+	plt.plot(1e100, 1e100, label = "IRA", color = 'black', ls = '-')
+	plt.plot(1e100, 1e100, label = "SFH4", color = 'black', ls = '--')
+        # plt.plot(MeanCentralHaloMass, MeanBH, 'k:', label='BH')
+        
+        plt.xlabel(r'$\mathrm{Central}\ \log_{10} M_{\mathrm{vir}}\ (M_{\odot})$')  # Set the x-axis label
+        plt.ylabel(r'$\mathrm{Baryon\ Fraction}$')  # Set the y-axis label
+            
+        # Set the x and y axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
+            
+        plt.axis([MinHalo - Interval, MaxHalo + Interval, 0.0, 0.23])
+            
+        leg = plt.legend(bbox_to_anchor=[0.99, 0.6])
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+            
+        outputFile = './11.BaryonFraction_Comp_z9.457' + Output_Format
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
+
+##
+
+def calculate_delta_ejected():
+
+	SnapList = [10.286, 9.457, 8.176, 7.227, 5.410, 5.197] 
+
+	plt.figure()  # New figure
+	ax = plt.subplot(111)  # 1 plot on the figure
+		
+	for k in xrange(0, len(SnapList)):
+          
+		print "Doing z = %.3f" %(SnapList[k]) 
+		label = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_EtaSN0.5_z%.3f" %(SnapList[k])
+    		G, Gal_Desc = ReadScripts.ReadGals_SAGE_NoGrid(label, 0, 124, 101)
+
+		label = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/SFH4_EtaSN0.5_z%.3f" %(SnapList[k])
+    		G2, Gal_Desc = ReadScripts.ReadGals_SAGE_NoGrid(label, 0, 124, 101)
+    
+		cut = 10000	
+		if len(G) > cut:
+			G = G[0:cut]
+		
+		HaloMass = np.log10(G.Mvir * 1.0e10 / AllVars.Hubble_h)
+		Baryons = G.StellarMass + G.ColdGas + G.HotGas + G.EjectedMass + G.IntraClusterStars + G.BlackHoleMass
+
+		HaloMass2 = np.log10(G2.Mvir * 1.0e10 / AllVars.Hubble_h)
+		Baryons2 = G2.StellarMass + G2.ColdGas + G2.HotGas + G2.EjectedMass + G2.IntraClusterStars + G2.BlackHoleMass
+
+		MinHalo = 8.0
+		MaxHalo = 12.0
+		Interval = 0.1
+		Nbins = int((MaxHalo-MinHalo)/Interval)
+		HaloRange = np.arange(MinHalo, MaxHalo, Interval)
+		
+		MeanCentralHaloMass = []
+		MeanEjected = []
+		MeanEjectedU = []
+		MeanEjectedL = []
+
+		MeanCentralHaloMass2 = []
+		MeanEjected2 = []
+		MeanEjectedU2 = []
+		MeanEjectedL2 = []
+
+		DeltaEjected = []
+    		HaloMassPlot = []
+
+		for i in xrange(Nbins-1):
+		    
+		    w1 = np.where((G.Type == 0) & (HaloMass >= HaloRange[i]) & (HaloMass < HaloRange[i+1]))[0]
+		    HalosFound = len(w1)
+		    
+
+		    if HalosFound > 2:  
+			
+			BaryonFraction = []
+			CentralHaloMass = []               
+			Ejected = []
+			
+			for j in xrange(HalosFound):
+			    
+			    w2 = np.where(G.CentralGalaxyIndex == G.CentralGalaxyIndex[w1[j]])[0]
+			    CentralAndSatellitesFound = len(w2)
+			    
+			    if CentralAndSatellitesFound > 0:
+				CentralHaloMass.append(np.log10(G.Mvir[w1[j]] * 1.0e10 / AllVars.Hubble_h))
+				Ejected.append(sum(G.EjectedMass[w2]) / G.Mvir[w1[j]])
+
+					
+			MeanCentralHaloMass.append(np.mean(CentralHaloMass))
+			MeanEjected.append(np.mean(Ejected))
+			MeanEjectedU.append(np.mean(Ejected) - np.var(Ejected))
+			MeanEjectedL.append(np.mean(Ejected) + np.var(Ejected))
+
+		    w1 = np.where((G2.Type == 0) & (HaloMass2 >= HaloRange[i]) & (HaloMass2 < HaloRange[i+1]))[0]
+		    HalosFound2 = len(w1)
+
+		    if HalosFound2 > 2:  
+			    
+			BaryonFraction2 = []
+			CentralHaloMass2 = []
+			    
+			Stars2 = []
+			Cold2 = []
+			Hot2 = []
+			Ejected2 = []
+			ICS2 = []
+			BH2 = []
+			    
+			for j in xrange(HalosFound):
+				
+			    w2 = np.where(G2.CentralGalaxyIndex == G2.CentralGalaxyIndex[w1[j]])[0]
+			    CentralAndSatellitesFound = len(w2)
+				
+			    if CentralAndSatellitesFound > 0:
+			
+				CentralHaloMass2.append(np.log10(G2.Mvir[w1[j]] * 1.0e10 / AllVars.Hubble_h))
+				Ejected2.append(sum(G2.EjectedMass[w2]) / G2.Mvir[w1[j]])
+
+			MeanCentralHaloMass2.append(np.mean(CentralHaloMass2))
+			MeanEjected2.append(np.mean(Ejected2))
+			MeanEjectedU2.append(np.mean(Ejected2) - np.var(Ejected2))
+			MeanEjectedL2.append(np.mean(Ejected2) + np.var(Ejected2))
+				
+			if(HalosFound > 2 and HalosFound2 > 2):   
+				DeltaEjected.append(np.mean(Ejected) - np.mean(Ejected2))
+				HaloMassPlot.append(np.mean(CentralHaloMass2))
+
+		    print '  ', i, HaloRange[i], HalosFound
+
+		    #print "Ejected", Ejected
+		    #print "Ejected2", Ejected2
+		print "HaloMassPlot", HaloMassPlot
+	        print "DeltaEjected", DeltaEjected
+
+		label = "z = %.2f" %(SnapList[k])
+        	plt.plot(HaloMassPlot, DeltaEjected, color = colors[k], label = label)
+	
+
+
+        plt.xlabel(r'$\mathrm{Central}\ \log_{10} M_{\mathrm{vir}}\ (M_{\odot})$')  # Set the x-axis label
+        plt.ylabel(r'$\mathrm{Ejected Baryon Fraction, IRA - Delayed SN}$')  # Set the y-axis label
+            
+        # Set the x and y axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
+           
+        plt.axis([MinHalo - Interval, MaxHalo + Interval, 0.0, 0.05])
+            
+        leg = plt.legend(bbox_to_anchor=[0.99, 0.6])
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+            
+        outputFile = './11.BaryonFraction_Comp_z9.457' + Output_Format
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
+
+##
+
+
+
 
 #################################
 
 Simulation = 1 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
+#calculate_delta_ejected()
 
 if (Simulation == 0 or Simulation == 2):
     H_Millennium = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/millennium_trees/trees_063', 0, 7)
@@ -1712,8 +2042,8 @@ if (Simulation == 1 or Simulation == 2):
 
     # 1024
 
-    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_z5.000', 0, 124, 101)
-    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_MergedGalaxies', 0, 124, 101)
+    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_EtaSN0.5_z5.000', 0, 124, 101)
+    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_EtaSN0.5_MergedGalaxies', 0, 124, 101)
 
     #GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
     #G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
@@ -1731,9 +2061,9 @@ if (Simulation == 1 or Simulation == 2):
 
 
     # 1024
-    #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_z5.000', 0, 124, 101)
-    #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/SF0.01_noreion_MergedGalaxies', 0, 124, 101)
-    #G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
+    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/SFH4_EtaSN0.5_z5.000', 0, 124, 101)
+    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/SFH4_EtaSN0.5_MergedGalaxies', 0, 124, 101)
+    G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
 
 #    SnapList_MySim = np.arange(22,78) 
 
@@ -1752,6 +2082,8 @@ HaloPart_Low = 41 # Bounds for where we define the cutoff for a 'Dark Matter Hal
 HaloPart_High = 51
 
 calculate_observed_LF = 0
+
+
 
 '''
 countSnap_low = 30
@@ -1996,7 +2328,7 @@ if (Simulation == 1 or Simulation == 2):
       fesc_local3_MySim.append(EjectedFraction_MySim[i]*0.999 + 0.001)
 	
       ## Model 2 Calculations ##
-      '''
+
       ## Halos ##
 
 #      w_H_MySim2.append(np.where((H_MySim2.SnapNum == SnapList_MySim[i]) & (H_MySim2.Mvir > 0.0))[0]) 
@@ -2007,11 +2339,12 @@ if (Simulation == 1 or Simulation == 2):
 
       ## Galaxies ##
  
-      w_G_MySim2.append(np.where((G_MySim2.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim2.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.Photons_HI[:, SnapList_MySim[i]] > 0.0))[0])
+      w_G_MySim2.append(np.where((G_MySim2.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim2.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.LenHistory[:, SnapList_MySim[i]] > HaloCut_MySim))[0])
+
       #w_G_MySim2.append(np.where((G_MySim2.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim2.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridCentralGalaxyMass[:,SnapList_MySim[i]] > 0.0) & (G_MySim2.GridZ[:, SnapList_MySim[i]] > 0.0))[0])
       mass_G_MySim2.append(np.log10(G_MySim2.GridStellarMass[w_G_MySim2[i], SnapList_MySim[i]] * 1.0e10 / AllVars.Hubble_h))
-      Photons_HI_G_MySim2.append(G_MySim2.Photons_HI[w_G_MySim2[i], SnapList_MySim[i]] + np.log10(fesc_MySim2)) 
-      Photons_HI_Tot_G_MySim2.append(np.log10(Sum_Log(Photons_HI_G_MySim2[i])))
+      #Photons_HI_G_MySim2.append(G_MySim2.Photons_HI[w_G_MySim2[i], SnapList_MySim[i]] + np.log10(fesc_MySim2)) 
+      #Photons_HI_Tot_G_MySim2.append(np.log10(Sum_Log(Photons_HI_G_MySim2[i])))
 
       SFR_G_MySim2.append(np.log10(G_MySim2.GridSFR[w_G_MySim2[i], SnapList_MySim[i]])) 
       
@@ -2021,19 +2354,19 @@ if (Simulation == 1 or Simulation == 2):
 
       mass_Central_MySim2.append(np.log10(G_MySim2.GridCentralGalaxyMass[w_G_MySim2[i], SnapList_MySim[i]] * 1.0e10 / AllVars.Hubble_h))
       Photon_Factor = AllVars.Solar_Mass * SourceEfficiency_MySim2 * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[SnapList_MySim[i]] - AllVars.Lookback_Time[SnapList_MySim[i]+1]) / AllVars.Sec_Per_Megayear / 1e3
-      Photons_HI_Central_MySim2.append(np.log10(10**(mass_Central_MySim2[i]) * Photon_Factor))
-      Photons_HI_Tot_Central_MySim2.append(np.log10(sum(10**Photons_HI_Central_MySim2[i]))) 
+#      Photons_HI_Central_MySim2.append(np.log10(10**(mass_Central_MySim2[i]) * Photon_Factor))
+#      Photons_HI_Tot_Central_MySim2.append(np.log10(sum(10**Photons_HI_Central_MySim2[i]))) 
 
       print "There were %d galaxies for snapshot %d (Redshift %.4f) for model2." %(len(w_G_MySim2[i]), SnapList_MySim[i], AllVars.SnapZ[SnapList_MySim[i]])
 
-      w_Ionized_MySim2.append(np.where((G_MySim2.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim2.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.Photons_HI[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.MfiltSobacchi[:, SnapList_MySim[i]] < 1.0))[0])
+#      w_Ionized_MySim2.append(np.where((G_MySim2.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim2.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.Photons_HI[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.MfiltSobacchi[:, SnapList_MySim[i]] < 1.0))[0])
 
-      MfiltGnedin_MySim2.append(G_MySim2.MfiltGnedin[w_G_MySim2[i], SnapList_MySim[i]])
-      MfiltSobacchi_MySim2.append(G_MySim2.MfiltSobacchi[w_G_MySim2[i], SnapList_MySim[i]])
+#      MfiltGnedin_MySim2.append(G_MySim2.MfiltGnedin[w_G_MySim2[i], SnapList_MySim[i]])
+#      MfiltSobacchi_MySim2.append(G_MySim2.MfiltSobacchi[w_G_MySim2[i], SnapList_MySim[i]])
 
-      LymanAlpha_MySim2.append(np.log10(0.68*(1.0-fesc_MySim2)*fesc_LymanAlpha_MySim2 * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_G_MySim2[i]) 
+      #LymanAlpha_MySim2.append(np.log10(0.68*(1.0-fesc_MySim2)*fesc_LymanAlpha_MySim2 * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_G_MySim2[i]) 
 
-      fesc_local_MySim2.append(10**(1.00 - 0.2 * mass_Central_MySim2[i]))
+      #fesc_local_MySim2.append(10**(1.00 - 0.2 * mass_Central_MySim2[i]))
 
       print "Calculating intrinsic Mag"
       LUV_MySim2.append((SFR_G_MySim2[i] + 39.927)) # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
@@ -2064,7 +2397,7 @@ if (Simulation == 1 or Simulation == 2):
 	      f_nu = AllVars.spectralflux_wavelength_to_frequency(10**Flux_Observed, 1600) # Spectral flux density in Janksy.
 	      MUV_Obs_MySim2.append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
-     '''
+
 if (Simulation == 0 or Simulation == 2):
     for i in xrange(0, len(SnapList_Millennium)):
 
@@ -2148,11 +2481,12 @@ low = 45
 high = 55
 #print "For 1024 model:"
 HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, low, high)
-mass_G_MySim2 = []
 
+print "Mass_G_MySim", mass_G_MySim
+print "Mass_G_MySim2", mass_G_MySim2
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim), "IRA")
+StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim), ["Instantaneous","Delayed"], "SN_SMF_Comp")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
