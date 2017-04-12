@@ -15,7 +15,7 @@
 #include "core_proto.h"
 
 
-char bufz0[1000];
+char bufz0[1000], bufmergedz0[1000];
 int exitfail = 1;
 
 struct sigaction saveaction_XCPU;
@@ -124,15 +124,6 @@ int main(int argc, char **argv)
     else
       fclose(fd);
 
-    sprintf(bufz0, "%s/%s_MergedGalaxies_%d", OutputDir, FileNameGalaxies, filenr);
-    if(stat(bufz0, &filestatus) == 0)
-    {
-      printf("-- output for file %s already exists ... skipping\n", bufz0);
-      continue;  // output seems to already exist, dont overwrite, move along
-    }
-
-    if((fd = fopen(bufz0, "w")))
-      fclose(fd);
 
     sprintf(bufz0, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
     if(stat(bufz0, &filestatus) == 0)
@@ -142,6 +133,11 @@ int main(int argc, char **argv)
     }
 
     if((fd = fopen(bufz0, "w")))
+      fclose(fd);
+
+    sprintf(bufmergedz0, "%s/%s_MergedGalaxies_%d", OutputDir, FileNameGalaxies, filenr);
+    
+    if((fd = fopen(bufmergedz0, "w")))
       fclose(fd);
 
     FileNum = filenr;

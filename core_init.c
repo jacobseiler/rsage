@@ -70,8 +70,8 @@ void init(void)
   alpha_energy = 0.5;
   beta_energy = 2.0;
   
-  alpha_mass = 0.0;
-  beta_mass = 3.2;
+  alpha_mass = 6.0;
+  beta_mass = 0.0;
   V_mass = 70.0;
   epsilon_mass_max = 10.0;
 

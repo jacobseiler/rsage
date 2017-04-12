@@ -244,7 +244,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
  
   if(SupernovaRecipeOn == 1)
   {
-    do_current_SN(merger_centralgal, centralgal, halonr, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass);    
+    do_current_SN(merger_centralgal, merger_centralgal, halonr, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass);    
   } else
   { 
     if(stars > Gal[merger_centralgal].ColdGas) // We do this check in 'do_current_SN()' but if SupernovaRecipeOn == 0 then we don't do the check.

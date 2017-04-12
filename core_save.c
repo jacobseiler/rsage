@@ -81,10 +81,11 @@ void save_galaxies(int filenr, int tree)
         
         prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
-        write_gridarray(&HaloGal[i], save_fd[n]);
+        if(HaloGal[i].SnapNum == ListOutputSnaps[0]) // We only want to write out the grid properties for the final snapshot.
+            write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
 
-// TODO: Perform a check so the grid array is only written if it's the final redshift in the output list.
-// E.g. if we are writing out snapshots 50, 60, 70, then 'write_gridarray' should only be called when writing out the snapshot 70 properties.
+
+
     	TotGalaxies[n]++;
         TreeNgals[n][tree]++;
 
@@ -411,42 +412,6 @@ void finalize_merged_galaxy_file(int filenr)
   save_fd2 = NULL;
   
 }
-
-
-/*
-void save_merged_galaxies(int MergedNr, int filenr) 
-{
-  char buf[1000];
-  int i;
-  struct GALAXY_OUTPUT galaxy_output;
-      
-  // only open the file if it is not already open.
-  if( !save_fd2 )
-  {
-    sprintf(buf, "%s/%s_MergedGalaxies_%d", OutputDir, FileNameGalaxies, filenr);
-    if(!(save_fd2 = fopen(buf, "r+")))
-    {
-      printf("can't open file `%s'\n", buf);		
-      ABORT(0);
-    }
-  }
-			// write out placeholders for the header data.
-
-  myfwrite(&MergedNr, sizeof(int), 1, save_fd2);
-  for(i = 0; i < MergedNr; i++)
-  {
-
-//      printf("%d\n", i);
-      prepare_galaxy_for_output(0, 0, &MergedGal[i], &galaxy_output, 1);
-//      printf("%d\n", i);
-      myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd2);
-  }
-    
-  fclose(save_fd2);
-  save_fd2 = NULL;
-  free(MergedGal);
-}
-*/
 
 #undef TREE_MUL_FAC
 #undef FILENR_MUL_FAC
