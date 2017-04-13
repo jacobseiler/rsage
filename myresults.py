@@ -301,7 +301,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
         else:
             ls = linestyles[1]
 	    label = ''
-        plt.plot(Bin_Middle, counts / Normalization[i], color = colors[i], linestyle = ls, label = label)
+        plt.plot(Bin_Middle, counts / Normalization[i], color = colors[i % MySim_Len], linestyle = ls, label = label)
 
 ##
 
@@ -311,7 +311,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
 ### Draws a vertical line to denote lower bounds for what is an 'acceptable' Stellar Mass ### 
 
-    plt.axvline(x = np.log10(HaloPartStellarMass), ymin = 0, ymax = 10, linestyle = '-.')
+    #plt.axvline(x = np.log10(HaloPartStellarMass), ymin = 0, ymax = 10, linestyle = '-.')
 
 ## 
 
@@ -1866,13 +1866,13 @@ def BaryonFraction(G, G2):
 
 def calculate_delta_ejected():
 
-	SnapList = [10.286, 9.457, 8.176, 7.227, 5.410, 5.197] 
+	SnapList = [11.302, 9.457, 7.227, 5.898, 6.490, 5.000]	
 
 	plt.figure()  # New figure
 	ax = plt.subplot(111)  # 1 plot on the figure
 		
 	for k in xrange(0, len(SnapList)):
-          
+      
 		print "Doing z = %.3f" %(SnapList[k]) 
 		label = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_EtaSN0.5_z%.3f" %(SnapList[k])
     		G, Gal_Desc = ReadScripts.ReadGals_SAGE_NoGrid(label, 0, 124, 101)
@@ -1983,20 +1983,21 @@ def calculate_delta_ejected():
 
 
         plt.xlabel(r'$\mathrm{Central}\ \log_{10} M_{\mathrm{vir}}\ (M_{\odot})$')  # Set the x-axis label
-        plt.ylabel(r'$\mathrm{Ejected Baryon Fraction, IRA - Delayed SN}$')  # Set the y-axis label
+        #plt.ylabel(r'$\mathrm{Ejected Baryon Fraction, IRA - Delayed SN}$')  # Set the y-axis label
+        plt.ylabel(r'$\mathrm{Ejected Baryon Fraction, Instant - Delayed SN}$')  # Set the y-axis label
             
         # Set the x and y axis minor ticks
         ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
         ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
            
-        plt.axis([MinHalo - Interval, MaxHalo + Interval, 0.0, 0.05])
+        plt.axis([MinHalo - Interval, MaxHalo + Interval, -0.05, 0.05])
             
         leg = plt.legend(bbox_to_anchor=[0.99, 0.6])
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
             
-        outputFile = './11.BaryonFraction_Comp_z9.457' + Output_Format
+        outputFile = './BaryonFraction_Comp_Instant_Delayed' + Output_Format
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -2011,6 +2012,7 @@ def calculate_delta_ejected():
 
 Simulation = 1 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
 #calculate_delta_ejected()
+#quit()
 
 if (Simulation == 0 or Simulation == 2):
     H_Millennium = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/millennium_trees/trees_063', 0, 7)
@@ -2061,8 +2063,8 @@ if (Simulation == 1 or Simulation == 2):
 
 
     # 1024
-    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/SFH4_EtaSN0.5_z5.000', 0, 124, 101)
-    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/SFH4_EtaSN0.5_MergedGalaxies', 0, 124, 101)
+    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/pseduoSFH4_EtaSN0.5_z5.000', 0, 124, 101)
+    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/pseduoSFH4_EtaSN0.5_MergedGalaxies', 0, 124, 101)
     G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
 
 #    SnapList_MySim = np.arange(22,78) 
@@ -2486,7 +2488,7 @@ print "Mass_G_MySim", mass_G_MySim
 print "Mass_G_MySim2", mass_G_MySim2
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim), ["Instantaneous","Delayed"], "SN_SMF_Comp")
+StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim), ["Instantaneous","Pseudo Delayed"], "SN_SMF_Pseudo_Comp")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
