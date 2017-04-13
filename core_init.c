@@ -75,6 +75,9 @@ void init(void)
   V_mass = 70.0;
   epsilon_mass_max = 10.0;
 
+  count_firstSF = 0;
+  count_notfirstSF = 0;
+
 }
 
 

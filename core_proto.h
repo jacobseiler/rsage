@@ -92,3 +92,4 @@ double calculate_ejected_mass(double *reheated_mass, double reheated_energy, dou
 double calculate_coreburning(double t);
 void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new);
 void do_previous_recycling(int p, int centralgal, int SnapHistory);
+bool determine_if_firstSF(int p, int SFH_local);

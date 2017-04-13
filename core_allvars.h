@@ -378,4 +378,7 @@ extern double alpha_mass;
 extern double V_mass;
 extern double beta_mass; 
 extern double epsilon_mass_max;
+
+extern int count_firstSF;
+extern int count_notfirstSF;
 #endif  // #ifndef ALLVARS_H

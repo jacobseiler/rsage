@@ -184,6 +184,7 @@ int main(int argc, char **argv)
 
 //  printf("There was %.4e Halo mass at Snapshot 99\n", count);
   exitfail = 0;
+  printf("There was %d firstSF and %d notfirstSF\n", count_firstSF, count_notfirstSF);
   return 0;
 }
 

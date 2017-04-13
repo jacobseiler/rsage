@@ -146,3 +146,6 @@ double alpha_mass;
 double V_mass;
 double beta_mass; 
 double epsilon_mass_max;
+
+int count_firstSF;
+int count_notfirstSF;
