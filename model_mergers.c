@@ -185,11 +185,14 @@ void add_galaxies_together(int t, int p)
 
 
   // Our delayed SN scheme requires the stars formed by current galaxy and also its progenitors; so need to go back through the central galaxy of the merger and add all the stars from the merging galaxy.
-  for(i = 0; i < Gal[t].SnapNum + 1; ++i) // Careful that we add up to the current snapshot number (inclusive) as we need to account for the stars just formed.
+  //fprintf(stderr, "Adding merger stars\n");
+  for(i = 0; i < SN_Array_Len; ++i) // Careful that we add up to the current snapshot number (inclusive) as we need to account for the stars just formed.
   {
-    Gal[t].SNStars[i] += Gal[p].SNStars[i]; 
+  //  fprintf(stderr, "i in add together mergers = %d\n", i); 
+    Gal[t].Stars[i] += Gal[p].Stars[i];
+
   }
-  
+  //fprintf(stderr, "Finished adding merger stars\n");  
 
   Gal[t].PreviousReheatedMass[Gal[t].SnapNum] += Gal[p].PreviousReheatedMass[Gal[p].SnapNum];
   
@@ -243,15 +246,15 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     stars = 0.0;
  
   if(SupernovaRecipeOn == 1)
+  {    
+    if(IRA == 1)
+      do_current_SN(merger_centralgal, merger_centralgal, halonr, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass);   
+  } 
+  
+  if(stars > Gal[merger_centralgal].ColdGas) // we do this check in 'do_current_sn()' but if supernovarecipeon == 0 then we don't do the check.
   {
-    do_current_SN(merger_centralgal, merger_centralgal, halonr, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass);    
-  } else
-  { 
-    if(stars > Gal[merger_centralgal].ColdGas) // We do this check in 'do_current_SN()' but if SupernovaRecipeOn == 0 then we don't do the check.
-    {
-      double factor = Gal[merger_centralgal].ColdGas / stars; 
-      stars *= factor; 
-    }
+    double factor = Gal[merger_centralgal].ColdGas / stars; 
+    stars *= factor; 
   }
 
   update_from_star_formation(merger_centralgal, stars, dt, step, true); 
@@ -431,9 +434,9 @@ void add_galaxy_to_merger_list(int p)
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].SNStars = malloc(sizeof(*(MergedGal[MergedNr].SNStars)) * MAXSNAPS)))
+  if (NULL == (MergedGal[MergedNr].Stars = malloc(sizeof(*(MergedGal[MergedNr].Stars)) * SN_Array_Len)))
   { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate SNStars in model_mergers.c.", sizeof(*(MergedGal[MergedNr].SNStars))*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate Stars in model_mergers.c.", sizeof(*(MergedGal[MergedNr].Stars))*SN_Array_Len);
     exit(EXIT_FAILURE);
   }
 
@@ -467,11 +470,18 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
     MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
     MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j]; 
-    MergedGal[MergedNr].SNStars[j] = Gal[p].SNStars[j];
     MergedGal[MergedNr].PreviousReheatedMass[j] = Gal[p].PreviousReheatedMass[j];
     MergedGal[MergedNr].VmaxHistory[j] = Gal[p].VmaxHistory[j];
   }
+ 
+  //fprintf(stderr, "Copying over Merger stars\n");
+  for (j = 0; j < SN_Array_Len; ++j)
+  {
+//    fprintf(stderr, "j in add to merged list = %d\n", j);
+    MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
+  }
 
+  //fprintf(stderr, "Finished copying over Merger stars\n");
   free(Gal[p].GridHistory);
   free(Gal[p].GridStellarMass);
   free(Gal[p].GridSFR);
@@ -481,7 +491,7 @@ void add_galaxy_to_merger_list(int p)
   free(Gal[p].MfiltSobacchi);
   free(Gal[p].EjectedFraction);
   free(Gal[p].LenHistory);
-  free(Gal[p].SNStars);
+  free(Gal[p].Stars);
   free(Gal[p].PreviousReheatedMass);
   free(Gal[p].VmaxHistory);
 

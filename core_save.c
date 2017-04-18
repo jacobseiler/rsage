@@ -246,8 +246,9 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   {
       myfwrite(&g->GridStellarMass[j], sizeof(*(g->GridStellarMass)), 1, fp);
   }
+ 
   free(g->GridStellarMass);
-
+  
   for (j = 0; j < MAXSNAPS; ++j)
   {
       SFR = g->GridSFR[j]*SFR_conversion;    
@@ -270,10 +271,10 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   
   for (j = 0; j < MAXSNAPS; ++j)
   {
-      float tmp = g->SNStars[j]; 
+      float tmp = 100.0; 
       myfwrite(&tmp, sizeof(float), 1, fp); 
   }
-  free(g->SNStars);
+  free(g->Stars);
  
   for (j = 0; j < MAXSNAPS; ++j)
   {  
@@ -302,6 +303,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   
   free(g->PreviousReheatedMass);
   free(g->VmaxHistory);
+
 }
 
 void finalize_galaxy_file(int filenr)

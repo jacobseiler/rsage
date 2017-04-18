@@ -83,7 +83,7 @@ void grid_update_mass_metals_mass(double mass, double mass_metals, int GridPos, 
 void update_grid_array(int p, int halonr, int steps_completed, int centralgal);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
 
-void do_previous_SN(int p, int centralgal, int halonr);
+void do_previous_SN(int p, int centralgal, int halonr, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
 void do_current_SN(int p, int centralgal, int halonr, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m);
 double calculate_reheated_mass(double Delta_Eta, double stars, double Vmax);
@@ -92,4 +92,4 @@ double calculate_ejected_mass(double *reheated_mass, double reheated_energy, dou
 double calculate_coreburning(double t);
 void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new);
 void do_previous_recycling(int p, int centralgal, int SnapHistory);
-bool determine_if_firstSF(int p, int SFH_local);
+void  update_stars_array(int p, double stars, double dt);

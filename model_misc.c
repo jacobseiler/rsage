@@ -159,9 +159,9 @@ void init_galaxy(int p, int halonr)
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (Gal[p].SNStars = malloc(sizeof(*(Gal[p].SNStars)) * MAXSNAPS)))
+  if (NULL == (Gal[p].Stars = malloc(sizeof(*(Gal[p].Stars)) * SN_Array_Len)))
   { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate SNStars.", sizeof(*(Gal[p].SNStars))*MAXSNAPS);
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate Stars.", sizeof(*(Gal[p].Stars))*SN_Array_Len);
     exit(EXIT_FAILURE);
   }
 
@@ -192,11 +192,21 @@ void init_galaxy(int p, int halonr)
     Gal[p].MfiltSobacchi[j] = 1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
-    Gal[p].SNStars[j] = 0.0;
     Gal[p].PreviousReheatedMass[j] = 0.0;
     Gal[p].VmaxHistory[j] = 0.0;
   }
- 
+
+  //fprintf(stderr, "Initializing Stars\n"); 
+  for (j = 0; j < SN_Array_Len; ++j)
+  {
+    //fprintf(stderr, "j in initailize galaxy = %d\n", j);
+    Gal[p].Stars[j] = 0.0;
+  }
+  //fprintf(stderr, "Finishing initializing Stars\n");
+
+  Gal[p].Total_SF_Time = 0.0;
+  Gal[p].Total_Stars = 0.0;
+
 }
 
 

@@ -12,7 +12,8 @@ do {                                                                \
   myexit(sigterm);                                                \
 } while(0)
 
-#define  STEPS 10         // Number of integration intervals between two snapshots 
+#define  STEPS 10         // Number of integration intervals between two snapshots
+#define  TIME_SFH 50      // Number of Megayears we track star formation history for supernova. 
 #define  MAXGALFAC 1
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50
@@ -191,11 +192,13 @@ struct GALAXY
   double *MfiltSobacchi;
   float *EjectedFraction;
   int *LenHistory;
-  double *SNStars;
+  double *Stars;
   double *PreviousReheatedMass;
   double *VmaxHistory;
 
   double StellarAge;
+  double Total_SF_Time;
+  double Total_Stars;
 
 }
 *Gal, *HaloGal, *MergedGal;
@@ -369,7 +372,9 @@ extern double IMF_norm;
 extern double IMF_slope;
 extern double Eta_SNII;
 extern double m_SNII;
-extern int N_SFH;
+extern int IRA; 
+extern int TimeResolutionSN;
+extern int SN_Array_Len; 
 
 extern double alpha_energy;
 extern double V_energy;

@@ -326,9 +326,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
       cool_gas_onto_galaxy(p, coolingGas);
 
       // If we are doing delayed SN (N_SFH != 0) then let's do that. 
-      if(step == 0 && N_SFH != 0)
-        do_previous_SN(p, centralgal, halonr);
-	 
+ 
       starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step);
 
     }

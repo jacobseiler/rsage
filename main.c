@@ -114,7 +114,8 @@ int main(int argc, char **argv)
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
 #endif
   {
-
+    if(filenr == 33)
+	continue;
     sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
     if(!(fd = fopen(bufz0, "r")))
     {
@@ -169,17 +170,24 @@ int main(int argc, char **argv)
       for(halonr = 0; halonr < TreeNHalos[tree]; halonr++)
         if(HaloAux[halonr].DoneFlag == 0)	
         construct_galaxies(halonr, tree, filenr);
-    
+   
+      //fprintf(stderr, "Saving Galaxies\n"); 
       save_galaxies(filenr, tree);
+      //fprintf(stderr, "Finished saving galaxies and now saving Merged\n");
       save_merged_galaxies(filenr, tree);
+      //fprintf(stderr, "Finished saving merged\n");
       free_galaxies_and_tree();
       
     }
 
+    fprintf(stderr, "Finalizing Galaxy file\n");
     finalize_galaxy_file(filenr);
+    fprintf(stderr, "Finished finalizing Galaxy file and finalizing merged file\n");
     finalize_merged_galaxy_file(filenr);
+    fprintf(stderr, "Finished finalizing merged file\n");
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
+
   }
 
 //  printf("There was %.4e Halo mass at Snapshot 99\n", count);

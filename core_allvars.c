@@ -137,7 +137,9 @@ double IMF_norm;
 double IMF_slope;
 double Eta_SNII;
 double m_SNII;
-int N_SFH;
+int IRA; 
+int TimeResolutionSN;
+int SN_Array_Len; 
 
 double alpha_energy;
 double V_energy;

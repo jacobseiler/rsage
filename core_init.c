@@ -67,17 +67,26 @@ void init(void)
   }
  
   V_energy = 70.0;
+  //V_energy = 90.0;
   alpha_energy = 0.5;
+  //alpha_energy = 0.18;
   beta_energy = 2.0;
+  //beta_energy = 3.2;
   
   alpha_mass = 6.0;
+  //alpha_mass = 4.0;
   beta_mass = 0.0;
+  //beta_mass = 3.2;
   V_mass = 70.0;
+  //V_mass = 80.0;
   epsilon_mass_max = 10.0;
 
   count_firstSF = 0;
   count_notfirstSF = 0;
 
+  SN_Array_Len = TIME_SFH / TimeResolutionSN;
+  fprintf(stderr, "SN_Array_Len = %d\n", SN_Array_Len);
+  
 }
 
 
