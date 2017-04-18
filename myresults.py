@@ -2044,8 +2044,8 @@ if (Simulation == 1 or Simulation == 2):
 
     # 1024
 
-    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_EtaSN0.5_z5.000', 0, 124, 101)
-    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/IRA_EtaSN0.5_MergedGalaxies', 0, 124, 101)
+    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_IRA_z5.000', 0, 124, 101)
+    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_IRA_MergedGalaxies', 0, 124, 101)
 
     #GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
     #G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
@@ -2063,8 +2063,8 @@ if (Simulation == 1 or Simulation == 2):
 
 
     # 1024
-    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/pseduoSFH4_EtaSN0.5_z5.000', 0, 124, 101)
-    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/pseduoSFH4_EtaSN0.5_MergedGalaxies', 0, 124, 101)
+    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_TimeRes20Myr_z5.000', 0, 124, 101)
+    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_TimeRes20Myr_MergedGalaxies', 0, 124, 101)
     G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
 
 #    SnapList_MySim = np.arange(22,78) 
@@ -2488,7 +2488,7 @@ print "Mass_G_MySim", mass_G_MySim
 print "Mass_G_MySim2", mass_G_MySim2
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim), ["Instantaneous","Pseudo Delayed"], "SN_SMF_Pseudo_Comp")
+StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim), ["IRA","Delayed"], "SN_SMF_NewDelayed_TimeRes20Myr")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))

@@ -37,7 +37,8 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         else:
             fname = Model_Name+'_'+str(fnr)  # Complete filename
 
-        
+        if fnr == 33:
+	    continue 
         if not os.path.isfile(fname):
             print "File\t%s  \tdoes not exist!  Skipping..." % (fname)
             continue
