@@ -222,6 +222,7 @@ def ReadGals_Post_Processed_SAGE(DirName, First_File, Last_File, MAXSNAPS):
 
 def ReadGals_SAGE_Photons(DirName, First_File, Last_File, MAXSNAPS):
 
+
     Galdesc_full = [
          ('SnapNum'                      , np.int32),
          ('Type'                         , np.int32),
@@ -283,7 +284,8 @@ def ReadGals_SAGE_Photons(DirName, First_File, Last_File, MAXSNAPS):
          ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
          ('LenHistory', (np.int32, MAXSNAPS)) 
-         ]
+]
+
                              
     print "Reading in SAGE files (Post STARBURST)."
     print len(Galdesc_full)
