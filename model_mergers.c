@@ -182,7 +182,12 @@ void add_galaxies_together(int t, int p)
     Gal[t].SfrBulgeColdGasMetals[step] += Gal[p].SfrDiskColdGasMetals[step] + Gal[p].SfrBulgeColdGasMetals[step];
   }
 
+  //fprintf(stderr, "Gal[t].mergeType = %d Gal[p].mergeType = %d\n", Gal[t].mergeType, Gal[p].mergeType);
 
+  XASSERT(t >= 0 && t < GalaxyCounter, "t is out of bounds.  t has a value of %d whereas it should be >= 0 and < GalaxyCounter (%d)\n", t, GalaxyCounter); 
+  XASSERT(p >= 0 && p < GalaxyCounter, "p is out of bounds.  p has a value of %d whereas it should be >= 0 and < GalaxyCounter (%d)\n", p, GalaxyCounter); 
+  XASSERT(Gal[p].IsFreed == -1, "Gal[p] has already been freed.  p = %d. Gal[p].MergeType = %d\n", p, Gal[p].mergeType);
+  XASSERT(Gal[t].IsFreed == -1, "Gal[t] has already been freed.  t = %d. Gal[t].MergeType = %d\n", t, Gal[t].mergeType);
 
   // Our delayed SN scheme requires the stars formed by current galaxy and also its progenitors; so need to go back through the central galaxy of the merger and add all the stars from the merging galaxy.
   //fprintf(stderr, "Adding merger stars\n");
@@ -192,9 +197,7 @@ void add_galaxies_together(int t, int p)
     Gal[t].Stars[i] += Gal[p].Stars[i];
 
   }
-  //fprintf(stderr, "Finished adding merger stars\n");  
-
-  Gal[t].PreviousReheatedMass[Gal[t].SnapNum] += Gal[p].PreviousReheatedMass[Gal[p].SnapNum];
+  //fprintf(stderr, "Finished adding merger stars\n");   
   
 }
 
@@ -248,7 +251,9 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   if(SupernovaRecipeOn == 1)
   {    
     if(IRA == 1)
-      do_current_SN(merger_centralgal, merger_centralgal, halonr, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass);   
+      do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
+      mass_stars_recycled = 0.0;
+      mass_metals_new = 0.0;   
   } 
   
   if(stars > Gal[merger_centralgal].ColdGas) // we do this check in 'do_current_sn()' but if supernovarecipeon == 0 then we don't do the check.
@@ -286,7 +291,8 @@ void disrupt_satellite_to_ICS(int centralgal, int gal)
   // what should we do with the disrupted satellite BH?
   
   Gal[gal].mergeType = 4;  // mark as disruption to the ICS
-  
+
+  Gal[gal].CentralGal = centralgal;  
 }
 
 void add_galaxy_to_merger_list(int p)
@@ -440,20 +446,6 @@ void add_galaxy_to_merger_list(int p)
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (MergedGal[MergedNr].PreviousReheatedMass = malloc(sizeof(*(MergedGal[MergedNr].PreviousReheatedMass)) * MAXSNAPS)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate PreviousReheatedMass in model_mergers.c.", sizeof(*(MergedGal[MergedNr].PreviousReheatedMass))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  
-  if (NULL == (MergedGal[MergedNr].VmaxHistory = malloc(sizeof(*(MergedGal[MergedNr].VmaxHistory)) * MAXSNAPS)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate VmaxHistory in model_mergers.c.", sizeof(*(MergedGal[MergedNr].VmaxHistory))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-  
-
   for (j = 0; j < MAXSNAPS; ++j)
   {
     MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
@@ -470,18 +462,16 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
     MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
     MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j]; 
-    MergedGal[MergedNr].PreviousReheatedMass[j] = Gal[p].PreviousReheatedMass[j];
-    MergedGal[MergedNr].VmaxHistory[j] = Gal[p].VmaxHistory[j];
   }
  
-  //fprintf(stderr, "Copying over Merger stars\n");
+//  fprintf(stderr, "Copying over Merger stars\n");
   for (j = 0; j < SN_Array_Len; ++j)
   {
 //    fprintf(stderr, "j in add to merged list = %d\n", j);
     MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
   }
 
-  //fprintf(stderr, "Finished copying over Merger stars\n");
+ //fprintf(stderr, "Finished copying over Merger stars\n");
   free(Gal[p].GridHistory);
   free(Gal[p].GridStellarMass);
   free(Gal[p].GridSFR);
@@ -491,10 +481,10 @@ void add_galaxy_to_merger_list(int p)
   free(Gal[p].MfiltSobacchi);
   free(Gal[p].EjectedFraction);
   free(Gal[p].LenHistory);
+//  fprintf(stderr, "Trying to free Gal[p].Stars\n");
   free(Gal[p].Stars);
-  free(Gal[p].PreviousReheatedMass);
-  free(Gal[p].VmaxHistory);
-
+//  fprintf(stderr, "Freed\n");
+  Gal[p].IsFreed = 1; 
   ++MergedNr;
 }
  

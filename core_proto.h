@@ -85,6 +85,7 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
 
 void do_previous_SN(int p, int centralgal, int halonr, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
 void do_current_SN(int p, int centralgal, int halonr, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
+void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m);
 double calculate_reheated_mass(double Delta_Eta, double stars, double Vmax);
 double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax);

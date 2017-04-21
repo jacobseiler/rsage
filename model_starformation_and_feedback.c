@@ -65,6 +65,13 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
 void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger) 
 {
 
+  double IRA_Fraction;
+
+  if(IRA == 0)
+    IRA_Fraction = 0.0;
+  else if(IRA == 1)
+    IRA_Fraction = RecycleFraction;
+
   double metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
   if(!ismerger)
   {
@@ -78,8 +85,8 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
     Gal[p].SfrBulgeColdGas[step] += Gal[p].ColdGas;
     Gal[p].SfrBulgeColdGasMetals[step] += Gal[p].MetalsColdGas;
   
-    Gal[p].BulgeMass += stars;
-    Gal[p].MetalsBulgeMass += metallicity * stars;
+    Gal[p].BulgeMass += (1 - IRA_Fraction) * stars;
+    Gal[p].MetalsBulgeMass += (1 - IRA_Fraction) * stars;
 
   }
 
@@ -87,10 +94,10 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
       update_stars_array(p, stars, dt);
 
   // update gas and metals from star formation 
-  Gal[p].ColdGas -= stars;
-  Gal[p].MetalsColdGas -= metallicity * stars;
-  Gal[p].StellarMass += stars;
-  Gal[p].MetalsStellarMass += metallicity * stars;
+  Gal[p].ColdGas -= (1 - IRA_Fraction) *stars;
+  Gal[p].MetalsColdGas -= metallicity * (1 - IRA_Fraction) * stars;
+  Gal[p].StellarMass += (1 - IRA_Fraction) * stars;
+  Gal[p].MetalsStellarMass += metallicity * (1 - IRA_Fraction) * stars;
   if (Gal[p].ColdGas < 0.0)
     Gal[p].ColdGas = 0.0;
   if (Gal[p].MetalsColdGas < 0.0)
@@ -180,13 +187,16 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
     stars = 0.0;
    
   if(SupernovaRecipeOn == 1)
-  {
-    if(IRA == 0 && (Gal[p].Total_SF_Time + (dt * UnitTime_in_Megayears) > TimeResolutionSN))
-    {
+  {   
+    if(IRA == 0 && (Gal[p].Total_SF_Time + (dt * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN))
+    {   
       do_previous_SN(p, centralgal, halonr, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass);
     } 
     else if(IRA == 1)
-      do_current_SN(p, centralgal, halonr, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass);   
+    {
+      do_IRA_SN(p, centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
+      mass_stars_recycled = 0.0;
+    } 
 
   } 
   
@@ -551,10 +561,75 @@ void do_current_SN(int p, int centralgal, int halonr, double *stars, double *reh
 //    fprintf(stderr, "Current SN: stars = %.4e \t Gal[p].ColdGas = %.4e \t reheated_mass = %.4e \t ejected_mass = %.4e \t reheated_energy = %.4e\n", *stars, Gal[p].ColdGas, *reheated_mass, *ejected_mass, reheated_energy);
 }
 
-/*
-void do_IRA_SN(int p, double *stars, double reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass)
+
+void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass)
 {
-  
+
+  double fac;
+  //double epsilon_mass = alpha_mass * (0.5 + pow(Gal[centralgal].Vmax/V_mass, -beta_mass));
+  //double epsilon_energy = alpha_energy * (0.5 + pow(Gal[centralgal].Vmax/V_energy, -beta_energy));
+
+//  *reheated_mass = epsilon_mass * (*stars); 
+  *reheated_mass = calculate_reheated_mass(Eta_SNII, *stars, Gal[centralgal].Vmax);
+
+
+   
+  if((*stars + *reheated_mass) > Gal[p].ColdGas && (*stars + *reheated_mass) > 0.0)
+  {
+    fac = Gal[p].ColdGas / (*stars + *reheated_mass);
+    *stars *= fac;
+    *reheated_mass *= fac;
+  }   
+
+  double reheated_energy = calculate_reheated_energy(Eta_SNII, *stars, Gal[centralgal].Vmax); 
+
+  *ejected_mass = calculate_ejected_mass(&(*reheated_mass), reheated_energy, Gal[centralgal].Vvir);
+
+
+  /*
+  if(Gal[centralgal].Vvir > 0.0)
+    *ejected_mass = (epsilon_energy * (tmp * EnergySNcode) / (Gal[centralgal].Vvir * Gal[centralgal].Vvir) - epsilon_mass) * (*stars);
+  else
+    *ejected_mass = 0.0;
+  */
+		
+  if(*ejected_mass < 0.0)
+    *ejected_mass = 0.0;
+       
+  *mass_metals_new = Yield * (*stars);    
+	
+  // update the star formation rate 
+  //   Gal[p].SfrDisk[step] += stars / dt;
+  //     Gal[p].SfrDiskColdGas[step] = Gal[p].ColdGas;
+  //       Gal[p].SfrDiskColdGasMetals[step] = Gal[p].MetalsColdGas;
+  //
+  //         //Gal[p].deltaSfr[Gal[p].SnapNum] += stars / dt;
+  //
+  //           // update for star formation 
+  //             metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
+  //               update_from_star_formation(p, stars, metallicity);
+  //
+  //                 // recompute the metallicity of the cold phase
+  //                   metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
+  //
+  //                     // update from SN feedback 
+  //                       update_from_feedback(p, centralgal, reheated_mass, ejected_mass, metallicity);
+  //
+  //                         // check for disk instability
+  //                           if(DiskInstabilityOn)
+  //                               check_disk_instability(p, centralgal, halonr, time, dt, step);
+  //
+  //                                 // formation of new metals - instantaneous recycling approximation - only SNII 
+  //                                   if(Gal[p].ColdGas > 1.0e-8)
+  //                                     {
+  //                                         FracZleaveDiskVal = FracZleaveDisk * exp(-1.0 * Gal[centralgal].Mvir / 30.0);  // Krumholz & Dekel 2011 Eq. 22
+  //                                             Gal[p].MetalsColdGas += Yield * (1.0 - FracZleaveDiskVal) * stars;
+  //                                                 Gal[centralgal].MetalsHotGas += Yield * FracZleaveDiskVal * stars;
+  //                                                     // Gal[centralgal].MetalsEjectedMass += Yield * FracZleaveDiskVal * stars;
+  //                                                       }
+  //                                                         else
+  //                                                             Gal[centralgal].MetalsHotGas += Yield * stars;
+  //                                                             // Gal[centralgal].MetalsEjectedMass += Yield * stars;
 
 }
-*/
+

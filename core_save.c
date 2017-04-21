@@ -78,11 +78,12 @@ void save_galaxies(int filenr, int tree)
     {
       if(HaloGal[i].SnapNum == ListOutputSnaps[n])
       { 	       
-        
+      
         prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
         if(HaloGal[i].SnapNum == ListOutputSnaps[0]) // We only want to write out the grid properties for the final snapshot.
             write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
+
 
 
 
@@ -299,10 +300,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
      myfwrite(&g->LenHistory[j], sizeof(*(g->LenHistory)), 1, fp);  
   }
   free(g->LenHistory); 
-  
-  
-  free(g->PreviousReheatedMass);
-  free(g->VmaxHistory);
+
 
 }
 

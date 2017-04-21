@@ -13,7 +13,6 @@ do {                                                                \
 } while(0)
 
 #define  STEPS 10         // Number of integration intervals between two snapshots
-#define  TIME_SFH 50      // Number of Megayears we track star formation history for supernova. 
 #define  MAXGALFAC 1
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50
@@ -38,6 +37,19 @@ do {                                                                \
 
 #define	 CUBE(x) (x*x*x)
 
+
+#ifdef NDEBUG
+#define XASSERT(EXP, ...)                                do{} while(0)
+#else
+#define XASSERT(EXP, ...)                                              \
+    do { if (!(EXP)) {                                                  \
+            printf("Error in file: %s\tfunc: %s\tline: %d with expression `"#EXP"'\n", __FILE__, __FUNCTION__, __LINE__); \
+            printf(__VA_ARGS__);                                        \
+            fflush(stdout);                                             \
+            exit(EXIT_FAILURE);                                         \
+        } \
+    } while (0)
+#endif
 
 struct GALAXY_OUTPUT
 {
@@ -193,12 +205,13 @@ struct GALAXY
   float *EjectedFraction;
   int *LenHistory;
   double *Stars;
-  double *PreviousReheatedMass;
   double *VmaxHistory;
 
   double StellarAge;
   double Total_SF_Time;
   double Total_Stars;
+
+  double IsFreed;
 
 }
 *Gal, *HaloGal, *MergedGal;
@@ -375,6 +388,7 @@ extern double m_SNII;
 extern int IRA; 
 extern int TimeResolutionSN;
 extern int SN_Array_Len; 
+extern int Time_SFH;
 
 extern double alpha_energy;
 extern double V_energy;

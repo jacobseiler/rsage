@@ -84,8 +84,27 @@ void init(void)
   count_firstSF = 0;
   count_notfirstSF = 0;
 
-  SN_Array_Len = TIME_SFH / TimeResolutionSN;
-  fprintf(stderr, "SN_Array_Len = %d\n", SN_Array_Len);
+  if(TimeResolutionSN > 50)
+  {
+    fprintf(stderr, "The selected time resolution for SN feedback (TimeResolutionSN) is set too high (%d Myr).  Using TimeResolutionSN > 50Myr is the same as using the instantaneous recycling approximation; set 'IRA' to 1 instead!\n", TimeResolutionSN); 
+    exit(EXIT_FAILURE);  
+  } else if(TimeResolutionSN > 35)
+  {
+    fprintf(stderr, "Your selected time resolution for SN feedback (TimeResolutionSN) is quite high (%d Myr).  Beyond 50Myr the instantaneous recycling approximation is valid hence with your value it would likely be correct to set 'IRA' to 1.\n", TimeResolutionSN);
+  } else
+  {
+    Time_SFH = 0;
+    SN_Array_Len = 0;
+    while(Time_SFH < 50)
+    {
+      Time_SFH += TimeResolutionSN;
+      ++SN_Array_Len;
+    }
+
+    //SN_Array_Len = 50;
+    fprintf(stderr, "Length of the supernova array is %d\n", SN_Array_Len);
+  }
+  
   
 }
 

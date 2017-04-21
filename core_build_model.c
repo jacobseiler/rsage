@@ -153,7 +153,6 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
 					
           Gal[ngal].Len = Halo[halonr].Len;
           Gal[ngal].Vmax = Halo[halonr].Vmax;
-	  Gal[ngal].VmaxHistory[Gal[ngal].SnapNum] = Halo[halonr].Vmax;
 
 					Gal[ngal].deltaMvir = get_virial_mass(halonr) - Gal[ngal].Mvir;
 
@@ -252,20 +251,17 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
     {
 			assert(centralgal == -1);
       centralgal = i;
-  
     }
   }
 
   for(i = ngalstart; i < ngal; i++)
   {
     Gal[i].CentralGal = centralgal;
-//    fprintf(stderr, "Central gal Pre-fix = %d \t ngal = %d\n", Gal[i].CentralGal, ngal); 
-    if (centralgal == -1)
-    {
-	Gal[i].CentralGal = 0;
-//    fprintf(stderr, "Central gal Post fix= %d\n", Gal[i].CentralGal);
-    } 
+    XASSERT((Gal[centralgal].Type == 0 || Gal[centralgal].Type == 1) && (Gal[centralgal].mergeType == 0), "The central galaxy of this galaxy must have Type 0 (a proper central) or Type 1 (a satellite with a subhalo) and have mergeType 0 (will not merge in the current timestep).\nFor galaxy %d in Halo %d (there are %d galaxies inside this halo), the central galaxy instead has Type %d and mergeType %d\n", i, halonr, ngal, Gal[centralgal].Type, Gal[centralgal].mergeType); 
+
   }
+
+
   return ngal;
 
 }
@@ -279,13 +275,8 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
   centralgal = Gal[0].CentralGal;
  
-  //printf("%d\n", Gal[centralgal].Type);
-  //printf("%d %d\n", Gal[centralgal].HaloNr, halonr);
-  if (Gal[centralgal].Type != 0 || Gal[centralgal].HaloNr != halonr)
-        printf("ARGHHH %d %d %d\n", Gal[centralgal].Type, Gal[centralgal].HaloNr, halonr);
-
-
-//	assert(Gal[centralgal].Type == 0 && Gal[centralgal].HaloNr == halonr);
+  XASSERT(Gal[centralgal].Type == 0 && (Gal[centralgal].HaloNr == halonr), "We require that Gal[centralgal].Type = 0 and Gal[centralgal].HaloNr = halonr.\nWe have Gal[centralgal].Type = %d, Gal[centralgal].HaloNr = %d, halonr = %d, centralgal = %d\n", Gal[centralgal].Type, Gal[centralgal].HaloNr, halonr, centralgal);
+  XASSERT(Gal[centralgal].mergeType == 0 || Gal[centralgal].Type == 1, "The central galaxy should not merge within this timestep (mergeType = 0) - if it does it is a satellite galaxy (Type = 1).\n The central galaxy is %d and has mergeType %d with Type %d\n", centralgal, Gal[centralgal].mergeType, Gal[centralgal].Type); 
 
   infallingGas = infall_recipe(centralgal, ngal, ZZ[Halo[halonr].SnapNum], halonr);
 
@@ -353,10 +344,20 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
             merger_centralgal = centralgal;
           else
             merger_centralgal = Gal[p].CentralGal;
-
-          if(Gal[merger_centralgal].mergeType > 0) 
+          //fprintf(stderr, "galaxyBaryons = %.4e \t currentMvir = %.4e \t ThesholdSatDisruption = %.4e\n", galaxyBaryons, currentMvir, ThresholdSatDisruption); 
+          //fprintf(stderr, "Before p = %d \t Gal[p].Type = %d \t Gal[merger_centralgal].mergeType = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d\n", p, Gal[p].Type, Gal[merger_centralgal].mergeType, merger_centralgal, Gal[merger_centralgal].Type);
+          if(Gal[merger_centralgal].mergeType > 0)
+//          while(Gal[merger_centralgal].mergeType > 0)
+          { 
+            fprintf(stderr, "WTF is happening\n"); 
             merger_centralgal = Gal[merger_centralgal].CentralGal;
+//           XASSERT(Gal[merger_centralgal].mergeType == 0, "We have the case where are galaxy (galaxy C) is trying to merge into a galaxy (galaxy B) that is merging itself into a central galaxy (galaxy A). We have attempted to tell galaxy C to merge into galaxy A directly but require that the mergeType of galaxy A is 0 (i.e. galaxy A is a central).\nInstead the mergeType of galaxy A = %d\n", Gal[merger_centralgal].mergeType);  
+          }
+          //fprintf(stderr, "After p = %d \t Gal[p].Type = %d \t Gal[merger_centralgal].mergeType = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d\n", p, Gal[p].Type, Gal[merger_centralgal].mergeType, merger_centralgal, Gal[merger_centralgal].Type);
+         
+           XASSERT(Gal[merger_centralgal].mergeType == 0, "A merger is occurring yet the central galaxy that the merging galaxy is merging into has already undergone a merger/disruption (mergeType != 0).\nIndex of galaxy merging = %d \t HaloNr = %d \t Index of the central galaxy we are trying to merge into = %d \t Merging Galaxy mergeType = %d \t Central galaxy mergeType = %d \t Merging Galaxy Type = %d \t Central Galaxy Type = %d\n", p, halonr, merger_centralgal, Gal[p].mergeType, Gal[merger_centralgal].mergeType, Gal[p].Type, Gal[merger_centralgal].Type);
 
+ 
           Gal[p].mergeIntoID = NumGals + merger_centralgal;  // position in output 
 
           if(Gal[p].MergTime > 0.0)  // disruption has occured!

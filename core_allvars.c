@@ -140,6 +140,7 @@ double m_SNII;
 int IRA; 
 int TimeResolutionSN;
 int SN_Array_Len; 
+int Time_SFH;
 
 double alpha_energy;
 double V_energy;

@@ -114,8 +114,8 @@ int main(int argc, char **argv)
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
 #endif
   {
-    if(filenr == 33)
-	continue;
+   //if(filenr == 33 || filenr == 49 || filenr == 80)
+//	continue;
     sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
     if(!(fd = fopen(bufz0, "r")))
     {
@@ -149,12 +149,12 @@ int main(int argc, char **argv)
           
 			assert(!gotXCPU);
 
-      if(tree % 10000 == 0)
+      if(tree % 1000 == 0)
       {
 #ifdef MPI
         printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
 #else
-//				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
+				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
 #endif
 				fflush(stdout);
       }
@@ -172,18 +172,18 @@ int main(int argc, char **argv)
         construct_galaxies(halonr, tree, filenr);
    
       //fprintf(stderr, "Saving Galaxies\n"); 
-      save_galaxies(filenr, tree);
+      //save_galaxies(filenr, tree);
       //fprintf(stderr, "Finished saving galaxies and now saving Merged\n");
-      save_merged_galaxies(filenr, tree);
+      //save_merged_galaxies(filenr, tree);
       //fprintf(stderr, "Finished saving merged\n");
       free_galaxies_and_tree();
       
     }
 
     fprintf(stderr, "Finalizing Galaxy file\n");
-    finalize_galaxy_file(filenr);
+    //finalize_galaxy_file(filenr);
     fprintf(stderr, "Finished finalizing Galaxy file and finalizing merged file\n");
-    finalize_merged_galaxy_file(filenr);
+    //finalize_merged_galaxy_file(filenr);
     fprintf(stderr, "Finished finalizing merged file\n");
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
