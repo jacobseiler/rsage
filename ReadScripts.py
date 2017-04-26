@@ -37,8 +37,6 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         else:
             fname = Model_Name+'_'+str(fnr)  # Complete filename
 
-        if fnr == 33:
-	    continue 
         if not os.path.isfile(fname):
             print "File\t%s  \tdoes not exist!  Skipping..." % (fname)
             continue
@@ -53,12 +51,15 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
             TotNTrees = TotNTrees + Ntrees  # Update total sim trees number
         NtotHalos = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of gals in file.
         TotNHalos = TotNHalos + NtotHalos  # Update total sim gals number
+#        print "File = %d, NtotHalos = %d, TotNHalos = %d" %(fnr, NtotHalos, TotNHalos)
         goodfiles = goodfiles + 1  # Update number of files read for volume calculation
         fin.close()
     
     print
     print "Input files contain:\t%d trees ;\t%d Halos/Galaxies." % (TotNTrees, TotNHalos)
     print
+
+
 
     # Initialize the storage array
     G = np.empty(TotNHalos, dtype=Object_Desc)
@@ -94,7 +95,9 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
 
         FileIndexRanges.append((offset,offset+NtotHalos))
-        
+     
+#	print "File = %d, Offset = %d, NtotHalos = %d, offset + NtotHalos = %d" %(fnr, offset, NtotHalos, offset+NtotHalos)
+ 	
         # Slice the file array into the global array
         # N.B. the copy() part is required otherwise we simply point to
         # the GG data which changes from file to file
@@ -416,8 +419,6 @@ def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS):
          ('GridZ', (np.float32, MAXSNAPS)),
          ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
          ('SNStars', (np.float32, MAXSNAPS)),
-         #('Photons_HeI', (np.float32, MAXSNAPS)), 
-         #('Photons_HeII', (np.float32, MAXSNAPS)), 
          ('MfiltGnedin', (np.dtype('d'), MAXSNAPS)),
          ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
          ('EjectedFraction', (np.float32, MAXSNAPS)),  

@@ -150,8 +150,6 @@ def plot_mod(Sob, Gnedin):
 
 
 ##
-<<<<<<< HEAD
-=======
 
 def dust_dist():
 
@@ -223,7 +221,22 @@ def A_Dist():
 
 ##
 
->>>>>>> mass_fesc
+def plot_grandsum_ratio(Ratio):
+
+    ax = plt.subplot(111)
+
+    ax.hist(Ratio, bins = 20, normed = True)
+ 
+    ax.set_xlabel(r"$GrandSum/StellarMass$")
+    ax.set_ylabel(r"$Count$")
+
+    outputFile = './GrandSumRatio1Myr' + Output_Format
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
+
+
+##
 if __name__ == '__main__':
 
     #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_filter_1024_DRAGONS.dat" 
@@ -240,21 +253,9 @@ if __name__ == '__main__':
     #plot_filtervalues(z, Mfilt, Mvir, Mod)
     #plot_filtervalues(z, Mfilt)
 
-<<<<<<< HEAD
-    fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_mod.dat"
-    fd = open(fname_filtervalues, 'rb')
-    Sob, Gnedin = np.loadtxt(fd, dtype = np.float32, unpack=True)  
+    fname = "/home/jseiler/SAGE-stuff/post_processed_SAGE/TimeRes1Myr.dat"
+    fd = open(fname, 'rb')
+    Ratio = np.loadtxt(fd, unpack=True, dtype = np.float32)  
     fd.close()
-    
-    plot_mod(Sob, Gnedin)
-=======
-    #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_mod.dat"
-    #fd = open(fname_filtervalues, 'rb')
-    #Sob, Gnedin = np.loadtxt(fd, dtype = np.float32, unpack=True)  
-    #fd.close()
-    
-    #plot_mod(Sob, Gnedin)
->>>>>>> mass_fesc
 
-    #dust_dist()
-    A_Dist()
+    plot_grandsum_ratio(Ratio)
