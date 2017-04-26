@@ -14,7 +14,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
   int i;
   double tot_stellarMass, tot_BHMass, tot_coldMass, tot_hotMass, tot_ejected, tot_ICS;
 	double tot_hotMetals, tot_ejectedMetals, tot_ICSMetals;
-	double tot_satBaryons, newSatBaryons;
+	double tot_satBaryons; 
   double infallingMass, reionization_modifier;
  
   // need to add up all the baryonic mass asociated with the full halo 
@@ -45,10 +45,6 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
     if(i != centralgal) 
       Gal[i].ICS = Gal[i].MetalsICS = 0.0; 
   }
-
-
-  // the existing baryons that have fallen in with substructure since the last timestep
-  newSatBaryons = tot_satBaryons - Gal[centralgal].TotalSatelliteBaryons;
 
   // include reionization if necessary 
   if(ReionizationOn == 1)

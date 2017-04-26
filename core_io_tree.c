@@ -110,8 +110,8 @@ void load_tree(int filenr, int nr)
   HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[nr]);
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
   Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
-  MergedGal = mymalloc(sizeof(struct GALAXY) * MaxMergedGals); 
-  
+  MergedGal = mymalloc(sizeof(struct GALAXY) * MaxMergedGals);  
+ 
   for(i = 0; i < TreeNHalos[nr]; i++)
   {
     HaloAux[i].DoneFlag = 0;
@@ -127,12 +127,104 @@ void load_tree(int filenr, int nr)
 
 void free_galaxies_and_tree(void)
 {
+  int i;
+
+  for(i = 0; i < NumGals; ++i)
+  { 
+    if(HaloGal[i].SnapNum == ListOutputSnaps[0]) // The pointed to memory that we malloced is NOT copied over when we generate a new MergedGal entry. 
+      free_grid_arrays(&HaloGal[i]);   
+  }
+
+  for(i = 0; i < MergedNr; ++i)
+  {
+    free_grid_arrays(&MergedGal[i]); // These are the Gal[xxx] entries that were copied over to 
+  } 
+
   myfree(MergedGal);
   myfree(Gal);
   myfree(HaloGal);
   myfree(HaloAux);
   myfree(Halo);
 }
+
+void free_grid_arrays(struct GALAXY *g)
+{
+  free(g->GridHistory);
+  free(g->GridStellarMass);
+  free(g->GridSFR);
+  free(g->GridZ);
+  free(g->GridCentralGalaxyMass);
+  free(g->MfiltGnedin);
+  free(g->MfiltSobacchi);
+  free(g->EjectedFraction);
+  free(g->LenHistory);
+  free(g->Stars);
+}
+
+void malloc_grid_arrays(struct GALAXY *g)
+{
+  if(NULL == (g->GridHistory = malloc(sizeof(*(g->GridHistory)) * MAXSNAPS)))
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridHistory.", sizeof(*(g->GridHistory))*MAXSNAPS); 
+    exit(EXIT_FAILURE);
+  }
+
+  if(NULL == (g->GridStellarMass = malloc(sizeof(*(g->GridStellarMass)) * MAXSNAPS)))
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridStellarMass.", sizeof(*(g->GridStellarMass))*MAXSNAPS); 
+    exit(EXIT_FAILURE);
+  } 
+
+  if(NULL == (g->GridSFR = malloc(sizeof(*(g->GridSFR)) * MAXSNAPS)))
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR.", sizeof(*(g->GridSFR))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  if (NULL == (g->GridZ = malloc(sizeof(*(g->GridZ)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR.", sizeof(*(g->GridZ))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+ 
+  if (NULL == (g->GridCentralGalaxyMass = malloc(sizeof(*(g->GridCentralGalaxyMass)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridCentralGalaxyMass.", sizeof(*(g->GridCentralGalaxyMass))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  if (NULL == (g->MfiltGnedin = malloc(sizeof(*(g->MfiltGnedin)) * MAXSNAPS)))
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltGnedin.", sizeof(*(g->MfiltGnedin))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  if (NULL == (g->MfiltSobacchi = malloc(sizeof(*(g->MfiltSobacchi)) * MAXSNAPS)))
+  {   
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi.", sizeof(*(g->MfiltSobacchi))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+ 
+  if (NULL == (g->EjectedFraction = malloc(sizeof(*(g->EjectedFraction)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate EjectedFraction.", sizeof(*(g->EjectedFraction))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+ 
+  if (NULL == (g->LenHistory = malloc(sizeof(*(g->LenHistory)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate LenHistory.", sizeof(*(g->LenHistory))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  if (NULL == (g->Stars = malloc(sizeof(*(g->Stars)) * SN_Array_Len)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate Stars.", sizeof(*(g->Stars))*SN_Array_Len);
+    exit(EXIT_FAILURE);
+  }
+
+}
+
 
 size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
 {

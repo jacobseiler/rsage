@@ -74,7 +74,7 @@ void construct_galaxies(int halonr, int tree, int filenr)
 
 int join_galaxies_of_progenitors(int halonr, int ngalstart)
 {
-  int ngal, prog, i, mother_halo=-1, j, first_occupied, lenmax, lenoccmax, centralgal;
+  int ngal, prog, i, j, first_occupied, lenmax, lenoccmax, centralgal;
   double previousMvir, previousVvir, previousVmax;
   int step;
 
@@ -94,8 +94,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
   {
     if(Halo[prog].Len > lenmax)
     {
-      lenmax = Halo[prog].Len;
-      mother_halo = prog;
+      lenmax = Halo[prog].Len;      
     }
     if(lenoccmax != -1 && Halo[prog].Len > lenoccmax && HaloAux[prog].NGalaxies > 0)
     {
@@ -318,7 +317,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
       // If we are doing delayed SN (N_SFH != 0) then let's do that. 
  
-      starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step);
+      starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step, tree);
 
     }
 
@@ -348,15 +347,12 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
           //fprintf(stderr, "Before p = %d \t Gal[p].Type = %d \t Gal[merger_centralgal].mergeType = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d\n", p, Gal[p].Type, Gal[merger_centralgal].mergeType, merger_centralgal, Gal[merger_centralgal].Type);
           if(Gal[merger_centralgal].mergeType > 0)
 //          while(Gal[merger_centralgal].mergeType > 0)
-          { 
-            fprintf(stderr, "WTF is happening\n"); 
+          {         
             merger_centralgal = Gal[merger_centralgal].CentralGal;
 //           XASSERT(Gal[merger_centralgal].mergeType == 0, "We have the case where are galaxy (galaxy C) is trying to merge into a galaxy (galaxy B) that is merging itself into a central galaxy (galaxy A). We have attempted to tell galaxy C to merge into galaxy A directly but require that the mergeType of galaxy A is 0 (i.e. galaxy A is a central).\nInstead the mergeType of galaxy A = %d\n", Gal[merger_centralgal].mergeType);  
           }
           //fprintf(stderr, "After p = %d \t Gal[p].Type = %d \t Gal[merger_centralgal].mergeType = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d\n", p, Gal[p].Type, Gal[merger_centralgal].mergeType, merger_centralgal, Gal[merger_centralgal].Type);
          
-           XASSERT(Gal[merger_centralgal].mergeType == 0, "A merger is occurring yet the central galaxy that the merging galaxy is merging into has already undergone a merger/disruption (mergeType != 0).\nIndex of galaxy merging = %d \t HaloNr = %d \t Index of the central galaxy we are trying to merge into = %d \t Merging Galaxy mergeType = %d \t Central galaxy mergeType = %d \t Merging Galaxy Type = %d \t Central Galaxy Type = %d\n", p, halonr, merger_centralgal, Gal[p].mergeType, Gal[merger_centralgal].mergeType, Gal[p].Type, Gal[merger_centralgal].Type);
-
  
           Gal[p].mergeIntoID = NumGals + merger_centralgal;  // position in output 
 
@@ -364,7 +360,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
           {
 
 
-            disrupt_satellite_to_ICS(merger_centralgal, p);
+            disrupt_satellite_to_ICS(merger_centralgal, p, tree);
 
 	    update_grid_array(p, halonr, step, centralgal); // Updates the grid before it's added to the merger list.
 
@@ -379,7 +375,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
             {
               time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);   
 
-              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step);
+              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step, tree);
 
 	      update_grid_array(p, halonr, step, centralgal); // Updates the grid before it's added to the merger list.
 

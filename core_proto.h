@@ -19,8 +19,10 @@ void save_merged_galaxies(int MergedNr, int filenr);
 void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o);
 
 void free_galaxies_and_tree(void);
+void free_grid_arrays(struct GALAXY *g);
 void free_tree_table(void);
 void free_grid(void);
+void malloc_grid_arrays(struct GALAXY *g);
 void print_allocated(void);
 
 void read_parameter_file(char *fname);
@@ -32,7 +34,7 @@ void finalize_galaxy_file(int filenr);
 void write_gridarray(struct GALAXY *g, FILE *fp);
 void finalize_merged_galaxy_file(int filenr);
 
-void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step);
+void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree);
 void add_galaxies_together(int t, int p);
 void init_galaxy(int p, int halonr);
 double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr);
@@ -41,21 +43,21 @@ double cooling_recipe(int centralgal, double dt);
 void cool_gas_onto_galaxy(int centralgal, double coolingGas);
 void reincorporate_gas(int centralgal, double dt);
 double estimate_merging_time(int prog, int mother_halo, int ngal);
-void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step);
+void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step, int tree);
 void add_galaxy_to_merger_list(int p);
 double dmax(double x, double y);
 double do_reionization(int centralgal, double Zcurr, int ReturnMfilt);
 double do_myreionization(int centralgal, double Zcurr, int ReturnMfilt);
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
-void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step);
-void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger);
+void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree);
+void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree);
 void update_from_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double metallicity);
 void make_bulge_from_burst(int p);
 void grow_black_hole(int merger_centralgal, double mass_ratio);
-void check_disk_instability(int p, int centralgal, int halonr, double time, double dt, int step);
+void check_disk_instability(int p, int centralgal, int halonr, double time, double dt, int step, int tree);
 
 void strip_from_satellite(int halonr, int centralgal, int gal);
-void disrupt_satellite_to_ICS(int centralgal, int gal);
+void disrupt_satellite_to_ICS(int centralgal, int gal, int tree);
 void quasar_mode_wind(int gal, float BHaccrete);
 
 double get_metallicity(double gas, double metals);
@@ -83,14 +85,15 @@ void grid_update_mass_metals_mass(double mass, double mass_metals, int GridPos, 
 void update_grid_array(int p, int halonr, int steps_completed, int centralgal);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
 
-void do_previous_SN(int p, int centralgal, int halonr, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
-void do_current_SN(int p, int centralgal, int halonr, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
+
+void do_previous_SN(int p, int centralgal, int halonr);
+void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
 void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
+void do_previous_recycling(int p, int centralgal, int step, double dt); 
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m);
 double calculate_reheated_mass(double Delta_Eta, double stars, double Vmax);
 double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax);
 double calculate_ejected_mass(double *reheated_mass, double reheated_energy, double Vvir);
 double calculate_coreburning(double t);
 void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new);
-void do_previous_recycling(int p, int centralgal, int SnapHistory);
-void  update_stars_array(int p, double stars, double dt);
+void  update_stars_array(int p, double stars, double dt, int tree, int step);

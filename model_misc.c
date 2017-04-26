@@ -84,87 +84,9 @@ void init_galaxy(int p, int halonr)
   Gal[p].infallMvir = -1.0;  
   Gal[p].infallVvir = -1.0;
   Gal[p].infallVmax = -1.0;
- 
-  if(NULL == (Gal[p].GridHistory = malloc(sizeof(*(Gal[p].GridHistory)) * MAXSNAPS)))
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridHistory.", sizeof(*(Gal[p].GridHistory))*MAXSNAPS); 
-    exit(EXIT_FAILURE);
-  }
 
-  if(NULL == (Gal[p].GridStellarMass = malloc(sizeof(*(Gal[p].GridStellarMass)) * MAXSNAPS)))
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridStellarMass.", sizeof(*(Gal[p].GridStellarMass))*MAXSNAPS); 
-    exit(EXIT_FAILURE);
-  } 
-
-  if(NULL == (Gal[p].GridSFR = malloc(sizeof(*(Gal[p].GridSFR)) * MAXSNAPS)))
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR.", sizeof(*(Gal[p].GridSFR))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (Gal[p].GridZ = malloc(sizeof(*(Gal[p].GridZ)) * MAXSNAPS)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR.", sizeof(*(Gal[p].GridZ))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
- 
-  if (NULL == (Gal[p].GridCentralGalaxyMass = malloc(sizeof(*(Gal[p].GridCentralGalaxyMass)) * MAXSNAPS)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridCentralGalaxyMass.", sizeof(*(Gal[p].GridCentralGalaxyMass))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  /*
-  if (NULL == (Gal[p].GridPhotons_HI = malloc(sizeof(*(Gal[p].GridPhotons_HI)) * MAXSNAPS))) 
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HI.", sizeof(*(Gal[p].GridPhotons_HI))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (Gal[p].GridPhotons_HeI = malloc(sizeof(*(Gal[p].GridPhotons_HeI)) * MAXSNAPS)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HeI.", sizeof(*(Gal[p].GridPhotons_HeI))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (Gal[p].GridPhotons_HeII = malloc(sizeof(*(Gal[p].GridPhotons_HeII)) * MAXSNAPS)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HeII.", sizeof(*(Gal[p].GridPhotons_HeII))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-  */
-
-  if (NULL == (Gal[p].MfiltGnedin = malloc(sizeof(*(Gal[p].MfiltGnedin)) * MAXSNAPS)))
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltGnedin.", sizeof(*(Gal[p].MfiltGnedin))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (Gal[p].MfiltSobacchi = malloc(sizeof(*(Gal[p].MfiltSobacchi)) * MAXSNAPS)))
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi.", sizeof(*(Gal[p].MfiltSobacchi))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
- 
-  if (NULL == (Gal[p].EjectedFraction = malloc(sizeof(*(Gal[p].EjectedFraction)) * MAXSNAPS)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate EjectedFraction.", sizeof(*(Gal[p].EjectedFraction))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
- 
-  if (NULL == (Gal[p].LenHistory = malloc(sizeof(*(Gal[p].LenHistory)) * MAXSNAPS)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate LenHistory.", sizeof(*(Gal[p].LenHistory))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (Gal[p].Stars = malloc(sizeof(*(Gal[p].Stars)) * SN_Array_Len)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate Stars.", sizeof(*(Gal[p].Stars))*SN_Array_Len);
-    exit(EXIT_FAILURE);
-  }
- 
+  malloc_grid_arrays(&Gal[p]);
+  
   for (j = 0; j < MAXSNAPS; ++j)
   {
     Gal[p].GridHistory[j] = -1;
@@ -172,31 +94,27 @@ void init_galaxy(int p, int halonr)
     Gal[p].GridSFR[j] = 0.0;
     Gal[p].GridZ[j] = -1;
     Gal[p].GridCentralGalaxyMass[j] = -1.0;
-//    Gal[p].GridPhotons_HI[j] = 0.0;
-//    Gal[p].GridPhotons_HeI[j] = 0.0;
-//    Gal[p].GridPhotons_HeII[j] = 0.0;
     Gal[p].MfiltGnedin[j] = 1.0;
     Gal[p].MfiltSobacchi[j] = 1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
   }
 
-  //fprintf(stderr, "Initializing Stars\n"); 
   for (j = 0; j < SN_Array_Len; ++j)
   {
-    //fprintf(stderr, "j in initailize galaxy = %d\n", j);
     Gal[p].Stars[j] = 0.0;
   }
-  //fprintf(stderr, "Finishing initializing Stars\n");
 
   Gal[p].Total_SF_Time = 0.0;
   Gal[p].Total_Stars = 0.0;
 
-  Gal[p].IsFreed = -1;
+  Gal[p].IsMerged = -1;
+  Gal[p].GrandSum = 0.0;
+
+  Gal[p].StellarAge_Numerator = 0.0;
+  Gal[p].StellarAge_Denominator = 0.0;
 
 }
-
-
 
 double get_disk_radius(int halonr, int p)
 {

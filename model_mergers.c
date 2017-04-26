@@ -39,9 +39,11 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 
 
 
-void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step)
+void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step, int tree)
 {
   double mi, ma, mass_ratio;
+
+  XASSERT(Gal[merger_centralgal].IsMerged == -1, "We are trying to merge a galaxy into another galaxy that has already merged.\np = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d \t Gal[merger_centralgal].mergeType = %d \t Gal[merger_centralgal].IsMerged = %d \t GalaxyNr = %d \t halonr = %d\n", p, merger_centralgal, Gal[merger_centralgal].Type, Gal[merger_centralgal].mergeType, Gal[merger_centralgal].IsMerged, Gal[merger_centralgal].GalaxyNr, halonr);
 
   // calculate mass ratio of merging galaxies 
   if(Gal[p].StellarMass + Gal[p].ColdGas <
@@ -69,7 +71,7 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   }
   // starburst recipe similar to Somerville et al. 2001
 
-  collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step);
+  collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step, tree);
 
   if(mass_ratio > 0.1)
 		Gal[merger_centralgal].TimeOfLastMinorMerger = time;
@@ -84,6 +86,8 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   {
     Gal[p].mergeType = 1;  // mark as minor merger
   }
+
+  Gal[p].CentralGal = merger_centralgal;  
 
 }
 
@@ -158,6 +162,7 @@ void add_galaxies_together(int t, int p)
   Gal[t].MetalsColdGas += Gal[p].MetalsColdGas;
   
   Gal[t].StellarMass += Gal[p].StellarMass;
+  Gal[t].GrandSum += Gal[p].GrandSum;
   Gal[t].MetalsStellarMass += Gal[p].MetalsStellarMass;
 
   Gal[t].HotGas += Gal[p].HotGas;
@@ -186,8 +191,8 @@ void add_galaxies_together(int t, int p)
 
   XASSERT(t >= 0 && t < GalaxyCounter, "t is out of bounds.  t has a value of %d whereas it should be >= 0 and < GalaxyCounter (%d)\n", t, GalaxyCounter); 
   XASSERT(p >= 0 && p < GalaxyCounter, "p is out of bounds.  p has a value of %d whereas it should be >= 0 and < GalaxyCounter (%d)\n", p, GalaxyCounter); 
-  XASSERT(Gal[p].IsFreed == -1, "Gal[p] has already been freed.  p = %d. Gal[p].MergeType = %d\n", p, Gal[p].mergeType);
-  XASSERT(Gal[t].IsFreed == -1, "Gal[t] has already been freed.  t = %d. Gal[t].MergeType = %d\n", t, Gal[t].mergeType);
+  XASSERT(Gal[p].IsMerged == -1, "Gal[p] has already been freed.  p = %d. Gal[p].MergeType = %d\n", p, Gal[p].mergeType);
+  XASSERT(Gal[t].IsMerged == -1, "Gal[t] has already been freed.  t = %d. Gal[t].MergeType = %d\n", t, Gal[t].mergeType);
 
   // Our delayed SN scheme requires the stars formed by current galaxy and also its progenitors; so need to go back through the central galaxy of the merger and add all the stars from the merging galaxy.
   //fprintf(stderr, "Adding merger stars\n");
@@ -198,7 +203,9 @@ void add_galaxies_together(int t, int p)
 
   }
   //fprintf(stderr, "Finished adding merger stars\n");   
-  
+ 
+  Gal[t].Total_Stars += Gal[p].Total_Stars;
+ 
 }
 
 
@@ -225,7 +232,7 @@ void make_bulge_from_burst(int p)
 
 
 
-void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step)
+void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree)
 {
   double stars, eburst;
   double FracZleaveDiskVal; 
@@ -250,10 +257,11 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
  
   if(SupernovaRecipeOn == 1)
   {    
-    if(IRA == 1)
+    if(IRA == 0)	
+      do_contemporaneous_SN(centralgal, merger_centralgal, dt, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
+    else if(IRA == 1) 
       do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
-      mass_stars_recycled = 0.0;
-      mass_metals_new = 0.0;   
+   
   } 
   
   if(stars > Gal[merger_centralgal].ColdGas) // we do this check in 'do_current_sn()' but if supernovarecipeon == 0 then we don't do the check.
@@ -262,20 +270,23 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     stars *= factor; 
   }
 
-  update_from_star_formation(merger_centralgal, stars, dt, step, true); 
+  update_from_star_formation(merger_centralgal, stars, dt, step, true, tree); 
   update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
 
   // check for disk instability
   if(DiskInstabilityOn && mode == 0)
     if(mass_ratio < ThreshMajorMerger)
-    check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step);
+    check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step, tree);
 
 }
 
 
 
-void disrupt_satellite_to_ICS(int centralgal, int gal)
-{  
+void disrupt_satellite_to_ICS(int centralgal, int gal, int tree)
+{
+
+  XASSERT(Gal[centralgal].IsMerged == -1, "We are trying to merge a galaxy into another galaxy that has already merged.\nTree = %d \t Gal = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d \t Gal[merger_centralgal].mergeType = %d \t Gal[merger_centralgal].IsMerged = %d \t GalaxyNr = %d\n", tree, gal, centralgal, Gal[centralgal].Type, Gal[centralgal].mergeType, Gal[centralgal].IsMerged, Gal[centralgal].GalaxyNr);
+  
   Gal[centralgal].HotGas += Gal[gal].ColdGas + Gal[gal].HotGas;
   Gal[centralgal].MetalsHotGas += Gal[gal].MetalsColdGas + Gal[gal].MetalsHotGas;
   
@@ -297,163 +308,14 @@ void disrupt_satellite_to_ICS(int centralgal, int gal)
 
 void add_galaxy_to_merger_list(int p)
 {
-  int j, step;
+  int j;
 
-  MergedGal[MergedNr].Type = Gal[p].Type;
-
-  MergedGal[MergedNr].GalaxyNr = Gal[p].GalaxyNr; 
-  
-  MergedGal[MergedNr].HaloNr = Gal[p].HaloNr;
-  MergedGal[MergedNr].MostBoundID = Gal[p].MostBoundID; 
-  MergedGal[MergedNr].SnapNum = Gal[p].SnapNum; 
-
-  MergedGal[MergedNr].mergeType = Gal[p].mergeType;
-  MergedGal[MergedNr].mergeIntoID = Gal[p].mergeIntoID; 
-  MergedGal[MergedNr].mergeIntoSnapNum = Gal[p].mergeIntoSnapNum;
-  MergedGal[MergedNr].dT = Gal[p].dT; 
-
-  for(j = 0; j < 3; j++)
-  {
-    MergedGal[MergedNr].Pos[j] = Gal[p].Pos[j];
-    MergedGal[MergedNr].Vel[j] = Gal[p].Vel[j];
-  }
-
-  MergedGal[MergedNr].Len = Gal[p].Len;
-  MergedGal[MergedNr].Vmax = Gal[p].Vmax;
-  MergedGal[MergedNr].Vvir = Gal[p].Vvir; 
-  MergedGal[MergedNr].Mvir = Gal[p].Mvir;
-  MergedGal[MergedNr].Rvir = Gal[p].Rvir;
-
-  MergedGal[MergedNr].deltaMvir = Gal[p].deltaMvir;
-
-  MergedGal[MergedNr].ColdGas = Gal[p].ColdGas;
-  MergedGal[MergedNr].StellarMass = Gal[p].StellarMass;
-  MergedGal[MergedNr].BulgeMass = Gal[p].BulgeMass;
-  MergedGal[MergedNr].HotGas = Gal[p].HotGas;
-  MergedGal[MergedNr].EjectedMass = Gal[p].EjectedMass;
-  MergedGal[MergedNr].BlackHoleMass = Gal[p].BlackHoleMass;
-  MergedGal[MergedNr].ICS = Gal[p].ICS;
-
-  MergedGal[MergedNr].MetalsColdGas = Gal[p].MetalsColdGas;
-  MergedGal[MergedNr].MetalsStellarMass = Gal[p].MetalsStellarMass;
-  MergedGal[MergedNr].MetalsBulgeMass = Gal[p].MetalsBulgeMass;
-  MergedGal[MergedNr].MetalsHotGas = Gal[p].MetalsHotGas;
-  MergedGal[MergedNr].MetalsEjectedMass = Gal[p].MetalsEjectedMass;
-  MergedGal[MergedNr].MetalsICS = Gal[p].MetalsICS;
-  
-  for(step = 0; step < STEPS; step++)
-  {
-    MergedGal[MergedNr].SfrDisk[step] = Gal[p].SfrDisk[step];
-    MergedGal[MergedNr].SfrBulge[step] = Gal[p].SfrBulge[step];
-    MergedGal[MergedNr].SfrDiskColdGas[step] = Gal[p].SfrDiskColdGas[step];
-    MergedGal[MergedNr].SfrDiskColdGasMetals[step] = Gal[p].SfrDiskColdGasMetals[step];
-    MergedGal[MergedNr].SfrBulgeColdGas[step] = Gal[p].SfrBulgeColdGas[step];
-
-  }
-
-  MergedGal[MergedNr].DiskScaleRadius = Gal[p].DiskScaleRadius; 
-  MergedGal[MergedNr].MergTime = Gal[p].MergTime;
-  MergedGal[MergedNr].Cooling = Gal[p].Cooling;
-  MergedGal[MergedNr].Heating = Gal[p].Heating;
-  MergedGal[MergedNr].r_heat = Gal[p].r_heat;
-  MergedGal[MergedNr].QuasarModeBHaccretionMass = Gal[p].QuasarModeBHaccretionMass;
-  MergedGal[MergedNr].TimeOfLastMajorMerger = Gal[p].TimeOfLastMajorMerger;
-  MergedGal[MergedNr].TimeOfLastMinorMerger = Gal[p].TimeOfLastMinorMerger;
-  MergedGal[MergedNr].OutflowRate = Gal[p].OutflowRate;
-  MergedGal[MergedNr].TotalSatelliteBaryons = Gal[p].TotalSatelliteBaryons;
-	// infall properties
-  MergedGal[MergedNr].infallMvir = Gal[p].infallMvir;  
-  MergedGal[MergedNr].infallVvir = Gal[p].infallVvir;
-  MergedGal[MergedNr].infallVmax = Gal[p].infallVmax;
-
-  if (NULL == (MergedGal[MergedNr].GridHistory = malloc(sizeof(*(MergedGal[MergedNr].GridHistory)) * MAXSNAPS))) 
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridHistory in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridHistory))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (MergedGal[MergedNr].GridStellarMass = malloc(sizeof(*(MergedGal[MergedNr].GridStellarMass)) * MAXSNAPS))) 
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridStellarMass in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridStellarMass))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (MergedGal[MergedNr].GridSFR = malloc(sizeof(*(MergedGal[MergedNr].GridSFR)) * MAXSNAPS))) 
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridSFR))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (MergedGal[MergedNr].GridZ = malloc(sizeof(*(MergedGal[MergedNr].GridZ)) * MAXSNAPS))) 
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridZ in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridZ))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (MergedGal[MergedNr].GridCentralGalaxyMass = malloc(sizeof(*(MergedGal[MergedNr].GridCentralGalaxyMass)) * MAXSNAPS))) 
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridCentralGalaxyMass in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridCentralGalaxyMass))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  /*
-  if (NULL == (MergedGal[MergedNr].GridPhotons_HI = malloc(sizeof(*(MergedGal[MergedNr].GridPhotons_HI)) * MAXSNAPS))) 
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HI in model_Mergers.c.", sizeof(*(MergedGal[MergedNr].GridPhotons_HI))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (MergedGal[MergedNr].GridPhotons_HeI = malloc(sizeof(*(MergedGal[MergedNr].GridPhotons_HeI)) * MAXSNAPS))) 
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HeI in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridPhotons_HeI))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (MergedGal[MergedNr].GridPhotons_HeII = malloc(sizeof(*(MergedGal[MergedNr].GridPhotons_HeII)) * MAXSNAPS))) 
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridPhotons_HeII in model_mergers.c.", sizeof(*(MergedGal[MergedNr].GridPhotons_HeII))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-  */
-
-  if (NULL == (MergedGal[MergedNr].MfiltGnedin = malloc(sizeof(*(MergedGal[MergedNr].MfiltGnedin)) * MAXSNAPS)))
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltGnedin in model_mergers.c.", sizeof(*(MergedGal[MergedNr].MfiltGnedin))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (MergedGal[MergedNr].MfiltSobacchi = malloc(sizeof(*(MergedGal[MergedNr].MfiltSobacchi)) * MAXSNAPS)))
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi in model_mergers.c.", sizeof(*(MergedGal[MergedNr].MfiltSobacchi))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
- 
-  if (NULL == (MergedGal[MergedNr].EjectedFraction = malloc(sizeof(*(MergedGal[MergedNr].EjectedFraction)) * MAXSNAPS)))
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate EjectedFraction in model_mergers.c.", sizeof(*(MergedGal[MergedNr].EjectedFraction))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-  
-  if (NULL == (MergedGal[MergedNr].LenHistory = malloc(sizeof(*(MergedGal[MergedNr].LenHistory)) * MAXSNAPS)))
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate LenHistory in model_mergers.c.", sizeof(*(MergedGal[MergedNr].LenHistory))*MAXSNAPS);
-    exit(EXIT_FAILURE);
-  }
-
-  if (NULL == (MergedGal[MergedNr].Stars = malloc(sizeof(*(MergedGal[MergedNr].Stars)) * SN_Array_Len)))
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate Stars in model_mergers.c.", sizeof(*(MergedGal[MergedNr].Stars))*SN_Array_Len);
-    exit(EXIT_FAILURE);
-  }
+  MergedGal[MergedNr] = Gal[p]; // This is a shallow copy and does not copy the memory the pointers are pointing to.
+  malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
     MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
-
-//    MergedGal[MergedNr].deltaEjectedMass[j] = Gal[p].deltaEjectedMass[j];
-//    MergedGal[MergedNr].deltaMetalsEjectedMass[j] = Gal[p].deltaMetalsEjectedMass[j];
-//    MergedGal[MergedNr].deltaEnergyEjected[j] = Gal[p].deltaEnergyEjected[j];
-//    MergedGal[MergedNr].deltaSfr[j] = Gal[p].deltaSfr[j];
     MergedGal[MergedNr].GridStellarMass[j] = Gal[p].GridStellarMass[j];
     MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
     MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
@@ -464,27 +326,13 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j]; 
   }
  
-//  fprintf(stderr, "Copying over Merger stars\n");
   for (j = 0; j < SN_Array_Len; ++j)
   {
-//    fprintf(stderr, "j in add to merged list = %d\n", j);
     MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
   }
 
- //fprintf(stderr, "Finished copying over Merger stars\n");
-  free(Gal[p].GridHistory);
-  free(Gal[p].GridStellarMass);
-  free(Gal[p].GridSFR);
-  free(Gal[p].GridZ);
-  free(Gal[p].GridCentralGalaxyMass);
-  free(Gal[p].MfiltGnedin);
-  free(Gal[p].MfiltSobacchi);
-  free(Gal[p].EjectedFraction);
-  free(Gal[p].LenHistory);
-//  fprintf(stderr, "Trying to free Gal[p].Stars\n");
-  free(Gal[p].Stars);
-//  fprintf(stderr, "Freed\n");
-  Gal[p].IsFreed = 1; 
+  free_grid_arrays(&Gal[p]);
+  Gal[p].IsMerged = 1; 
   ++MergedNr;
 }
  

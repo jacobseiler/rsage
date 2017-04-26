@@ -143,6 +143,8 @@ int main(int argc, char **argv)
 
     FileNum = filenr;
     load_tree_table(filenr);
+
+    
     
     for(tree = 0; tree < Ntrees; tree++)
     {
@@ -171,28 +173,23 @@ int main(int argc, char **argv)
         if(HaloAux[halonr].DoneFlag == 0)	
         construct_galaxies(halonr, tree, filenr);
    
-      //fprintf(stderr, "Saving Galaxies\n"); 
-      //save_galaxies(filenr, tree);
-      //fprintf(stderr, "Finished saving galaxies and now saving Merged\n");
-      //save_merged_galaxies(filenr, tree);
-      //fprintf(stderr, "Finished saving merged\n");
+      save_galaxies(filenr, tree);
+      save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree();
       
     }
 
-    fprintf(stderr, "Finalizing Galaxy file\n");
-    //finalize_galaxy_file(filenr);
-    fprintf(stderr, "Finished finalizing Galaxy file and finalizing merged file\n");
-    //finalize_merged_galaxy_file(filenr);
-    fprintf(stderr, "Finished finalizing merged file\n");
+    finalize_galaxy_file(filenr);  
+    finalize_merged_galaxy_file(filenr);
+    
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
-
+ 
   }
 
-//  printf("There was %.4e Halo mass at Snapshot 99\n", count);
   exitfail = 0;
   printf("There was %d firstSF and %d notfirstSF\n", count_firstSF, count_notfirstSF);
+  gsl_rng_free(random_generator); 
   return 0;
 }
 

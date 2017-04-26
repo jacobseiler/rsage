@@ -83,10 +83,14 @@ void save_galaxies(int filenr, int tree)
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
         if(HaloGal[i].SnapNum == ListOutputSnaps[0]) // We only want to write out the grid properties for the final snapshot.
             write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
+        //fprintf(stderr, "On write the GrandSum was %.4e and Stellar Mass was %.4e for Galaxy %d\n", HaloGal[i].GrandSum, HaloGal[i].StellarMass, i);
+        if(HaloGal[i].StellarMass != 0)
+	{ 
+		double ratio = HaloGal[i].GrandSum/HaloGal[i].StellarMass;
+		//fprintf(stderr, "Ratio: %.4e \t StellarMass = %.4e \t GrandSum = %.4e\n", ratio, HaloGal[i].StellarMass, HaloGal[i].GrandSum); 	
+		//fprintf(stderr, "%.4f\n", ratio, HaloGal[i].StellarMass, HaloGal[i].GrandSum); 	
 
-
-
-
+        }
     	TotGalaxies[n]++;
         TreeNgals[n][tree]++;
 
@@ -225,8 +229,6 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 
 }
 
-// TODO: Perform a check so the grid array is only written if it's the final redshift in the output list.
-// E.g. if we are writing out snapshots 50, 60, 70, then 'write_gridarray' should only be called when writing out the snapshot 70 properties.
 void write_gridarray(struct GALAXY *g, FILE *fp)
 {
 
@@ -241,66 +243,53 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   { 
       myfwrite(&g->GridHistory[j], sizeof(*(g->GridHistory)), 1, fp);
   }
-  free(g->GridHistory);
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
       myfwrite(&g->GridStellarMass[j], sizeof(*(g->GridStellarMass)), 1, fp);
   }
- 
-  free(g->GridStellarMass);
   
   for (j = 0; j < MAXSNAPS; ++j)
   {
       SFR = g->GridSFR[j]*SFR_conversion;    
       myfwrite(&SFR, sizeof(*(g->GridSFR)), 1, fp);
   }
-  free(g->GridSFR);
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
       myfwrite(&g->GridZ[j], sizeof(*(g->GridZ)), 1, fp);
   }
-  free(g->GridZ);
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
       myfwrite(&g->GridCentralGalaxyMass[j], sizeof(*(g->GridCentralGalaxyMass)), 1, fp);
   }
-  free(g->GridCentralGalaxyMass);  
 
-  
   for (j = 0; j < MAXSNAPS; ++j)
   {
       float tmp = 100.0; 
       myfwrite(&tmp, sizeof(float), 1, fp); 
   }
-  free(g->Stars);
  
   for (j = 0; j < MAXSNAPS; ++j)
   {  
       myfwrite(&g->MfiltGnedin[j], sizeof(*(g->MfiltGnedin)), 1, fp);
   }
-  free(g->MfiltGnedin);
 
   for (j = 0; j < MAXSNAPS; ++j)
   { 
       myfwrite(&g->MfiltSobacchi[j], sizeof(*(g->MfiltSobacchi)), 1, fp);   
   }
-  free(g->MfiltSobacchi);
 
   for (j = 0; j < MAXSNAPS; ++j)
   {  
      myfwrite(&g->EjectedFraction[j], sizeof(*(g->EjectedFraction)), 1, fp); 
   }
-  free(g->EjectedFraction); 
 
   for (j = 0; j < MAXSNAPS; ++j)
   {  
      myfwrite(&g->LenHistory[j], sizeof(*(g->LenHistory)), 1, fp);  
   }
-  free(g->LenHistory); 
-
 
 }
 
@@ -348,17 +337,6 @@ void save_merged_galaxies(int filenr, int tree)
     OutputGalCount++;
   }
 
-
-  // first update mergeIntoID to point to the correct galaxy in the output  
-   
-  /* 
-  for(i = 0; i < MergedNr; i++)
-    if(MergedGal[i].mergeIntoID > -1)
-      MergedGal[i].mergeIntoID = OutputGalOrder[MergedGal[i].mergeIntoID];    
-  */
-  // now prepare and write galaxies    
-  // only open the file if it is not already open.
-  
   if( !save_fd2 )
   { 
     sprintf(buf, "%s/%s_MergedGalaxies_%d", OutputDir, FileNameGalaxies, filenr);

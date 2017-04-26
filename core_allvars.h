@@ -12,7 +12,7 @@ do {                                                                \
   myexit(sigterm);                                                \
 } while(0)
 
-#define  STEPS 10         // Number of integration intervals between two snapshots
+#define  STEPS 1         // Number of integration intervals between two snapshots
 #define  MAXGALFAC 1
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50
@@ -207,12 +207,13 @@ struct GALAXY
   double *Stars;
   double *VmaxHistory;
 
-  double StellarAge;
+  double StellarAge_Numerator;
+  double StellarAge_Denominator;
   double Total_SF_Time;
   double Total_Stars;
 
-  double IsFreed;
-
+  int IsMerged;
+  double GrandSum;
 }
 *Gal, *HaloGal, *MergedGal;
 
@@ -400,4 +401,5 @@ extern double epsilon_mass_max;
 
 extern int count_firstSF;
 extern int count_notfirstSF;
+
 #endif  // #ifndef ALLVARS_H
