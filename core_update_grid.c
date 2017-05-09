@@ -21,6 +21,7 @@ void update_grid_properties(int p, int merged, int GridNr)
 
   int i, grid_position;
   double fesc_local;
+  float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; // Number of ionizing photons (in s^-1). 
   for(i = 0; i < MAXSNAPS; ++i)
   {
     grid_position = GalGrid[p].History[i]; 
@@ -34,35 +35,24 @@ void update_grid_properties(int p, int merged, int GridNr)
       Grid[grid_position].Sfr += GalGrid[p].SFR[i];
       Grid[grid_position].Count += 1;
       Grid[grid_position].StellarMass += GalGrid[p].StellarMass[i];
-      if (PhotonPrescription == 1)  // If our photon prescription is using the galaxy photon calculated from the STARBURST spectra.
+
+      if (PhotonPrescription == 0)
+      { 
+        update_grid_nion_halo(GridNr); // If we are using a halo-based photon prescription, calculate the number of photons based on halo mass.
+      } else if (PhotonPrescription == 1)  // If our photon prescription is using the galaxy photon calculated from the STARBURST spectra.
       {
-        if (fescPrescription == 0 || fescPrescription == 4)
-		fesc_local = fesc;
-	else if (fescPrescription == 1)
-		fesc_local = pow(10,1.0 - 0.2*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
-        else if (fescPrescription == 2)
-		fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
-	else if (fescPrescription == 3)	
-		fesc_local = beta * GalGrid[p].EjectedFraction[i] + alpha;	
-        if (fesc_local > 1.0)
-        {
-		fesc_local = 1.0;
-                fprintf(stderr, "Had fesc_local = %.4f for galaxy %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun) and SFR %.4e (log Msun yr^-1)", fesc_local, p, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]));
-        }
-	if (fesc_local < 0.0)
-        {
-		fesc_local = 0.0;
-                fprintf(stderr, "Had fesc_local = %.4f for galaxy %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun) and SFR %.4e (log Msun yr^-1)", fesc_local, p, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]));
-	}
-//	printf("Alpha = %.4e \t log10(alpha) = %.4e \t beta = %.4e \t GalGrid[p].CentralGalaxyMass[i] = %.4e \t fesc = %.4e\n", alpha, log10(alpha), beta, GalGrid[p].CentralGalaxyMass[i], fesc_local); 
-        Grid[grid_position].Nion_HI += pow(10,GalGrid[p].Photons_HI[i])*fesc_local;
-	if (Grid[grid_position].Nion_HI < 0.0 || Grid[grid_position].Nion_HI > 1e100)
-        {
-		fprintf(stderr, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid cell = %d, Galaxy Number = %d, Snapshot = %d, GalGrid[p].Photons_HI[i] = %.4e, fesc_local = %.4e\n", grid_position, p, i, GalGrid[p].Photons_HI[i], fesc_local);
-		exit(0);
-        }
-        Grid[grid_position].Nion_HeI += pow(10,GalGrid[p].Photons_HeI[i])*fesc_local; 
-        Grid[grid_position].Nion_HeII += pow(10,GalGrid[p].Photons_HeII[i])*fesc_local; 
+	calculate_photons(GalGrid[p].SFR[i], GalGrid[p].Z[i], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
+	
+        fesc_local = calculate_fesc(p, i);
+
+        Grid[grid_position].Nion_HI += pow(10, Ngamma_HI)*fesc_local;
+	
+	XASSERT(Grid[grid_position].Nion_HI > 0.0 && Grid[grid_position].Nion_HI < 1e100, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid cell = %d, Galaxy Number = %d, Snapshot = %d, Ngamma_HI = %.4e, fesc_local = %.4e\n", grid_position, p, i, Ngamma_HI, fesc_local);
+     
+      
+        Grid[grid_position].Nion_HeI += pow(10, Ngamma_HeI)*fesc_local; 
+        Grid[grid_position].Nion_HeII += pow(10, Ngamma_HeII)*fesc_local;
+ 
       }
     }
       
@@ -207,8 +197,6 @@ void count_grid_properties(int GridNr) // Count number of galaxies/halos in the 
   {
     GalCount += Grid[i].Count;
     HaloCount += Grid[i].HaloCount;
-    if (Grid[i].Nion_HI < 0.0)
-	fprintf(stderr, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid Number = %d, Grid[i].Nion_HI = %.4e\n", i, Grid[i].Nion_HI); 
     totPhotons_HI += Grid[i].Nion_HI;
     totPhotons_HeI += Grid[i].Nion_HeI;
     totPhotons_HeII += Grid[i].Nion_HeII;
@@ -285,4 +273,112 @@ void normalize_slope_photons(int GridNr)
 
    printf("The total number of photons in the grid is %.4e.  We only want %.4e photons for redshift %.4e giving a ratio of %.4e.\n", totPhotons, targetPhotons, ZZ[ListOutputGrid[GridNr]], ratio);
 }
+
+// INPUT:
+// Star formation rate of the galaxy (in units of Msun/yr) (SFR).
+// Metallicity (NOT Solar Units) (Z).
+//
+// OUTPUT/USE:
+// Returns the number of HI ionizing photons for the galaxy.  
+//
+// NOTE: These relationships have been fit manually from STARBURST99 results.  
+// DOUBLE NOTE: These relationships assume a constant starformation scenario; a Starburst scenario is completely different.
+void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
+{
+
+  assert(Ngamma_HI);
+  assert(Ngamma_HeI);
+  assert(Ngamma_HeII);
+
+  if (SFR == 0)
+  {
+    *Ngamma_HI = 0;
+    *Ngamma_HeI = 0;
+    *Ngamma_HeII = 0; 
+  }
+ 
+  
+  if (Z < 0.0025) // 11
+  { 
+    *Ngamma_HI = log10(SFR) + 53.354;
+    *Ngamma_HeI = log10(SFR) + 52.727;
+    *Ngamma_HeII = log10(SFR) + 48.941;
+  }
+  else if (Z >= 0.0025 && Z < 0.006) // 12
+  {
+    *Ngamma_HI = log10(SFR) + 53.290;
+    *Ngamma_HeI = log10(SFR) + 52.583;
+    *Ngamma_HeII = log10(SFR) + 49.411;
+  }
+  else if (Z>= 0.006 && Z < 0.014) // 13
+  {
+    *Ngamma_HI = log10(SFR) + 53.248;
+    *Ngamma_HeI = log10(SFR) + 52.481;
+    *Ngamma_HeII = log10(SFR) + 49.254;
+  }
+  else if (Z >= 0.014 && Z < 0.030) // 14
+  {
+    *Ngamma_HI = log10(SFR) + 53.166;
+    *Ngamma_HeI = log10(SFR) + 52.319;
+    *Ngamma_HeII = log10(SFR) + 48.596;
+  }
+  else // 15
+  {
+    *Ngamma_HI = log10(SFR) + 53.041;
+    *Ngamma_HeI = log10(SFR) + 52.052;
+    *Ngamma_HeII = log10(SFR) + 47.939;
+  }
+
+  if (SFR != 0)
+  {
+    assert(*Ngamma_HI > 0.0);
+    assert(*Ngamma_HeI > 0.0);
+    assert(*Ngamma_HeII > 0.0);
+  }
+}
+
+// Here we calculate the escape fraction for a specific galaxy. 
+// The user defines a value (fescPrescription) that determines how to calculate fesc.
+// 0: Constant Escape fraction.  User defines the exact value.
+// 1: Scaling with Halo Mass using the functional form defined by Kimm et al (2016).
+// 2: Power Law as a function of halo mass. The user defines the smallest and largest halo mass in the simulation in addition to the escape fractions at these masses.
+// 3: Linear relationship as a function of the ejected fraction of a galaxy.  User defines the escape fraction for ejected fractions of 0 and 1.	
+//
+// The values of alpha/beta are determined within the 'core_init.c' module.
+//
+// INPUT: The galaxy index (p). 
+// 	: The snapshot index (i) 
+//
+// OUTPUT: The escape fraction for the galaxy. 
+
+double calculate_fesc(int p, int i)
+{
+
+  double fesc_local;
+
+  if (fescPrescription == 0) 
+    fesc_local = fesc;
+  else if (fescPrescription == 1)
+    fesc_local = pow(10,1.0 - 0.2*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
+  else if (fescPrescription == 2)
+    fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
+  else if (fescPrescription == 3)	
+    fesc_local = beta * GalGrid[p].EjectedFraction[i] + alpha;
+	
+  if (fesc_local > 1.0)
+  {
+    fesc_local = 1.0;
+    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun) and SFR %.4e (log Msun yr^-1)", fesc_local, p, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]));
+  }
+ 
+  if (fesc_local < 0.0)
+  {
+    fesc_local = 0.0;
+    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun) and SFR %.4e (log Msun yr^-1)", fesc_local, p, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]));
+  }
+
+  return fesc_local;
+
+}
+
 

@@ -153,14 +153,6 @@ void read_parameter_file(char *fname)
   addr[nt] = &MH_max;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "sSFR_min");
-  addr[nt] = &sSFR_min;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "sSFR_max");
-  addr[nt] = &sSFR_max;
-  id[nt++] = DOUBLE;
-
   strcpy(tag[nt], "kappa");
   addr[nt] = &kappa;
   id[nt++] = DOUBLE;

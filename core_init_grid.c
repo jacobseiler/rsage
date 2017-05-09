@@ -45,11 +45,11 @@ void init(void)
     if (Verbose == 1)
     {
       if (i == NGrid - 1) {
-        evolve_time = (Age[ListOutputGrid[i]-1] - Age[ListOutputGrid[i]])*UnitTime_in_Megayears;
+        evolve_time = (Age[ListOutputGrid[i]-1] - Age[ListOutputGrid[i]])*UnitTime_in_Megayears / Hubble_h; 
 //        printf("Evolve time for Snapshots %d and %d is %.3e Myr.\n", ListOutputGrid[i], ListOutputGrid[i]-1, evolve_time);
       }
       else {  
-        evolve_time = (Age[ListOutputGrid[i+1]] - Age[ListOutputGrid[i]])*UnitTime_in_Megayears;
+        evolve_time = (Age[ListOutputGrid[i+1]] - Age[ListOutputGrid[i]])*UnitTime_in_Megayears / Hubble_h;
 //        printf("Evolve time for Snapshots %d and %d is %.3e Myr.\n", ListOutputGrid[i], ListOutputGrid[i+1], evolve_time);
       }
     }
@@ -60,8 +60,6 @@ void init(void)
     ICSCount[i] = 0;
 
   }
-
-  tot_Halomass = 0;
 
   if (fescPrescription == 2)
   {

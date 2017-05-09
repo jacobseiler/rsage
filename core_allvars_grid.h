@@ -36,6 +36,19 @@ do {                                                                \
 
 #define	 CUBE(x) (x*x*x)
 
+#ifdef NDEBUG
+#define XASSERT(EXP, ...)                                do{} while(0)
+#else
+#define XASSERT(EXP, ...)                                              \
+    do { if (!(EXP)) {                                                  \
+            printf("Error in file: %s\tfunc: %s\tline: %d with expression `"#EXP"'\n", __FILE__, __FUNCTION__, __LINE__); \
+            printf(__VA_ARGS__);                                        \
+            fflush(stdout);                                             \
+            exit(EXIT_FAILURE);                                         \
+        } \
+    } while (0)
+#endif
+
 struct GALAXY_INPUT
 {
   int   SnapNum;
@@ -109,25 +122,22 @@ struct GALAXY_INPUT
 struct GALAXY_GRID
 {
 
-  int *History;
-  float *StellarMass;
-  float *SFR;
-  float *Z;
-  float *CentralGalaxyMass;
-  float *Photons_HI;
-  float *Photons_HeI;
-  float *Photons_HeII;
-  double *MfiltGnedin;
-  double *MfiltSobacchi;
-  float *EjectedFraction;
-  int *LenHistory; 
+  int *History; // Integers that describe the grid position at every redshift.
+  float *StellarMass; // Units of 1.0e10 Msun/h.
+  float *SFR; // Units of Msun yr^-1
+  float *Z; // NOT solar metallicity, actual metallicity.
+  float *CentralGalaxyMass; // Units of 1.0e10 Msun/h.
+  double *MfiltGnedin; // Units of 1.0e10 Msun/h.
+  double *MfiltSobacchi; // Units of 1.0e10 Msun/h.
+  float *EjectedFraction; // Unitless (fraction).
+  int *LenHistory; // Number of particles in FoF Halo.
+  float *Pad; // Used just to pad things out.
+
 }*GalGrid;
 
 struct GRID
 {
-//  double *EjectedMass;
-//  double *MetalsEjectedMass;
-//  double *EnergyEjected;
+
   double Sfr;
   double StellarMass;
 
@@ -284,18 +294,16 @@ extern int *MinorMergerCount;
 extern int *DiskCount;
 extern int *ICSCount;
 
+extern int Verbose;
+
+// Input parameters for the photon prescription // 
 extern double SourceEfficiency;
 extern int PhotonPrescription;
-extern int Verbose;
 extern int fescPrescription;
 extern double fesc; 
 
-extern double tot_Halomass;
-
 extern double MH_min;
 extern double MH_max;
-extern double sSFR_min;
-extern double sSFR_max;
 extern double alpha;
 extern double beta;
 extern double kappa;

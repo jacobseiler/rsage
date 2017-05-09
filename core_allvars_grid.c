@@ -127,8 +127,6 @@ double tot_Halomass;
 
 double MH_min;
 double MH_max;
-double sSFR_min;
-double sSFR_max;
 double alpha;
 double beta;
 double kappa;

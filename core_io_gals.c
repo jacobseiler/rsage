@@ -86,15 +86,6 @@ void load_gals(char *fname)
     GalGrid[i].CentralGalaxyMass = malloc(sizeof(*(GalGrid[i].CentralGalaxyMass)) * MAXSNAPS);
     fread(GalGrid[i].CentralGalaxyMass, sizeof(*(GalGrid[i].CentralGalaxyMass)), MAXSNAPS, load_fd);
 
-    GalGrid[i].Photons_HI = malloc(sizeof(*(GalGrid[i].Photons_HI)) * MAXSNAPS);
-    fread(GalGrid[i].Photons_HI, sizeof(*(GalGrid[i].Photons_HI)), MAXSNAPS, load_fd);
-
-    GalGrid[i].Photons_HeI = malloc(sizeof(*(GalGrid[i].Photons_HeI)) * MAXSNAPS);
-    fread(GalGrid[i].Photons_HeI, sizeof(*(GalGrid[i].Photons_HeI)), MAXSNAPS, load_fd);
-
-    GalGrid[i].Photons_HeII = malloc(sizeof(*(GalGrid[i].Photons_HeII)) * MAXSNAPS);
-    fread(GalGrid[i].Photons_HeII, sizeof(*(GalGrid[i].Photons_HeII)), MAXSNAPS, load_fd);
-
     GalGrid[i].MfiltGnedin = malloc(sizeof(*(GalGrid[i].MfiltGnedin)) * MAXSNAPS);
     fread(GalGrid[i].MfiltGnedin, sizeof(*(GalGrid[i].MfiltGnedin)), MAXSNAPS, load_fd);
 
@@ -106,6 +97,10 @@ void load_gals(char *fname)
 
     GalGrid[i].LenHistory = malloc(sizeof(*(GalGrid[i].LenHistory)) * MAXSNAPS);
     fread(GalGrid[i].LenHistory, sizeof(*(GalGrid[i].LenHistory)), MAXSNAPS, load_fd);
+
+    GalGrid[i].Pad = malloc(sizeof(*(GalGrid[i].Pad)) * MAXSNAPS);
+    fread(GalGrid[i].Pad, sizeof(*(GalGrid[i].Pad)), MAXSNAPS, load_fd);
+
   }
 
   fclose(load_fd);
@@ -122,14 +117,12 @@ void free_gals(void)
       free(GalGrid[i].StellarMass);
       free(GalGrid[i].SFR);
       free(GalGrid[i].Z);
-      free(GalGrid[i].CentralGalaxyMass);
-      free(GalGrid[i].Photons_HI);
-      free(GalGrid[i].Photons_HeI);
-      free(GalGrid[i].Photons_HeII);
+      free(GalGrid[i].CentralGalaxyMass); 
       free(GalGrid[i].MfiltGnedin);
       free(GalGrid[i].MfiltSobacchi); 
       free(GalGrid[i].EjectedFraction);
       free(GalGrid[i].LenHistory);
+      free(GalGrid[i].Pad);
     }
 
     myfree(GalGrid);

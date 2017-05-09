@@ -69,17 +69,9 @@ int main(int argc, char **argv)
 //      printf("Done File %d.\n\n", filenr);
     }
   
-      if (fescPrescription == 1)
-	    normalize_photon(GridNr);
-      if (fescPrescription == 4)
-            normalize_slope_photons(GridNr);
-
 //    update_grid_density(GridNr); // Go through the grid and convert to overdensity.
-    if (PhotonPrescription == 0) 
-      update_grid_nion_halo(GridNr); // If we are using a halo-based photon prescription, calculate the number of photons based on halo mass.
-
-    if (Verbose == 1)
-      count_grid_properties(GridNr); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
+ 
+    count_grid_properties(GridNr); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
     save_grid(GridNr); // Saves grid.
  
   }
