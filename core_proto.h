@@ -86,7 +86,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
 
 
-void do_previous_SN(int p, int centralgal, int halonr);
+void do_previous_SN(int p, int centralgal, int halonr, double dt);
 void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
 void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
 void do_previous_recycling(int p, int centralgal, int step, double dt); 

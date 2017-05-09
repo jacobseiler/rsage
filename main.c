@@ -184,7 +184,7 @@ int main(int argc, char **argv)
     
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
- 
+
   }
 
   exitfail = 0;

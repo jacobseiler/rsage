@@ -257,9 +257,9 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
  
   if(SupernovaRecipeOn == 1)
   {    
-    if(IRA == 0)	
+    if(IRA == 0)
       do_contemporaneous_SN(centralgal, merger_centralgal, dt, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
-    else if(IRA == 1) 
+    else if(IRA == 1)
       do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
    
   } 
@@ -323,7 +323,8 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].MfiltGnedin[j] = Gal[p].MfiltGnedin[j];
     MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
     MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
-    MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j]; 
+    MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
+    MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j]; 
   }
  
   for (j = 0; j < SN_Array_Len; ++j)

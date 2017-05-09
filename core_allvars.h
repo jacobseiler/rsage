@@ -12,7 +12,7 @@ do {                                                                \
   myexit(sigterm);                                                \
 } while(0)
 
-#define  STEPS 1         // Number of integration intervals between two snapshots
+#define  STEPS 20        // Number of integration intervals between two snapshots
 #define  MAXGALFAC 1
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50
@@ -36,7 +36,6 @@ do {                                                                \
 #define  SEC_PER_YEAR       3.155e7
 
 #define	 CUBE(x) (x*x*x)
-
 
 #ifdef NDEBUG
 #define XASSERT(EXP, ...)                                do{} while(0)
@@ -205,7 +204,7 @@ struct GALAXY
   float *EjectedFraction;
   int *LenHistory;
   double *Stars;
-  double *VmaxHistory;
+  double *GridOutflowRate;
 
   double StellarAge_Numerator;
   double StellarAge_Denominator;
@@ -278,7 +277,6 @@ extern char   OutputDir[512];
 extern char   FileNameGalaxies[512];
 extern char   TreeName[512];
 extern char   SimulationDir[512];
-extern char   DiffuseDir[512];
 extern char   IonizationDir[512];
 extern char   FileWithSnapList[512];
 extern char   PhotoionDir[512];

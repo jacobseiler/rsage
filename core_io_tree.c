@@ -110,7 +110,7 @@ void load_tree(int filenr, int nr)
   HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[nr]);
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
   Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
-  MergedGal = mymalloc(sizeof(struct GALAXY) * MaxMergedGals);  
+  MergedGal = mymalloc(sizeof(struct GALAXY) * MaxMergedGals);   
  
   for(i = 0; i < TreeNHalos[nr]; i++)
   {
@@ -222,6 +222,13 @@ void malloc_grid_arrays(struct GALAXY *g)
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate Stars.", sizeof(*(g->Stars))*SN_Array_Len);
     exit(EXIT_FAILURE);
   }
+
+  if (NULL == (g->GridOutflowRate = malloc(sizeof(*(g->GridOutflowRate)) * MAXSNAPS)))
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridOutflowRate.", sizeof(*(g->GridOutflowRate))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
 
 }
 

@@ -98,6 +98,7 @@ void init_galaxy(int p, int halonr)
     Gal[p].MfiltSobacchi[j] = 1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
+    Gal[p].GridOutflowRate[j] = 0.0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -110,7 +111,7 @@ void init_galaxy(int p, int halonr)
 
   Gal[p].IsMerged = -1;
   Gal[p].GrandSum = 0.0;
-
+ 
   Gal[p].StellarAge_Numerator = 0.0;
   Gal[p].StellarAge_Denominator = 0.0;
 
@@ -279,67 +280,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
       exit(EXIT_FAILURE);
     }
 
+    Gal[p].GridOutflowRate[SnapCurr] = Gal[p].OutflowRate;
+
 }
 
-// INPUT:
-// Star formation rate of the galaxy (in units of Msun/yr) (SFR).
-// Metallicity (NOT Solar Units) (Z).
-//
-// OUTPUT/USE:
-// Returns the number of HI ionizing photons for the galaxy.  
-//
-// NOTE: These relationships have been fit manually from STARBURST99 results.  
-// DOUBLE NOTE: These relationships assume a constant starformation scenario; a Starburst scenario is completely different.
-void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
-{
-
-  assert(Ngamma_HI);
-  assert(Ngamma_HeI);
-  assert(Ngamma_HeII);
-
-  if (SFR == 0)
-  {
-    *Ngamma_HI = 0;
-    *Ngamma_HeI = 0;
-    *Ngamma_HeII = 0; 
-  }
- 
-  
-  if (Z < 0.0025) // 11
-  { 
-    *Ngamma_HI = log10(SFR) + 53.354;
-    *Ngamma_HeI = log10(SFR) + 52.727;
-    *Ngamma_HeII = log10(SFR) + 48.941;
-  }
-  else if (Z >= 0.0025 && Z < 0.006) // 12
-  {
-    *Ngamma_HI = log10(SFR) + 53.290;
-    *Ngamma_HeI = log10(SFR) + 52.583;
-    *Ngamma_HeII = log10(SFR) + 49.411;
-  }
-  else if (Z>= 0.006 && Z < 0.014) // 13
-  {
-    *Ngamma_HI = log10(SFR) + 53.248;
-    *Ngamma_HeI = log10(SFR) + 52.481;
-    *Ngamma_HeII = log10(SFR) + 49.254;
-  }
-  else if (Z >= 0.014 && Z < 0.030) // 14
-  {
-    *Ngamma_HI = log10(SFR) + 53.166;
-    *Ngamma_HeI = log10(SFR) + 52.319;
-    *Ngamma_HeII = log10(SFR) + 48.596;
-  }
-  else // 15
-  {
-    *Ngamma_HI = log10(SFR) + 53.041;
-    *Ngamma_HeI = log10(SFR) + 52.052;
-    *Ngamma_HeII = log10(SFR) + 47.939;
-  }
-
-  if (SFR != 0)
-  {
-    assert(*Ngamma_HI > 0.0);
-    assert(*Ngamma_HeI > 0.0);
-    assert(*Ngamma_HeII > 0.0);
-  }
-}

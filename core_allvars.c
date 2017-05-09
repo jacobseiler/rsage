@@ -29,7 +29,6 @@ char OutputDir[512];
 char FileNameGalaxies[512];
 char TreeName[512];
 char SimulationDir[512];
-char DiffuseDir[512];
 char IonizationDir[512];
 char FileWithSnapList[512];
 char PhotoionDir[512];
@@ -152,3 +151,5 @@ double epsilon_mass_max;
 
 int count_firstSF;
 int count_notfirstSF;
+
+int *Gal_to_free;

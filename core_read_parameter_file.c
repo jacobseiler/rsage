@@ -46,10 +46,6 @@ void read_parameter_file(char *fname)
   addr[nt] = SimulationDir;
   id[nt++] = STRING;
 
-  strcpy(tag[nt], "DiffuseDir");
-  addr[nt] = DiffuseDir;
-  id[nt++] = STRING;
-
   strcpy(tag[nt], "PhotoionDir");
   addr[nt] = PhotoionDir;
   id[nt++] = STRING;
@@ -322,7 +318,11 @@ void read_parameter_file(char *fname)
 				{
 					fscanf(fd, "%d", &ListOutputSnaps[i]);
 					printf("%i ", ListOutputSnaps[i]);
+					if(i > 0)
+						XASSERT(ListOutputSnaps[i] < ListOutputSnaps[i-1], "The output snapshots must be in descending order. Go back and check your .ini file!\n");
 				}
+							
+				
 				done = 1;
 			}
 		}

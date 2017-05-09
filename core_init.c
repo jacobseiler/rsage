@@ -32,6 +32,9 @@ void init(void)
 
   }
 
+  for(i = 0; i < Snaplistlen - 1; ++i)
+  fprintf(stderr, "Time between snapshots %d and %d is %.4f Myr\n", i, i + 1, (Age[i] - Age[i+1]) * UnitTime_in_Megayears / Hubble_h);
+
   a0 = 1.0 / (1.0 + Reionization_z0);
   ar = 1.0 / (1.0 + Reionization_zr);
 

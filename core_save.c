@@ -88,7 +88,7 @@ void save_galaxies(int filenr, int tree)
 	{ 
 		double ratio = HaloGal[i].GrandSum/HaloGal[i].StellarMass;
 		//fprintf(stderr, "Ratio: %.4e \t StellarMass = %.4e \t GrandSum = %.4e\n", ratio, HaloGal[i].StellarMass, HaloGal[i].GrandSum); 	
-		//fprintf(stderr, "%.4f\n", ratio, HaloGal[i].StellarMass, HaloGal[i].GrandSum); 	
+		//fprintf(stderr, "%.4f\n", ratio);
 
         }
     	TotGalaxies[n]++;
@@ -237,8 +237,8 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 
   ++count;
 
-  double SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
-
+  double SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
+  
   for (j = 0; j < MAXSNAPS; ++j)
   { 
       myfwrite(&g->GridHistory[j], sizeof(*(g->GridHistory)), 1, fp);
@@ -264,12 +264,6 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   {
       myfwrite(&g->GridCentralGalaxyMass[j], sizeof(*(g->GridCentralGalaxyMass)), 1, fp);
   }
-
-  for (j = 0; j < MAXSNAPS; ++j)
-  {
-      float tmp = 100.0; 
-      myfwrite(&tmp, sizeof(float), 1, fp); 
-  }
  
   for (j = 0; j < MAXSNAPS; ++j)
   {  
@@ -290,6 +284,16 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   {  
      myfwrite(&g->LenHistory[j], sizeof(*(g->LenHistory)), 1, fp);  
   }
+
+  // Padding // 
+  for (j = 0; j < MAXSNAPS; ++j)
+  {
+      float tmpOutflowRate = g->GridOutflowRate[j] * SFR_conversion * STEPS; 
+      if(tmpOutflowRate > 1e4 && j == 63)
+	fprintf(stderr, "tmpOutflowRate = %.4e \t g->GridOutflowRate[j] = %.4e \t SFR_conversion * STEPS = %.4e \t Gal[p].OutflowRate = %.4e\n", tmpOutflowRate, g->GridOutflowRate[j], SFR_conversion * STEPS, g->OutflowRate); 
+      myfwrite(&tmpOutflowRate, sizeof(float), 1, fp); 
+  }
+
 
 }
 
