@@ -251,7 +251,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
     ## Plot Parameters ##
     binwidth = 0.1
-    Observations = 1
+    Observations = 2
 
     Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probability histogram.
     errorwidth = 2
@@ -267,7 +267,9 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
         title.append(tmp)
 
-        AllVars.Set_Params_Mysim()
+        #AllVars.Set_Params_Mysim()
+      	AllVars.Set_Params_MiniMill()
+      
         norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
     
         Normalization.append(norm)
@@ -280,7 +282,9 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
         tmp = r'Delayed: z = %.2f' %(Redshift[i])
         title.append(tmp)
 
-        AllVars.Set_Params_Mysim()
+        #AllVars.Set_Params_Mysim()
+      	AllVars.Set_Params_MiniMill()
+       
         norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
     
         Normalization.append(norm)
@@ -317,7 +321,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
     plt.yscale('log', nonposy='clip')
 
-    plt.axis([6, 11.5, 1e-6, 1e-1])
+    plt.axis([8, 12.0, 1e-6, 1e-1])
 
     ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}} \:[M_{\odot}]$', fontsize = talk_fontsize)
     ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = talk_fontsize)
@@ -374,6 +378,71 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
 
         plt.errorbar(Song_z8[:,0], 10**Song_z8[:,1], yerr= (10**Song_z8[:,1] - 10**Song_z8[:,3], 10**Song_z8[:,2] - 10**Song_z8[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 8', color = 'green')
+
+    if (Observations == 2):
+		Baldry = np.array([
+		    [7.05, 1.3531e-01, 6.0741e-02],
+		    [7.15, 1.3474e-01, 6.0109e-02],
+		    [7.25, 2.0971e-01, 7.7965e-02],
+		    [7.35, 1.7161e-01, 3.1841e-02],
+		    [7.45, 2.1648e-01, 5.7832e-02],
+		    [7.55, 2.1645e-01, 3.9988e-02],
+		    [7.65, 2.0837e-01, 4.8713e-02],
+		    [7.75, 2.0402e-01, 7.0061e-02],
+		    [7.85, 1.5536e-01, 3.9182e-02],
+		    [7.95, 1.5232e-01, 2.6824e-02],
+		    [8.05, 1.5067e-01, 4.8824e-02],
+		    [8.15, 1.3032e-01, 2.1892e-02],
+		    [8.25, 1.2545e-01, 3.5526e-02],
+		    [8.35, 9.8472e-02, 2.7181e-02],
+		    [8.45, 8.7194e-02, 2.8345e-02],
+		    [8.55, 7.0758e-02, 2.0808e-02],
+		    [8.65, 5.8190e-02, 1.3359e-02],
+		    [8.75, 5.6057e-02, 1.3512e-02],
+		    [8.85, 5.1380e-02, 1.2815e-02],
+		    [8.95, 4.4206e-02, 9.6866e-03],
+		    [9.05, 4.1149e-02, 1.0169e-02],
+		    [9.15, 3.4959e-02, 6.7898e-03],
+		    [9.25, 3.3111e-02, 8.3704e-03],
+		    [9.35, 3.0138e-02, 4.7741e-03],
+		    [9.45, 2.6692e-02, 5.5029e-03],
+		    [9.55, 2.4656e-02, 4.4359e-03],
+		    [9.65, 2.2885e-02, 3.7915e-03],
+		    [9.75, 2.1849e-02, 3.9812e-03],
+		    [9.85, 2.0383e-02, 3.2930e-03],
+		    [9.95, 1.9929e-02, 2.9370e-03],
+		    [10.05, 1.8865e-02, 2.4624e-03],
+		    [10.15, 1.8136e-02, 2.5208e-03],
+		    [10.25, 1.7657e-02, 2.4217e-03],
+		    [10.35, 1.6616e-02, 2.2784e-03],
+		    [10.45, 1.6114e-02, 2.1783e-03],
+		    [10.55, 1.4366e-02, 1.8819e-03],
+		    [10.65, 1.2588e-02, 1.8249e-03],
+		    [10.75, 1.1372e-02, 1.4436e-03],
+		    [10.85, 9.1213e-03, 1.5816e-03],
+		    [10.95, 6.1125e-03, 9.6735e-04],
+		    [11.05, 4.3923e-03, 9.6254e-04],
+		    [11.15, 2.5463e-03, 5.0038e-04],
+		    [11.25, 1.4298e-03, 4.2816e-04],
+		    [11.35, 6.4867e-04, 1.6439e-04],
+		    [11.45, 2.8294e-04, 9.9799e-05],
+		    [11.55, 1.0617e-04, 4.9085e-05],
+		    [11.65, 3.2702e-05, 2.4546e-05],
+		    [11.75, 1.2571e-05, 1.2571e-05],
+		    [11.85, 8.4589e-06, 8.4589e-06],
+		    [11.95, 7.4764e-06, 7.4764e-06],
+		    ], dtype=np.float32)
+		
+
+		Baldry_xval = np.log10(10 ** Baldry[:, 0]  /AllVars.Hubble_h/AllVars.Hubble_h)
+		Baldry_xval = Baldry_xval - 0.26  # convert back to Chabrier IMF
+		Baldry_yvalU = (Baldry[:, 1]+Baldry[:, 2]) * AllVars.Hubble_h*AllVars.Hubble_h*AllVars.Hubble_h
+		Baldry_yvalL = (Baldry[:, 1]-Baldry[:, 2]) * AllVars.Hubble_h*AllVars.Hubble_h*AllVars.Hubble_h
+
+		plt.fill_between(Baldry_xval, Baldry_yvalU, Baldry_yvalL, 
+		    facecolor='purple', alpha=0.25, label='Baldry et al. 2008 (z=0.1)')
+
+
 
     leg = plt.legend(loc='lower left', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
@@ -1701,8 +1770,8 @@ def BaryonFraction(G, G2):
         Baryons2 = G2.StellarMass + G2.ColdGas + G2.HotGas + G2.EjectedMass + G2.IntraClusterStars + G2.BlackHoleMass
 
 
-        MinHalo = 8.0
-        MaxHalo = 12.5
+        MinHalo = 11.0 
+        MaxHalo = 16.0
         Interval = 0.1
         Nbins = int((MaxHalo-MinHalo)/Interval)
         HaloRange = np.arange(MinHalo, MaxHalo, Interval)
@@ -1839,8 +1908,7 @@ def BaryonFraction(G, G2):
         plt.plot(MeanCentralHaloMass2, MeanICS2, color = 'yellow', ls = '--')
 
 	plt.plot(1e100, 1e100, label = "IRA", color = 'black', ls = '-')
-	plt.plot(1e100, 1e100, label = "SFH4", color = 'black', ls = '--')
-        # plt.plot(MeanCentralHaloMass, MeanBH, 'k:', label='BH')
+	plt.plot(1e100, 1e100, label = "Delayed", color = 'black', ls = '--')
         
         plt.xlabel(r'$\mathrm{Central}\ \log_{10} M_{\mathrm{vir}}\ (M_{\odot})$')  # Set the x-axis label
         plt.ylabel(r'$\mathrm{Baryon\ Fraction}$')  # Set the y-axis label
@@ -1856,7 +1924,7 @@ def BaryonFraction(G, G2):
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize('medium')
             
-        outputFile = './11.BaryonFraction_Comp_z9.457' + Output_Format
+        outputFile = './BaryonFrac_MiniMill' + Output_Format
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -2005,28 +2073,270 @@ def calculate_delta_ejected():
 
 ##
 
+def BlackHoleBulge():
+
+      	AllVars.Set_Params_MiniMill()
+
+	dilute = 1000    
+    	plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+   
+	label = "/lustre/projects/p004_swin/jseiler/mini_millennium/Delayed_SN1Myr_z0.000"
+    	G, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(label, 0, 7, 64)
+
+        w = np.where((G.BulgeMass > 0.01) & (G.BlackHoleMass > 0.00001))[0]
+        if(len(w) > dilute): w = sample(w, dilute)
+    
+        bh = np.log10(G.BlackHoleMass[w] * 1.0e10 / AllVars.Hubble_h)
+        bulge = np.log10(G.BulgeMass[w] * 1.0e10 / AllVars.Hubble_h)
+                    
+        plt.scatter(bulge, bh, marker='o', s=1, c='k', alpha=0.5, label='Model galaxies')
+                
+        # overplot Haring & Rix 2004
+        w = 10. ** np.arange(20)
+        BHdata = 10. ** (8.2 + 1.12 * np.log10(w / 1.0e11))
+        plt.plot(np.log10(w), np.log10(BHdata), 'b-', label="Haring \& Rix 2004")
+
+        plt.ylabel(r'$\log\ M_{\mathrm{BH}}\ (M_{\odot})$')  # Set the y...
+        plt.xlabel(r'$\log\ M_{\mathrm{bulge}}\ (M_{\odot})$')  # and the x-axis labels
+            
+        # Set the x and y axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.05))
+        ax.yaxis.set_minor_locator(plt.MultipleLocator(0.25))
+            
+        plt.axis([8.0, 12.0, 6.0, 10.0])
+            
+        leg = plt.legend(loc='upper left')
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+            
+        outputFile = './BlackHoleBulge_Delayed' + Output_Format 
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
 
 
+##
+
+def GasMassFunction():
+
+	sSFRcut = -11.0
+
+      	AllVars.Set_Params_MiniMill()
+        plt.figure()  # New figure
+        ax = plt.subplot(111)  # 1 plot on the figure
+
+        binwidth = 0.1  # mass function histogram bin width
+
+	label = "/lustre/projects/p004_swin/jseiler/mini_millennium/IRA_z0.000"
+    	G, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(label, 0, 7, 64)
+
+        # calculate all
+        w = np.where(G.ColdGas > 0.0)[0]
+        mass = np.log10(G.ColdGas[w] * 1.0e10 / AllVars.Hubble_h)
+        sSFR = (G.SfrDisk[w] + G.SfrBulge[w]) / (G.StellarMass[w] * 1.0e10 / AllVars.Hubble_h)
+        mi = np.floor(min(mass)) - 2
+        ma = np.floor(max(mass)) + 2
+        NB = (ma - mi) / binwidth
+
+        (counts, binedges) = np.histogram(mass, range=(mi, ma), bins=NB)
+
+        # Set the x-axis values to be the centre of the bins
+        xaxeshisto = binedges[:-1] + 0.5 * binwidth
+        
+        # additionally calculate red
+        w = np.where(sSFR < 10.0**sSFRcut)[0]
+        massRED = mass[w]
+        (countsRED, binedges) = np.histogram(massRED, range=(mi, ma), bins=NB)
+
+        # additionally calculate blue
+        w = np.where(sSFR > 10.0**sSFRcut)[0]
+        massBLU = mass[w]
+        (countsBLU, binedges) = np.histogram(massBLU, range=(mi, ma), bins=NB)
+
+        # Baldry+ 2008 modified data used for the MCMC fitting
+        Zwaan = np.array([[6.933,   -0.333],
+            [7.057,   -0.490],
+            [7.209,   -0.698],
+            [7.365,   -0.667],
+            [7.528,   -0.823],
+            [7.647,   -0.958],
+            [7.809,   -0.917],
+            [7.971,   -0.948],
+            [8.112,   -0.927],
+            [8.263,   -0.917],
+            [8.404,   -1.062],
+            [8.566,   -1.177],
+            [8.707,   -1.177],
+            [8.853,   -1.312],
+            [9.010,   -1.344],
+            [9.161,   -1.448],
+            [9.302,   -1.604],
+            [9.448,   -1.792],
+            [9.599,   -2.021],
+            [9.740,   -2.406],
+            [9.897,   -2.615],
+            [10.053,  -3.031],
+            [10.178,  -3.677],
+            [10.335,  -4.448],
+            [10.492,  -5.083]        ], dtype=np.float32)
+        
+        ObrRaw = np.array([
+            [7.300,   -1.104],
+            [7.576,   -1.302],
+            [7.847,   -1.250],
+            [8.133,   -1.240],
+            [8.409,   -1.344],
+            [8.691,   -1.479],
+            [8.956,   -1.792],
+            [9.231,   -2.271],
+            [9.507,   -3.198],
+            [9.788,   -5.062 ]        ], dtype=np.float32)
+
+        ObrCold = np.array([
+            [8.009,   -1.042],
+            [8.215,   -1.156],
+            [8.409,   -0.990],
+            [8.604,   -1.156],
+            [8.799,   -1.208],
+            [9.020,   -1.333],
+            [9.194,   -1.385],
+            [9.404,   -1.552],
+            [9.599,   -1.677],
+            [9.788,   -1.812],
+            [9.999,   -2.312],
+            [10.172,  -2.656],
+            [10.362,  -3.500],
+            [10.551,  -3.635],
+            [10.740,  -5.010]        ], dtype=np.float32)
+
+        ObrCold_xval = np.log10(10**(ObrCold[:, 0])  /AllVars.Hubble_h/AllVars.Hubble_h)
+        ObrCold_yval = (10**(ObrCold[:, 1]) * AllVars.Hubble_h*AllVars.Hubble_h*AllVars.Hubble_h)
+        Zwaan_xval = np.log10(10**(Zwaan[:, 0]) /AllVars.Hubble_h/AllVars.Hubble_h)
+        Zwaan_yval = (10**(Zwaan[:, 1]) * AllVars.Hubble_h*AllVars.Hubble_h*AllVars.Hubble_h)
+        ObrRaw_xval = np.log10(10**(ObrRaw[:, 0])  /AllVars.Hubble_h/AllVars.Hubble_h)
+        ObrRaw_yval = (10**(ObrRaw[:, 1]) * AllVars.Hubble_h*AllVars.Hubble_h*AllVars.Hubble_h)
+
+        plt.plot(ObrCold_xval, ObrCold_yval, color='black', lw = 7, alpha=0.25, label='Obr. \& Raw. 2009 (Cold Gas)')
+        plt.plot(Zwaan_xval, Zwaan_yval, color='cyan', lw = 7, alpha=0.25, label='Zwaan et al. 2005 (HI)')
+        plt.plot(ObrRaw_xval, ObrRaw_yval, color='magenta', lw = 7, alpha=0.25, label='Obr. \& Raw. 2009 (H2)')
+
+        
+        # Overplot the model histograms
+        plt.plot(xaxeshisto, counts    / AllVars.Volume * AllVars.Hubble_h*AllVars.Hubble_h*AllVars.Hubble_h / binwidth, 'k-', label='Model - Cold Gas')
+
+        plt.yscale('log', nonposy='clip')
+        plt.axis([8.0, 11.5, 1.0e-6, 1.0e-1])
+
+        # Set the x-axis minor ticks
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
+
+        plt.ylabel(r'$\phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$')  # Set the y...
+        plt.xlabel(r'$\log_{10} M_{\mathrm{X}}\ (M_{\odot})$')  # and the x-axis labels
+
+        leg = plt.legend(loc='lower left', numpoints=1,
+                         labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+
+        outputFile = './GasMassFunction_IRA' + Output_Format 
+        plt.savefig(outputFile)  # Save the figure
+        print 'Saved file to', outputFile
+        plt.close()
+
+
+##
+
+
+def OutflowRate(SnapList, mass1, mass2, outflow1, outflow2, Model_Tags, Output_Tag):
+
+
+    ax = plt.subplot(111)  # 1 plot on the figure
+
+    binwidth = 0.1
+    low_mass = 8.0 
+    high_mass = 12.0 
+
+    bins = np.arange(low_mass,high_mass, binwidth)
+    bins_mid = bins + binwidth/2.0
+    bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.
+
+    for i in xrange(0, len(SnapList)):
+	Outflow_Sum = []
+	Outflow_Sum2 = []	
+	for j in xrange(0, len(bins)-1):	
+		w = np.where((mass1[i] >= bins[j]) & (mass1[i] < bins[j+1]))[0]
+
+		if (len(w) != 0):
+			Outflow_Sum.append(np.sum(outflow1[i][w])/len(w))
+		else:
+			Outflow_Sum.append(nan)
+
+		w = np.where((mass2[i] >= bins[j]) & (mass2[i] < bins[j+1]))[0]
+		if (len(w) != 0):
+			Outflow_Sum2.append(np.sum(outflow2[i][w])/len(w))
+		else:
+			Outflow_Sum2.append(nan)
+	
+
+	print Outflow_Sum
+	print Outflow_Sum2
+#    	ax.plot(bins_mid, Outflow_Sum, color = colors[i], ls = '-')
+#    	ax.plot(bins_mid, Outflow_Sum2, color = colors[i], ls = '--')
+
+	tmp_percentage = np.divide(np.subtract(Outflow_Sum,Outflow_Sum2), Outflow_Sum)
+	tmp_percentage[tmp_percentage < -50] = nan
+	ax.plot(bins_mid, tmp_percentage, color = colors[i], ls = '-')
+	
+	label = 'z = %.2f' %(AllVars.SnapZ[SnapList[i]])
+	ax.plot(nan, nan, color = colors[i], label = label)
+ 
+#    ax.plot(nan, nan, 'k-', label = Model_Tags[0])
+#    ax.plot(nan, nan, 'k--', label = Model_Tags[1])
+    #ax.set_xlabel(r'$\log_{10}\ M_{\mathrm{Vir}} \:[M_{\odot}]$', fontsize = talk_fontsize)
+    ax.set_xlabel(r'$\log_{10}\ M_{\mathrm{*}} \:[M_{\odot}]$', fontsize = talk_fontsize)
+    #ax.set_ylabel(r'$\mathrm{Outflow \: \: Rate} \: [\mathrm{M_\odot}\mathrm{yr}^{-1}]$')
+    ax.set_ylabel(r'$\mathrm{Delta Outflow \: \: Rate, IRA - Delayed} \: [\mathrm{M_\odot}\mathrm{yr}^{-1}]$')
+    #ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
+
+    #ax.set_yscale('log', nonposy='clip')
+    ax.set_xlim([low_mass - binwidth, high_mass + binwidth])
+#    ax.set_ylim([0,5])
+
+    leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+    	t.set_fontsize('medium')
+
+
+    outputFile = Output_Tag + Output_Format 
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+    plt.close()
+
+##
 
 #################################
 
-Simulation = 1 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
-#calculate_delta_ejected()
-#quit()
+Simulation = 0 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
 
+      
 if (Simulation == 0 or Simulation == 2):
     H_Millennium = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/millennium_trees/trees_063', 0, 7)
 
-    GG_Millennium, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('./results/millennium_post_processed/NewCode_z0.000', 0, 7, 64)
-    G_Merged_Millennium, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('./results/millennium_post_processed/NewCode_z0.000', 0, 7, 64)
+    GG_Millennium, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/IRA_z0.000', 0, 7, 64)
+    G_Merged_Millennium, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/IRA_MergedGalaxies', 0, 7, 64)
     G_Millennium = ReadScripts.Join_Arrays(GG_Millennium, G_Merged_Millennium, Gal_Desc)
 
-    GG_Millennium2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('./results/millennium_post_processed/noreion_z0.000', 0, 7, 64)
-    G_Merged_Millennium2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('./results/millennium_post_processed/noreion_z0.000', 0, 7, 64)
+    GG_Millennium2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/Delayed_SN1Myr_z0.000', 0, 7, 64)
+    G_Merged_Millennium2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/Delayed_SN1Myr_MergedGalaxies', 0, 7, 64)
     G_Millennium2 = ReadScripts.Join_Arrays(GG_Millennium2, G_Merged_Millennium2, Gal_Desc)
 
-    SnapList_Millennium = [15] 
+    SnapList_Millennium = [15, 25, 30, 45, 58, 63] 
     print "Snapshots analyzing are", SnapList_Millennium
+    AllVars.Set_Params_MiniMill()
 
 if (Simulation == 1 or Simulation == 2):
 
@@ -2044,8 +2354,8 @@ if (Simulation == 1 or Simulation == 2):
 
     # 1024
 
-    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_TimeRes5Myr_1Step_z5.000', 0, 124, 101)
-    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_TimeRes5Myr_1Step_MergedGalaxies', 0, 124, 101)
+    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_SN1Myr_SF1Myr_z5.000', 0, 124, 101)
+    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_SN1Myr_SF1Myr_MergedGalaxies', 0, 124, 101)
 
     #GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
     #G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
@@ -2064,8 +2374,8 @@ if (Simulation == 1 or Simulation == 2):
 
 
     # 1024
-    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_IRA_1Step_z5.000', 0, 124, 101)
-    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_IRA_1Step_MergedGalaxies', 0, 124, 101)
+    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_SN10Myr_SF10Myr_z5.000', 0, 124, 101)
+    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_SN10Myr_SF10Myr_MergedGalaxies', 0, 124, 101)
 
     #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
     #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
@@ -2202,6 +2512,7 @@ mean_A_MySim2 = []
 fesc_local_MySim2 = []
 
 HaloCut_MySim2 = 1
+
 ## Millennium Initialization ##
 
 w_H_Millennium = []
@@ -2226,6 +2537,15 @@ SourceEfficiency_Millennium = 50
 
 SnapListZ_Millennium = []
 
+mass_Central_Millennium2 = []
+Outflow_G_Millennium = []
+
+## Millennium Model 2 Initialization ##
+
+w_G_Millennium2 = []
+mass_G_Millennium2 = []
+mass_Central_Millennium2 = []
+
 ## Model 2 Initialization ##
 
 
@@ -2248,6 +2568,9 @@ mass_Central_Millennium2 = []
 Photons_HI_Central_Millennium2 = []
 Photons_HI_Tot_Central_Millennium2 = []
 SourceEfficiency_Millennium2 = 10
+
+
+Outflow_G_Millennium2 = []
 
 ##
 
@@ -2429,30 +2752,16 @@ if (Simulation == 0 or Simulation == 2):
 
       w_G_Millennium.append(np.where((G_Millennium.GridHistory[:, SnapList_Millennium[i]] != -1) & (G_Millennium.GridStellarMass[:, SnapList_Millennium[i]] > 0.0) & (G_Millennium.GridSFR[:, SnapList_Millennium[i]] > 0.0) & (G_Millennium.GridCentralGalaxyMass[:,SnapList_Millennium[i]] > 0.0))[0])
       mass_G_Millennium.append(np.log10(G_Millennium.GridStellarMass[w_G_Millennium[i], SnapList_Millennium[i]] * 1.0e10 / AllVars.Hubble_h))
-      Photons_HI_G_Millennium.append(np.log10(10**(G_Millennium.Photons_HI[w_G_Millennium[i], SnapList_Millennium[i]])*fesc_Millennium))
-      Photons_HI_Tot_G_Millennium.append(np.log10(sum(10**Photons_HI_G_Millennium[i])))
-      SFR_G_Millennium.append(np.log10(G_Millennium.GridSFR[w_G_Millennium[i], SnapList_Millennium[i]]))
-      sSFR_G_Millennium.append(SFR_G_Millennium[i] - mass_G_Millennium[i])
-
       mass_Central_Millennium.append(np.log10(G_Millennium.GridCentralGalaxyMass[w_G_Millennium[i], SnapList_Millennium[i]] * 1.0e10 / AllVars.Hubble_h))
-      Photon_Factor = AllVars.Solar_Mass * SourceEfficiency_Millennium * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[SnapList_Millennium[i]] - AllVars.Lookback_Time[SnapList_Millennium[i]+1]) / AllVars.Sec_Per_Megayear / 1e3
-      Photons_HI_Central_Millennium.append(np.log10(10**(mass_Central_Millennium[i]) * Photon_Factor))
-      Photons_HI_Tot_Central_Millennium.append(np.log10(sum(10**Photons_HI_Central_Millennium[i])))
+      Outflow_G_Millennium.append(G_Millennium.GridOutflowRate[w_G_Millennium[i], SnapList_Millennium[i]])
 
+      print Outflow_G_Millennium
       ## Model 2 Calculations ##
 
       w_G_Millennium2.append(np.where((G_Millennium2.GridHistory[:, SnapList_Millennium[i]] != -1) & (G_Millennium2.GridStellarMass[:, SnapList_Millennium[i]] > 0.0) & (G_Millennium2.GridSFR[:, SnapList_Millennium[i]] > 0.0) & (G_Millennium2.GridCentralGalaxyMass[:,SnapList_Millennium[i]] > 0.0))[0])
       mass_G_Millennium2.append(np.log10(G_Millennium2.GridStellarMass[w_G_Millennium2[i], SnapList_Millennium[i]] * 1.0e10 / AllVars.Hubble_h))
-      Photons_HI_G_Millennium2.append(np.log10(10**(G_Millennium2.Photons_HI[w_G_Millennium2[i], SnapList_Millennium[i]])*fesc_Millennium2))
-      Photons_HI_Tot_G_Millennium2.append(np.log10(sum(10**Photons_HI_G_Millennium2[i])))
-      SFR_G_Millennium2.append(np.log10(G_Millennium2.GridSFR[w_G_Millennium2[i], SnapList_Millennium[i]]))
-      sSFR_G_Millennium2.append(SFR_G_Millennium2[i] - mass_G_Millennium2[i])
-
       mass_Central_Millennium2.append(np.log10(G_Millennium2.GridCentralGalaxyMass[w_G_Millennium2[i], SnapList_Millennium[i]] * 1.0e10 / AllVars.Hubble_h))
-      Photon_Factor = AllVars.Solar_Mass * SourceEfficiency_Millennium2 * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[SnapList_Millennium[i]] - AllVars.Lookback_Time[SnapList_Millennium[i]+1]) / AllVars.Sec_Per_Megayear / 1e3
-      Photons_HI_Central_Millennium2.append(np.log10(10**(mass_Central_Millennium2[i]) * Photon_Factor))
-      Photons_HI_Tot_Central_Millennium2.append(np.log10(sum(10**Photons_HI_Central_Millennium2[i])))
-
+      Outflow_G_Millennium2.append(G_Millennium2.GridOutflowRate[w_G_Millennium2[i], SnapList_Millennium[i]])
 
       '''
 
@@ -2489,13 +2798,15 @@ def Calculate_HaloPartStellarMass(ZZ, HaloPart, StellarMass, BoundLow, BoundHigh
 low = 45
 high = 55
 #print "For 1024 model:"
-HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, low, high)
+#HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, low, high)
+#HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_Millennium, low, high)
+HaloPartStellarMass_MySim = 0
 
 print "Mass_G_MySim", mass_G_MySim
 print "Mass_G_MySim2", mass_G_MySim2
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapList_MySim), ["Delayed - 1Step 10 Myr","Instant - 1Step"], "SMF_SNComp_1Step")
+#StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapListZ), ["Instant", "Delayed - 1Myr"], "MiniMillenniumSN1_LocalIRA")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
@@ -2516,3 +2827,4 @@ StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + m
 #EjectedFracVsStellarMass(Simulation, SnapListZ_MySim, mass_Central_MySim, EjectedFraction_MySim, len(SnapList_MySim), "EjectedMass_HaloMass_HaloPartCut100")
 #HaloPartCount(Simulation, SnapListZ_MySim, HaloCount_MySim, len(SnapList_MySim))
 #SFR(Simulation, SnapListZ, mass_G_MySim, SFR_G_MySim, len(SnapList_MySim), "SFR")
+OutflowRate(SnapList_Millennium, mass_G_Millennium, mass_G_Millennium2, Outflow_G_Millennium, Outflow_G_Millennium2, ["Instant", "Delayed - 1Myr"], "MiniMillennium_Outflow_Stellar")

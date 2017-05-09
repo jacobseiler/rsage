@@ -21,6 +21,8 @@ from matplotlib.ticker import MultipleLocator
 from os.path import getsize as getFileSize
 from numpy import inf 
 
+
+np.set_printoptions(threshold=np.nan)
 def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File, Last_File):
     # Initialize variables.
     TotNTrees = 0
@@ -418,11 +420,11 @@ def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS):
          ('GridSFR', (np.float32, MAXSNAPS)),
          ('GridZ', (np.float32, MAXSNAPS)),
          ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
-         ('SNStars', (np.float32, MAXSNAPS)),
          ('MfiltGnedin', (np.dtype('d'), MAXSNAPS)),
          ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
-         ('LenHistory', (np.int32, MAXSNAPS)) 
+         ('LenHistory', (np.int32, MAXSNAPS)),
+         ('GridOutflowRate', (np.float32, MAXSNAPS))
          ]
                              
     print "Reading in SAGE files (Post STARBURST)."

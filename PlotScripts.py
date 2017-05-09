@@ -35,6 +35,7 @@ plt.rc('text', usetex=True)
 tick_interval = 0.25
 
 
+np.set_printoptions(threshold=np.nan)
 #colours = ['r', 'b', 'g', 'm', 'c', 'k']
 colours = ['r', 'b', 'g', 'c', 'm', 'k', 'r', 'b', 'g', 'c', 'm', 'k'] 
 markers = ['x', 'o', 'x', 'o', 'D', 's']

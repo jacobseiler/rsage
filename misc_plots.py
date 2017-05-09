@@ -230,13 +230,41 @@ def plot_grandsum_ratio(Ratio):
     ax.set_xlabel(r"$GrandSum/StellarMass$")
     ax.set_ylabel(r"$Count$")
 
-    outputFile = './GrandSumRatio1Myr' + Output_Format
+    outputFile = './GrandSumRatioMillennium' + Output_Format
     plt.savefig(outputFile)  # Save the figure
     print 'Saved file to', outputFile
     plt.close()
 
 
 ##
+
+def plot_clump_field(clump):
+
+    cut_slice = 20
+    BoxSize = 100
+
+    ax = plt.subplot(111)
+
+    im = ax.imshow(clump[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='nearest', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = 0, vmax = 5, cmap = 'afmhot_r')
+
+    cbar = plt.colorbar(im, ax = ax)
+    cbar.set_label(r'$\mathrm{Clumping Factor}$')
+				    
+    ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
+    ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
+
+    ax.set_xlim([0.0, BoxSize]) 
+    ax.set_ylim([0.0, BoxSize])
+
+
+    outputFile = './ClumpField' + Output_Format 
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+			
+    plt.close()
+
+##
+
 if __name__ == '__main__':
 
     #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_filter_1024_DRAGONS.dat" 
@@ -253,9 +281,17 @@ if __name__ == '__main__':
     #plot_filtervalues(z, Mfilt, Mvir, Mod)
     #plot_filtervalues(z, Mfilt)
 
-    fname = "/home/jseiler/SAGE-stuff/post_processed_SAGE/TimeRes1Myr.dat"
+    fname = "/home/jseiler/SAGE-stuff/post_processed_SAGE/millennium_grandsum.dat"
     fd = open(fname, 'rb')
     Ratio = np.loadtxt(fd, unpack=True, dtype = np.float32)  
     fd.close()
-
     plot_grandsum_ratio(Ratio)
+
+    #GridSize = 128
+    #fname = "/home/jseiler/grid-model/data_files/grid128/clump11_ic.in"
+    #fd = open(fname, 'rb')
+    #clump = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.uint32)
+    #clump.shape = (GridSize, GridSize, GridSize)
+    #fd.close()
+    #plot_clump_field(clump)
+

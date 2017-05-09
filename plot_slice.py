@@ -1,19 +1,22 @@
+import numpy as np
+from numpy import *
+np.set_printoptions(threshold = np.nan, linewidth = 8)
+
 import matplotlib
 matplotlib.use('Agg')
 
 import os
-import numpy as np
+
 import pylab as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cm
-from numpy import *
+import numpy as np
 from random import sample, seed
 from os.path import getsize as getFileSize
 import math
 import random
 import csv
 from io import StringIO
-#np.set_printoptions(threshold=np.nan)
 from collections import Counter
 from matplotlib.colors import LogNorm
 import time
@@ -22,13 +25,14 @@ from matplotlib.ticker import MultipleLocator
 import matplotlib.gridspec as gridspec
 import scipy.integrate as integrate
 
-from astropy import units as u
-from astropy import cosmology
+
+#from astropy import units as u
+#from astropy import cosmology
 import matplotlib.ticker as mtick
 import PlotScripts
 import ReadScripts
 import AllVars
-import mimic_alpha as ma
+
 
 G = 6.674e-11 # Gravitational constant.
 mp_kg = 1.673e-27 # Mass proton in kg.
@@ -38,7 +42,6 @@ Cubic_cm_Cubic_Mpc = 2.93799e73 # cm^-3 to Mpc_3
 km_m = 1e3 # km in m
 sec_per_Myr = 3.154e13 # How many seconds are in a Myr. 
 nb = 2.5e-7 # Number density of baryons in cm^-3.
-
 def linear_growth(z, OM, OL):
         D = (OM*((1+z)**3) / (OM*(1+z) - (OM + OL - 1)*((1+z)**2) + OM))**(4/7)
         return D
@@ -95,12 +98,10 @@ plt.rc('xtick', labelsize=label_size)
 plt.rc('ytick', labelsize=label_size)
 plt.rc('text', usetex=True)
 tick_interval = 0.25
-np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
- 
 time_tick_interval = 25
 time_xlim = [315, 930]
 time_subplot_label = 350 # Location (in 'Time Since Big Bang [Myr^-1]) of subplot identifier (a), (b), (c) etc.
-z_plot = np.arange(6, 14)  #Range of redshift we wish to plot. 
+#z_plot = np.arange(6, 14)  #Range of redshift we wish to plot. 
 
 colors = ['r', 'b', 'g', 'c', 'm', 'k']
 markers = ['x', 'o', '^', 's', 'D']
@@ -118,9 +119,9 @@ cut_slice = 44
 AllVars.Set_Params_Mysim()
 AllVars.Set_Constants()
 
-cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
-t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
-output_format = ".pdf"
+#cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
+#t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
+output_format = ".png"
 
 def plot_single(z, filepath, ionized_cells, Ncells, OutputDir, output_tag):
 # Plots the ionization bubbles for a single set of cells.
@@ -135,14 +136,15 @@ def plot_single(z, filepath, ionized_cells, Ncells, OutputDir, output_tag):
 	print
 	print "Plotting ionized bubbles for file %s." %(filepath)
 	
-	ionized_cells = 1 - ionized_cells
+	ionized_cells = np.log10(1 - ionized_cells)
+	#ionized_cells = (1 - ionized_cells)
 
 	ax = plt.subplot(111)
 
-	im = ax.imshow(ionized_cells[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='none', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = 0, vmax = 1, cmap = 'afmhot_r')
+	im = ax.imshow(ionized_cells[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='nearest', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = -8, vmax = 0, cmap = 'afmhot_r')
 
 	cbar = plt.colorbar(im, ax = ax)
-	cbar.set_label(r'$1 - x_\mathrm{HII}$')				
+	cbar.set_label(r'$\mathrm{log}_{10}\left(x_\mathrm{HI}\right)$')
 				    
 	ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
 	ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
@@ -150,7 +152,7 @@ def plot_single(z, filepath, ionized_cells, Ncells, OutputDir, output_tag):
 	ax.set_xlim([0.0, BoxSize]) 
 	ax.set_ylim([0.0, BoxSize])
 
-	title = r"z = %.3f, $\langle x_{HI} = %.3f \rangle$" %(z, 1.0 - calculate_volume_frac(ionized_cells, Ncells))
+	title = r"z = %.3f, $\langle x_{HI} = %.3f \rangle$" %(z, 1.0 - calculate_volume_frac(pow(10,ionized_cells), Ncells))
 	ax.set_title(title)
 
 	#outputFile = OutputDir + output_tag + '_z' + str(z) + output_format 
@@ -301,10 +303,14 @@ def calculate_volume_frac(ionized_cells, Ncell):
 ## Output ##
 # The fraction of HI in the grid.
 
-	HI = 1 - len(ionized_cells[ionized_cells > 0.95])/float(Ncell**3)
-        print "There is %.4f fraction of HI." %(HI)
+#	HII = 1 - len(ionized_cells[ionized_cells > 0.95])/float(Ncell**3)
 
-	return HI
+	ionized_cells = 1 - ionized_cells
+	
+	HII = sum(ionized_cells) / float(Ncell**3)
+        print "There is %.4f fraction of HII." %(HII)
+
+	return HII
 
 ###########
 
@@ -411,22 +417,15 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, labels, OutputDir, outpu
 
     	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
     	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
-
-#	ax3.set_yticks(np.arange(-0.4, 1.0, 0.4))
- #   	ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
  	
-
 	ax1.set_ylim([-0.1, 1.1])
 	ax1.set_xlim(time_xlim)
-#	ax3.set_xlim(time_xlim)
-#	ax3.set_ylim([-0.5, 0.5])	
 
 	#ax1.text(0.075, 0.965, '(c)', horizontalalignment='center', verticalalignment='center', transform = ax1.transAxes)
 	
 	## Creating a second x-axis on the top to track redshift. ##
 
 	ax2 = ax1.twiny()
-#	ax4 = ax3.twiny()	
 
 	t_plot = (t_BigBang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
 	z_labels = ["$%d$" % x for x in z_plot] # Properly Latex-ize the labels.
@@ -435,11 +434,6 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, labels, OutputDir, outpu
 	ax2.set_xlim(time_xlim)
 	ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
 	ax2.set_xticklabels(z_labels) # But label them as redshifts.
-
-#	ax4.set_xlabel(r"$z$", size = label_size)
-#	ax4.set_xlim(time_xlim)
-#	ax4.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
-#	ax4.set_xticklabels(z_labels) # But label them as redshifts.
 
 	plt.tight_layout()
 
@@ -959,10 +953,11 @@ def plot_bubble_MC(ZZ, fractions_HI, model_tags, file_tags, Ncell, OutputDir, ou
 				label = r"$x_\mathrm{HI} = %.2f$" %(fractions_HI[p])
 			else:
 				label = ""
-			ax1.plot(xaxeshisto, counts, ls = linestyles[q%len(linestyles)], label = label, color = colors[p%len(colors)], lw = 2)	
+			ls = linestyles[q%(len(linestyles))]
+			ax1.scatter(xaxeshisto, counts, label = label, color = colors[p%len(colors)], marker = markers[q%len(markers)])
 
 	for q in xrange(0, len(model_tags)):
-		ax1.plot(-1, -5, ls = linestyles[q], label = model_tags[q], color = 'k', lw = 2)
+		ax1.plot(nan, nan, ls = linestyles[q], label = model_tags[q], color = 'k', lw = 2)
 
         ax1.set_xscale('log', nonposy='clip')
 	ax1.set_xlim([0, BoxSize])
@@ -972,12 +967,164 @@ def plot_bubble_MC(ZZ, fractions_HI, model_tags, file_tags, Ncell, OutputDir, ou
 	ax1.set_ylabel(r'$R \: \: dP/dR$', fontsize = label_size)
 
     	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
-	leg = ax1.legend(loc='upper left', numpoints=1,
+	leg = ax1.legend(loc='upper right', numpoints=1,
 			 labelspacing=0.1)
 	leg.draw_frame(False)  # Don't want a box frame
 	for t in leg.get_texts():  # Reduce the size of the text
 		   t.set_fontsize(legend_size)
 
+	plt.tight_layout()
+
+	outputFile = OutputDir + output_tag + output_format 
+	plt.savefig(outputFile)  # Save the figure
+	print 'Saved file to', outputFile
+	plt.close()
+
+
+##########
+
+def find_max_bubble(MC_ZZ, fractions_HI, MC_mode, model_HI_fractions, model_tags, file_tags, Ncell, OutputDir, output_tag):
+# Plot the results from the MC walk.  Note that input_tag and labels are arrays that contains the input file tag and label for different realizations.
+
+## Input ##
+# ZZ is the redshift range we are plotting the results over.
+# upperZ is the upper bound we are plotting to.
+# input_tag is an array with the file tags for the input MC file for different realizations #### NOTE: This should be the same as *output_tag* in calculate_bubble_MC
+# labels is an array that contains the graph labels for different realizations.
+
+## Output ##
+# The output file will be of the form '*OutputDir*/*output_tag*.*output_format*'
+
+
+	def acceptance_probability(old_amplitude, new_amplitude, temperature):
+		if(new_amplitude > old_amplitude):
+			return 1.0
+		return exp((new_amplitude - old_amplitude) / temperature)
+
+
+	print "Finding the maximum and amplitude of the MC bubble distribution."
+
+	MCDir = OutputDir + 'MC/'
+	
+	ax1 = plt.subplot(221)
+	ax2 = plt.subplot(222)
+	ax3 = plt.subplot(223)
+
+	for q in xrange(0, len(file_tags)):
+
+
+		peak = []
+		amplitude = []
+
+
+		for p in xrange(0, len(MC_ZZ)):
+			if (MC_mode == 1):
+				infile = MCDir + file_tags[q] + '_z_%.3f.dat' %(MC_ZZ[q][p])
+			elif (MC_mode == 2): 
+				infile = MCDir + file_tags[q] + '_z_%.3f.dat' %(MC_ZZ[p]) 
+			if (os.path.exists(infile) == False):
+				print "Could not find file %s.  Skipping and moving on" %(infile)
+				continue
+			fd = open(infile, 'rb')
+
+			print("Reading in file %s") %(infile)
+			R = np.loadtxt(fd)
+			print("Maximum radius before scaling is %d cells.") %(max(R))
+		
+			R *= BoxSize/Ncell[q] 
+			print("Maximum radius after scaling is %.4f Mpc/h.") %(max(R))	
+
+			binwidth = 2*BoxSize/Ncell[q]
+
+			R_low = binwidth/2 
+            		if max(R) > BoxSize/2:
+		                R_high = BoxSize/2 + binwidth/2 
+			else:
+		                R_high = max(R) + binwidth/2 
+		        R_high = max(R) + binwidth/2 
+       
+			NB = np.ceil((R_high - R_low) / binwidth)
+        	
+			(counts, binedges) = np.histogram(R, range=(R_low, R_high), bins=NB, density = True)
+
+			# Set the x-axis values to be the centre of the bins
+			xaxeshisto = binedges[:-1] + 0.5 * binwidth
+            		counts *= xaxeshisto
+       
+			
+			temperature = 1.0
+			temperature_min = 0.00001
+			cooling_rate = 0.9
+
+			old_peak = NB/2
+			old_amplitude = 0.2 
+
+			print counts
+			
+			while(temperature > temperature_min):
+				i = 0
+				while(i < 100):
+					random_number = np.random.randint(-10, 10)
+					new_peak = old_peak + random_number 
+					new_peak = min(max(new_peak, 0), NB-1) # Truncate the value of the peak to be inside our range.
+					
+					new_amplitude = counts[new_peak]
+					probability = acceptance_probability(old_amplitude, new_amplitude, temperature)
+
+					#print "old_peak = %d \t new_peak = %d \t old_amplitude = %.4f \t new_amplitde = %.4f \t probability = %.4e \t random_number = %d \t temperature = %.4f" %(old_peak, new_peak, old_amplitude, new_amplitude, probability, random_number, temperature)		
+					
+					if(probability > random.uniform(0,1)):
+						old_peak = new_peak
+						old_amplitude = new_amplitude	
+					i += 1
+				temperature *= cooling_rate
+				#print "Temperature = %.4f and peak = %.4f Mpc/h" %(temperature, xaxeshisto[new_peak])
+					
+			print "For fraction %.2f the peak is at %.4f Mpc/h with a probability of %.4f" %(MC_ZZ[p], xaxeshisto[old_peak], old_amplitude)
+			peak.append(xaxeshisto[old_peak])
+			amplitude.append(old_amplitude)
+		if(MC_mode == 1):
+			ax1.plot(fractions_HI, peak, label = model_tags[q], color = colors[q%len(colors)], ls = linestyles[q%len(markers)])
+		elif(MC_mode == 2):
+			#ax1.plot(fractions_HI[q], peak, label = model_tags[q], color = colors[q%len(colors)], ls = linestyles[q%len(markers)])
+			#ax2.plot(fractions_HI[q], amplitude, color = colors[q%len(colors)], ls = linestyles[q%len(markers)])
+			ax1.plot(MC_ZZ, peak, label = model_tags[q], color = colors[q%len(colors)], ls = linestyles[q%len(markers)])
+			ax2.plot(MC_ZZ, amplitude, color = colors[q%len(colors)], ls = linestyles[q%len(markers)])
+
+		
+		ax3.plot(MC_ZZ, model_HI_fractions[q], color = colors[q%len(colors)], ls = linestyles[q%len(markers)]) 
+
+#        ax1.set_xscale('log', nonposy='clip')
+#	ax1.set_xlim([0, BoxSize])
+#	ax1.set_ylim([0.0, 0.7])
+
+        ax1.set_yscale('log', nonposy='clip')
+        #ax1.set_xscale('log', nonposy='clip')
+
+	#ax1.set_xlabel(r'$x_\mathrm{HI}$', fontsize = label_size)
+	ax1.set_xlabel(r"$z$", size = label_size)
+	ax1.set_ylabel(r'$\mathrm{Bubble \: Peak} [h^{-1}\mathrm{Mpc}]$', fontsize = label_size)
+
+	#ax2.set_xlabel(r'$x_\mathrm{HI}$', fontsize = label_size)
+	ax2.set_xlabel(r"$z$", size = label_size)
+	ax2.set_ylabel(r'$\mathrm{Bubble \: Amplitude}$', fontsize = label_size)
+
+        ax2.set_yscale('log', nonposy='clip')
+        #ax2.set_xscale('log', nonposy='clip')
+
+	ax3.set_xlabel(r"$z$", size = label_size)
+ 	ax3.set_ylabel(r"$\langle x_{HI}\rangle$", size = label_size)      
+ 
+        #ax3.set_yscale('log', nonposy='clip')
+
+
+	'''
+	leg = ax1.legend(loc='upper right', numpoints=1,
+			 labelspacing=0.1)
+	leg.draw_frame(False)  # Don't want a box frame
+	for t in leg.get_texts():  # Reduce the size of the text
+		   t.set_fontsize(legend_size)
+	'''
 	plt.tight_layout()
 
 	outputFile = OutputDir + output_tag + output_format 
@@ -1819,7 +1966,7 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 			ionized_cells.shape = (GridSizes[model_index], GridSizes[model_index], GridSizes[model_index])
 			fd.close()
 
-			ionized_cells = 1 - ionized_cells
+			ionized_cells = np.log10(1 - ionized_cells)
 
 
 		index_cut = int(cut_slice * (GridSizes[model_index]/GridSizes[0])) # Wish to cut the box at the same spatial point for all models.  So normalize the index that this corresponds to to model1.
@@ -1827,7 +1974,7 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 
 		print "For model %d we begin our cut at index %d (corresponding to physical position of %.4f) and cut with a thickness of %d cells." %(model_index, index_cut, index_cut * BoxSize/float(GridSizes[model_index]), thickness_cut)
 
-		im = ax.imshow(ionized_cells[:,:,index_cut:index_cut+thickness_cut].mean(axis = -1), interpolation='none', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = 0, vmax = 1, cmap = 'afmhot_r')
+		im = ax.imshow(ionized_cells[:,:,index_cut:index_cut+thickness_cut].mean(axis = -1), interpolation='none', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = -8, vmax = 0, cmap = 'afmhot_r')
 				    
 		ax.set_xlim([0.0, BoxSize]) 
 		ax.set_ylim([0.0, BoxSize])
@@ -1846,9 +1993,9 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 		ax.set_aspect('equal')
 	
 	cax = fig.add_axes([0.9, 0.1, 0.03, 0.8])
-	cbar = fig.colorbar(im, cax=cax, ticks = np.arange(0.0, 1.1, 0.1))
+	cbar = fig.colorbar(im, cax=cax, ticks = np.arange(-8.0, 1.0, 1.0))
 	cbar.ax.set_ylabel(r"$1-Q$",  rotation = 90, fontsize = legend_size)		
-	cbar.ax.tick_params(labelsize = legend_size - 2)
+	cbar.ax.tick_params(labelsize = legend_size)
     	fig.subplots_adjust(right = None, hspace = 0.0, wspace = 0.0)
 
 	outputFile = OutputDir + output_tag + output_format 
@@ -2016,11 +2163,119 @@ def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
 			
 	plt.close()
 
+
+##
+
+def hoshen_kopelman(ionized_cells):
+
+	## Just a quick function that replicates the !! behaviour in C.
+	## If the input value (a) is != 0 it returns 1 otherwise it returns 0.
+
+	def double_not(a):  
+		if(a != 0):
+			return 1
+		else:
+			return 0
+
+	max_labels = len(ionized_cells)**3 / 2 # The maximum number of discrete ionized regions.
+	labels = np.zeros((max_labels), dtype = np.int)
+
+	test = np.zeros((len(ionized_cells), len(ionized_cells)), dtype = np.int32)
+	for i in xrange(0, len(test)):
+		for j in xrange(0, len(test)):
+			if (ionized_cells[i][j][cut_slice] > 0.8):
+				test[i][j] = 1
+			else:
+				test[i][j] = 0
+	
+	test = [[1, 1, 1, 1, 1, 1, 1, 1],
+		[0, 0, 0, 0, 0, 0, 0, 1],
+		[1, 0, 0, 0, 0, 1, 0, 1],
+		[1, 0, 0, 1, 0, 1, 0, 1],
+		[1, 0, 0, 1, 0, 1, 0, 1],
+		[1, 0, 0, 1, 1, 1, 0, 1],
+		[1, 1, 1, 1, 0, 0, 0, 1],
+		[0, 0, 0, 1, 1, 1, 0, 1]]
+
+	print "Before"
+	print test 
+
+
+	def make_set(label_number):
+		label_number += 1	
+		assert(label_number < max_labels), "The current_label value is greater than the maximum label limit."
+		labels[label_number] = label_number 
+		return label_number 
+
+	def find(x):
+		y = x
+		while (labels[y] != y):
+			y = labels[y]
+
+		while(labels[x] != x):
+			z = labels[x]
+			labels[x] = y
+			x = z
+
+		return y
+
+	def union(x, y):
+		labels[find(x)] = find(y)
+		return find(y)
+
+	current_label = 0
+
+	for i in xrange(0, len(test)):
+		for j in xrange(0, len(test)):
+			if(test[i][j] == 1):
+
+				if(i == 0):
+					up = 0
+				else:
+					up = test[i-1][j]
+
+				if(j == 0):
+					left = 0
+				else:
+					left = test[i][j-1]
+
+				tmp = double_not(left) + double_not(up) # Since the labels can be greater than 1, this function returns 1 if either left or up are >= 1 otherwise it returns 0. 
+
+				if(tmp == 0): # We have a new cluster
+					test[i][j] = make_set(current_label)
+					current_label += 1
+	
+				elif(tmp == 1): # Part of an existing cluster
+					test[i][j] = max(up, left)
+
+				elif(tmp == 2): # Joins two existing clusters together
+					test[i][j] = union(up, left)
+
+	new_labels = np.zeros((max_labels), dtype = np.int)
+	new_labels_len = 0
+
+	for i in xrange(0, len(test)):
+		for j in xrange(0, len(test)):
+			if(test[i][j] > 0):
+				x = find(test[i][j])
+				if(new_labels[x] == 0):
+					new_labels_len += 1
+					new_labels[x] = new_labels_len
+
+				test[i][j] = new_labels[x]
+
+	total_clusters = new_labels_len	
+
+	print "After"
+	print test 
+
+	print "There was %d clusters found" %(total_clusters)
+
+##
+
 ##########
 
 if __name__ == '__main__':
-
-    import os
 
     ##### Grid Comparisons ####
 
@@ -2053,29 +2308,35 @@ if __name__ == '__main__':
 
     ##### Constant fesc Comparisons ####
 
-    '''
-    output_tags = ["fesc0.15", "fesc0.20", "fesc0.25"]
-    model_tags = [r"$f_\mathrm{esc} = 0.15$", r"$f_\mathrm{esc} = 0.20$", r"$f_\mathrm{esc} = 0.25$"]
+    
+    output_tags = [r"IRA - Model 1", "IRA - Model 2", "Delayed"] 
+    model_tags = [r"IRA - Model 1", "IRA - Model 2", "Delayed"] 
+ 
+    number_models = 3
 
-    model = 'fescCompClean'
+    model = 'Delayed'
+
     GridSize_model1 = 128
     GridSize_model2 = 128
-    GridSize_model3 = 128
- 
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.15"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.20"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.25"
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_fesc0.15_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_fesc0.20_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_fesc0.25_nionHI"
+    GridSize_model3 = 128 
+
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_IRA_fesc0.25_photHImodel1"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_IRA_fesc0.25"
+    filepath_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_SN5Myr_fesc0.25"
+
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_Delayed_SN5Myr_z5.000_fesc0.25_HaloPartCut0_nionHI"
+
     filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
     filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
     filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.15"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.25"
-    '''
 
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
+    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
+    
+    
     ###########################
 
 
@@ -2108,7 +2369,7 @@ if __name__ == '__main__':
 
     ##### Ejected Comparison #####
 
-
+    '''
     output_tags = ["fesc0.25", "MH_neg", "Ejected"]
     model_tags = [r"$f_\mathrm{esc} = 0.25$", r"$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$", r"$f_\mathrm{esc} \: \propto \: m_\mathrm{ejected}$"]
 
@@ -2130,7 +2391,7 @@ if __name__ == '__main__':
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.25"
     filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_MH_neg"
     filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc_Ejected"
-
+    '''
     
 
     ###########################   
@@ -2224,21 +2485,18 @@ if __name__ == '__main__':
 
     brightness_slice = np.zeros((upperZ - lowerZ, GridSize_model1), dtype = np.float32)
 
-    MC_lower = 20 # Not Snapshot number, but rather the index of the snapshot in snaplist.  
-    MC_upper = 40
-    MC_snaps = [45, 50, 55, 60]
-    MC_ZZ = np.empty(len(MC_snaps))
-    for i in xrange(0, len(MC_snaps)):
-	MC_ZZ[i] = AllVars.SnapZ[MC_snaps[i]]
+    #fractions_HI = [0.90, 0.01]
+    #delta_HI = [0.01, 0.01]
 
-    fractions_HI = [0.90, 0.01]
-    delta_HI = [0.01, 0.01]
+    #fractions_HI = np.arange(0.75, 0.25, -0.05) 
+    #delta_HI = np.full(len(fractions_HI), 0.025)
+  
+    #fractions_HI = [0.75, 0.50]
+    #delta_HI = [0.01, 0.03]
 
-    #fractions_HI = [0.75, 0.50, 0.25, 0.10, 0.01]
-    #delta_HI = [0.01, 0.03, 0.05, 0.05, 0.01]
+    fractions_HI = [0.95, 0.90, 0.80]
+    delta_HI = [0.01, 0.02, 0.03]
 
-    #fractions_HI = [0.75, 0.50, 0.25]
-    #delta_HI = [0.01, 0.03, 0.05]
 
     MC_ZZ = np.empty((3, len(fractions_HI)))
     MC_Snaps = np.empty((3, len(fractions_HI)))
@@ -2248,12 +2506,16 @@ if __name__ == '__main__':
     count_MC_model2 = 0
     count_MC_model3 = 0
 
-    calculate_MC = 0 # 0 to NOT calculate the MC bubbles, 1 to calculate them. 
+    calculate_MC = 0 # 0 to NOT calculate the MC bubbles, 1 to calculate them at the HI fractions specified by fractions_HI, 2 to calculate them at the snapshots given by calculate_MC_snaps. 
+    plot_MC = 2 # 0 is nothing, 1 to plot bubble properties at specified HI fractions, 2 to plot them at specified snapshots.
+    calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
+    MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
+
 
     do_power_model1 = 0
     do_power_model2 = 0
     do_power_model3 = 0
-    calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calcualte it. 
+    calculate_power = 0 # 0 to NOT calculate the power spectra, 1 to calculate it. 
 
     for i in xrange(lowerZ, upperZ):
 
@@ -2282,20 +2544,21 @@ if __name__ == '__main__':
         ionized_cells_model1.shape = (GridSize_model1, GridSize_model1, GridSize_model1)
         fd.close()
 
+	if(number_models > 1):
+		fname_ionized_model2 = filepath_model2 + number_tag_anne 
+		print "Loading in data for %s Model from file %s." %(model_tags[1], fname_ionized_model2)
+		fd = open(fname_ionized_model2, 'rb')
+		ionized_cells_model2 = np.fromfile(fd, count = GridSize_model2*GridSize_model2*GridSize_model2, dtype = np.float64)	
+		ionized_cells_model2.shape = (GridSize_model2, GridSize_model2, GridSize_model2)
+		fd.close()
 
-        fname_ionized_model2 = filepath_model2 + number_tag_anne 
-        print "Loading in data for %s Model from file %s." %(model_tags[1], fname_ionized_model2)
-        fd = open(fname_ionized_model2, 'rb')
-        ionized_cells_model2 = np.fromfile(fd, count = GridSize_model2*GridSize_model2*GridSize_model2, dtype = np.float64)	
-        ionized_cells_model2.shape = (GridSize_model2, GridSize_model2, GridSize_model2)
-        fd.close()
-
-        fname_ionized_model3 = filepath_model3 + number_tag_anne 
-        print "Loading in data for %s Model from file %s." %(model_tags[2], fname_ionized_model3)
-        fd = open(fname_ionized_model3, 'rb')
-        ionized_cells_model3 = np.fromfile(fd, count = GridSize_model3*GridSize_model3*GridSize_model3, dtype = np.float64)	
-        ionized_cells_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
-        fd.close()
+	if(number_models > 2):
+		fname_ionized_model3 = filepath_model3 + number_tag_anne 
+		print "Loading in data for %s Model from file %s." %(model_tags[2], fname_ionized_model3)
+		fd = open(fname_ionized_model3, 'rb')
+		ionized_cells_model3 = np.fromfile(fd, count = GridSize_model3*GridSize_model3*GridSize_model3, dtype = np.float64)	
+		ionized_cells_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
+		fd.close()
  
 	##################################################
 	##################################################
@@ -2308,20 +2571,22 @@ if __name__ == '__main__':
         nion_model1 = np.fromfile(fd, count = GridSize_model1*GridSize_model1*GridSize_model1, dtype = np.float64)
         nion_model1.shape = (GridSize_model1, GridSize_model1, GridSize_model1)
 	fd.close()
-	
-        fname_nion_model2 = filepath_nion_model2 + number_tag_mine 
-        print "Loading Nion data for %s Model from file %s." %(model_tags[1], fname_nion_model2)
-        fd = open(fname_nion_model2, 'rb')
-        nion_model2 = np.fromfile(fd, count = GridSize_model2*GridSize_model2*GridSize_model2, dtype = np.float64)
-        nion_model2.shape = (GridSize_model2, GridSize_model2, GridSize_model2)
-	fd.close()
 
-        fname_nion_model3 = filepath_nion_model3 + number_tag_mine 
-        print "Loading Nion data for %s Model from file %s." %(model_tags[2], fname_nion_model3)
-        fd = open(fname_nion_model3, 'rb')
-        nion_model3 = np.fromfile(fd, count = GridSize_model3*GridSize_model3*GridSize_model3, dtype = np.float64)
-        nion_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
-	fd.close()
+	if(number_models > 1):	
+		fname_nion_model2 = filepath_nion_model2 + number_tag_mine 
+		print "Loading Nion data for %s Model from file %s." %(model_tags[1], fname_nion_model2)
+		fd = open(fname_nion_model2, 'rb')
+		nion_model2 = np.fromfile(fd, count = GridSize_model2*GridSize_model2*GridSize_model2, dtype = np.float64)
+		nion_model2.shape = (GridSize_model2, GridSize_model2, GridSize_model2)
+		fd.close()
+	
+	if(number_models > 2):
+		fname_nion_model3 = filepath_nion_model3 + number_tag_mine 
+		print "Loading Nion data for %s Model from file %s." %(model_tags[2], fname_nion_model3)
+		fd = open(fname_nion_model3, 'rb')
+		nion_model3 = np.fromfile(fd, count = GridSize_model3*GridSize_model3*GridSize_model3, dtype = np.float64)
+		nion_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
+		fd.close()
 
 	##################################################
 	##################################################
@@ -2335,19 +2600,21 @@ if __name__ == '__main__':
         density_model1.shape = (GridSize_model1, GridSize_model1, GridSize_model1)
 	fd.close()
 
-        fname_density = filepath_density_model2 + number_tag_mine
-        print "Loading density data for %s Model from file %s." %(model_tags[1], fname_density)
-        fd = open(fname_density, 'rb')
-        density_model2 = np.fromfile(fd, count = GridSize_model2*GridSize_model2*GridSize_model2, dtype = np.float64)
-        density_model2.shape = (GridSize_model2, GridSize_model2, GridSize_model2)
-	fd.close() 
+	if(number_models > 1):
+		fname_density = filepath_density_model2 + number_tag_mine
+		print "Loading density data for %s Model from file %s." %(model_tags[1], fname_density)
+		fd = open(fname_density, 'rb')
+		density_model2 = np.fromfile(fd, count = GridSize_model2*GridSize_model2*GridSize_model2, dtype = np.float64)
+		density_model2.shape = (GridSize_model2, GridSize_model2, GridSize_model2)
+		fd.close() 
 
-        fname_density = filepath_density_model3 + number_tag_mine
-        print "Loading density data for %s Model from file %s." %(model_tags[2], fname_density)
-        fd = open(fname_density, 'rb')
-        density_model3 = np.fromfile(fd, count = GridSize_model3*GridSize_model3*GridSize_model3, dtype = np.float64)
-        density_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
-	fd.close() 
+	if(number_models > 2):
+		fname_density = filepath_density_model3 + number_tag_mine
+		print "Loading density data for %s Model from file %s." %(model_tags[2], fname_density)
+		fd = open(fname_density, 'rb')
+		density_model3 = np.fromfile(fd, count = GridSize_model3*GridSize_model3*GridSize_model3, dtype = np.float64)
+		density_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
+		fd.close() 
 
 	##################################################
 	##################################################
@@ -2361,19 +2628,21 @@ if __name__ == '__main__':
         photofield_model1.shape = (GridSize_model1, GridSize_model1, GridSize_model1)
 	fd.close()
 
-        fname_photofield = filepath_photofield_model2 + number_tag_anne
-        print "Loading photoionization data for %s Model from file %s." %(model_tags[1], fname_photofield)
-        fd = open(fname_photofield, 'rb')
-        photofield_model2 = np.fromfile(fd, count = GridSize_model2*GridSize_model2*GridSize_model2, dtype = np.float64)
-        photofield_model2.shape = (GridSize_model2, GridSize_model2, GridSize_model2)
-	fd.close()
+	if(number_models > 1):
+		fname_photofield = filepath_photofield_model2 + number_tag_anne
+		print "Loading photoionization data for %s Model from file %s." %(model_tags[1], fname_photofield)
+		fd = open(fname_photofield, 'rb')
+		photofield_model2 = np.fromfile(fd, count = GridSize_model2*GridSize_model2*GridSize_model2, dtype = np.float64)
+		photofield_model2.shape = (GridSize_model2, GridSize_model2, GridSize_model2)
+		fd.close()
 
-        fname_photofield = filepath_photofield_model3 + number_tag_anne
-        print "Loading photoionization data for %s Model from file %s." %(model_tags[2], fname_photofield)
-        fd = open(fname_photofield, 'rb')
-        photofield_model3 = np.fromfile(fd, count = GridSize_model3*GridSize_model3*GridSize_model3, dtype = np.float64)
-        photofield_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
-	fd.close()
+	if(number_models > 2):
+		fname_photofield = filepath_photofield_model3 + number_tag_anne
+		print "Loading photoionization data for %s Model from file %s." %(model_tags[2], fname_photofield)
+		fd = open(fname_photofield, 'rb')
+		photofield_model3 = np.fromfile(fd, count = GridSize_model3*GridSize_model3*GridSize_model3, dtype = np.float64)
+		photofield_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
+		fd.close()
 
 	##################################################
 	##################################################
@@ -2418,9 +2687,9 @@ if __name__ == '__main__':
 
         ##########################################################################
        
-        #plot_single(ZZ[i], fname_ionized_model1, ionized_cells_model1, GridSize_model1, OutputDir, output_tags[0] + str(i)) 
-        #plot_single(ZZ[i], fname_ionized_model2, ionized_cells_model2, GridSize_model2, OutputDir, output_tags[1] + str(i)) 
-        #plot_single(ZZ[i], fname_ionized_model3, ionized_cells_model3, GridSize_model3, OutputDir, output_tags[2] + '_' + str(i)) 
+        #plot_single(ZZ[i], fname_ionized_model1, ionized_cells_model1, GridSize_model1, OutputDir, output_tags[0] + number_tag_anne) 
+        #plot_single(ZZ[i], fname_ionized_model2, ionized_cells_model2, GridSize_model2, OutputDir, output_tags[1] + number_tag_anne) 
+        #plot_single(ZZ[i], fname_ionized_model3, ionized_cells_model3, GridSize_model3, OutputDir, output_tags[2] + number_tag_anne) 
         #plot_comparison(ZZ[i], ionized_cells_clean_model1, ionized_cells_clean_model2, nion_model1, nion_model2, OutputDir, model_tags, "Comparison" + str(i))
         #plot_sources(ZZ[i], fname_nion_model1, nion_model1, OutputDir, model_tags[0] + "_nion")
         #plot_sources(ZZ[i], fname_nion_model2, nion_model2, OutputDir, model_tags[1] + "_nion")
@@ -2428,6 +2697,9 @@ if __name__ == '__main__':
         #difference_map(ZZ[i], ionized_cells_clean_model1, ionized_cells_clean_model2, OutputDir, model_tags, "Difference_Map" + str(i))
 
         volume_frac_model1.append(calculate_volume_frac(ionized_cells_model1, GridSize_model1))
+	if(z_index == 1):	
+		hoshen_kopelman(ionized_cells_model1)
+		quit()
         volume_frac_model2.append(calculate_volume_frac(ionized_cells_model2, GridSize_model2))
         volume_frac_model3.append(calculate_volume_frac(ionized_cells_model3, GridSize_model3))
         #mass_frac_model1.append(calculate_mass_frac(ionized_cells_clean_model1, density_model1))
@@ -2444,7 +2716,8 @@ if __name__ == '__main__':
         #plot_density(ZZ[i], density_model2, OutputDir, "Density_" + output_tags[1] + str(i))
         
         #plot_density_numbers(ZZ[i], density_model1, OutputDir, "DensityNumbers" + str(i))
-	
+
+
 	if ((calculate_volume_frac(ionized_cells_model1, GridSize_model1) < (fractions_HI[count_MC_model1 % len(fractions_HI)]) + delta_HI[count_MC_model1 % len(fractions_HI)]) and (calculate_volume_frac(ionized_cells_model1, GridSize_model1) > (fractions_HI[count_MC_model1 % len(fractions_HI)]) - delta_HI[count_MC_model1 % len(fractions_HI)])):
 		MC_ZZ[0,count_MC_model1] = ZZ[i]
 		MC_Snaps[0, count_MC_model1] = i
@@ -2452,25 +2725,27 @@ if __name__ == '__main__':
 		do_MC = 1
 		do_power_model1 = 1
 		count_MC_model1 += 1
-		
-	if (calculate_volume_frac(ionized_cells_model2, GridSize_model2) < (fractions_HI[count_MC_model2 % len(fractions_HI)]) + delta_HI[count_MC_model2 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model2, GridSize_model2) > (fractions_HI[count_MC_model2 % len(fractions_HI)]) - delta_HI[count_MC_model2 % len(fractions_HI)]):
-		MC_ZZ[1,count_MC_model2] = ZZ[i]
-		MC_Snaps[1, count_MC_model2] = i
-		print "Model2 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model2], ZZ[i])
-		do_MC = 1
-		do_power_model2 = 1
-		count_MC_model2 += 1
 
-	if (calculate_volume_frac(ionized_cells_model3, GridSize_model3) < (fractions_HI[count_MC_model3 % len(fractions_HI)]) + delta_HI[count_MC_model3 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model3, GridSize_model3) > (fractions_HI[count_MC_model3 % len(fractions_HI)]) - delta_HI[count_MC_model3 % len(fractions_HI)]):
-		MC_ZZ[2,count_MC_model3] = ZZ[i]
-		MC_Snaps[2, count_MC_model3] = i
-		print "Model3 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model3], ZZ[i])
-		do_MC = 1
-		do_power_model3 = 1
-		count_MC_model3 += 1
+	if(number_models > 1):		
+		if (calculate_volume_frac(ionized_cells_model2, GridSize_model2) < (fractions_HI[count_MC_model2 % len(fractions_HI)]) + delta_HI[count_MC_model2 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model2, GridSize_model2) > (fractions_HI[count_MC_model2 % len(fractions_HI)]) - delta_HI[count_MC_model2 % len(fractions_HI)]):
+			MC_ZZ[1,count_MC_model2] = ZZ[i]
+			MC_Snaps[1, count_MC_model2] = i
+			print "Model2 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model2], ZZ[i])
+			do_MC = 1
+			do_power_model2 = 1
+			count_MC_model2 += 1
+
+	if(number_models > 2):
+		if (calculate_volume_frac(ionized_cells_model3, GridSize_model3) < (fractions_HI[count_MC_model3 % len(fractions_HI)]) + delta_HI[count_MC_model3 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model3, GridSize_model3) > (fractions_HI[count_MC_model3 % len(fractions_HI)]) - delta_HI[count_MC_model3 % len(fractions_HI)]):
+			MC_ZZ[2,count_MC_model3] = ZZ[i]
+			MC_Snaps[2, count_MC_model3] = i
+			print "Model3 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model3], ZZ[i])
+			do_MC = 1
+			do_power_model3 = 1
+			count_MC_model3 += 1
 
 
-	if (do_MC == 1 and calculate_MC == 1):
+	if ((do_MC == 1 and calculate_MC == 1) or (calculate_MC == 2 and i == calculate_MC_snaps[z_index])):
 	        calculate_bubble_MC(ZZ[i], ionized_cells_model1, GridSize_model1, OutputDir, output_tags[0])
         	calculate_bubble_MC(ZZ[i], ionized_cells_model2, GridSize_model2, OutputDir, output_tags[1])
         	calculate_bubble_MC(ZZ[i], ionized_cells_model3, GridSize_model3, OutputDir, output_tags[2])
@@ -2526,8 +2801,9 @@ if __name__ == '__main__':
         #redshift_array_model2, density_z_mean_model2[i], density_z_std_model2[i] = Reionization_Redshift(ionized_cells_model2, density_model2, redshift_array_model2, ZZ[i], GridSize_model2)
         #redshift_array_model3, density_z_mean_model3[i], density_z_std_model3[i] = Reionization_Redshift(ionized_cells_model3, density_model3, redshift_array_model3, ZZ[i], GridSize_model3)
 
-	#plot_photofield(ZZ[i], photofield_model1, OutputDir, "PhotHIField_" + output_tags[0] + '_' + str(i))
-	#plot_photofield(ZZ[i], photofield_model2, OutputDir, "PhotHIField_" + output_tags[1] + '_' + str(i))
+	#plot_photofield(ZZ[i], photofield_model1, OutputDir, "PhotHIField_" + output_tags[0] + number_tag_anne) 
+	#plot_photofield(ZZ[i], photofield_model2, OutputDir, "PhotHIField_" + output_tags[1] + number_tag_anne) 
+	#plot_photofield(ZZ[i], photofield_model3, OutputDir, "PhotHIField_" + output_tags[2] + number_tag_anne) 
 	#plot_density_numbers(ZZ[i], photofield_model1, OutputDir, "PhotHIField_Numbers_" + output_tags[0] + '_' + str(i))
 	#plot_density_numbers(ZZ[i], photofield_model2, OutputDir, "PhotHIField_Numbers_" + output_tags[1] + '_' + str(i))
 
@@ -2546,7 +2822,7 @@ if __name__ == '__main__':
 	
 	z_index += 1
 
-	print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
+	#print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
 
     if (MC_ZZ[0][-1] < 5 or MC_ZZ[0][-1] > 1000):
 	MC_ZZ[0][-1] = ZZ[-1]
@@ -2569,8 +2845,16 @@ if __name__ == '__main__':
  
     #plot_power(fractions_HI, [k_model1, k_model2, k_model3], [PowerSpectra_model1, PowerSpectra_model2, PowerSpectra_model3], [PowerSpectra_Error_model1, PowerSpectra_Error_model2, PowerSpectra_Error_model3], model_tags, OutputDir, "PowerSpectrum")
 
-    #plot_bubble_MC(MC_ZZ, fractions_HI, model_tags, output_tags, [GridSize_model1, GridSize_model2, GridSize_model3], OutputDir, "BubbleSizes")
-    plot_global_frac(ZZ, [mass_frac_model1, mass_frac_model2, mass_frac_model3], [volume_frac_model1, volume_frac_model2, volume_frac_model3], MC_ZZ, model_tags, OutputDir, "GlobalFraction")
+    if(plot_MC == 1):
+	plotting_MC_ZZ = MC_ZZ
+	plotting_HI = fractions_HI
+    elif(plot_MC == 2):
+	plotting_MC_ZZ = MC_ZZ_snaps 
+	plotting_HI = [volume_frac_model1, volume_frac_model2, volume_frac_model3]
+    #plot_bubble_MC(plotting_MC_ZZ, fractions_HI, model_tags, output_tags, [GridSize_model1, GridSize_model2, GridSize_model3], OutputDir, "BubbleSizes")
+    print plotting_MC_ZZ
+    find_max_bubble(plotting_MC_ZZ, plotting_HI, plot_MC, [volume_frac_model1, volume_frac_model2, volume_frac_model3],  model_tags, output_tags, [GridSize_model1, GridSize_model2, GridSize_model3], OutputDir, "MaxBubble_withNB_z_ylog")
+    #plot_global_frac(ZZ, [mass_frac_model1, mass_frac_model2, mass_frac_model3], [volume_frac_model1, volume_frac_model2, volume_frac_model3], MC_ZZ, model_tags, OutputDir, "GlobalFraction")
     #plot_total_nion(ZZ, [nion_total_model1, nion_total_model2, nion_total_model3], model_tags, OutputDir, "Nion")
     #photon_baryon(lowerZ, upperZ, ZZ, [nion_total_model1, nion_total_model2], Hubble_h, OB, Y, model_tags, OutputDir, "nion_total2")
     #analytic_HII(nion_total_model1, ZZ, upperZ, snaplist, OutputDir, "Q_Analytic")	

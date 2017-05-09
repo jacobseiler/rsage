@@ -2,6 +2,7 @@
 
 import numpy as np
 
+np.set_printoptions(threshold=np.nan)
 def Set_Params_MiniMill():
     
     print "Setting parameters to Mini Millennium."
