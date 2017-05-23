@@ -105,17 +105,12 @@ double Reionization_zr;
 double ThresholdSatDisruption;
 
 int MAXSNAPS;
-int NOUT;
+int OutputMode;
+int LowSnap;
+int HighSnap;
 int ListOutputSnaps[ABSOLUTEMAXSNAPS];
 int ListOutputGrid[ABSOLUTEMAXSNAPS];
 int Snaplistlen;
-
-// Variables for tracking Merger Types //
-int *GalaxyCount;
-int *MajorMergerCount;
-int *MinorMergerCount;
-int *DiskCount;
-int *ICSCount;
 
 double SourceEfficiency;
 int PhotonPrescription;

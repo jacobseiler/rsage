@@ -33,13 +33,7 @@ void init(void)
     ZZ[i] = 1 / AA[i] - 1; // Redshift array.
     Age[i] = time_to_present(ZZ[i]); // Age array.
   }
-
-  GalaxyCount = malloc(sizeof(int)*NGrid);
-  MajorMergerCount = malloc(sizeof(int)*NGrid); 
-  MinorMergerCount = malloc(sizeof(int)*NGrid); 
-  DiskCount = malloc(sizeof(int)*NGrid); 
-  ICSCount = malloc(sizeof(int)*NGrid); 
-
+ 
   for(i = 0; i < NGrid; ++i)
   { 
     if (Verbose == 1)
@@ -53,12 +47,6 @@ void init(void)
 //        printf("Evolve time for Snapshots %d and %d is %.3e Myr.\n", ListOutputGrid[i], ListOutputGrid[i+1], evolve_time);
       }
     }
-    GalaxyCount[i] = 0;
-    MajorMergerCount[i] = 0;
-    MinorMergerCount[i] = 0;
-    DiskCount[i] = 0;
-    ICSCount[i] = 0;
-
   }
 
   if (fescPrescription == 2)

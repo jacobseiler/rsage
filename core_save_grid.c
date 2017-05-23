@@ -133,7 +133,7 @@ void save_redshift(void)
 
   sprintf(name_redshift, "%s/redshift_file.dat", GridOutputDir);
 
-  printf("Writing out the saved redshifts to file %s\n");
+  printf("Writing out the saved redshifts to file %s\n", name_redshift);
 
   if (!(file_redshift = fopen(name_redshift,"w")))
   {

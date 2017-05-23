@@ -24,9 +24,11 @@ void update_grid_properties(int p, int merged, int GridNr)
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; // Number of ionizing photons (in s^-1). 
   for(i = 0; i < MAXSNAPS; ++i)
   {
-    grid_position = GalGrid[p].History[i]; 
+    grid_position = GalGrid[p].History[i];
+ 
     if (grid_position == -1) continue; // If the galaxy hasn't formed yet, move on to next snapshot. 
     if (i > ListOutputGrid[GridNr]) break; // If the current snapshot redshift is lower than an output redshift, proceed to next one.
+    XASSERT(grid_position >= 0 && grid_position < CUBE(GridSize), "The grid index must be between 0 and the GridSize cubed (%d cubed = %d).  The index for Galaxy %d is %d.\n", GridSize, CUBE(GridSize), p, grid_position);
 
     //These are instantaneous properties measured at a specific redshift. //
     if((i == ListOutputGrid[GridNr]) && (GalGrid[p].StellarMass[i] > 0.0) & (GalGrid[p].SFR[i] > 0.0) & (GalGrid[p].CentralGalaxyMass[i] > 0.0) & (GalGrid[p].LenHistory[i] > HaloPartCut)) // Only want to take those galaxies with a non-zero stellar mass (they actually exist and are evolving).
@@ -57,10 +59,6 @@ void update_grid_properties(int p, int merged, int GridNr)
     }
       
     // Tracking the Merging Types. //
-    if(i == ListOutputGrid[GridNr] && merged == 0)
-    {
-      ++GalaxyCount;
-    }
   }
 }
 
@@ -191,7 +189,7 @@ void count_grid_properties(int GridNr) // Count number of galaxies/halos in the 
 {
   int i;
 
-  int GalCount = 0, HaloCount = 0, DiffuseCount = 0;
+  int GalCount = 0, HaloCount = 0, DiffuseCount = 0, SourcesCount = 0;
   double totPhotons_HI = 0, totPhotons_HeI = 0, totPhotons_HeII = 0, HaloMass = 0;
   for (i = 0; i < CUBE(GridSize); ++i)
   {
@@ -202,9 +200,11 @@ void count_grid_properties(int GridNr) // Count number of galaxies/halos in the 
     totPhotons_HeII += Grid[i].Nion_HeII;
     HaloMass += Grid[i].HaloMass;
     DiffuseCount += Grid[i].Diffuse;
+    if(Grid[i].Nion_HI > 0.0)
+	SourcesCount++;
   }
 
-  printf("At redshift %.3f (Snapshot %d) there was %d galaxies, %d halos and %d diffuse particles with [%.4e, %.4e, %.4e] {HI, HeI, HeII}  ionizing Photons emitted per second ([%.4e %.4e %.4e] s^-1 Mpc^-3) and %.4e (Msun) halo mass.\n", ZZ[ListOutputGrid[GridNr]], ListOutputGrid[GridNr], GalCount, HaloCount, DiffuseCount, totPhotons_HI, totPhotons_HeI, totPhotons_HeII, totPhotons_HI / pow(BoxSize/Hubble_h,3), totPhotons_HeI / pow(BoxSize/Hubble_h, 3), totPhotons_HeII / pow(BoxSize/Hubble_h,3), HaloMass*1e10/Hubble_h);
+  printf("At redshift %.3f (Snapshot %d) there was %d galaxies, %d halos and %d diffuse particles with [%.4e, %.4e, %.4e] {HI, HeI, HeII}  ionizing Photons emitted per second ([%.4e %.4e %.4e] s^-1 Mpc^-3), spread across %d cells (%.4f of the total cells) and %.4e (Msun) halo mass.\n", ZZ[ListOutputGrid[GridNr]], ListOutputGrid[GridNr], GalCount, HaloCount, DiffuseCount, totPhotons_HI, totPhotons_HeI, totPhotons_HeII, totPhotons_HI / pow(BoxSize/Hubble_h,3), totPhotons_HeI / pow(BoxSize/Hubble_h, 3), totPhotons_HeII / pow(BoxSize/Hubble_h,3), SourcesCount, (double)SourcesCount / (CUBE(GridSize)), HaloMass*1e10/Hubble_h);
 
 }
 

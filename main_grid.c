@@ -79,6 +79,7 @@ int main(int argc, char **argv)
   myfree(Grid);
   save_redshift();
 
+  gsl_rng_free(random_generator); 
   return 0;
 
 } 

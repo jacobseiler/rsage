@@ -127,11 +127,11 @@ struct GALAXY_GRID
   float *SFR; // Units of Msun yr^-1
   float *Z; // NOT solar metallicity, actual metallicity.
   float *CentralGalaxyMass; // Units of 1.0e10 Msun/h.
+  float *Pad; // Used just to pad things out.
   double *MfiltGnedin; // Units of 1.0e10 Msun/h.
   double *MfiltSobacchi; // Units of 1.0e10 Msun/h.
   float *EjectedFraction; // Unitless (fraction).
   int *LenHistory; // Number of particles in FoF Halo.
-  float *Pad; // Used just to pad things out.
 
 }*GalGrid;
 
@@ -283,16 +283,11 @@ extern double Reionization_z0;
 extern double Reionization_zr;
 extern double ThresholdSatDisruption;
 
-extern int NOUT;
+extern int OutputMode;
+extern int LowSnap;
+extern int HighSnap;
 extern int ListOutputSnaps[ABSOLUTEMAXSNAPS];
 extern int ListOutputGrid[ABSOLUTEMAXSNAPS];
-
-// Parameters for tracking MergeType //
-extern int *GalaxyCount;
-extern int *MajorMergerCount;
-extern int *MinorMergerCount;
-extern int *DiskCount;
-extern int *ICSCount;
 
 extern int Verbose;
 

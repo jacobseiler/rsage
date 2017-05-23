@@ -129,8 +129,16 @@ void read_parameter_file(char *fname)
   strcpy(tag[nt], "FeedbackReheatingEpsilon");
   addr[nt] = &QuasarModeEfficiency;
 
-  strcpy(tag[nt], "NumOutputs");
-  addr[nt] = &NOUT;
+  strcpy(tag[nt], "OutputMode");
+  addr[nt] = &OutputMode;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "LowSnap");
+  addr[nt] = &LowSnap;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "HighSnap");
+  addr[nt] = &HighSnap;
   id[nt++] = INT;
 
   strcpy(tag[nt], "PhotonPrescription");
@@ -250,12 +258,21 @@ void read_parameter_file(char *fname)
 	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
 	MAXSNAPS = LastSnapShotNr + 1;
 
-	if(!(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS)))
-		printf("NumOutputs must be -1 or between 1 and %i\n", ABSOLUTEMAXSNAPS);
-	assert(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS));
+	XASSERT(OutputMode == 0 || OutputMode == 1, "OutputMode must have a value of either 0 or 1.");
+	XASSERT(LowSnap < HighSnap, "LowSnap must be less than HighSnap.");
 	
 	// read in the output snapshot list
-        if(NGrid == -1)
+	if(OutputMode == 1)
+        {
+	  printf("Selecting sequential snapshots from Snapshot %d to %d.\n", LowSnap, HighSnap);
+	  for (i = HighSnap; i > LowSnap - 1; --i)
+          {
+            ListOutputGrid[HighSnap - i] = i;
+            fprintf(stderr, "Index %d, Snapshot %d\n", HighSnap - i, i);
+          }
+          NGrid = HighSnap - LowSnap + 1;
+        }
+        else if(OutputMode == 0 && NGrid == -1)
         {
 	  NGrid = MAXSNAPS;
 	  for (i = NGrid-1; i >= 0; --i)
