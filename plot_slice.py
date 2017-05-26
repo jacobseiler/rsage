@@ -1,6 +1,6 @@
 import numpy as np
 from numpy import *
-np.set_printoptions(threshold = np.nan, linewidth = 8)
+np.set_printoptions(threshold = np.nan, linewidth = 1000000)
 
 import matplotlib
 matplotlib.use('Agg')
@@ -24,10 +24,10 @@ from scipy.ndimage.filters import generic_filter as gf
 from matplotlib.ticker import MultipleLocator
 import matplotlib.gridspec as gridspec
 import scipy.integrate as integrate
+from numpy.fft import fftn, ifftn
 
-
-#from astropy import units as u
-#from astropy import cosmology
+from astropy import units as u
+from astropy import cosmology
 import matplotlib.ticker as mtick
 import PlotScripts
 import ReadScripts
@@ -101,7 +101,7 @@ tick_interval = 0.25
 time_tick_interval = 25
 time_xlim = [315, 930]
 time_subplot_label = 350 # Location (in 'Time Since Big Bang [Myr^-1]) of subplot identifier (a), (b), (c) etc.
-#z_plot = np.arange(6, 14)  #Range of redshift we wish to plot. 
+z_plot = np.arange(6, 14)  #Range of redshift we wish to plot. 
 
 colors = ['r', 'b', 'g', 'c', 'm', 'k']
 markers = ['x', 'o', '^', 's', 'D']
@@ -119,8 +119,8 @@ cut_slice = 44
 AllVars.Set_Params_Mysim()
 AllVars.Set_Constants()
 
-#cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
-#t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
+cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
+t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
 output_format = ".png"
 
 def plot_single(z, filepath, ionized_cells, Ncells, OutputDir, output_tag):
@@ -305,6 +305,11 @@ def calculate_volume_frac(ionized_cells, Ncell):
 
 #	HII = 1 - len(ionized_cells[ionized_cells > 0.95])/float(Ncell**3)
 
+	print len(np.argwhere(np.isnan(ionized_cells)))	
+
+	np.nan_to_num(ionized_cells)	
+
+	print len(np.argwhere(np.isnan(ionized_cells)))	
 	ionized_cells = 1 - ionized_cells
 	
 	HII = sum(ionized_cells) / float(Ncell**3)
@@ -347,7 +352,7 @@ def calculate_total_nion(model_name, nion):
 	nion_total = sum(nion)
 
 	print
-	print "The total number of ionizing photons (per second) for the %s Model is %.4e." %(model_name, nion_total)
+	print "The total number of ionizing photons (per second) for the %s Model is %.4e (%.4e Mpc^-3)." %(model_name, nion_total, nion_total / pow(AllVars.BoxSize/AllVars.Hubble_h, 3))
 
 	return nion_total
 
@@ -610,7 +615,8 @@ def plot_density(z, density, OutputDir, output_tag):
 
 	ax = plt.subplot(111)
 	
-	im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,BoxSize,0,BoxSize], cmap = 'Purples', norm = colors.LogNorm(vmin = 0.12, vmax = 50)) 
+	#im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,BoxSize,0,BoxSize], cmap = 'Purples', norm = colors.LogNorm(vmin = 0.12, vmax = 50)) 
+	im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,BoxSize,0,BoxSize], cmap = 'Purples', vmin = 0.12, vmax = 50) 
 
 	cbar = plt.colorbar(im, ax = ax)
 	cbar.set_label(r'$\rho/\langle \rho \rangle$')
@@ -1152,7 +1158,7 @@ def Power_Spectrum(ionized_cells, Ncell):
 
     mid_point = Ncell/2 # Middle of the Grid.
     
-    n1 = arange(0, Ncell)
+    n1 = arange(Ncell)
     n1[1+mid_point:] -= Ncell # Moves to 0, 1, 2, ..., Ncell/2, -Ncell/2, ..., -1  
     n2 = n1**2 
     n_mag = np.sqrt(add.outer(add.outer(n2, n2), n2)).ravel() # Finding the magnitude of k-space vectors.
@@ -1160,6 +1166,8 @@ def Power_Spectrum(ionized_cells, Ncell):
     n_bins = (-1,) + tuple(arange(mid_point-1)+1.5) + (Ncell*2,)
      
     k_bins = digitize(n_mag, n_bins) - 1 # Digitize basically takes an input array (N_Mag) and bins each value according to the binedges defined by N_bins.  The indices of the bin that each element of N_Mag belongs to is returned.
+    assert(k_bins.min() == 0)
+    assert(k_bins.max() == len(n_bins) -2)
 
     k_multiplier = 2.0 * np.pi / BoxSize # Moving from real-space to k-space.
     
@@ -1173,20 +1181,21 @@ def Power_Spectrum(ionized_cells, Ncell):
     
     ##
     
-    PowSpec_3D = ((np.abs(np.fft.fftn(ionized_cells)))**2).ravel() # Fourier transform into 3D Power Spectrum.
+    transform = ifftn(ionized_cells) # Fourier transform into 3D Power Spectrum.
+    PowSpec_3D = square(transform.ravel().real) + square(transform.ravel().imag) # Then take magnitude. 
 
     v1 = bincount(k_bins, weights=PowSpec_3D) # Takes the 3D Power Spectrum and bins the values into the k-space bins.
     PowSpec_1D = v1 * (1.0/k_volume) # Normalize by the volume of the bins.  Necessary as spheres of larger radii occupy more volume by definition.
     
     # Calculate the error in the 1D Power Spectrum.
-    v2 = bincount(k_bins, weights = (PowSpec_3D**2)) # Second Order
+    v2 = bincount(k_bins, weights = square(PowSpec_3D)) # Second Order
     v0 = bincount(k_bins) # Zeroth Order
     
     error = sqrt((v2*v0 - v1**2)/(v0-1.0)) / k_volume
     
     k_mid = 0.5 * (k_max + k_min) # Middle point for each of the bins in k-space.
 
-    return k_mid, PowSpec_1D, (error/PowSpec_1D)
+    return k_mid, PowSpec_1D, error
 
 ##########
 
@@ -2171,36 +2180,32 @@ def hoshen_kopelman(ionized_cells):
 	## Just a quick function that replicates the !! behaviour in C.
 	## If the input value (a) is != 0 it returns 1 otherwise it returns 0.
 
+
+	print "Running the Hosen-Kopelman Algorithm"
+
 	def double_not(a):  
 		if(a != 0):
 			return 1
 		else:
 			return 0
 
-	max_labels = len(ionized_cells)**3 / 2 # The maximum number of discrete ionized regions.
+	l = len(ionized_cells)
+	m = len(ionized_cells)
+	n = len(ionized_cells)
+	
+
+	max_labels = l*m*n / 2 # The maximum number of discrete ionized regions.
 	labels = np.zeros((max_labels), dtype = np.int)
 
-	test = np.zeros((len(ionized_cells), len(ionized_cells)), dtype = np.int32)
-	for i in xrange(0, len(test)):
-		for j in xrange(0, len(test)):
-			if (ionized_cells[i][j][cut_slice] > 0.8):
-				test[i][j] = 1
-			else:
-				test[i][j] = 0
+	test = np.zeros((l, m, n), dtype = np.int32)
+	for i in xrange(0, l):
+		for j in xrange(0, m):
+			for k in xrange(0, n):
+				if (ionized_cells[i][j][k] > 0.8):
+					test[i][j][k] = 1
+				else:
+					test[i][j][k] = 0
 	
-	test = [[1, 1, 1, 1, 1, 1, 1, 1],
-		[0, 0, 0, 0, 0, 0, 0, 1],
-		[1, 0, 0, 0, 0, 1, 0, 1],
-		[1, 0, 0, 1, 0, 1, 0, 1],
-		[1, 0, 0, 1, 0, 1, 0, 1],
-		[1, 0, 0, 1, 1, 1, 0, 1],
-		[1, 1, 1, 1, 0, 0, 0, 1],
-		[0, 0, 0, 1, 1, 1, 0, 1]]
-
-	print "Before"
-	print test 
-
-
 	def make_set(label_number):
 		label_number += 1	
 		assert(label_number < max_labels), "The current_label value is greater than the maximum label limit."
@@ -2223,53 +2228,115 @@ def hoshen_kopelman(ionized_cells):
 		labels[find(x)] = find(y)
 		return find(y)
 
+	def union_3D(x, y, z):
+		labels[find(x)] = find(y)
+		labels[find(z)] = find(y)
+		return find(y) 
+
 	current_label = 0
 
-	for i in xrange(0, len(test)):
-		for j in xrange(0, len(test)):
-			if(test[i][j] == 1):
+	for i in xrange(0, l):
+		for j in xrange(0, m):
+			for k in xrange(0, l):
 
-				if(i == 0):
-					up = 0
-				else:
-					up = test[i-1][j]
+				if(test[i][j][k] == 1):
 
-				if(j == 0):
-					left = 0
-				else:
-					left = test[i][j-1]
+					if(i == 0):
+						up = 0
+					else:
+						up = test[i-1][j][k]
 
-				tmp = double_not(left) + double_not(up) # Since the labels can be greater than 1, this function returns 1 if either left or up are >= 1 otherwise it returns 0. 
+					if(j == 0):
+						left = 0
+					else:
+						left = test[i][j-1][k]
 
-				if(tmp == 0): # We have a new cluster
-					test[i][j] = make_set(current_label)
-					current_label += 1
+					if(k == 0):
+						back = 0
+					else:
+						back = test[i][j][k-1]
+
+					tmp = double_not(left) + double_not(up) + double_not(back) # Since the labels can be greater than 1, double_not returns 1 if the value is >= otherwise it returns 0.
+					# So it will return 1 if there is a cluster at the position.
+
+					if(tmp == 0): # We have a new cluster
+						test[i][j][k] = make_set(current_label)
+						current_label += 1
 	
-				elif(tmp == 1): # Part of an existing cluster
-					test[i][j] = max(up, left)
+					elif(tmp == 1): # Part of an existing cluster
+						test[i][j][k] = max(up, left, back)
 
-				elif(tmp == 2): # Joins two existing clusters together
-					test[i][j] = union(up, left)
+					elif(tmp == 2): # Joins two existing clusters together
+						if(up == 0):
+							test[i][j][k] = union(left, back)
+						elif(left == 0):
+							test[i][j][k] = union(up, back)
+						elif(back == 0):
+							test[i][j][k] = union(up, left)
+					elif(tmp == 3): # Joins three existing clusters together
+						test[i][j][k] = union_3D(up, left, back)
 
 	new_labels = np.zeros((max_labels), dtype = np.int)
+	size_bubbles = np.zeros((max_labels), dtype = np.int32)
 	new_labels_len = 0
 
-	for i in xrange(0, len(test)):
-		for j in xrange(0, len(test)):
-			if(test[i][j] > 0):
-				x = find(test[i][j])
-				if(new_labels[x] == 0):
-					new_labels_len += 1
-					new_labels[x] = new_labels_len
+	print "Finished labelling all the cells. Starting the relabelling."
 
-				test[i][j] = new_labels[x]
+	for i in xrange(0, l):
+		for j in xrange(0, m):
+			for k in xrange(0, n):
+				if(test[i][j][k] > 0):
+					x = find(test[i][j][k])
+					if(new_labels[x] == 0):
+						new_labels_len += 1
+						new_labels[x] = new_labels_len
 
-	total_clusters = new_labels_len	
+					test[i][j][k] = new_labels[x]
+					size_bubbles[test[i][j][k]] += 1
 
-	print "After"
-	print test 
+	total_clusters = new_labels_len		
 
 	print "There was %d clusters found" %(total_clusters)
+
+	largest_bubble = max(size_bubbles)
+	ionization_fraction = 1 - calculate_volume_frac(ionized_cells, 128)
+	num_cells_ionized = 128**3 * ionization_fraction 
+
+	print "The largest bubble contains %d cells. This is %.4f of the entire box.  Ionization Fraction = %.4f. The number of cells ionized is %d. Num Cells Inside Bubble/Num Cells Ionized = %.4f" %(largest_bubble, float(largest_bubble)/float(l*m*n), ionization_fraction, num_cells_ionized, float(largest_bubble)/float(num_cells_ionized)) 
+
+	return float(largest_bubble)/float(num_cells_ionized)
+
+##
+
+
+def plot_hoshen(order_parameter, HI_frac_model, model_tags, OutputDir, output_tag):
+
+
+	ax1 = plt.subplot(111)
+
+	print order_parameter
+	print HI_frac_model
+	
+	for p in xrange(0, len(HI_frac_model)):
+		#ax1.plot(np.subtract(1, HI_frac_model[p]), np.divide(order_parameter[p], np.subtract(1.0, HI_frac_model[p])), lw = 3, color = colors[p], label = model_tags)
+		ax1.plot(np.subtract(1, HI_frac_model[p]), order_parameter[p], lw = 3, color = colors[p], label = model_tags)
+
+	ax1.set_xlabel(r"$x_\mathrm{HII}$", size = label_size)
+ 	ax1.set_ylabel(r"$P_\mathrm{inf}/x_\mathrm{HI}$", size = label_size)      
+ 
+	leg = ax1.legend(loc='upper right', numpoints=1,
+			 labelspacing=0.1)
+	leg.draw_frame(False)  # Don't want a box frame
+	for t in leg.get_texts():  # Reduce the size of the text
+		   t.set_fontsize(legend_size)
+
+	plt.tight_layout()
+
+	outputFile = OutputDir + output_tag + output_format 
+	plt.savefig(outputFile)  # Save the figure
+	print 'Saved file to', outputFile
+	plt.close()
+
 
 ##
 
@@ -2279,36 +2346,111 @@ if __name__ == '__main__':
 
     ##### Grid Comparisons ####
 
-    '''
-    output_tags = ["grid64", "grid128", "grid256"]
-    model_tags = [r"$N = 64^3$", r"$N = 128^3$", r"$N = 256^3$"]
+    ''' 
+
+    output_tags = ["grid128_2", "grid128", "grid256"]
+    model_tags = [r"$N = 128^3$", r"$N = 128^3$", r"$N = 256^3$"]
+
+    number_models = 3
 
     model = 'GridCompClean'
-    GridSize_model1 = 64
+    GridSize_model1 = 128
     GridSize_model2 = 128
     GridSize_model3 = 256
  
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_grid64_fesc0.25"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.25"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_grid256_fesc0.25"    
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_grid64_z5.000_fesc0.25_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_fesc0.25_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_grid256_z5.000_fesc0.25_nionHI"
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/grid64/dens_grid64"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens" 
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/grid256/dens_grid256"
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_grid64_fesc0.25"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.25" 
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_grid256_fesc0.25"
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_IRA_fesc0.25_photHImodel1"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_IRA_fesc0.25"
+    filepath_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_SN5Myr_fesc0.25"
+ 
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
+    filepath_nion_model2 = "/home/jseiler/grid_tools/test"
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid256/grid_files/Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
+
+    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
+    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
 
     '''
 
     ###########################
 
+    ##### Processors Comparisons ####
+    
+
+ 
+    output_tags = [r"1 Processors", "2 Processors", "8 Processors"] 
+    model_tags = [r"1 Processors", "2 Processors", "8 Processors"] 
+ 
+    number_models = 3
+
+    model = 'PowSpec'
+
+    GridSize_model1 = 128
+    GridSize_model2 = 128
+    GridSize_model3 = 128 
+
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_1processor1node"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_2processor1node" 
+    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_8processor1node"
+    
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_Delayed_SN5Myr_z5.000_fesc0.25_HaloPartCut0_nionHI"
+
+    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
+    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
+
+
+    ###########################
+
+    ##### Homogenous Density/Random Nion Comparison ####
+   
+    ''' 
+ 
+    output_tags = [r"Homogenous_Random", "Homogenous_Correct", "Correct_Random"]
+    model_tags = [r"Homo + Random", "Homo + Correct", "Correct + Random"] 
+ 
+    number_models = 3
+
+    model = 'HomoComparison'
+
+    GridSize_model1 = 128
+    GridSize_model2 = 128
+    GridSize_model3 = 128 
+
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_homo_May/XHII_homo_randomnion"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_homo_May/XHII_homo_correctnion"
+    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_homo_May/XHII_correctdensity_randomnion"  
+   
+    filepath_nion_model1 = "/home/jseiler/grid_tools/test"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
+    filepath_nion_model3 = "/home/jseiler/grid_tools/test"
+
+    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/density_grids/homo_grid128/density"
+    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/density_grids/homo_grid128/density" 
+    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
+    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
+
+    '''
+
+    ###########################
+
+    '''    
 
     ##### Constant fesc Comparisons ####
 
-    
     output_tags = [r"IRA - Model 1", "IRA - Model 2", "Delayed"] 
     model_tags = [r"IRA - Model 1", "IRA - Model 2", "Delayed"] 
  
@@ -2335,7 +2477,8 @@ if __name__ == '__main__':
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
     filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
     filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
-    
+
+    '''    
     
     ###########################
 
@@ -2515,7 +2658,12 @@ if __name__ == '__main__':
     do_power_model1 = 0
     do_power_model2 = 0
     do_power_model3 = 0
-    calculate_power = 0 # 0 to NOT calculate the power spectra, 1 to calculate it. 
+    calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calculate it. 
+
+    do_hoshen = 0
+    hoshen_array_model1 = [] 
+    hoshen_array_model2 = [] 
+    hoshen_array_model3 = [] 
 
     for i in xrange(lowerZ, upperZ):
 
@@ -2536,6 +2684,7 @@ if __name__ == '__main__':
 	
 	## Ionization fields ##
 
+	
         fname_ionized_model1 = filepath_model1 + number_tag_anne 
         print
         print "Loading in data for %s Model from file %s" %(model_tags[0], fname_ionized_model1)
@@ -2588,6 +2737,8 @@ if __name__ == '__main__':
 		nion_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
 		fd.close()
 
+	
+
 	##################################################
 	##################################################
 
@@ -2620,7 +2771,7 @@ if __name__ == '__main__':
 	##################################################
 
 	## Photoionization field (in s^-1) ##
-
+	'''
         fname_photofield = filepath_photofield_model1 + number_tag_anne
         print "Loading photoionization data for %s Model from file %s." %(model_tags[0], fname_photofield)
         fd = open(fname_photofield, 'rb')
@@ -2643,7 +2794,7 @@ if __name__ == '__main__':
 		photofield_model3 = np.fromfile(fd, count = GridSize_model3*GridSize_model3*GridSize_model3, dtype = np.float64)
 		photofield_model3.shape = (GridSize_model3, GridSize_model3, GridSize_model3)
 		fd.close()
-
+	'''
 	##################################################
 	##################################################
 
@@ -2677,9 +2828,17 @@ if __name__ == '__main__':
         ## Clean up/reduce the data; this will be fed into the other functions. ##
         ##########################################################################
 
-        ionized_cells_clean_model1 = np.zeros((GridSize_model1, GridSize_model1, GridSize_model1))
-        ionized_cells_clean_model2 = np.zeros((GridSize_model2, GridSize_model2, GridSize_model2))
+	'''
+	
+        ionized_cells_model1 = np.zeros((GridSize_model1, GridSize_model1, GridSize_model1))
+        ionized_cells_model2 = np.zeros((GridSize_model2, GridSize_model2, GridSize_model2))
+        ionized_cells_model3 = np.zeros((GridSize_model2, GridSize_model2, GridSize_model2))
+	'''
 
+        photofield_model1 = np.zeros((GridSize_model2, GridSize_model2, GridSize_model2))
+        photofield_model2 = np.zeros((GridSize_model2, GridSize_model2, GridSize_model2))
+        photofield_model3 = np.zeros((GridSize_model2, GridSize_model2, GridSize_model2))
+	
         #w1 = np.where(ionized_cells_model1 > 0.5)
         #ionized_cells_clean_model1[w1] = 1
         #w2 = np.where(ionized_cells_model2 > 0.5)
@@ -2696,14 +2855,26 @@ if __name__ == '__main__':
 
         #difference_map(ZZ[i], ionized_cells_clean_model1, ionized_cells_clean_model2, OutputDir, model_tags, "Difference_Map" + str(i))
 
-        volume_frac_model1.append(calculate_volume_frac(ionized_cells_model1, GridSize_model1))
-	if(z_index == 1):	
-		hoshen_kopelman(ionized_cells_model1)
-		quit()
-        volume_frac_model2.append(calculate_volume_frac(ionized_cells_model2, GridSize_model2))
-        volume_frac_model3.append(calculate_volume_frac(ionized_cells_model3, GridSize_model3))
+	tmp_volume_frac_model1 = calculate_volume_frac(ionized_cells_model1, GridSize_model1)
+	tmp_volume_frac_model2 = calculate_volume_frac(ionized_cells_model2, GridSize_model2)
+	tmp_volume_frac_model3 = calculate_volume_frac(ionized_cells_model3, GridSize_model3)
+
+	volume_frac_model1.append(tmp_volume_frac_model1)
+	volume_frac_model2.append(tmp_volume_frac_model2)
+	volume_frac_model3.append(tmp_volume_frac_model3)
+
         #mass_frac_model1.append(calculate_mass_frac(ionized_cells_clean_model1, density_model1))
         #mass_frac_model2.append(calculate_mass_frac(ionized_cells_clean_model2, density_model2))
+
+	if(do_hoshen == 1):
+		hoshen_array_model1.append(hoshen_kopelman(ionized_cells_model1))
+		hoshen_array_model2.append(hoshen_kopelman(ionized_cells_model2))
+		hoshen_array_model3.append(hoshen_kopelman(ionized_cells_model3))
+
+    		plot_hoshen([hoshen_array_model1], [volume_frac_model1], model_tags, OutputDir, "Hoshen" + output_tags[0])
+	    	plot_hoshen([hoshen_array_model2], [volume_frac_model2], model_tags, OutputDir, "Hoshen" + output_tags[1])	
+	    	plot_hoshen([hoshen_array_model3], [volume_frac_model3], model_tags, OutputDir, "Hoshen" + output_tags[2])
+
 
         nion_total_model1.append(calculate_total_nion(model_tags[0], nion_model1))
         nion_total_model2.append(calculate_total_nion(model_tags[1], nion_model2))
@@ -2718,7 +2889,7 @@ if __name__ == '__main__':
         #plot_density_numbers(ZZ[i], density_model1, OutputDir, "DensityNumbers" + str(i))
 
 
-	if ((calculate_volume_frac(ionized_cells_model1, GridSize_model1) < (fractions_HI[count_MC_model1 % len(fractions_HI)]) + delta_HI[count_MC_model1 % len(fractions_HI)]) and (calculate_volume_frac(ionized_cells_model1, GridSize_model1) > (fractions_HI[count_MC_model1 % len(fractions_HI)]) - delta_HI[count_MC_model1 % len(fractions_HI)])):
+	if (tmp_volume_frac_model1 < (fractions_HI[count_MC_model1 % len(fractions_HI)]) + delta_HI[count_MC_model1 % len(fractions_HI)]) and (tmp_volume_frac_model1 > (fractions_HI[count_MC_model1 % len(fractions_HI)]) - delta_HI[count_MC_model1 % len(fractions_HI)]):
 		MC_ZZ[0,count_MC_model1] = ZZ[i]
 		MC_Snaps[0, count_MC_model1] = i
 		print "Model1 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model1], ZZ[i])
@@ -2726,8 +2897,8 @@ if __name__ == '__main__':
 		do_power_model1 = 1
 		count_MC_model1 += 1
 
-	if(number_models > 1):		
-		if (calculate_volume_frac(ionized_cells_model2, GridSize_model2) < (fractions_HI[count_MC_model2 % len(fractions_HI)]) + delta_HI[count_MC_model2 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model2, GridSize_model2) > (fractions_HI[count_MC_model2 % len(fractions_HI)]) - delta_HI[count_MC_model2 % len(fractions_HI)]):
+	if(number_models > 1):
+		if (tmp_volume_frac_model2 < (fractions_HI[count_MC_model2 % len(fractions_HI)]) + delta_HI[count_MC_model2 % len(fractions_HI)] and tmp_volume_frac_model2 > (fractions_HI[count_MC_model2 % len(fractions_HI)]) - delta_HI[count_MC_model2 % len(fractions_HI)]):
 			MC_ZZ[1,count_MC_model2] = ZZ[i]
 			MC_Snaps[1, count_MC_model2] = i
 			print "Model2 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model2], ZZ[i])
@@ -2736,7 +2907,7 @@ if __name__ == '__main__':
 			count_MC_model2 += 1
 
 	if(number_models > 2):
-		if (calculate_volume_frac(ionized_cells_model3, GridSize_model3) < (fractions_HI[count_MC_model3 % len(fractions_HI)]) + delta_HI[count_MC_model3 % len(fractions_HI)] and calculate_volume_frac(ionized_cells_model3, GridSize_model3) > (fractions_HI[count_MC_model3 % len(fractions_HI)]) - delta_HI[count_MC_model3 % len(fractions_HI)]):
+		if (tmp_volume_frac_model3 < (fractions_HI[count_MC_model3 % len(fractions_HI)]) + delta_HI[count_MC_model3 % len(fractions_HI)] and tmp_volume_frac_model3 > (fractions_HI[count_MC_model3 % len(fractions_HI)]) - delta_HI[count_MC_model3 % len(fractions_HI)]):
 			MC_ZZ[2,count_MC_model3] = ZZ[i]
 			MC_Snaps[2, count_MC_model3] = i
 			print "Model3 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model3], ZZ[i])
@@ -2751,51 +2922,48 @@ if __name__ == '__main__':
         	calculate_bubble_MC(ZZ[i], ionized_cells_model3, GridSize_model3, OutputDir, output_tags[2])
 		do_MC = 0
 
+
+	def calculate_power_spectrum(ionized_cells, density, GridSize):
+	
+		Brightness = 27.0*(1.0-ionized_cells)*density*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
+
+		Mean_Brightness = np.mean(Brightness)
+		delta = Brightness/Mean_Brightness - 1.0	
+
+		k_Bins, PowSpec, Error = Power_Spectrum(delta, GridSize)
+
+		return (k_Bins , PowSpec, Error, Mean_Brightness)  
+        	
+
 	if (do_power_model1 == 1 and calculate_power == 1):
-		## Model 1 ##
-		Brightness_model1 = 27.0*(1.0-ionized_cells_model1)*density_model1*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
 
-		Mean_Brightness_model1 = np.mean(Brightness_model1)
-		delta_model1 = Brightness_model1/Mean_Brightness_model1 - 1	
-
-	        (k_Bins , PowSpec, Error) = Power_Spectrum(delta_model1, GridSize_model1)
-        	PowerSpectra_model1.append(Mean_Brightness_model1**2 * PowSpec * k_Bins**3 / (2*np.pi*np.pi*BoxSize**3))  
-        	k_model1.append(k_Bins)
-        	PowerSpectra_Error_model1.append(Error)
+		tmp_k, tmp_PowSpec, tmp_Error, Mean_Brightness = calculate_power_spectrum(ionized_cells_model1, density_model1, GridSize_model1)
+		k_model1.append(tmp_k)
+		PowerSpectra_model1.append(Mean_Brightness**2 * tmp_PowSpec * tmp_k**3 * 4.0 * np.pi * np.pi)
+		PowerSpectra_Error_model1.append(tmp_Error)
 
 		do_power_model1 = 0
-		print "Mean_Brightness_model1", Mean_Brightness_model1
+		print "Mean_Brightness_model1", Mean_Brightness
 
 	if (do_power_model2 == 1 and calculate_power == 1):
 	
-		## Model 2 ##
-		Brightness_model2 = 27.0*(1.0-ionized_cells_model2)*density_model2*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
-		Mean_Brightness_model2 = np.mean(Brightness_model2)
-		delta_model2 = Brightness_model2/Mean_Brightness_model2 - 1	
-
-        	(k_Bins , PowSpec, Error) = Power_Spectrum(delta_model2, GridSize_model2)
-
-        	PowerSpectra_model2.append(Mean_Brightness_model2**2 * PowSpec * k_Bins**3 / (2*np.pi*np.pi*BoxSize**3)) 
-        	k_model2.append(k_Bins)
-        	PowerSpectra_Error_model2.append(Error)
+		tmp_k, tmp_PowSpec, tmp_Error, Mean_Brightness = calculate_power_spectrum(ionized_cells_model2, density_model2, GridSize_model2)
+		k_model2.append(tmp_k)
+		PowerSpectra_model2.append(Mean_Brightness**2 * tmp_PowSpec * tmp_k**3 * 4.0 * np.pi * np.pi) 
+		PowerSpectra_Error_model2.append(tmp_Error)
 
 		do_power_model2 = 0	
-		print "Mean_Brightness_model2", Mean_Brightness_model2
+		print "Mean_Brightness_model2", Mean_Brightness
 
 	if (do_power_model3 == 1 and calculate_power == 1):
 
-		## Model 3 ##
-		Brightness_model3 = 27.0*(1.0-ionized_cells_model3)*density_model3*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
-		Mean_Brightness_model3 = np.mean(Brightness_model3)
-		delta_model3 = Brightness_model3/Mean_Brightness_model3 - 1	
-
-        	(k_Bins , PowSpec, Error) = Power_Spectrum(delta_model3, GridSize_model3) 
-        	PowerSpectra_model3.append(Mean_Brightness_model3**2 * PowSpec * k_Bins**3 / (2*np.pi*np.pi*BoxSize**3)) 
-        	k_model3.append(k_Bins)
-        	PowerSpectra_Error_model3.append(Error)	
+		tmp_k, tmp_PowSpec, tmp_Error, Mean_Brightness = calculate_power_spectrum(ionized_cells_model3, density_model3, GridSize_model3)
+		k_model3.append(tmp_k)
+		PowerSpectra_model3.append(Mean_Brightness**2 * tmp_PowSpec * tmp_k**3 * 4.0 * np.pi * np.pi) 
+		PowerSpectra_Error_model3.append(tmp_Error)
 
 		do_power_model3 = 0
-		print "Mean_Brightness_model3", Mean_Brightness_model3
+		print "Mean_Brightness_model3", Mean_Brightness
 
         #redshift_array_model1, density_z_mean_model1[i], density_z_std_model1[i] = Reionization_Redshift(ionized_cells_model1, density_model1, redshift_array_model1, ZZ[i], GridSize_model1)
         #redshift_array_model2, density_z_mean_model2[i], density_z_std_model2[i] = Reionization_Redshift(ionized_cells_model2, density_model2, redshift_array_model2, ZZ[i], GridSize_model2)
@@ -2833,9 +3001,9 @@ if __name__ == '__main__':
     if (MC_ZZ[2][-1] < 5 or MC_ZZ[2][-1] > 1000):
 	MC_ZZ[2][-1] = ZZ[-1]
 
-    print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
-    print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)
-    print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[2], (cosmo.lookback_time(MC_ZZ[2][0]).value - cosmo.lookback_time(MC_ZZ[2][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[2][0]).value, cosmo.lookback_time(MC_ZZ[2][-1]).value)
+    #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
+    #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)
+    #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[2], (cosmo.lookback_time(MC_ZZ[2][0]).value - cosmo.lookback_time(MC_ZZ[2][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[2][0]).value, cosmo.lookback_time(MC_ZZ[2][-1]).value)
     #plot_redshifts(redshift_array_model1, ZZ, lowerZ, upperZ, OutputDir, "zreiond3_" + output_tags[0])
     #plot_redshifts(redshift_array_model2, ZZ, lowerZ, upperZ, OutputDir, "zreiond3_" + output_tags[1])
 
@@ -2843,7 +3011,7 @@ if __name__ == '__main__':
     #save_redshifts(redshift_array_model2, OutputDir, "ReionizationRedshift_" + output_tags[1])
     #save_redshifts(redshift_array_model3, OutputDir, "ReionizationRedshift_" + output_tags[2])
  
-    #plot_power(fractions_HI, [k_model1, k_model2, k_model3], [PowerSpectra_model1, PowerSpectra_model2, PowerSpectra_model3], [PowerSpectra_Error_model1, PowerSpectra_Error_model2, PowerSpectra_Error_model3], model_tags, OutputDir, "PowerSpectrum")
+    plot_power(fractions_HI, [k_model1, k_model2, k_model3], [PowerSpectra_model1, PowerSpectra_model2, PowerSpectra_model3], [PowerSpectra_Error_model1, PowerSpectra_Error_model2, PowerSpectra_Error_model3], model_tags, OutputDir, "PowerSpectrum")
 
     if(plot_MC == 1):
 	plotting_MC_ZZ = MC_ZZ
@@ -2851,9 +3019,9 @@ if __name__ == '__main__':
     elif(plot_MC == 2):
 	plotting_MC_ZZ = MC_ZZ_snaps 
 	plotting_HI = [volume_frac_model1, volume_frac_model2, volume_frac_model3]
-    #plot_bubble_MC(plotting_MC_ZZ, fractions_HI, model_tags, output_tags, [GridSize_model1, GridSize_model2, GridSize_model3], OutputDir, "BubbleSizes")
-    print plotting_MC_ZZ
-    find_max_bubble(plotting_MC_ZZ, plotting_HI, plot_MC, [volume_frac_model1, volume_frac_model2, volume_frac_model3],  model_tags, output_tags, [GridSize_model1, GridSize_model2, GridSize_model3], OutputDir, "MaxBubble_withNB_z_ylog")
+    #plot_bubble_MC(plotting_MC_ZZ, fractions_HI, model_tags, output_tags, [GridSize_model1, GridSize_model2, GridSize_model3], OutputDir, "BubbleSizes") 
+    #plot_hoshen([hoshen_array], [volume_frac_model1], model_tags, OutputDir, "Hoshen")
+    #find_max_bubble(plotting_MC_ZZ, plotting_HI, plot_MC, [volume_frac_model1, volume_frac_model2, volume_frac_model3],  model_tags, output_tags, [GridSize_model1, GridSize_model2, GridSize_model3], OutputDir, "MaxBubble_withNB_z_ylog")
     #plot_global_frac(ZZ, [mass_frac_model1, mass_frac_model2, mass_frac_model3], [volume_frac_model1, volume_frac_model2, volume_frac_model3], MC_ZZ, model_tags, OutputDir, "GlobalFraction")
     #plot_total_nion(ZZ, [nion_total_model1, nion_total_model2, nion_total_model3], model_tags, OutputDir, "Nion")
     #photon_baryon(lowerZ, upperZ, ZZ, [nion_total_model1, nion_total_model2], Hubble_h, OB, Y, model_tags, OutputDir, "nion_total2")
