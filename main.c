@@ -107,13 +107,15 @@ int main(int argc, char **argv)
   if(ReionizationOn == 2)
     init_grid();
 
- 
+  fprintf(stderr, "ListoutputSnaps[0] = %d\n", ListOutputSnaps[0]);
+
 #ifdef MPI
   for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
 #else
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
 #endif
   {
+    
    //if(filenr == 33 || filenr == 49 || filenr == 80)
 //	continue;
     sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
@@ -147,8 +149,7 @@ int main(int argc, char **argv)
     
     
     for(tree = 0; tree < Ntrees; tree++)
-    {
-          
+    {      
 			assert(!gotXCPU);
 
       if(tree % 1000 == 0)
@@ -176,15 +177,14 @@ int main(int argc, char **argv)
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree();
-      
+            
     }
 
     finalize_galaxy_file(filenr);  
     finalize_merged_galaxy_file(filenr);
     
     free_tree_table();
-    printf("\ndone file %d\n\n", filenr);
-
+    printf("\ndone file %d\n\n", filenr); 
   }
 
   exitfail = 0;

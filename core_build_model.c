@@ -65,6 +65,7 @@ void construct_galaxies(int halonr, int tree, int filenr)
       fofhalo = Halo[fofhalo].NextHaloInFOFgroup;
     }
 
+//    fprintf(stderr, "tree = %d \t ngal = %d \t filenr = %d \t halonr = %d \t Halo[halonr].FirstHaloInFOFgroup = %d \t Halo[halonr].SnapNum = %d\n", tree, ngal, filenr, halonr, Halo[halonr].FirstHaloInFOFgroup, Halo[halonr].SnapNum);
     evolve_galaxies(Halo[halonr].FirstHaloInFOFgroup, ngal, tree, filenr);
   }
 
@@ -477,7 +478,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
       Gal[p].SnapNum = Halo[currenthalo].SnapNum;
       HaloGal[NumGals++] = Gal[p];
-      HaloAux[currenthalo].NGalaxies++;
+      HaloAux[currenthalo].NGalaxies++;      
     }
   }
 }

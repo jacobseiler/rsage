@@ -196,15 +196,12 @@ struct GALAXY
   float *GridSFR;
   float *GridZ;
   float *GridCentralGalaxyMass;
-//  float *GridPhotons_HI;
-//  float *GridPhotons_HeI;
-//  float *GridPhotons_HeII;
   double *MfiltGnedin;
   double *MfiltSobacchi;
   float *EjectedFraction;
   int *LenHistory;
   double *Stars;
-  double *GridOutflowRate;
+//  double *GridOutflowRate;
 
   double StellarAge_Numerator;
   double StellarAge_Denominator;
@@ -213,6 +210,7 @@ struct GALAXY
 
   int IsMerged;
   double GrandSum;
+  int IsMalloced;
 }
 *Gal, *HaloGal, *MergedGal;
 

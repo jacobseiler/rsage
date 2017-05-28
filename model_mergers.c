@@ -324,7 +324,7 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
     MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
     MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
-    MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j]; 
+//    MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j]; 
   }
  
   for (j = 0; j < SN_Array_Len; ++j)
@@ -333,6 +333,7 @@ void add_galaxy_to_merger_list(int p)
   }
 
   free_grid_arrays(&Gal[p]);
+  Gal[p].IsMalloced = 0;
   Gal[p].IsMerged = 1; 
   ++MergedNr;
 }

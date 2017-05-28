@@ -17,6 +17,7 @@ void init_galaxy(int p, int halonr)
 
 	assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
 
+//  printf("GALAXY INITIALIZED p = %d Halonr = %d\n", p, halonr);
   Gal[p].Type = 0;
 
   Gal[p].GalaxyNr = GalaxyCounter;
@@ -86,6 +87,8 @@ void init_galaxy(int p, int halonr)
   Gal[p].infallVmax = -1.0;
 
   malloc_grid_arrays(&Gal[p]);
+  Gal[p].IsMalloced = 1;
+
   
   for (j = 0; j < MAXSNAPS; ++j)
   {
@@ -98,7 +101,7 @@ void init_galaxy(int p, int halonr)
     Gal[p].MfiltSobacchi[j] = 1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
-    Gal[p].GridOutflowRate[j] = 0.0;
+//    Gal[p].GridOutflowRate[j] = 0.0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -260,7 +263,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 //    Gal[p].GridPhotons_HI[SnapCurr] = Ngamma_HI; 
 //    Gal[p].GridPhotons_HeI[SnapCurr] = Ngamma_HeI; 
 //    Gal[p].GridPhotons_HeII[SnapCurr] = Ngamma_HeII; 
-    Gal[p].MfiltGnedin[SnapCurr] = do_reionization(centralgal, ZZ[SnapCurr], 1);
+//    Gal[p].MfiltGnedin[SnapCurr] = do_reionization(centralgal, ZZ[SnapCurr], 1);
     if (ReionizationOn == 2)
     {  
       Gal[p].MfiltSobacchi[SnapCurr] = do_myreionization(centralgal, ZZ[SnapCurr], 1); 
@@ -280,7 +283,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
       exit(EXIT_FAILURE);
     }
 
-    Gal[p].GridOutflowRate[SnapCurr] = Gal[p].OutflowRate;
+//    Gal[p].GridOutflowRate[SnapCurr] = Gal[p].OutflowRate;
 
 }
 

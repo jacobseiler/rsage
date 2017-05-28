@@ -266,8 +266,16 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   }
  
   for (j = 0; j < MAXSNAPS; ++j)
-  {  
-      myfwrite(&g->MfiltGnedin[j], sizeof(*(g->MfiltGnedin)), 1, fp);
+  {
+      float tmp = -999.99;
+      myfwrite(&tmp, sizeof(float), 1, fp);
+  }
+
+  for (j = 0; j < MAXSNAPS; ++j)
+  {
+ 
+      myfwrite(&g->MfiltGnedin[j], sizeof(*(g->MfiltGnedin)), 1, fp);  
+      //XASSERT(g->MfiltGnedin[j] == 1.0, "Somehow got a value for MfiltGned = %.4e.  Snapshot %d\n", g->MfiltGnedin[j], j);
   }
 
   for (j = 0; j < MAXSNAPS; ++j)
@@ -285,6 +293,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
      myfwrite(&g->LenHistory[j], sizeof(*(g->LenHistory)), 1, fp);  
   }
 
+  /*
   // Padding // 
   for (j = 0; j < MAXSNAPS; ++j)
   {
@@ -293,7 +302,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 	fprintf(stderr, "tmpOutflowRate = %.4e \t g->GridOutflowRate[j] = %.4e \t SFR_conversion * STEPS = %.4e \t Gal[p].OutflowRate = %.4e\n", tmpOutflowRate, g->GridOutflowRate[j], SFR_conversion * STEPS, g->OutflowRate); 
       myfwrite(&tmpOutflowRate, sizeof(float), 1, fp); 
   }
-
+  */
 
 }
 
@@ -308,6 +317,8 @@ void finalize_galaxy_file(int filenr)
 
     // seek to the beginning.
     fseek( save_fd[n], 0, SEEK_SET );
+
+    fprintf(stderr, "Ntrees = %d \t TotGalaxies[n] = %d\n", Ntrees, TotGalaxies[n]);
 
     myfwrite(&Ntrees, sizeof(int), 1, save_fd[n]); 
     myfwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
@@ -359,7 +370,6 @@ void save_merged_galaxies(int filenr, int tree)
     free( tmp_buf );
   }
 
-  
   for(i = 0; i < MergedNr; i++)
   {
     prepare_galaxy_for_output(filenr, tree, &MergedGal[i], &galaxy_output);

@@ -132,12 +132,15 @@ void free_galaxies_and_tree(void)
   for(i = 0; i < NumGals; ++i)
   { 
     if(HaloGal[i].SnapNum == ListOutputSnaps[0]) // The pointed to memory that we malloced is NOT copied over when we generate a new MergedGal entry. 
-      free_grid_arrays(&HaloGal[i]);   
+    {
+      free_grid_arrays(&HaloGal[i]); 
+     
+    } 
   }
 
   for(i = 0; i < MergedNr; ++i)
   {
-    free_grid_arrays(&MergedGal[i]); // These are the Gal[xxx] entries that were copied over to 
+    free_grid_arrays(&MergedGal[i]); // These are the Gal[xxx] entries that were copied over to  
   } 
 
   myfree(MergedGal);
@@ -159,6 +162,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->EjectedFraction);
   free(g->LenHistory);
   free(g->Stars);
+//  free(g->GridOutflowRate);
 }
 
 void malloc_grid_arrays(struct GALAXY *g)
@@ -223,12 +227,13 @@ void malloc_grid_arrays(struct GALAXY *g)
     exit(EXIT_FAILURE);
   }
 
+  /*
   if (NULL == (g->GridOutflowRate = malloc(sizeof(*(g->GridOutflowRate)) * MAXSNAPS)))
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridOutflowRate.", sizeof(*(g->GridOutflowRate))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
-
+  */
 
 }
 
