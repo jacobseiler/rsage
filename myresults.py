@@ -58,7 +58,7 @@ z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
 time_xlim = [315, 930]
 time_tick_interval = 25
 
-Output_Format = ".png"
+Output_Format = ".pdf"
 
 def calculate_beta(MUV, z):
 	
@@ -251,7 +251,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
     ## Plot Parameters ##
     binwidth = 0.1
-    Observations = 2
+    Observations = 1
 
     Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probability histogram.
     errorwidth = 2
@@ -267,8 +267,8 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
         title.append(tmp)
 
-        #AllVars.Set_Params_Mysim()
-      	AllVars.Set_Params_MiniMill()
+        AllVars.Set_Params_Mysim()
+      	#AllVars.Set_Params_MiniMill()
       
         norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
     
@@ -282,8 +282,8 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
         tmp = r'Delayed: z = %.2f' %(Redshift[i])
         title.append(tmp)
 
-        #AllVars.Set_Params_Mysim()
-      	AllVars.Set_Params_MiniMill()
+        AllVars.Set_Params_Mysim()
+      	#AllVars.Set_Params_MiniMill()
        
         norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
     
@@ -291,7 +291,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
    
 ### Plotting ###
 
-    plt.figure()  
+    f = plt.figure()  
     ax = plt.subplot(111)  
 
 ### Plots the Histograms ###
@@ -305,23 +305,23 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
         else:
             ls = linestyles[1]
 	    label = ''
-        plt.plot(Bin_Middle, counts / Normalization[i], color = colors[i % MySim_Len], linestyle = ls, label = label)
+        plt.plot(Bin_Middle, counts / Normalization[i], color = colors[i % MySim_Len], linestyle = ls, label = label, rasterized=True)
 
 ##
 
 ### Manually enter in the labels for the different simulations. ###
-    for i in xrange(0, 2):
-	    plt.plot(1e100, 1e100, color = 'k', ls = linestyles[i], label = Model_Tags[i])
+    for i in xrange(0, 1):
+	    plt.plot(1e100, 1e100, color = 'k', ls = linestyles[i], label = Model_Tags[i], rasterized=True)
 
 ### Draws a vertical line to denote lower bounds for what is an 'acceptable' Stellar Mass ### 
 
-    plt.axvline(x = np.log10(HaloPartStellarMass), ymin = 0, ymax = 10, linestyle = '-.')
+    plt.axvline(x = np.log10(HaloPartStellarMass), ymin = 0, ymax = 10, linestyle = '-.', rasterized=True)
 
 ## 
 
     plt.yscale('log', nonposy='clip')
 
-    plt.axis([8, 12.0, 1e-6, 1e-1])
+    plt.axis([6, 11.5, 1e-6, 1e-1])
 
     ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}} \:[M_{\odot}]$', fontsize = talk_fontsize)
     ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = talk_fontsize)
@@ -356,7 +356,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
                             [9.75 - delta, -3.69, -3.69 + 0.12, -3.69 - 0.13],
                             [10.25 - delta, -4.27, -4.27 + 0.38, -4.27 - 0.86]], dtype = np.float32)
 
-        plt.errorbar(Song_z6[:,0], 10**Song_z6[:,1], yerr= (10**Song_z6[:,1] - 10**Song_z6[:,3], 10**Song_z6[:,2] - 10**Song_z6[:,1]), xerr = 0.25, capsize = caps, elinewidth = errorwidth, alpha = 1.0, lw=2.0, marker='o', ls='none', label = 'Song 2015, z = 6', color = '#bd0026')
+        plt.errorbar(Song_z6[:,0], 10**Song_z6[:,1], yerr= (10**Song_z6[:,1] - 10**Song_z6[:,3], 10**Song_z6[:,2] - 10**Song_z6[:,1]), xerr = 0.25, capsize = caps, elinewidth = errorwidth, alpha = 1.0, lw=2.0, marker='o', ls='none', label = 'Song 2015, z = 6', color = '#bd0026', rasterized=True)
 
         Song_z7 = np.array([[7.25, -1.63, -1.63 + 0.54, -1.63 - 0.54],
                             [7.75, -2.07, -2.07 + 0.45, -2.07 - 0.41],
@@ -367,7 +367,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
                             [10.25, -4.61, -4.61 + 0.72, -4.61 - 0.82],
                             [10.75, -5.24, -5.24 + 0.90, -5.25 - 0.57]], dtype = np.float32)
 
-        plt.errorbar(Song_z7[:,0], 10**Song_z7[:,1], yerr= (10**Song_z7[:,1] - 10**Song_z7[:,3], 10**Song_z7[:,2] - 10**Song_z7[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 7', color = 'blue')
+        plt.errorbar(Song_z7[:,0], 10**Song_z7[:,1], yerr= (10**Song_z7[:,1] - 10**Song_z7[:,3], 10**Song_z7[:,2] - 10**Song_z7[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 7', color = 'blue', rasterized=True)
 
         Song_z8 = np.array([[7.25, -1.73, -1.73 + 1.01, -1.73 - 0.84],
                             [7.75, -2.28, -2.28 + 0.84, -2.28 - 0.64],
@@ -377,7 +377,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
                             [9.75, -5.31, -5.31 + 1.01, -5.31 - 1.64]], dtype = np.float32)
 
 
-        plt.errorbar(Song_z8[:,0], 10**Song_z8[:,1], yerr= (10**Song_z8[:,1] - 10**Song_z8[:,3], 10**Song_z8[:,2] - 10**Song_z8[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 8', color = 'green')
+        plt.errorbar(Song_z8[:,0], 10**Song_z8[:,1], yerr= (10**Song_z8[:,1] - 10**Song_z8[:,3], 10**Song_z8[:,2] - 10**Song_z8[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 8', color = 'green', rasterized=True)
 
     if (Observations == 2):
 		Baldry = np.array([
@@ -449,10 +449,11 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(talk_legendsize)
 
-    plt.tight_layout()
+    #plt.tight_layout()
 
     outputFile = './' + Output_Tag + Output_Format
-    plt.savefig(outputFile)  # Save the figure
+    #f.savefig("foo.pdf", bbox_inches='tight')
+    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print 'Saved file to', outputFile
     plt.close()
  
@@ -2320,14 +2321,14 @@ def OutflowRate(SnapList, mass1, mass2, outflow1, outflow2, Model_Tags, Output_T
 
 #################################
 
-Simulation = 0 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
+Simulation = 1 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
 
       
 if (Simulation == 0 or Simulation == 2):
-    H_Millennium = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/millennium_trees/trees_063', 0, 7)
+    #H_Millennium = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/millennium_trees/trees_063', 0, 7)
 
-    GG_Millennium, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/IRA_z0.000', 0, 7, 64)
-    G_Merged_Millennium, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/IRA_MergedGalaxies', 0, 7, 64)
+    GG_Millennium, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/totally_new_z0.000', 0, 7, 64)
+    G_Merged_Millennium, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/totally_new_MergedGalaxies', 0, 7, 64)
     G_Millennium = ReadScripts.Join_Arrays(GG_Millennium, G_Merged_Millennium, Gal_Desc)
 
     GG_Millennium2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/Delayed_SN1Myr_z0.000', 0, 7, 64)
@@ -2354,8 +2355,9 @@ if (Simulation == 1 or Simulation == 2):
 
     # 1024
 
-    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_SN1Myr_SF1Myr_z5.000', 0, 124, 101)
-    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_SN1Myr_SF1Myr_MergedGalaxies', 0, 124, 101)
+
+    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000', 0, 124, 101)
+    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies', 0, 124, 101)
 
     #GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
     #G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
@@ -2374,8 +2376,9 @@ if (Simulation == 1 or Simulation == 2):
 
 
     # 1024
-    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_SN10Myr_SF10Myr_z5.000', 0, 124, 101)
-    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/NewDelayed_Delayed_SN10Myr_SF10Myr_MergedGalaxies', 0, 124, 101)
+
+    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_norecycling_z5.000', 0, 124, 101)
+    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_norecycling_MergedGalaxies', 0, 124, 101)
 
     #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
     #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
@@ -2795,18 +2798,18 @@ def Calculate_HaloPartStellarMass(ZZ, HaloPart, StellarMass, BoundLow, BoundHigh
 #print "For 512 model:"
 #HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, HaloPart_Low, HaloPart_High)
 
-low = 45
-high = 55
+low = 95
+high = 105
 #print "For 1024 model:"
-#HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, low, high)
+HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, low, high)
 #HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_Millennium, low, high)
-HaloPartStellarMass_MySim = 0
 
 print "Mass_G_MySim", mass_G_MySim
 print "Mass_G_MySim2", mass_G_MySim2
+
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-#StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapListZ), ["Instant", "Delayed - 1Myr"], "MiniMillenniumSN1_LocalIRA")
+StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapListZ), [r"Fiducial", r"No Recycling"], "SMF_Paper")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
@@ -2827,4 +2830,4 @@ print "Mass_G_MySim2", mass_G_MySim2
 #EjectedFracVsStellarMass(Simulation, SnapListZ_MySim, mass_Central_MySim, EjectedFraction_MySim, len(SnapList_MySim), "EjectedMass_HaloMass_HaloPartCut100")
 #HaloPartCount(Simulation, SnapListZ_MySim, HaloCount_MySim, len(SnapList_MySim))
 #SFR(Simulation, SnapListZ, mass_G_MySim, SFR_G_MySim, len(SnapList_MySim), "SFR")
-OutflowRate(SnapList_Millennium, mass_G_Millennium, mass_G_Millennium2, Outflow_G_Millennium, Outflow_G_Millennium2, ["Instant", "Delayed - 1Myr"], "MiniMillennium_Outflow_Stellar")
+#OutflowRate(SnapList_Millennium, mass_G_Millennium, mass_G_Millennium2, Outflow_G_Millennium, Outflow_G_Millennium2, ["Instant", "Delayed - 1Myr"], "MiniMillennium_Outflow_Stellar")

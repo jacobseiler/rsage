@@ -53,6 +53,8 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
             TotNTrees = TotNTrees + Ntrees  # Update total sim trees number
         NtotHalos = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of gals in file.
         TotNHalos = TotNHalos + NtotHalos  # Update total sim gals number
+	print "File %s contains %d total galaxies" %(fname, NtotHalos)
+	
 #        print "File = %d, NtotHalos = %d, TotNHalos = %d" %(fnr, NtotHalos, TotNHalos)
         goodfiles = goodfiles + 1  # Update number of files read for volume calculation
         fin.close()
@@ -91,7 +93,8 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         NtotHalos = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Read number of gals in file.
         if (Contain_TreeInfo == 1):
             GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
-	
+
+	print GalsPerTree	
         print ":   Reading N=", NtotHalos, "   \t Objects from file: ", fname
  
         GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
@@ -420,11 +423,11 @@ def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS):
          ('GridSFR', (np.float32, MAXSNAPS)),
          ('GridZ', (np.float32, MAXSNAPS)),
          ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
+         ('Pad', (np.float32, MAXSNAPS)),
          ('MfiltGnedin', (np.dtype('d'), MAXSNAPS)),
          ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
-         ('LenHistory', (np.int32, MAXSNAPS)),
-         ('GridOutflowRate', (np.float32, MAXSNAPS))
+         ('LenHistory', (np.int32, MAXSNAPS))
          ]
                              
     print "Reading in SAGE files (Post STARBURST)."
