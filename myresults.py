@@ -58,7 +58,7 @@ z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
 time_xlim = [315, 930]
 time_tick_interval = 25
 
-Output_Format = ".pdf"
+output_format = ".pdf"
 
 def calculate_beta(MUV, z):
 	
@@ -244,10 +244,19 @@ def Photon_Totals(Simulation, Redshift, Photons, Mysim_Len):
 
     PlotScripts.Plot_Scatter(Redshift, Photons, title, [4.5, 15.5, 53, 58.3], [0,0], ['z', r'Log Ionizing Photons [s$^{-1}$]'], 1, 2, OutputFile, '.png')  
 
-def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_Len, Model_Tags, Output_Tag):
+def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass, model_tags, output_tag):
 
     title = []
-    Normalization = []
+    normalization_array = []
+    redshift_labels = []
+
+    counts_array = []
+    bin_middle_array = []
+
+    for model_number in xrange(0, len(SnapList)):
+	counts_array.append([])
+	bin_middle_array.append([])
+	redshift_labels.append([])
 
     ## Plot Parameters ##
     binwidth = 0.1
@@ -259,63 +268,49 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
     caps = 5
     ##
 
-    ## Normalization and Titles for MySim ##
-    for i in xrange(0, MySim_Len): 
+    print "SnapList:", SnapList
+    print "Mass:", mass
 
-        #tmp = r'Recursive $\texttt{SAGE}, f_\mathrm{esc} \: \propto \: M_H^\beta$: z = %.2f' %(Redshift[i])
-        tmp = r'z = %.2f' %(Redshift[i])
+    ## Normalization for each model. ##
+    for model_number in xrange(0, len(SnapList)): 
 
-        title.append(tmp)
+	if (simulation_norm[model_number] == 0):
+		AllVars.Set_Params_Mysim()
+	elif (simulation_norm[model_number] == 1):
+		AllVars.Set_Params_MiniMill()
 
-        AllVars.Set_Params_Mysim()
-      	#AllVars.Set_Params_MiniMill()
-      
         norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
-    
-        Normalization.append(norm)
+        normalization_array.append(norm)
 
+	## Redshift labels for each redshift within each model. ##
+	for snapshot_idx in xrange(0, len(SnapList[model_number])):
+		tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
 
-    ## Normalization and Titles for MySim2 ## 
-    
-    for i in xrange(0, MySim_Len): 
-        #tmp = r'Recursive $\texttt{SAGE}, f_\mathrm{esc} \: \propto \: M_H^{-\beta}$: z = %.2f' %(Redshift[i])
-        tmp = r'Delayed: z = %.2f' %(Redshift[i])
-        title.append(tmp)
+		redshift_labels[model_number].append(tmp)
 
-        AllVars.Set_Params_Mysim()
-      	#AllVars.Set_Params_MiniMill()
-       
-        norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
-    
-        Normalization.append(norm)
-   
+		(counts, bin_edges, bin_middle) = Calculate_Histogram(mass[model_number][snapshot_idx], binwidth, Frequency)
+		counts_array[model_number].append(counts)
+		bin_middle_array[model_number].append(bin_middle) 
+	
+
 ### Plotting ###
 
     f = plt.figure()  
     ax = plt.subplot(111)  
 
-### Plots the Histograms ###
-
-    for i in xrange(0, len(Mass)):
-
-        (counts, Bin_Edges, Bin_Middle) = Calculate_Histogram(Mass[i], binwidth, Frequency)
-        if (i < MySim_Len):
-            ls = linestyles[0]
-	    label = title[i]
-        else:
-            ls = linestyles[1]
-	    label = ''
-        plt.plot(Bin_Middle, counts / Normalization[i], color = colors[i % MySim_Len], linestyle = ls, label = label, rasterized=True)
-
+    for model_number in xrange(0, len(SnapList)):
+		for snapshot_idx in xrange(0, len(SnapList[model_number])):
+			plt.plot(bin_middle_array[model_number][snapshot_idx], counts_array[model_number][snapshot_idx] / normalization_array[model_number], color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = redshift_labels[model_number][snapshot_idx])
+	
 ##
 
 ### Manually enter in the labels for the different simulations. ###
-    for i in xrange(0, 1):
-	    plt.plot(1e100, 1e100, color = 'k', ls = linestyles[i], label = Model_Tags[i], rasterized=True)
+#    for i in xrange(0, 1):
+#	    plt.plot(1e100, 1e100, color = 'k', ls = linestyles[i], label = Model_Tags[i], rasterized=True)
 
 ### Draws a vertical line to denote lower bounds for what is an 'acceptable' Stellar Mass ### 
 
-    plt.axvline(x = np.log10(HaloPartStellarMass), ymin = 0, ymax = 10, linestyle = '-.', rasterized=True)
+#    plt.axvline(x = np.log10(HaloPartStellarMass), ymin = 0, ymax = 10, linestyle = '-.', rasterized=True)
 
 ## 
 
@@ -451,7 +446,7 @@ def StellarMassFunction(Simulation, Redshift, Mass, HaloPartStellarMass, MySim_L
 
     #plt.tight_layout()
 
-    outputFile = './' + Output_Tag + Output_Format
+    outputFile = './' + output_tag + output_format
     #f.savefig("foo.pdf", bbox_inches='tight')
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print 'Saved file to', outputFile
@@ -2339,7 +2334,7 @@ if (Simulation == 0 or Simulation == 2):
     print "Snapshots analyzing are", SnapList_Millennium
     AllVars.Set_Params_MiniMill()
 
-if (Simulation == 1 or Simulation == 2):
+
 
     #H_MySim = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/Rockstar_output/Halos_noLL/Ltrees/lhalotree.bin', 0, 26)
     #H_MySim2 = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/Rockstar_output/1024_Halos_noLL/Ltrees/lhalotree.bin', 0, 124)
@@ -2355,16 +2350,6 @@ if (Simulation == 1 or Simulation == 2):
 
     # 1024
 
-
-    GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000', 0, 124, 101)
-    G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies', 0, 124, 101)
-
-    #GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
-    #G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
-
-    G_MySim = ReadScripts.Join_Arrays(GG_MySim, G_Merged_MySim, Gal_Desc)
-
-
     # 512
     #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/noreion_z5.038', 0, 26, 100)
     #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/noreion_z5.038', 0, 26, 100)
@@ -2377,13 +2362,12 @@ if (Simulation == 1 or Simulation == 2):
 
     # 1024
 
-    GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_norecycling_z5.000', 0, 124, 101)
-    G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_norecycling_MergedGalaxies', 0, 124, 101)
+
+
 
     #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
     #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
 
-    G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc) 
 
 
 
@@ -2394,18 +2378,16 @@ if (Simulation == 1 or Simulation == 2):
     #SnapList_MySim = [99, 78, 64, 51, 43, 37] 
     # Snapshots = z [5, 6, 7, 8, 9, 10] are [99, 78, 64, 51, 43, 37] (used for UVLF) 
 
-    SnapList_MySim = [78, 64,51]
     # Snapshots for z = [6, 7, 8] are [78, 64, 51]
     # Snapshots for z = [7.23, 6.69] are [60, 67] (used for LyAlpha Luminosity)
- 
-    print "Snapshots analyzing are", SnapList_MySim
     
 HaloPart_Low = 41 # Bounds for where we define the cutoff for a 'Dark Matter Halo'. Below this we can't be sure of the results.
 HaloPart_High = 51
 
 calculate_observed_LF = 0
 
-
+number_models = 1
+model_tags = ["Test"]
 
 '''
 countSnap_low = 30
@@ -2421,395 +2403,205 @@ print numgals_low
 print numgals_high
 '''
 
+## Constants used for each model. ##
+# Need to add an entry for EACH model. #
+
+sSFR_min = [1.0e100, 1.0e100]
+sSFR_max = [-1.0e100, -1.0e100]
+halo_cut = [1, 1]
+fesc_lyman_alpha = [0.3, 0.3]
+fesc = [0.15, 0.15]
+source_efficiency = [1, 1] 
+
+SnapList = [[78, 64,51]]
+
+simulation_norm = [0, 0] # 0 for MySim, 1 for Mini-Millennium.
+
+galaxy_halo_mass_lower = [95, 95] # These limits are for the number of particles in a halo.  
+galaxy_halo_mass_upper = [105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
 
 #HaloPartCount(Simulation, SnapListZ_MySim, HaloCount_MySim, len(SnapList_MySim))
 ## Halo Initialization ##
 
-w_H_MySim = []
-mass_H_MySim = []
-Photons_HI_H_MySim = []
-Photons_HI_Tot_H_MySim = []
-SourceEfficiency_H_MySim = 10
+w_halo = []
+mass_halo = []
+photons_HI_halo = []
+photons_HI_tot_halo = []
+source_efficiency_halo = 10
 
-w_H_MySim2 = []
-mass_H_MySim2 = []
-Photons_HI_H_MySim2 = []
-Photons_HI_Tot_H_MySim2 = []
-SourceEfficiency_H_MySim2 = 10
+## General Array Initialization ##
 
+w_gal = []
+mass_gal = []
+photons_HI_gal = []
+photons_HI_tot_gal = [] 
+SFR_gal = []
+sSFR_gal = []
+metallicity_tremonti_gal = []
+halo_part_count = []
 
-## MySim Initialization ## 
+mass_central = []
+photons_HI_central = []
+photons_HI_tot_central = []
 
-w_G_MySim = []
-mass_G_MySim = []
-Photons_HI_G_MySim = []
-Photons_HI_Tot_G_MySim = [] 
-SFR_G_MySim = []
-sSFR_G_MySim = []
-sSFR_min_MySim = 1e100
-sSFR_max_MySim = -1e100
-Metallicity_Tremonti_G_MySim = []
-HaloPart_MySim = []
-fesc_MySim = 0.15
+Mfilt_gnedin = []
+Mfilt_sobacchi = []
 
-mass_Central_MySim = []
-Photons_HI_Central_MySim = []
-Photons_HI_Tot_Central_MySim = []
-SourceEfficiency_MySim = 1 
+lyman_alpha = []
 
-SnapListZ = []
-SnapListZ_MySim = []
+L_UV = []
+M_UV = []
 
-w_Ionized_MySim = []
-MfiltGnedin_MySim = []
-MfiltSobacchi_MySim = []
+M_UV_Obs = []
+mean_A = []
 
-LymanAlpha_MySim = []
-fesc_LymanAlpha_MySim = 0.3
+ejected_fraction = []
 
-LUV_MySim = []
-MUV_MySim = []
+fesc_local = []
+fesc_local2 = []
+fesc_local3 = []
 
-MUV_Obs_MySim = []
-mean_A_MySim = []
+halo_count = []
 
-EjectedFraction_MySim = []
+galaxy_halo_mass_mean = []
+galaxy_halo_mass_std = []
 
-fesc_local_MySim = []
-fesc_local2_MySim = []
-fesc_local3_MySim = []
+for model_number in xrange(0, number_models):
 
-HaloCount_MySim = []
-HaloCut_MySim = 1
+	w_gal.append([])
+	mass_gal.append([])
+	photons_HI_gal.append([])
+	photons_HI_tot_gal.append([])
+	SFR_gal.append([])
+	sSFR_gal.append([])
+	metallicity_tremonti_gal.append([])
+	halo_part_count.append([])
 
-## MySim Model 2 ##
+	mass_central.append([])
+	photons_HI_central.append([])
+	photons_HI_tot_central.append([])
 
-w_G_MySim2 = []
-mass_G_MySim2 = []
-Photons_HI_G_MySim2 = []
-Photons_HI_Tot_G_MySim2 = []
-SFR_G_MySim2 = []
-sSFR_G_MySim2 = []
-Metallicity_Tremonti_G_MySim2 = []
-HaloPart_MySim2 = []
-fesc_MySim2 = 0.15
+	Mfilt_gnedin.append([])
+	Mfilt_sobacchi.append([])
 
-mass_Central_MySim2 = []
-Photons_HI_Central_MySim2 = []
-Photons_HI_Tot_Central_MySim2 = []
-SourceEfficiency_MySim2 = 1
+	lyman_alpha.append([])
 
-w_Ionized_MySim2 = []
-MfiltGnedin_MySim2 = []
-MfiltSobacchi_MySim2 = []
+	L_UV.append([])
+	M_UV.append([])
 
-LymanAlpha_MySim2 = []
-fesc_LymanAlpha_MySim2 = 0.3 
+	M_UV_Obs.append([])
+	mean_A.append([])
 
-LUV_MySim2 = []
-MUV_MySim2 = []
+	ejected_fraction.append([])
 
-MUV_Obs_MySim2 = []
-mean_A_MySim2 = []
+	fesc_local.append([])
+	fesc_local2.append([])
+	fesc_local3.append([])
 
-fesc_local_MySim2 = []
+	halo_count.append([])
 
-HaloCut_MySim2 = 1
+	galaxy_halo_mass_mean.append([])
+	galaxy_halo_mass_std.append([])
 
-## Millennium Initialization ##
+## Calculates the stellar mass for galaxies with host halos that have a certain amount of particles.
 
-w_H_Millennium = []
-mass_H_Millennium = []
-Photons_HI_H_Millennium = []
-Photons_HI_Tot_H_Millennium = []
-SourceEfficiency_H_Millennium = 50
+def Calculate_HaloPartStellarMass(HaloPart, StellarMass, BoundLow, BoundHigh):
 
-w_G_Millennium = []
-mass_G_Millennium = []
-Photons_HI_G_Millennium = []
-Photons_HI_Tot_G_Millennium = []
-SFR_G_Millennium = []
-sSFR_G_Millennium = []
-Metallicity_Tremonti_G_Millennium = []
-fesc_Millennium = 0.675
+	print HaloPart
+	print 
+	w = np.where((HaloPart > BoundLow) & (HaloPart < BoundHigh))[0]
 
-mass_Central_Millennium = []
-Photons_HI_Central_Millennium = []
-Photons_HI_Tot_Central_Millennium = []
-SourceEfficiency_Millennium = 50
+	Mass = np.mean(10**(StellarMass[w]))
+	Mass_std = np.std(10**(StellarMass[w]))
+	count = len(StellarMass[w])
+	print "Mass %.4e \t Mass_std = %.4e \t Count = %d" %(Mass, Mass_std, count) 
 
-SnapListZ_Millennium = []
+	return Mass, Mass_std
 
-mass_Central_Millennium2 = []
-Outflow_G_Millennium = []
+for model_number in xrange(0, number_models):
 
-## Millennium Model 2 Initialization ##
+    	GG, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000', 0, 124, 101)
+    	G_Merged, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies', 0, 124, 101)
+	G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc)
 
-w_G_Millennium2 = []
-mass_G_Millennium2 = []
-mass_Central_Millennium2 = []
+	if(simulation_norm == 0):
+		AllVars.Set_Param_MySim()
 
-## Model 2 Initialization ##
+	current_fesc = fesc[model_number]
+	current_fesc_lyman_alpha = fesc_lyman_alpha[model_number]
+	current_source_efficiency = source_efficiency[model_number]
+	current_halo_cut = halo_cut[model_number]
 
+	for snapshot_idx in xrange(0, len(SnapList[model_number])):
+   		 
+		current_snap = SnapList[model_number][snapshot_idx]
 
-w_H_Millennium2 = []
-mass_H_Millennium2 = []
-Photons_HI_H_Millennium2 = []
-Photons_HI_Tot_H_Millennium2 = []
-SourceEfficiency_H_Millennium2 = 10
+		w_gal[model_number].append(np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridSFR[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut))[0])
+		current_idx = w_gal[model_number][snapshot_idx]
 
-w_G_Millennium2 = []
-mass_G_Millennium2 = []
-Photons_HI_G_Millennium2 = []
-Photons_HI_Tot_G_Millennium2 = []
-SFR_G_Millennium2 = []
-sSFR_G_Millennium2 = []
-Metallicity_Tremonti_G_Millennium2 = []
-fesc_Millennium2 = 0.675
+		print "There were %d galaxies for snapshot %d (Redshift %.4f) model %d." %(len(current_idx), current_snap, AllVars.SnapZ[current_snap], snapshot_idx)
 
-mass_Central_Millennium2 = []
-Photons_HI_Central_Millennium2 = []
-Photons_HI_Tot_Central_Millennium2 = []
-SourceEfficiency_Millennium2 = 10
+      		halo_count[model_number].append(G.LenHistory[current_idx, current_snap])
+		mass_gal[model_number].append(np.log10(G.GridStellarMass[current_idx, current_snap] * 1.0e10 / AllVars.Hubble_h))
 
+		SFR_gal[model_number].append(np.log10(G.GridSFR[current_idx, current_snap])) # Msun yr^-1.  Log Units.
 
-Outflow_G_Millennium2 = []
+		halo_part_count[model_number].append(G.LenHistory[current_idx, current_snap])	
+		metallicity_tremonti_gal[model_number].append(np.log10(G.GridZ[current_idx, current_snap] / 0.02) + 9.0)
 
-##
-
-if (Simulation == 1 or Simulation == 2):
-    for i in xrange(0, len(SnapList_MySim)):
- 
-    ###### MYSIM CALCULATIONS #####
-
-      AllVars.Set_Params_Mysim()
-
-      SnapListZ_MySim.append(AllVars.SnapZ[SnapList_MySim[i]])
-      SnapListZ.append(AllVars.SnapZ[SnapList_MySim[i]])
-
-      ## Halo Calculations ##
-
-      #w_H_MySim.append(np.where((H_MySim.SnapNum == SnapList_MySim[i]) & (H_MySim.Mvir > 0.0))[0])  
-      #mass_H_MySim.append(np.log10(H_MySim.Mvir[w_H_MySim[i]] * 1.0e10 / AllVars.Hubble_h))
-      #Photon_Factor = AllVars.Solar_Mass * SourceEfficiency_H_MySim * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[SnapList_MySim[i]] - AllVars.Lookback_Time[SnapList_MySim[i]+1]) / AllVars.Sec_Per_Megayear / 1e3
-      #Photons_HI_H_MySim.append(np.log10(H_MySim.Mvir[w_H_MySim[i]]* 1.0e10 / AllVars.Hubble_h * Photon_Factor))
-      #Photons_HI_Tot_H_MySim.append(np.log10(sum(10**Photons_HI_H_MySim[i])))
-
-      ## Model 1 Calculations ##
-
-      #w_G_MySim.append(np.where((G_MySim.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim.GridCentralGalaxyMass[:,SnapList_MySim[i]] > 0.0) & (G_MySim.GridZ[:, SnapList_MySim[i]] > 0.0))[0])
-      w_G_MySim.append(np.where((G_MySim.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim.LenHistory[:, SnapList_MySim[i]] > HaloCut_MySim))[0])
-
-      HaloCount_MySim.append(G_MySim.LenHistory[w_G_MySim[i], SnapList_MySim[i]])
-      mass_G_MySim.append(np.log10(G_MySim.GridStellarMass[w_G_MySim[i], SnapList_MySim[i]] * 1.0e10 / AllVars.Hubble_h))
-#      Photons_HI_G_MySim.append(G_MySim.Photons_HI[w_G_MySim[i], SnapList_MySim[i]] + np.log10(fesc_MySim))
-    
-#      Photons_HI_Tot_G_MySim.append(np.log10(Sum_Log(Photons_HI_G_MySim[i])))
- 
-      SFR_G_MySim.append(np.log10(G_MySim.GridSFR[w_G_MySim[i], SnapList_MySim[i]])) # Msun yr^-1.  Log Units.
-
-      HaloPart_MySim.append(G_MySim.Len[w_G_MySim[i]])
-      
-      Metallicity_Tremonti_G_MySim.append(np.log10(G_MySim.GridZ[w_G_MySim[i], SnapList_MySim[i]] / 0.02) + 9.0)
-
-      print "There were %d galaxies for snapshot %d (Redshift %.4f) for model1." %(len(w_G_MySim[i]), SnapList_MySim[i], AllVars.SnapZ[SnapList_MySim[i]])
-
-      mass_Central_MySim.append(np.log10(G_MySim.GridCentralGalaxyMass[w_G_MySim[i], SnapList_MySim[i]] * 1.0e10 / AllVars.Hubble_h))
-      Photon_Factor = AllVars.Solar_Mass * SourceEfficiency_MySim * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[SnapList_MySim[i]] - AllVars.Lookback_Time[SnapList_MySim[i]+1]) / AllVars.Sec_Per_Megayear / 1e3
-      Photons_HI_Central_MySim.append(np.log10(10**(mass_Central_MySim[i]) * Photon_Factor))
-      Photons_HI_Tot_Central_MySim.append(np.log10(sum(10**Photons_HI_Central_MySim[i])))
-
-      #w_Ionized_MySim.append(np.where((G_MySim.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim.Photons_HI[:, SnapList_MySim[i]] > 0.0) & (G_MySim.MfiltSobacchi[:, SnapList_MySim[i]] > 1.0))[0])
-
-      #MfiltGnedin_MySim.append(G_MySim.MfiltGnedin[w_G_MySim[i], SnapList_MySim[i]])
-      #MfiltSobacchi_MySim.append(G_MySim.MfiltSobacchi[w_Ionized_MySim[i], SnapList_MySim[i]])
-      #MfiltSobacchi_MySim.append(G_MySim.MfiltSobacchi[w_G_MySim[i], SnapList_MySim[i]])
-
-#      LymanAlpha_MySim.append(np.log10(0.68*(1.0-fesc_MySim)*fesc_LymanAlpha_MySim * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_G_MySim[i]) 
-
-      print "Calculating intrinsic Mag"
-      LUV_MySim.append((SFR_G_MySim[i] + 39.927)) # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
-      MUV_MySim.append(AllVars.Luminosity_to_ABMag(LUV_MySim[i], 1600))	
-
-      if (calculate_observed_LF == 1):
-	      print "Calculating dust"
-	      MUV_bins = np.arange(-24, -16, 0.1)
-	      A_Mean = np.zeros((len(MUV_bins)))
-
-	      for j in xrange(0, len(MUV_bins)):
-		beta = calculate_beta(MUV_bins[j], SnapListZ[i]) 
-		dist = np.random.normal(beta, 0.34, 10000)
-		A = 4.43 + 1.99*dist
-		A[A < 0] = 0
-		
-		A_Mean[j] = np.mean(A)
-		
-	      print "Binning the intrinsic into Observed."
-	 
-	      indices = np.digitize(MUV_MySim[i], MUV_bins) - 1 # Bins the simulation magnitude into the MUV bins. Note that digitize defines an index i if bin[i-1] <= x < bin[i] whereas I prefer bin[i] <= x < bin[i+1] 
-
-	      dust = A_Mean[indices]
-
-	      Flux = AllVars.Luminosity_to_Flux(LUV_MySim[i], 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units. 
-	      Flux_Observed = Flux - 0.4*dust	
-		
-	      f_nu = AllVars.spectralflux_wavelength_to_frequency(10**Flux_Observed, 1600) # Spectral flux density in Janksy.
-	      MUV_Obs_MySim.append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
-
-      EjectedFraction_MySim.append(G_MySim.EjectedFraction[w_G_MySim[i], SnapList_MySim[i]])
-
-      fesc_local_MySim.append(0.25)
-      fesc_local2_MySim.append(pow(10,3.62) * pow(pow(10,mass_Central_MySim[i]),-0.43)) 
-      fesc_local3_MySim.append(EjectedFraction_MySim[i]*0.999 + 0.001)
+		mass_central[model_number].append(np.log10(G.GridCentralGalaxyMass[current_idx, current_snap] * 1.0e10 / AllVars.Hubble_h))
 	
-      ## Model 2 Calculations ##
+		Photon_Factor = AllVars.Solar_Mass * current_source_efficiency * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[current_snap] - AllVars.Lookback_Time[current_snap+1]) / AllVars.Sec_Per_Megayear / 1.0e3
+		photons_HI_central[model_number].append(np.log10(10**(mass_central[model_number][snapshot_idx]) * Photon_Factor))
+		photons_HI_tot_central[model_number].append(np.log10(sum(10**photons_HI_central[model_number][snapshot_idx])))
 
-      ## Halos ##
-
-#      w_H_MySim2.append(np.where((H_MySim2.SnapNum == SnapList_MySim[i]) & (H_MySim2.Mvir > 0.0))[0]) 
-#      mass_H_MySim2.append(np.log10(H_MySim2.Mvir[w_H_MySim2[i]] * 1.0e10 / AllVars.Hubble_h))
-#      Photon_Factor = AllVars.Solar_Mass * SourceEfficiency_H_MySim * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[SnapList_MySim[i]] - AllVars.Lookback_Time[SnapList_MySim[i]+1]) / AllVars.Sec_Per_Megayear / 1e3
-#      Photons_HI_H_MySim2.append(np.log10(H_MySim2.Mvir[w_H_MySim2[i]]* 1.0e10 / AllVars.Hubble_h * Photon_Factor))
-#      Photons_HI_Tot_H_MySim2.append(np.log10(sum(10**Photons_HI_H_MySim2[i])))
-
-      ## Galaxies ##
- 
-      w_G_MySim2.append(np.where((G_MySim2.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim2.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.LenHistory[:, SnapList_MySim[i]] > HaloCut_MySim))[0])
-
-      #w_G_MySim2.append(np.where((G_MySim2.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim2.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridCentralGalaxyMass[:,SnapList_MySim[i]] > 0.0) & (G_MySim2.GridZ[:, SnapList_MySim[i]] > 0.0))[0])
-      mass_G_MySim2.append(np.log10(G_MySim2.GridStellarMass[w_G_MySim2[i], SnapList_MySim[i]] * 1.0e10 / AllVars.Hubble_h))
-      #Photons_HI_G_MySim2.append(G_MySim2.Photons_HI[w_G_MySim2[i], SnapList_MySim[i]] + np.log10(fesc_MySim2)) 
-      #Photons_HI_Tot_G_MySim2.append(np.log10(Sum_Log(Photons_HI_G_MySim2[i])))
-
-      SFR_G_MySim2.append(np.log10(G_MySim2.GridSFR[w_G_MySim2[i], SnapList_MySim[i]])) 
-      
-      sSFR_G_MySim2.append(SFR_G_MySim2[i] - mass_G_MySim2[i])
-      HaloPart_MySim2.append(G_MySim2.Len[w_G_MySim2[i]])
-      Metallicity_Tremonti_G_MySim2.append(np.log10(G_MySim2.GridZ[w_G_MySim2[i], SnapList_MySim[i]] / 0.02) + 9.0)
-
-      mass_Central_MySim2.append(np.log10(G_MySim2.GridCentralGalaxyMass[w_G_MySim2[i], SnapList_MySim[i]] * 1.0e10 / AllVars.Hubble_h))
-      Photon_Factor = AllVars.Solar_Mass * SourceEfficiency_MySim2 * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[SnapList_MySim[i]] - AllVars.Lookback_Time[SnapList_MySim[i]+1]) / AllVars.Sec_Per_Megayear / 1e3
-#      Photons_HI_Central_MySim2.append(np.log10(10**(mass_Central_MySim2[i]) * Photon_Factor))
-#      Photons_HI_Tot_Central_MySim2.append(np.log10(sum(10**Photons_HI_Central_MySim2[i]))) 
-
-      print "There were %d galaxies for snapshot %d (Redshift %.4f) for model2." %(len(w_G_MySim2[i]), SnapList_MySim[i], AllVars.SnapZ[SnapList_MySim[i]])
-
-#      w_Ionized_MySim2.append(np.where((G_MySim2.GridHistory[:, SnapList_MySim[i]] != -1) & (G_MySim2.GridStellarMass[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.GridSFR[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.Photons_HI[:, SnapList_MySim[i]] > 0.0) & (G_MySim2.MfiltSobacchi[:, SnapList_MySim[i]] < 1.0))[0])
-
-#      MfiltGnedin_MySim2.append(G_MySim2.MfiltGnedin[w_G_MySim2[i], SnapList_MySim[i]])
-#      MfiltSobacchi_MySim2.append(G_MySim2.MfiltSobacchi[w_G_MySim2[i], SnapList_MySim[i]])
-
-      #LymanAlpha_MySim2.append(np.log10(0.68*(1.0-fesc_MySim2)*fesc_LymanAlpha_MySim2 * (AllVars.LymanAlpha_Energy* AllVars.eV_to_erg)) + Photons_HI_G_MySim2[i]) 
-
-      #fesc_local_MySim2.append(10**(1.00 - 0.2 * mass_Central_MySim2[i]))
-
-      print "Calculating intrinsic Mag"
-      LUV_MySim2.append((SFR_G_MySim2[i] + 39.927)) # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
-      MUV_MySim2.append(AllVars.Luminosity_to_ABMag(LUV_MySim2[i], 1600))	
-
-      if (calculate_observed_LF == 1):
-	      print "Calculating dust"
-	      MUV_bins = np.arange(-24, -16, 0.1)
-	      A_Mean = np.zeros((len(MUV_bins)))
-
-	      for j in xrange(0, len(MUV_bins)):
-		beta = calculate_beta(MUV_bins[j], SnapListZ[i]) 
-		dist = np.random.normal(beta, 0.34, 10000)
-		A = 4.43 + 1.99*dist
-		A[A < 0] = 0
+		Mfilt_gnedin[model_number].append(G.MfiltGnedin[current_idx, current_snap])
+		Mfilt_sobacchi[model_number].append(G.MfiltSobacchi[current_idx, current_snap])
 		
-		A_Mean[j] = np.mean(A)
+#		lyman_alpha[model_number].append(np.log10(0.68*(1.0 - current_fesc) * current_fesc_lyman_alpha * (AllVars.LymanAlpha_Energy * AllVars.eV_to_erg)) + photons_HI[model_number]
+
+		print "Calculating intrinsic Mag"
+
+		L_UV[model_number].append(SFR_gal[model_number][snapshot_idx] + 39.927)# Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
+		M_UV[model_number].append(AllVars.Luminosity_to_ABMag(L_UV[model_number][snapshot_idx], 1600))
+
+		if (calculate_observed_LF == 1):
+			print "Calculating dust"
+	      		M_UV_bins = np.arange(-24, -16, 0.1)
+	      		A_Mean = np.zeros((len(MUV_bins)))	
+
+			for j in xrange(0, len(M_UV_bins)):
+				beta = calculate_beta(M_UV_bins[j], AllVars.SnapZ[current_snap]) 
+				dist = np.random.normal(beta, 0.34, 10000)
+				A = 4.43 + 1.99*dist
+				A[A < 0] = 0
 		
-	      print "Binning the intrinsic into Observed."
-	 
-	      indices = np.digitize(MUV_MySim2[i], MUV_bins) - 1 # Bins the simulation magnitude into the MUV bins. Note that digitize defines an index i if bin[i-1] <= x < bin[i] whereas I prefer bin[i] <= x < bin[i+1] 
+				A_Mean[j] = np.mean(A)
+			print "Binning the intrinsic into Observed."
 
-	      dust = A_Mean[indices]
+			indices = np.digitize(M_UV[model_number][snap_idz], M_UV_bins) # Bins the simulation magnitude into the MUV bins. Note that digitize defines an index i if bin[i-1] <= x < bin[i] whereas I prefer bin[i] <= x < bin[i+1]
+			dust = A_Mean[indices]
+			Flux = AllVars.Luminosity_to_Flux(L_UV[model_number][snapshot_idx], 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units.  
+			Flux_Observed = Flux - 0.4*dust
+	
+			f_nu = ALlVars.spectralflux_wavelength_to_frequency(10**Flux_Observed, 1600) # Spectral flux desnity in Janksy.
+			M_UV_obs[model_number].append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
-	      Flux = AllVars.Luminosity_to_Flux(LUV_MySim2[i], 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units. 
-	      Flux_Observed = Flux - 0.4*dust	
-		
-	      f_nu = AllVars.spectralflux_wavelength_to_frequency(10**Flux_Observed, 1600) # Spectral flux density in Janksy.
-	      MUV_Obs_MySim2.append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
+		ejected_fraction[model_number].append(G.EjectedFraction[current_idx, current_snap])
 
+		fesc_local[model_number].append(current_fesc)
 
-if (Simulation == 0 or Simulation == 2):
-    for i in xrange(0, len(SnapList_Millennium)):
+		tmp_mean, tmp_std = Calculate_HaloPartStellarMass(halo_part_count[model_number][snapshot_idx], mass_gal[model_number][snapshot_idx], galaxy_halo_mass_lower[model_number], galaxy_halo_mass_upper[model_number])
 
-    ##### MILLENNIUM CALCULATIONS ####
-    
-   
-      AllVars.Set_Params_MiniMill()
-      ## Halos ##
-
-      w_H_Millennium.append(np.where((H_Millennium.SnapNum == SnapList_Millennium[i]) & (H_Millennium.Mvir > 0.0))[0]) 
-      mass_H_Millennium.append(np.log10(H_Millennium.Mvir[w_H_Millennium[i]] * 1.0e10 / AllVars.Hubble_h))
-      #Photon_Factor = AllVars.Solar_Mass * SourceEfficiency_H_Millennium * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[SnapList_Millennium[i]] - AllVars.Lookback_Time[SnapList_Millennium[i]+1]) / AllVars.Sec_Per_Megayear / 1e3
-      #Photons_H_Millennium.append(np.log10(H_Millennium.Mvir[w_H_Millennium[i]]* 1.0e10 / AllVars.Hubble_h * Photon_Factor))
-      #Photons_Tot_H_Millennium.append(np.log10(sum(10**Photons_H_Millennium[i])))
-
-      SnapListZ.append(AllVars.SnapZ[SnapList_Millennium[i]])
-      SnapListZ_Millennium.append(AllVars.SnapZ[SnapList_Millennium[i]])
-
-      ## Model 1 Calculations ##
-
-      w_G_Millennium.append(np.where((G_Millennium.GridHistory[:, SnapList_Millennium[i]] != -1) & (G_Millennium.GridStellarMass[:, SnapList_Millennium[i]] > 0.0) & (G_Millennium.GridSFR[:, SnapList_Millennium[i]] > 0.0) & (G_Millennium.GridCentralGalaxyMass[:,SnapList_Millennium[i]] > 0.0))[0])
-      mass_G_Millennium.append(np.log10(G_Millennium.GridStellarMass[w_G_Millennium[i], SnapList_Millennium[i]] * 1.0e10 / AllVars.Hubble_h))
-      mass_Central_Millennium.append(np.log10(G_Millennium.GridCentralGalaxyMass[w_G_Millennium[i], SnapList_Millennium[i]] * 1.0e10 / AllVars.Hubble_h))
-      Outflow_G_Millennium.append(G_Millennium.GridOutflowRate[w_G_Millennium[i], SnapList_Millennium[i]])
-
-      print Outflow_G_Millennium
-      ## Model 2 Calculations ##
-
-      w_G_Millennium2.append(np.where((G_Millennium2.GridHistory[:, SnapList_Millennium[i]] != -1) & (G_Millennium2.GridStellarMass[:, SnapList_Millennium[i]] > 0.0) & (G_Millennium2.GridSFR[:, SnapList_Millennium[i]] > 0.0) & (G_Millennium2.GridCentralGalaxyMass[:,SnapList_Millennium[i]] > 0.0))[0])
-      mass_G_Millennium2.append(np.log10(G_Millennium2.GridStellarMass[w_G_Millennium2[i], SnapList_Millennium[i]] * 1.0e10 / AllVars.Hubble_h))
-      mass_Central_Millennium2.append(np.log10(G_Millennium2.GridCentralGalaxyMass[w_G_Millennium2[i], SnapList_Millennium[i]] * 1.0e10 / AllVars.Hubble_h))
-      Outflow_G_Millennium2.append(G_Millennium2.GridOutflowRate[w_G_Millennium2[i], SnapList_Millennium[i]])
-
-      '''
-
-  ## Model 3 Calculations ##
-
-  w_G_model3.append(np.where((G_model3.GridHistory[:, SnapList[i]] != -1) & (G_model3.GridStellarMass[:, SnapList[i]] > 0.0) & (G_model3.GridSFR[:, SnapList[i]] > 0.0) & (G_model3.GridCentralGalaxyMass[:,SnapList[i]] > 0.0))[0])
-  mass_G_model3.append(np.log10(G_model3.GridStellarMass[w_G_model3[i], SnapList[i]] * 1.0e10 / AllVars.Hubble_h))
-  Photons_G_model3.append(np.log10(10**(G_model3.Photons[w_G_model3[i], SnapList[i]])*fesc_model3))
-  Photons_Tot_G_model3.append(np.log10(sum(10**Photons_G_model3[i])))
-  SFR_G_model3.append(np.log10(G_model3.GridSFR[w_G_model3[i], SnapList[i]]))
-  sSFR_G_model3.append(SFR_G_model3[i] - mass_G_model3[i])
-
-  mass_Central_model3.append(np.log10(G_model3.GridCentralGalaxyMass[w_G_model3[i], SnapList[i]] * 1.0e10 / AllVars.Hubble_h))
-  Photon_Factor = AllVars.Solar_Mass * SourceEfficiency_model3 * AllVars.BaryonFrac / AllVars.Ionized_Mass_H / AllVars.Proton_Mass / (AllVars.Lookback_Time[SnapList[i]] - AllVars.Lookback_Time[SnapList[i]+1]) / AllVars.Sec_Per_Megayear / 1e3
-  Photons_Central_model3.append(np.log10(10**(mass_Central_model3[i]) * Photon_Factor))
-  Photons_Tot_Central_model3.append(np.log10(sum(10**Photons_Central_model3[i])))
-      '''
-
-def Calculate_HaloPartStellarMass(ZZ, HaloPart, StellarMass, BoundLow, BoundHigh):
-
-	for i in xrange(0, len(ZZ)):	
-		w = np.where((HaloPart[i] > BoundLow) & (HaloPart[i] < BoundHigh))[0]
-
-		Mass = np.mean(10**(StellarMass[i][w]))
-		Mass_std = np.std(10**(StellarMass[i][w]))
-		count = len(StellarMass[i][w])
-		print "Mass %.4e \t Mass_std = %.4e \t Count = %d" %(Mass, Mass_std, count) 
-
-	return Mass
-
-#print "For 512 model:"
-#HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, HaloPart_Low, HaloPart_High)
-
-low = 95
-high = 105
-#print "For 1024 model:"
-HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_MySim, low, high)
-#HaloPartStellarMass_MySim = Calculate_HaloPartStellarMass(SnapListZ, HaloPart_MySim, mass_G_Millennium, low, high)
-
-print "Mass_G_MySim", mass_G_MySim
-print "Mass_G_MySim2", mass_G_MySim2
+		galaxy_halo_mass_mean[model_number].append(tmp_mean)
+		galaxy_halo_mass_std[model_number].append(tmp_std)
+		 
+	print mass_gal
+	
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(Simulation, SnapListZ, (mass_G_MySim + mass_G_Millennium + mass_G_MySim2 + mass_G_Millennium2), HaloPartStellarMass_MySim, len(SnapListZ), [r"Fiducial", r"No Recycling"], "SMF_Paper")
+StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "test_SMF")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))

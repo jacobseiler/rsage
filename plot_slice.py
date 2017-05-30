@@ -2601,10 +2601,6 @@ if __name__ == '__main__':
 
     redshift_array = []
 
-    volume_frac_model1 = []
-    volume_frac_model2 = []
-    volume_frac_model3 = []
-
     for i in xrange(0, number_models):
 	volume_frac_array.append([])
 	mass_frac_array.append([])
