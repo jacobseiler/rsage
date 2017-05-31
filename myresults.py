@@ -23,11 +23,16 @@ from mpl_toolkits.axes_grid1 import AxesGrid
 from astropy import units as u
 from astropy import cosmology
 
-
 import matplotlib.ticker as mtick
 import PlotScripts
 import ReadScripts
 import AllVars
+
+from mpi4py import MPI
+
+comm= MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
 
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
@@ -51,14 +56,12 @@ markers = ['x', 'o', '^', 's', 'D']
 linestyles = ['-', '--', '-.', ':']
 
 AllVars.Set_Constants()
-AllVars.Set_Params_Mysim()
-cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
-t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
+
 z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
 time_xlim = [315, 930]
 time_tick_interval = 25
 
-output_format = ".pdf"
+output_format = ".png"
 
 def calculate_beta(MUV, z):
 	
@@ -284,29 +287,79 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 
 	## Redshift labels for each redshift within each model. ##
 	for snapshot_idx in xrange(0, len(SnapList[model_number])):
+		print "Doing Snapshot %d" %(SnapList[model_number][snapshot_idx])
 		tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
-
 		redshift_labels[model_number].append(tmp)
 
-		(counts, bin_edges, bin_middle) = Calculate_Histogram(mass[model_number][snapshot_idx], binwidth, Frequency)
+
+		minimum_mass = np.floor(min(mass[model_number][snapshot_idx])) - 10*binwidth
+		maximum_mass = np.floor(max(mass[model_number][snapshot_idx])) + 10*binwidth
+
+		if rank == 0:
+			print "Rank %d had a minimum binning mass of %.3f and a maximum of %.3f" %(rank, minimum_mass, maximum_mass)
+			minimums = np.zeros((size))
+			maximums = np.zeros((size))
+
+			minimums[0] = minimum_mass
+			maximums[0] = maximum_mass
+			for p in xrange(1, size):
+
+				minimums[p] = comm.recv(source = p, tag = 0)
+				maximums[p] = comm.recv(source = p, tag = 1)	
+	
+		else:
+			print "Rank %d had a minimum binning mass of %.3f and a maximum of %.3f" %(rank, minimum_mass, maximum_mass)
+			comm.send(minimum_mass, dest = 0, tag = 0)
+			comm.send(maximum_mass, dest = 0, tag = 1)
+
+			binning_minimum = 0.0
+			binning_maximum = 0.0
+			minimums = [1e100] 
+			maximums = [-1e100] 
+
+		comm.barrier()	
+		binning_minimum = comm.bcast(min(minimums), root = 0)
+		binning_maximum = comm.bcast(max(maximums), root = 0)
+
+		print "I am rank %d and my binning_minimum is %.3f and my binning_maximum is %.3f" %(rank, binning_minimum, binning_maximum)
+
+		(counts, bin_edges, bin_middle) = Calculate_Histogram(mass[model_number][snapshot_idx], binwidth, Frequency, binning_minimum, binning_maximum)
 		counts_array[model_number].append(counts)
 		bin_middle_array[model_number].append(bin_middle) 
+
+	
+    		if rank == 0:
+			print "Rank 0", counts_array[model_number][snapshot_idx]
+			for p in xrange(1, size):
+				counts_array[model_number][snapshot_idx] += comm.recv(source = p, tag = 2)
+			#counts_array[model_number][snapshot_idx] /= size
+			print "Size = %d" %(size)
+			print "Finally with rank 0 and my final counts array is", counts_array[model_number][snapshot_idx]
+		else:
+			print "Rank 1", counts_array[model_number][snapshot_idx]
+			comm.send(counts_array[model_number][snapshot_idx], dest = 0, tag = 2)	
+
 	
 
 ### Plotting ###
 
-    f = plt.figure()  
-    ax = plt.subplot(111)  
+    if rank == 0:
+    	f = plt.figure()  
+	ax = plt.subplot(111)  
 
-    for model_number in xrange(0, len(SnapList)):
+	for model_number in xrange(0, len(SnapList)):
 		for snapshot_idx in xrange(0, len(SnapList[model_number])):
-			plt.plot(bin_middle_array[model_number][snapshot_idx], counts_array[model_number][snapshot_idx] / normalization_array[model_number], color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = redshift_labels[model_number][snapshot_idx])
+			if model_number == 0:
+				title = redshift_labels[model_number][snapshot_idx]
+			else:
+				title = ''
+			plt.plot(bin_middle_array[model_number][snapshot_idx], counts_array[model_number][snapshot_idx] / normalization_array[model_number], color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = title)
 	
 ##
 
 ### Manually enter in the labels for the different simulations. ###
-#    for i in xrange(0, 1):
-#	    plt.plot(1e100, 1e100, color = 'k', ls = linestyles[i], label = Model_Tags[i], rasterized=True)
+    	for model_number in xrange(0, len(SnapList)):
+		plt.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
 
 ### Draws a vertical line to denote lower bounds for what is an 'acceptable' Stellar Mass ### 
 
@@ -314,17 +367,17 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 
 ## 
 
-    plt.yscale('log', nonposy='clip')
+    	plt.yscale('log', nonposy='clip')
 
-    plt.axis([6, 11.5, 1e-6, 1e-1])
+    	plt.axis([6, 11.5, 1e-6, 1e-1])
 
-    ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}} \:[M_{\odot}]$', fontsize = talk_fontsize)
-    ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = talk_fontsize)
-    ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
+    	ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}} \:[M_{\odot}]$', fontsize = talk_fontsize)
+    	ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = talk_fontsize)
+    	ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
 
 ### If we want to put observations on the figure ###
 
-    if Observations == 1:
+    if (Observations == 1 and rank == 0):
     	Gonzalez_z6 = np.array([[7.77 + delta, -2.0956, -1.8596, -2.3539],
                                 [8.27 + delta, -2.1742, -1.9494, -2.4101],
                                 [8.77 + delta, -2.5674, -2.3876, -2.7921],
@@ -374,7 +427,7 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 
         plt.errorbar(Song_z8[:,0], 10**Song_z8[:,1], yerr= (10**Song_z8[:,1] - 10**Song_z8[:,3], 10**Song_z8[:,2] - 10**Song_z8[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 8', color = 'green', rasterized=True)
 
-    if (Observations == 2):
+    if (Observations == 2 and rank == 0):
 		Baldry = np.array([
 		    [7.05, 1.3531e-01, 6.0741e-02],
 		    [7.15, 1.3474e-01, 6.0109e-02],
@@ -439,18 +492,22 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 
 
 
-    leg = plt.legend(loc='lower left', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(talk_legendsize)
+    if (rank == 0):
+    	leg = plt.legend(loc='lower left', numpoints=1, labelspacing=0.1)
+    	leg.draw_frame(False)  # Don't want a box frame
+    	for t in leg.get_texts():  # Reduce the size of the text
+        	t.set_fontsize(talk_legendsize)
 
-    #plt.tight_layout()
+    	#plt.tight_layout()
 
-    outputFile = './' + output_tag + output_format
-    #f.savefig("foo.pdf", bbox_inches='tight')
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
-    print 'Saved file to', outputFile
-    plt.close()
+	if (size == 1): 
+		outputFile = './%s_serial%s' %(output_tag, output_format)
+	else:
+     		outputFile = './%s_mpi_%dprocessors%s' %(output_tag, size, output_format)   		
+    	#f.savefig("foo.pdf", bbox_inches='tight')
+    	plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    	print 'Saved file to', outputFile
+    	plt.close()
  
 
 #####
@@ -2314,81 +2371,25 @@ def OutflowRate(SnapList, mass1, mass2, outflow1, outflow2, Model_Tags, Output_T
 
 ##
 
+## Calculates the stellar mass for galaxies with host halos that have a certain amount of particles.
+
+def Calculate_HaloPartStellarMass(HaloPart, StellarMass, BoundLow, BoundHigh):
+
+	print HaloPart
+	print 
+	w = np.where((HaloPart > BoundLow) & (HaloPart < BoundHigh))[0]
+
+	Mass = np.mean(10**(StellarMass[w]))
+	Mass_std = np.std(10**(StellarMass[w]))
+	count = len(StellarMass[w])
+	print "Mass %.4e \t Mass_std = %.4e \t Count = %d" %(Mass, Mass_std, count) 
+
+	return Mass, Mass_std
+
+
 #################################
 
-Simulation = 1 # Set 0 for Mini-Millennium, 1 for My_Simulation, 2 for both (kinda).
-
-      
-if (Simulation == 0 or Simulation == 2):
-    #H_Millennium = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/millennium_trees/trees_063', 0, 7)
-
-    GG_Millennium, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/totally_new_z0.000', 0, 7, 64)
-    G_Merged_Millennium, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/totally_new_MergedGalaxies', 0, 7, 64)
-    G_Millennium = ReadScripts.Join_Arrays(GG_Millennium, G_Merged_Millennium, Gal_Desc)
-
-    GG_Millennium2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/Delayed_SN1Myr_z0.000', 0, 7, 64)
-    G_Merged_Millennium2, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/mini_millennium/Delayed_SN1Myr_MergedGalaxies', 0, 7, 64)
-    G_Millennium2 = ReadScripts.Join_Arrays(GG_Millennium2, G_Merged_Millennium2, Gal_Desc)
-
-    SnapList_Millennium = [15, 25, 30, 45, 58, 63] 
-    print "Snapshots analyzing are", SnapList_Millennium
-    AllVars.Set_Params_MiniMill()
-
-
-
-    #H_MySim = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/Rockstar_output/Halos_noLL/Ltrees/lhalotree.bin', 0, 26)
-    #H_MySim2 = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/Rockstar_output/1024_Halos_noLL/Ltrees/lhalotree.bin', 0, 124)
-    #H_MySim2 = ReadScripts.ReadHalos('/lustre/projects/p004_swin/jseiler/Rockstar_output/Halos_noLL/Ltrees/lhalotree.bin', 0, 26)
-
-   
-    #print "Minimum halo mass is %.4e and maximum is %.4e (log Msun)" %(np.log10(np.amin(H_MySim2.Mvir) * 1.0e10/AllVars.Hubble_h), np.log10(np.amax(H_MySim2.Mvir) * 1.0e10/AllVars.Hubble_h))
-
-    # 512 
-    #GG_MySim, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/fiducial_z5.038', 0, 26, 100)
-    #G_Merged_MySim, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/fiducial_MergedGalaxies', 0, 26, 100)
-    #G_MySim = ReadScripts.Join_Arrays(GG_MySim, G_Merged_MySim, Gal_Desc)
-
-    # 1024
-
-    # 512
-    #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/noreion_z5.038', 0, 26, 100)
-    #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/noreion_z5.038', 0, 26, 100)
-    #G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
-
-    #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/tmp_z5.038', 0, 26, 100)
-    #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/512/tmp_z5.038', 0, 26, 100)
-    #G_MySim2 = ReadScripts.Join_Arrays(GG_MySim2, G_Merged_MySim2, Gal_Desc)
-
-
-    # 1024
-
-
-
-
-    #GG_MySim2, Gal_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_z5.000', 0, 124, 101)
-    #G_Merged_MySim2, Merged_Desc = ReadScripts.ReadGals_SAGE_Photons('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/LenHistory/LenHistory_SF0.01_noreion_MergedGalaxies', 0, 124, 101)
-
-
-
-
-#    SnapList_MySim = np.arange(22,78) 
-
-
-   # SnapList_MySim = [30, 35, 40, 50, 60, 70, 78]
-    #SnapList_MySim = [99, 78, 64, 51, 43, 37] 
-    # Snapshots = z [5, 6, 7, 8, 9, 10] are [99, 78, 64, 51, 43, 37] (used for UVLF) 
-
-    # Snapshots for z = [6, 7, 8] are [78, 64, 51]
-    # Snapshots for z = [7.23, 6.69] are [60, 67] (used for LyAlpha Luminosity)
-    
-HaloPart_Low = 41 # Bounds for where we define the cutoff for a 'Dark Matter Halo'. Below this we can't be sure of the results.
-HaloPart_High = 51
-
-calculate_observed_LF = 0
-
-number_models = 1
-model_tags = ["Test"]
-
+ 
 '''
 countSnap_low = 30
 countSnap_high = 99
@@ -2403,24 +2404,45 @@ print numgals_low
 print numgals_high
 '''
 
+HaloPart_Low = 41 # Bounds for where we define the cutoff for a 'Dark Matter Halo'. Below this we can't be sure of the results.
+HaloPart_High = 51
+
+calculate_observed_LF = 0
+
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
+galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_5Myr_z5.000'
+galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_5Myr_TakeOut2_z5.000'
+
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
+merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_5Myr_MergedGalaxies'
+merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_5Myr_TakeOut2_MergedGalaxies'
+
+galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3]
+merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3]
+
+number_models = 3
+number_snapshots = [101, 101, 101] # Property of the simulation.
+FirstFile = [0,0, 0]
+LastFile = [124,124, 124]
+model_tags = ["IRA", "Delayed - 5Myr", "Delayed - NewVars"]
+
 ## Constants used for each model. ##
 # Need to add an entry for EACH model. #
 
-sSFR_min = [1.0e100, 1.0e100]
-sSFR_max = [-1.0e100, -1.0e100]
-halo_cut = [1, 1]
-fesc_lyman_alpha = [0.3, 0.3]
-fesc = [0.15, 0.15]
-source_efficiency = [1, 1] 
+sSFR_min = [1.0e100, 1.0e100, 1.0e100]
+sSFR_max = [-1.0e100, -1.0e100, -1.0e100]
+halo_cut = [1, 1, 1]
+fesc_lyman_alpha = [0.3, 0.3, 0.3]
+fesc = [0.15, 0.15, 0.15]
+source_efficiency = [1, 1, 1] 
 
-SnapList = [[78, 64,51]]
+SnapList = [[78, 63, 54], [78, 63, 54], [78, 63, 54]]
 
-simulation_norm = [0, 0] # 0 for MySim, 1 for Mini-Millennium.
+simulation_norm = [0, 0, 0] # 0 for MySim, 1 for Mini-Millennium.
 
-galaxy_halo_mass_lower = [95, 95] # These limits are for the number of particles in a halo.  
-galaxy_halo_mass_upper = [105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
+galaxy_halo_mass_lower = [95, 95, 95] # These limits are for the number of particles in a halo.  
+galaxy_halo_mass_upper = [105, 105, 95] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
 
-#HaloPartCount(Simulation, SnapListZ_MySim, HaloCount_MySim, len(SnapList_MySim))
 ## Halo Initialization ##
 
 w_halo = []
@@ -2503,29 +2525,14 @@ for model_number in xrange(0, number_models):
 	galaxy_halo_mass_mean.append([])
 	galaxy_halo_mass_std.append([])
 
-## Calculates the stellar mass for galaxies with host halos that have a certain amount of particles.
-
-def Calculate_HaloPartStellarMass(HaloPart, StellarMass, BoundLow, BoundHigh):
-
-	print HaloPart
-	print 
-	w = np.where((HaloPart > BoundLow) & (HaloPart < BoundHigh))[0]
-
-	Mass = np.mean(10**(StellarMass[w]))
-	Mass_std = np.std(10**(StellarMass[w]))
-	count = len(StellarMass[w])
-	print "Mass %.4e \t Mass_std = %.4e \t Count = %d" %(Mass, Mass_std, count) 
-
-	return Mass, Mass_std
-
 for model_number in xrange(0, number_models):
 
-    	GG, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000', 0, 124, 101)
-    	G_Merged, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN('/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies', 0, 124, 101)
+    	GG, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(galaxies_filepath_array[model_number], FirstFile[model_number], LastFile[model_number], number_snapshots[model_number], comm)
+    	G_Merged, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(merged_galaxies_filepath_array[model_number], FirstFile[model_number], LastFile[model_number], number_snapshots[model_number], comm)
 	G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc)
 
-	if(simulation_norm == 0):
-		AllVars.Set_Param_MySim()
+	if(simulation_norm[model_number] == 0):
+		AllVars.Set_Params_Mysim()
 
 	current_fesc = fesc[model_number]
 	current_fesc_lyman_alpha = fesc_lyman_alpha[model_number]
@@ -2601,7 +2608,7 @@ for model_number in xrange(0, number_models):
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "test_SMF")
+StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "test_SMF_takeout2")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))

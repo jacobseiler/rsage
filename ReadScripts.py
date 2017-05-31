@@ -21,19 +21,24 @@ from matplotlib.ticker import MultipleLocator
 from os.path import getsize as getFileSize
 from numpy import inf 
 
+from mpi4py import MPI
+
 
 np.set_printoptions(threshold=np.nan)
-def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File, Last_File):
+def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File, Last_File, comm=None):
     # Initialize variables.
     TotNTrees = 0
     TotNHalos = 0
     FileIndexRanges = []
     
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+
     print "Determining array storage requirements."
     
     # Read each file and determine the total number of galaxies to be read in
     goodfiles = 0
-    for fnr in xrange(First_File, Last_File+1):
+    for fnr in xrange(First_File + rank, Last_File+1, size):
         if (Dot == 1):
             fname = Model_Name+'.'+str(fnr)  # Complete filename
         else:
@@ -41,11 +46,11 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
 
         if not os.path.isfile(fname):
             print "File\t%s  \tdoes not exist!  Skipping..." % (fname)
-            continue
+            quit() 
         
         if getFileSize(fname) == 0:
             print "File\t%s  \tis empty!  Skipping..." % (fname)
-            continue
+            quit() 
         
         fin = open(fname, 'rb')  # Open the file
         if (Contain_TreeInfo == 1):
@@ -53,7 +58,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
             TotNTrees = TotNTrees + Ntrees  # Update total sim trees number
         NtotHalos = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of gals in file.
         TotNHalos = TotNHalos + NtotHalos  # Update total sim gals number
-	print "File %s contains %d total galaxies" %(fname, NtotHalos)
+	print "Rank %d is reading File %s and contains %d total galaxies" %(rank, fname, NtotHalos)
 	
 #        print "File = %d, NtotHalos = %d, TotNHalos = %d" %(fnr, NtotHalos, TotNHalos)
         goodfiles = goodfiles + 1  # Update number of files read for volume calculation
@@ -72,7 +77,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
     
     # Open each file in turn and read in the preamble variables and structure.
     print "Reading in files."
-    for fnr in xrange(First_File,Last_File+1):
+    for fnr in xrange(First_File + rank, Last_File+1, size):
 	
         if (Dot == 1):
             fname = Model_Name+'.'+str(fnr)  # Complete filename
@@ -94,8 +99,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         if (Contain_TreeInfo == 1):
             GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
 
-	print GalsPerTree	
-        print ":   Reading N=", NtotHalos, "   \t Objects from file: ", fname
+        print ":Rank %d is Reading N= %d Objects from %s: " %(rank, NtotHalos, fname)
  
         GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
 
@@ -115,8 +119,8 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
         fin.close()  # Close the file
 
     print
-    print "Total Objects considered:", TotNHalos
-    
+    print "Rank %d is considering %d Total Objects:" %(rank, TotNHalos)
+   
     # Convert the Galaxy array into a recarray
     G = G.view(np.recarray)
     
@@ -367,7 +371,7 @@ def ReadGals_SAGE_NoGrid(DirName, First_File, Last_File, MAXSNAPS):
 
     
 ## Using this one ##   
-def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS):
+def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS, comm=None):
 
     Galdesc_full = [
          ('SnapNum'                      , np.int32),
@@ -436,7 +440,7 @@ def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS):
     formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
     Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)  
  
-    return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File), Gal_Desc)
+    return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File, comm), Gal_Desc)
 
 
 def ReadGals_STARBURST_SAGE(DirName, First_File, Last_File, MAXSNAPS):

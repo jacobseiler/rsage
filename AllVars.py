@@ -1,8 +1,16 @@
 #!/usr/bin/env python
 
 import numpy as np
+from astropy import units as u
+from astropy import cosmology
 
-np.set_printoptions(threshold=np.nan)
+def set_cosmology(Hubble_h, Omega_m):
+	
+    cosmo = cosmology.FlatLambdaCDM(H0 = Hubble_h*100, Om0 = Omega_m) 
+    t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
+
+    return cosmo, t_BigBang
+
 def Set_Params_MiniMill():
     
     print "Setting parameters to Mini Millennium."
@@ -17,6 +25,9 @@ def Set_Params_MiniMill():
     
     global SnapZ
     global Lookback_Time
+
+    global cosmo
+    global t_BigBang
     
     Hubble_h = 0.73
     Omega_m = 0.25
@@ -53,12 +64,15 @@ def Set_Params_MiniMill():
                  2.08709,    1.75692,    1.43640,    1.12622,    0.82696,    0.53917,
                  0.263375,   0.      ] # In Gyr. 
 
+    cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
+
     print "######################"
     print "BoxSize = %.3f (Mpc/h)" %(BoxSize)
     print "Hubble_h = %.3f" %(Hubble_h)
     print "Omega_m = %.3f" %(Omega_m)
     print "Omega_L = %.3f" %(Omega_L)
     print "BaryonFrac = %.3f" %(BaryonFrac)
+    print "t_BigBang = %.3f Gyr" %(t_BigBang)
     print "######################"
 
 def Set_Params_Mysim():
@@ -75,6 +89,9 @@ def Set_Params_Mysim():
     
     global SnapZ
     global Lookback_Time
+
+    global cosmo
+    global t_BigBang
     
     Hubble_h = 0.678
     Omega_m = 0.308
@@ -115,12 +132,16 @@ def Set_Params_Mysim():
                  12.7278, 12.7168, 12.7057, 12.6946, 12.6835, 12.6724, 12.6614,
                  12.6503, 12.6392, 12.6281, 12.6281] # In Gyr.
 
+
+    cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
+
     print "######################"
     print "BoxSize = %.3f (Mpc/h)" %(BoxSize)
     print "Hubble_h = %.3f" %(Hubble_h)
     print "Omega_m = %.3f" %(Omega_m)
     print "Omega_L = %.3f" %(Omega_L)
     print "BaryonFrac = %.3f" %(BaryonFrac)
+    print "t_BigBang = %.3f Gyr" %(t_BigBang)
     print "######################"
 
 def Set_Constants():
