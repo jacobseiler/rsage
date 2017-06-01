@@ -140,7 +140,6 @@ def Calculate_Histogram(Data, Bin_Width, Weights, min_hist=None, max_hist=None):
 	mi = np.floor(min(Data)) - 10*Bin_Width
 	ma = np.floor(max(Data)) + 10*Bin_Width
     else:
-	print "EQHTQEIT"
 	mi = min_hist 
 	ma = max_hist 
 
@@ -291,7 +290,6 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 		tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
 		redshift_labels[model_number].append(tmp)
 
-
 		minimum_mass = np.floor(min(mass[model_number][snapshot_idx])) - 10*binwidth
 		maximum_mass = np.floor(max(mass[model_number][snapshot_idx])) + 10*binwidth
 
@@ -323,21 +321,23 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 
 		print "I am rank %d and my binning_minimum is %.3f and my binning_maximum is %.3f" %(rank, binning_minimum, binning_maximum)
 
-		(counts, bin_edges, bin_middle) = Calculate_Histogram(mass[model_number][snapshot_idx], binwidth, Frequency, binning_minimum, binning_maximum)
-		counts_array[model_number].append(counts)
-		bin_middle_array[model_number].append(bin_middle) 
+		(counts_local, bin_edges, bin_middle) = Calculate_Histogram(mass[model_number][snapshot_idx], binwidth, Frequency, binning_minimum, binning_maximum)
+		#counts_array[model_number].append(counts)
+		#bin_middle_array[model_number].append(bin_middle) 
 
-	
-    		if rank == 0:
-			print "Rank 0", counts_array[model_number][snapshot_idx]
-			for p in xrange(1, size):
-				counts_array[model_number][snapshot_idx] += comm.recv(source = p, tag = 2)
-			#counts_array[model_number][snapshot_idx] /= size
-			print "Size = %d" %(size)
-			print "Finally with rank 0 and my final counts array is", counts_array[model_number][snapshot_idx]
+		if rank == 0:
+			counts_total = np.zeros_like(counts_local)
 		else:
-			print "Rank 1", counts_array[model_number][snapshot_idx]
-			comm.send(counts_array[model_number][snapshot_idx], dest = 0, tag = 2)	
+			counts_total = None
+		comm.Reduce([counts_local, MPI.DOUBLE], [counts_total, MPI.DOUBLE], op = MPI.SUM, root = 0)
+
+		if rank == 0:
+			counts_array[model_number].append(counts_total)
+			bin_middle_array[model_number].append(bin_middle)
+
+#			for p in xrange(1, size):
+#				counts_array[model_number][snapshot_idx] += comm.recv(source = p, tag = 2)
+#			comm.send(counts_array[model_number][snapshot_idx], dest = 0, tag = 2)	
 
 	
 
@@ -500,10 +500,8 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 
     	#plt.tight_layout()
 
-	if (size == 1): 
-		outputFile = './%s_serial%s' %(output_tag, output_format)
-	else:
-     		outputFile = './%s_mpi_%dprocessors%s' %(output_tag, size, output_format)   		
+
+	outputFile = './%s%s' %(output_tag, output_format)
     	#f.savefig("foo.pdf", bbox_inches='tight')
     	plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     	print 'Saved file to', outputFile
@@ -2409,39 +2407,42 @@ HaloPart_High = 51
 
 calculate_observed_LF = 0
 
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
-galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_5Myr_z5.000'
-galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_5Myr_TakeOut2_z5.000'
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_MeraxesPaperRescale_z5.000'
+galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_PreviousSNChange1_z5.000'
+galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_ContempChange_z5.000'
+galaxies_model4 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_new_z5.000'
 
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
-merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_5Myr_MergedGalaxies'
-merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_5Myr_TakeOut2_MergedGalaxies'
 
-galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3]
-merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3]
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_MeraxesPaperRescale_MergedGalaxies'
+merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_PreviousSNChange2_MergedGalaxies'
+merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_ContempChange_MergedGalaxies'
+merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_new_MergedGalaxies'
 
-number_models = 3
-number_snapshots = [101, 101, 101] # Property of the simulation.
-FirstFile = [0,0, 0]
-LastFile = [124,124, 124]
-model_tags = ["IRA", "Delayed - 5Myr", "Delayed - NewVars"]
+galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3, galaxies_model4]
+merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3, merged_galaxies_model4]
+
+number_models = 4
+number_snapshots = [101, 101, 101, 101] # Property of the simulation.
+FirstFile = [0,0, 0, 0]
+LastFile = [124,124, 124, 124]
+model_tags = ["None", "Previous SN Change1", "Contemp Change", "Both"]
 
 ## Constants used for each model. ##
 # Need to add an entry for EACH model. #
 
-sSFR_min = [1.0e100, 1.0e100, 1.0e100]
-sSFR_max = [-1.0e100, -1.0e100, -1.0e100]
-halo_cut = [1, 1, 1]
-fesc_lyman_alpha = [0.3, 0.3, 0.3]
-fesc = [0.15, 0.15, 0.15]
-source_efficiency = [1, 1, 1] 
+sSFR_min = [1.0e100, 1.0e100, 1e10,0]
+sSFR_max = [-1.0e100, -1.0e100, 0, 0]
+halo_cut = [1, 1, 1,1]
+fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3]
+fesc = [0.15, 0.15, 0.15, 0.15]
+source_efficiency = [1, 1, 1,1]
 
-SnapList = [[78, 63, 54], [78, 63, 54], [78, 63, 54]]
+SnapList = [[78, 63, 54], [78, 63, 54], [78, 63, 54], [78, 63, 54]]
 
-simulation_norm = [0, 0, 0] # 0 for MySim, 1 for Mini-Millennium.
+simulation_norm = [0, 0, 0, 0] # 0 for MySim, 1 for Mini-Millennium.
 
-galaxy_halo_mass_lower = [95, 95, 95] # These limits are for the number of particles in a halo.  
-galaxy_halo_mass_upper = [105, 105, 95] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
+galaxy_halo_mass_lower = [95, 95, 95, 95] # These limits are for the number of particles in a halo.  
+galaxy_halo_mass_upper = [105, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
 
 ## Halo Initialization ##
 
@@ -2608,7 +2609,7 @@ for model_number in xrange(0, number_models):
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "test_SMF_takeout2")
+StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "SMF_Changes1")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))

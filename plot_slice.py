@@ -33,6 +33,11 @@ import PlotScripts
 import ReadScripts
 import AllVars
 
+from mpi4py import MPI
+
+comm= MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
 
 G = 6.674e-11 # Gravitational constant.
 mp_kg = 1.673e-27 # Mass proton in kg.
@@ -2374,27 +2379,26 @@ if __name__ == '__main__':
     ###########################
 
     ##### Processors Comparisons ####
-    
-
- 
+     
     output_tags = [r"1 Processors", "2 Processors", "8 Processors"] 
-    model_tags = [r"1 Processors", "2 Processors", "8 Processors"] 
+    model_tags = [r"1 Processors", "4 Processors", "8 Processors"] 
  
     number_models = 3
 
-    model = 'PowSpec'
+    model = 'processors'
 
     GridSize_model1 = 128
     GridSize_model2 = 128
     GridSize_model3 = 128 
 
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_1processor1node"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_2processor1node" 
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_4processor1node" 
     filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_8processor1node"
+    
     
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
     filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_Delayed_SN5Myr_z5.000_fesc0.25_HaloPartCut0_nionHI"
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"  
 
     filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
     filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
@@ -2410,6 +2414,39 @@ if __name__ == '__main__':
     density_filepath_array = [filepath_density_model1, filepath_density_model2, filepath_density_model3]
     photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3]
 
+
+    ###########################
+    ### MKL ###
+
+    output_tags = [r"No MKL", r"MKL"]
+    model_tags = [r"No MKL", r"MKL"] 
+ 
+    number_models = 2
+
+    model = 'mkl'
+
+    GridSize_model1 = 128
+    GridSize_model2 = 128
+
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_tmp/XHII_nomkl"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_tmp/XHII_mkl"
+    
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
+
+    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
+    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
+
+    GridSize_array = [GridSize_model1, GridSize_model2, GridSize_model3]
+    ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3]
+    nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3]
+    density_filepath_array = [filepath_density_model1, filepath_density_model2, filepath_density_model3]
+    photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3]
 
     ###########################
 
@@ -2567,8 +2604,6 @@ if __name__ == '__main__':
 
     ###########################   
 
-
-
     OutputDir = "./ionization_plots/" + model + '/'
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
@@ -2641,39 +2676,35 @@ if __name__ == '__main__':
     calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
     MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
  
-    calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calculate it. 
+    calculate_power = 0 # 0 to NOT calculate the power spectra, 1 to calculate it. 
 
     do_hoshen = 0
     
 
-    for i in xrange(lowerZ, upperZ):
+    for snapshot_idx in xrange(lowerZ, upperZ):
 
-		
+	do_power_array = np.zeros((number_models))	
     	ionized_cells_array = []
 	density_array = [] 
     	nion_array = [] 
     	photofield_array = [] 
 
         print "=============================="
-        print "REDSHIFT %.3f" %(ZZ[i])	
+        print "REDSHIFT %.3f" %(ZZ[snapshot_idx])	
         print "=============================="
 
-        if (i < 10):
-            number_tag_anne = '_0%d' %(i)
-            number_tag_mine = '_00%d' %(i)
+        if (snapshot_idx < 10):
+            number_tag_anne = '_0%d' %(snapshot_idx)
+            number_tag_mine = '_00%d' %(snapshot_idx)
         else:
-            number_tag_anne = '_%d' %(i)
-            number_tag_mine = '_0%d' %(i)
-
-        ##########################################################################
-       
-	do_power_array = np.zeros((number_models))
+            number_tag_anne = '_%d' %(snapshot_idx)
+            number_tag_mine = '_0%d' %(snapshot_idx)
 
         ##########################################################################
 
 	def calculate_power_spectrum(ionized_cells, density, GridSize):
 	
-		Brightness = 27.0*(1.0-ionized_cells)*density*((1+ZZ[i])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
+		Brightness = 27.0*(1.0-ionized_cells)*density*((1+ZZ[snapshot_idx])/10.0 * 0.15/(OM*Hubble_h*Hubble_h))**(1/2) * (OB*Hubble_h*Hubble_h / 0.023)
 
 		Mean_Brightness = np.mean(Brightness)
 		delta = Brightness/Mean_Brightness - 1.0	
@@ -2682,15 +2713,8 @@ if __name__ == '__main__':
 
 		return (k_Bins , PowSpec, Error, Mean_Brightness)  
 
-	def read_grid(filepath, GridSize):
 
-		fd = open(filepath, 'rb')
-		grid = np.fromfile(fd, count = GridSize**3, dtype = float64)
-		grid.shape = (GridSize, GridSize, GridSize)
-		fd.close()
-
-		return grid
-
+        ##########################################################################
 
 	for model_number in xrange(0, number_models): 
 
@@ -2702,21 +2726,20 @@ if __name__ == '__main__':
 	        #######################################
 
 		ionized_cells_path = ionized_cells_filepath_array[model_number] + number_tag_anne 
-		ionized_cells_array.append(read_grid(ionized_cells_path, GridSize_model))
+		ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model))
 
 		nion_path = nion_filepath_array[model_number] + number_tag_mine 
-		nion_array.append(read_grid(nion_path, GridSize_model))
+		nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model))
 
 		density_path = density_filepath_array[model_number] + number_tag_mine
-		density_array.append(read_grid(density_path, GridSize_model))		
+		density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model))		
 
 		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
-		photofield_array.append(read_grid(photofield_path, GridSize_model))
-
+		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model))
 
 		#
 
-		#plot_single(ZZ[i], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[0] + number_tag_anne)
+		plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
 		
 		volume_frac_array[model_number].append(calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number]))
 		nion_total_array[model_number].append(calculate_total_nion(model_tags[model_number], nion_array[model_number]))
@@ -2726,18 +2749,18 @@ if __name__ == '__main__':
 		if(do_hoshen == 1):
 			hoshen_array[model_number].append(hoshen_kopelman(ionized_cells_array[model_number]))	
 
-		#plot_nionfield(ZZ[i], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(i))
-		#plot_density(ZZ[i], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(i))
+		plot_nionfield(ZZ[i], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(i))
+		plot_density(ZZ[i], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(i))
 		#plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
 		HI_fraction_high = fractions_HI[count_MC_array[model_number] % len(fractions_HI)] + delta_HI[count_MC_array[model_number] % len(fractions_HI)]
 		HI_fraction_low= fractions_HI[count_MC_array[model_number] % len(fractions_HI)] - delta_HI[count_MC_array[model_number] % len(fractions_HI)]
 
 		if(volume_frac_model < HI_fraction_high and volume_frac_model > HI_fraction_low):
-			MC_ZZ[model_number, count_MC_array[model_number]] = ZZ[i]
-			MC_Snaps[model_number, count_MC_array[model_number]] = i
+			MC_ZZ[model_number, count_MC_array[model_number]] = ZZ[snapshot_idx]
+			MC_Snaps[model_number, count_MC_array[model_number]] = snapshot_idx
 
-			print "Model1 reached x_HI = %.3f at z = %.3f" %(fractions_HI[count_MC_model1], ZZ[i])
+			print "Model %d reached x_HI = %.3f at z = %.3f" %(model_number, fractions_HI[count_MC_array[model_number]], ZZ[snapshot_idx])
 
 			do_MC = 1
 			do_power_array[model_number] = 1
@@ -2746,7 +2769,7 @@ if __name__ == '__main__':
 
 		if((do_MC == 1 and calculate_MC == 1) or (calculate_MC == 2 and i == calculate_MC_snaps[z_index])):
 	
-			calculate_bubble_MC(ZZ[i], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number])
+			calculate_bubble_MC(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number])
 			do_MC = 0
 
 
@@ -2760,15 +2783,15 @@ if __name__ == '__main__':
 			do_power_array[model_number] = 0
 
 
-		if(i == 0):
+		if(snapshot_idx == 0):
 			redshift_array.append(np.zeros((GridSize_array[model_number], GridSize_array[model_number], GridSize_array[model_number])))
 
-		#redshift_array[model_number] = calculate_reionization_redshift(ionized_cells_array[model_number], density_array[model_number], redshift_array[model_number], ZZ[i], GridSize_array[model_number]) 
+		redshift_array[model_number] = calculate_reionization_redshift(ionized_cells_array[model_number], density_array[model_number], redshift_array[model_number], ZZ[i], GridSize_array[model_number]) 
 
-		#plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
+		plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
 
-		#photo_mean_array[model_number].append(np.mean(photofield_array[model_number][photofield_array[model_number] != 0]))
-		#photo_std_array[model_number].append(np.std(photofield_array[model_number][photofield_array[model_number] != 0]))
+		photo_mean_array[model_number].append(np.mean(photofield_array[model_number][photofield_array[model_number] != 0]))
+		photo_std_array[model_number].append(np.std(photofield_array[model_number][photofield_array[model_number] != 0]))
  
        	
 	z_index += 1
@@ -2797,14 +2820,14 @@ if __name__ == '__main__':
     #save_redshifts(redshift_array_model2, OutputDir, "ReionizationRedshift_" + output_tags[1])
     #save_redshifts(redshift_array_model3, OutputDir, "ReionizationRedshift_" + output_tags[2])
  
-    #plot_power(fractions_HI, [k_model1, k_model2, k_model3], [PowerSpectra_model1, PowerSpectra_model2, PowerSpectra_model3], [PowerSpectra_Error_model1, PowerSpectra_Error_model2, PowerSpectra_Error_model3], model_tags, OutputDir, "PowerSpectrum")
+    plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, model_tags, OutputDir, "PowerSpectrum")
 
     if(plot_MC == 1):
 	plotting_MC_ZZ = MC_ZZ
 	plotting_HI = fractions_HI
     elif(plot_MC == 2):
 	plotting_MC_ZZ = MC_ZZ_snaps 
-	plotting_HI = [volume_frac_model1, volume_frac_model2, volume_frac_model3]
+	plotting_HI = volume_frac_array 
     #plot_bubble_MC(plotting_MC_ZZ, fractions_HI, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
     #plot_hoshen(hoshen_array, volume_frac_array, model_tags, OutputDir, "Hoshen")
     #find_max_bubble(plotting_MC_ZZ, plotting_HI, plot_MC, volume_frac_array,  model_tags, output_tags, GridSize_array, OutputDir, "MaxBubble_withNB_z_ylog")

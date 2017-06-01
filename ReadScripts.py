@@ -542,3 +542,11 @@ def Create_Snap_Arrays(G, NumSnaps, SnapList):
                 SnapCount[j] += 1
 
 
+def read_binary_grid(filepath, GridSize):
+
+    fd = open(filepath, 'rb')
+    grid = np.fromfile(fd, count = GridSize**3, dtype = float64)
+    grid.shape = (GridSize, GridSize, GridSize)
+    fd.close()
+
+    return grid
