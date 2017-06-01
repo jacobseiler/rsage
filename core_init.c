@@ -78,7 +78,7 @@ void init(void)
   
   alpha_mass = 6.0;
   //alpha_mass = 4.0;
-  beta_mass = 0.0;
+  beta_mass = 10.0; 
   //beta_mass = 3.2;
   V_mass = 70.0;
   //V_mass = 80.0;

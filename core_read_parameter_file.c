@@ -214,6 +214,10 @@ void read_parameter_file(char *fname)
   addr[nt] = &NOUT;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "RescaleSN");
+  addr[nt] = &RescaleSN;
+  id[nt++] = INT;
+
   if((fd = fopen(fname, "r")))
   {
     while(!feof(fd))

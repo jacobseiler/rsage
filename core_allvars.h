@@ -398,4 +398,5 @@ extern double epsilon_mass_max;
 extern int count_firstSF;
 extern int count_notfirstSF;
 
+extern int RescaleSN;
 #endif  // #ifndef ALLVARS_H

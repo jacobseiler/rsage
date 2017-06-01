@@ -153,3 +153,5 @@ int count_firstSF;
 int count_notfirstSF;
 
 int *Gal_to_free;
+
+int RescaleSN;
