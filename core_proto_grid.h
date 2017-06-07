@@ -1,7 +1,7 @@
 #include "core_allvars_grid.h"
 
 void init(void);
-void init_grid(int GridNr);
+void init_grid(int GridNr, int ThisTask_GridNr);
 void set_units(void);
 void read_snap_list(void);
 

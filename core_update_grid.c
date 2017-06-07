@@ -92,11 +92,11 @@ void update_grid_halo(int totNHalos, int GridNr)
 void update_grid_diffuse(int GridNr)
 {
  
-  char bufz0[1000];
+  char bufz0[MAXLEN];
   FILE* load_fd = NULL;
 
 
-  sprintf(bufz0, "%s/%d_Unbound.dat", DiffuseDir, ListOutputGrid[GridNr]);
+  snprintf(bufz0, MAXLEN, "%s/%d_Unbound.dat", DiffuseDir, ListOutputGrid[GridNr]);
  
   if(!(load_fd = fopen(bufz0, "r")))
   {
@@ -162,10 +162,7 @@ void update_grid_density(int GridNr)
 void update_grid_nion_halo(int GridNr) // Calculates number of ionizing photons using the halos. 
 {
   int i;
-  double totHaloMass;
   double evolve_time;
-
-  double UnitConversion;
 
   printf("Calculating number of photons using halo-based prescription.\n");
   
@@ -175,11 +172,10 @@ void update_grid_nion_halo(int GridNr) // Calculates number of ionizing photons 
   else
 	  evolve_time = (Age[ListOutputGrid[GridNr+1]] - Age[ListOutputGrid[GridNr]]) * UnitTime_in_Megayears;
 
-  totHaloMass = 0;
   for (i = 0; i < CUBE(GridSize); ++i)
   {
     // Using Illiev 2012. 
-    UnitConversion = SOLAR_MASS/0.53/PROTONMASS/SEC_PER_MEGAYEAR;
+//    UnitConversion = SOLAR_MASS/0.53/PROTONMASS/SEC_PER_MEGAYEAR;
     Grid[i].Nion_HI = Grid[i].HaloMass*1e10/Hubble_h*SOLAR_MASS*SourceEfficiency*BaryonFrac/0.53/PROTONMASS/evolve_time/SEC_PER_MEGAYEAR;
   }
   
@@ -213,21 +209,21 @@ void normalize_photon(int GridNr)
 
   int i;
   double totPhotons_HI_normgrid = 0, totPhotons_HI = 0;
-  char buf[1000], tag[1000];
+  char buf[MAXLEN], tag[MAXLEN];
   double *NormGrid;
   FILE *load_fd; 
 
   if ((NGrid - 1 - GridNr) < 10)
-    sprintf(tag, "00");
+    snprintf(tag, MAXLEN, "%s", "00");
   else if ((NGrid - 1 - GridNr) < 100 && (NGrid - 1 - GridNr) >= 10)
-    sprintf(tag, "0");
+    snprintf(tag, MAXLEN, "%s", "0");
   else
-    sprintf(tag, "");
+    snprintf(tag, MAXLEN, "%s", "");
 
 
   NormGrid = malloc(CUBE(GridSize) * sizeof(double));
 
-  sprintf(buf, "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_nionHI_%s%d", tag, (NGrid-1) - GridNr);
+  snprintf(buf, MAXLEN, "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_nionHI_%s%d", tag, (NGrid-1) - GridNr);
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);

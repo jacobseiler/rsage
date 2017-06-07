@@ -16,7 +16,7 @@ INCL   =	./core_allvars_grid.h  \
 			./Makefile 
 
 
-# USE-MPI = yes  # set this if you want to run in parallel
+USE-MPI = yes  # set this if you want to run in parallel
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel

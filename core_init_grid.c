@@ -18,7 +18,7 @@
 void init(void)
 {
   int i;
-  double evolve_time;
+  
 
   random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
   gsl_rng_set(random_generator, 42);	 // start-up seed 
@@ -34,21 +34,6 @@ void init(void)
     Age[i] = time_to_present(ZZ[i]); // Age array.
   }
  
-  for(i = 0; i < NGrid; ++i)
-  { 
-    if (Verbose == 1)
-    {
-      if (i == NGrid - 1) {
-        evolve_time = (Age[ListOutputGrid[i]-1] - Age[ListOutputGrid[i]])*UnitTime_in_Megayears / Hubble_h; 
-//        printf("Evolve time for Snapshots %d and %d is %.3e Myr.\n", ListOutputGrid[i], ListOutputGrid[i]-1, evolve_time);
-      }
-      else {  
-        evolve_time = (Age[ListOutputGrid[i+1]] - Age[ListOutputGrid[i]])*UnitTime_in_Megayears / Hubble_h;
-//        printf("Evolve time for Snapshots %d and %d is %.3e Myr.\n", ListOutputGrid[i], ListOutputGrid[i+1], evolve_time);
-      }
-    }
-  }
-
   if (fescPrescription == 2)
   {
     beta = (delta - kappa)/(MH_max - MH_min); // Index of the power law.	
@@ -69,11 +54,11 @@ void init(void)
 }
 
 
-void init_grid(int GridNr)
+void init_grid(int GridNr, int ThisTask_GridNr)
 {
   int i;
 
-  if (GridNr == 0) // Only need to malloc the grid once.
+  if (ThisTask_GridNr == 0) // Only need to malloc the grid once.
     Grid = mymalloc(sizeof(struct GRID)*CUBE(GridSize));
 
   //estimate_grid_memory();
@@ -120,9 +105,9 @@ void set_units(void)
 void read_snap_list(void)
 {
   FILE *fd;
-  char fname[1000];
+  char fname[MAXLEN];
 
-  sprintf(fname, "%s", FileWithSnapList);
+  snprintf(fname, MAXLEN, "%s", FileWithSnapList);
 
   if(!(fd = fopen(fname, "r")))
   {

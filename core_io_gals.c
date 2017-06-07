@@ -16,10 +16,10 @@ FILE* load_fd = NULL;
 
 void load_halos(int filenr)
 {
-  char buf[1000];
+  char buf[MAXLEN];
 
   // open the file each time this function is called
-  sprintf(buf, "%s/%s.%d", SimulationDir, TreeName, filenr);
+  snprintf(buf, MAXLEN, "%s/%s.%d", SimulationDir, TreeName, filenr);
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);

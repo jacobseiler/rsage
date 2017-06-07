@@ -268,7 +268,6 @@ void read_parameter_file(char *fname)
 	  for (i = HighSnap; i > LowSnap - 1; --i)
           {
             ListOutputGrid[HighSnap - i] = i;
-            fprintf(stderr, "Index %d, Snapshot %d\n", HighSnap - i, i);
           }
           NGrid = HighSnap - LowSnap + 1;
         }

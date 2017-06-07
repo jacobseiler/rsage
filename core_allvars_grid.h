@@ -36,6 +36,8 @@ do {                                                                \
 
 #define	 CUBE(x) (x*x*x)
 
+#define MAXLEN 1024
+
 #ifdef NDEBUG
 #define XASSERT(EXP, ...)                                do{} while(0)
 #else
