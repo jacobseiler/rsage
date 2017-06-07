@@ -163,8 +163,7 @@ void update_stars_array(int p, double stars, double dt, int tree, int step)
 void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree)
 {
   double reff, tdyn, strdot, stars;
-  double cold_crit;
-  double FracZleaveDiskVal;
+  double cold_crit; 
   double reheated_mass = 0.0, mass_metals_new = 0.0, mass_stars_recycled = 0.0, ejected_mass = 0.0;
 
   // Initialise variables
@@ -184,6 +183,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 
     // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h 
     cold_crit = 0.19 * Gal[p].Vvir * reff;
+    //fprintf(stderr, "cold_crit = %.4e, ColdGas = %.4e, Vvir = %.4e, reff = %.4e\n", cold_crit, Gal[p].ColdGas, Gal[p].Vvir, reff);
     if(Gal[p].ColdGas > cold_crit && tdyn > 0.0)
     	strdot = SfrEfficiency * (Gal[p].ColdGas - cold_crit) / tdyn;
     else
@@ -550,7 +550,7 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
   *mass_metals_new = 0.0;
   *ejected_mass = 0.0;
  
-  double m_low, m_high, t_low, t_high;
+  double m_low, m_high, t_low;
   double Delta_Eta, Delta_m;
   double fac;
  

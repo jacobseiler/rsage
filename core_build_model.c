@@ -143,7 +143,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
         if(prog == first_occupied)
         {
           // update properties of this galaxy with physical properties of halo 
-          Gal[ngal].MostBoundID = Halo[halonr].MostBoundID;
+          //Gal[ngal].MostBoundID = Halo[halonr].MostBoundID;
 
           for(j = 0; j < 3; j++)
           {
@@ -287,7 +287,6 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
     // Loop over all galaxies in the halo 
     for(p = 0; p < ngal; p++)
     {
-
       // Don't treat galaxies that have already merged 
       if(Gal[p].mergeType > 0)
         continue;
@@ -360,15 +359,10 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
           if(Gal[p].MergTime > 0.0)  // disruption has occured!
           {
 
-
             disrupt_satellite_to_ICS(merger_centralgal, p, tree);
-
 	    update_grid_array(p, halonr, step, centralgal); // Updates the grid before it's added to the merger list.
-
             add_galaxy_to_merger_list(p);
 	
-
-
           }
           else
           {
@@ -377,14 +371,11 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
               time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);   
 
               deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step, tree);
-
 	      update_grid_array(p, halonr, step, centralgal); // Updates the grid before it's added to the merger list.
+              add_galaxy_to_merger_list(p);
 
 //	      if (Gal[p].GridSFR[Halo[halonr].SnapNum] == 0)
 //		printf("GOT A ZERO FROM MERGER!\n");
-
-              add_galaxy_to_merger_list(p);
-
 
             }
           } 

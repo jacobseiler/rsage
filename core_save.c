@@ -84,13 +84,15 @@ void save_galaxies(int filenr, int tree)
         if(HaloGal[i].SnapNum == ListOutputSnaps[0]) // We only want to write out the grid properties for the final snapshot.
             write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
         //fprintf(stderr, "On write the GrandSum was %.4e and Stellar Mass was %.4e for Galaxy %d\n", HaloGal[i].GrandSum, HaloGal[i].StellarMass, i);
+        /*
         if(HaloGal[i].StellarMass != 0)
 	{ 
-		double ratio = HaloGal[i].GrandSum/HaloGal[i].StellarMass;
+		//double ratio = HaloGal[i].GrandSum/HaloGal[i].StellarMass;
 		//fprintf(stderr, "Ratio: %.4e \t StellarMass = %.4e \t GrandSum = %.4e\n", ratio, HaloGal[i].StellarMass, HaloGal[i].GrandSum); 	
 		//fprintf(stderr, "%.4f\n", ratio);
 
         }
+        */
     	TotGalaxies[n]++;
         TreeNgals[n][tree]++;
 
@@ -148,9 +150,15 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   {
     o->Pos[j] = g->Pos[j];
     o->Vel[j] = g->Vel[j];
+#ifndef TIAMAT
     o->Spin[j] = Halo[g->HaloNr].Spin[j];
+#endif
   }
- 
+
+#ifdef TIAMAT
+  o->Spin = Halo[g->HaloNr].Spin; 
+#endif
+
   o->Len = g->Len;
   o->Mvir = g->Mvir;
   o->Vmax = g->Vmax;
@@ -158,8 +166,12 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->CentralMvir = get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup);
   o->Rvir = get_virial_radius(g->HaloNr);  // output the actual Rvir, not the maximum Rvir
   o->Vvir = get_virial_velocity(g->HaloNr);  // output the actual Vvir, not the maximum Vvir
-  o->VelDisp = Halo[g->HaloNr].VelDisp;
-  o->SimulationFOFHaloIndex = Halo[g->HaloNr].SubhaloIndex;
+  //o->VelDisp = Halo[g->HaloNr].VelDisp;
+  //o->SimulationFOFHaloIndex = Halo[g->HaloNr].SubhaloIndex;
+
+  o->VelDisp = 0.0; 
+  o->SimulationFOFHaloIndex = -1; 
+
    
   o->ColdGas = g->ColdGas;
   o->StellarMass = g->StellarMass;
@@ -245,7 +257,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   }
 
   for (j = 0; j < MAXSNAPS; ++j)
-  {
+  { 
       myfwrite(&g->GridStellarMass[j], sizeof(*(g->GridStellarMass)), 1, fp);
   }
   

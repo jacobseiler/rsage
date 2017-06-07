@@ -24,6 +24,7 @@ void load_tree_table(int filenr)
 
 	// open the file each time this function is called
   sprintf(buf, "%s/%s.%d", SimulationDir, TreeName, filenr);
+  fprintf(stderr, "Reading file %s\n", buf);
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);
@@ -39,7 +40,7 @@ void load_tree_table(int filenr)
   for(n = 0; n < NOUT; n++)
     TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
   TreeNMergedgals = mymalloc(sizeof(int)* Ntrees);
-  myfread(TreeNHalos, Ntrees, sizeof(int), load_fd);
+  myfread(TreeNHalos, Ntrees, sizeof(int), load_fd); 
 
   if(Ntrees)
     TreeFirstHalo[0] = 0;
@@ -64,7 +65,7 @@ void load_tree_table(int filenr)
     TotGalaxies[n] = 0;
   }
   TotMerged = 0;
-
+  fprintf(stderr, "Read the table\n");
 }
 
 
@@ -96,9 +97,13 @@ void load_tree(int filenr, int nr)
   // must have an FD
   assert( load_fd );
 
-  Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[nr]);
-
+#ifdef TIAMAT 
+  Halo = mymalloc(sizeof(struct tiamat_halo_data) * TreeNHalos[nr]);
+  myfread(Halo, TreeNHalos[nr], sizeof(struct tiamat_halo_data), load_fd);
+#else
+  Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[nr]);  
   myfread(Halo, TreeNHalos[nr], sizeof(struct halo_data), load_fd);
+#endif 
 
   MaxGals = (int)(MAXGALFAC * TreeNHalos[nr]);
   
@@ -111,16 +116,24 @@ void load_tree(int filenr, int nr)
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
   Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
   MergedGal = mymalloc(sizeof(struct GALAXY) * MaxMergedGals);   
+
  
   for(i = 0; i < TreeNHalos[nr]; i++)
   {
+    //if(Halo[i].NextHaloInFOFgroup != -1)
+     // fprintf(stderr, "%d\n", nr);
+  
+   // fprintf(stderr, "Halo: %d. FirstProg = %d, NextProg = %d, FirstHaloInFOFgroup = %d, NextHaloInFOFgroup = %d SnapNum = %d, Mvir = %.4e\n", i, Halo[i].FirstProgenitor, Halo[i].NextProgenitor, Halo[i].FirstHaloInFOFgroup, Halo[i].NextHaloInFOFgroup, Halo[i].SnapNum, Halo[i].Mvir);
+    //if(Halo[i].FirstProgenitor != -1)
+    //XASSERT(Halo[i].SnapNum != Halo[Halo[i].FirstProgenitor].SnapNum, "Halo[%d].SnapNum = %d, Halo[%d].FirstProgenitor = %d, Halo[Halo[%d].FirstProgenitor].SnapNum = %d\n", i, Halo[i].SnapNum, i, Halo[i].FirstProgenitor, i, Halo[Halo[i].FirstProgenitor].SnapNum);
     HaloAux[i].DoneFlag = 0;
     HaloAux[i].HaloFlag = 0;
     HaloAux[i].NGalaxies = 0;
     if (Halo[i].SnapNum == 99)
       count += Halo[i].Mvir; 
   }
-
+ 
+//  exit(EXIT_FAILURE);
 }
 
 

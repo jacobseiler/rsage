@@ -235,7 +235,6 @@ void make_bulge_from_burst(int p)
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree)
 {
   double stars, eburst;
-  double FracZleaveDiskVal; 
   double reheated_mass = 0.0; 
   double mass_metals_new = 0.0; 
   double mass_stars_recycled = 0.0; 

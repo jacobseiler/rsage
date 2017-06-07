@@ -69,7 +69,11 @@ struct GALAXY_OUTPUT
   // (sub)halo properties
   float Pos[3];
   float Vel[3];
+#ifdef TIAMAT
+  float Spin;
+#else
   float Spin[3];
+#endif
   int   Len;   
   float Mvir;
   float CentralMvir;

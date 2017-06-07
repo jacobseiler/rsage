@@ -5,7 +5,11 @@
 struct GALAXY			
   *Gal, *HaloGal, *MergedGal;
 
+#ifdef TIAMAT
+struct tiamat_halo_data *Halo;
+#else
 struct halo_data *Halo;
+#endif
 
 struct GRID
   *Grid;

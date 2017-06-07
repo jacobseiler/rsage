@@ -24,7 +24,8 @@ void init_galaxy(int p, int halonr)
   GalaxyCounter++;
   
   Gal[p].HaloNr = halonr;
-  Gal[p].MostBoundID = Halo[halonr].MostBoundID;
+  //Gal[p].MostBoundID = Halo[halonr].MostBoundID;
+  Gal[p].MostBoundID = -1; 
   Gal[p].SnapNum = Halo[halonr].SnapNum - 1;
 
   Gal[p].mergeType = 0;
@@ -127,10 +128,14 @@ double get_disk_radius(int halonr, int p)
 	if(Gal[p].Vvir > 0.0 && Gal[p].Rvir > 0.0)
 	{
 		// See Mo, Shude & White (1998) eq12, and using a Bullock style lambda.
+#ifdef TIAMAT
+		SpinParameter= Halo[halonr].Spin;
+#else
 		SpinMagnitude = sqrt(Halo[halonr].Spin[0] * Halo[halonr].Spin[0] + 
 			Halo[halonr].Spin[1] * Halo[halonr].Spin[1] + Halo[halonr].Spin[2] * Halo[halonr].Spin[2]);
   
 		SpinParameter = SpinMagnitude / (1.414 * Gal[p].Vvir * Gal[p].Rvir);
+#endif
 		return (SpinParameter / 1.414) * Gal[p].Rvir;		
 	}
 	else

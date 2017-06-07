@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
   struct stat filestatus;
   FILE *fd;
-  printf("%ld %ld\n", sizeof(float), sizeof(double)); 
+
 #ifdef MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
@@ -144,9 +144,7 @@ int main(int argc, char **argv)
       fclose(fd);
 
     FileNum = filenr;
-    load_tree_table(filenr);
-
-    
+    load_tree_table(filenr);    
     
     for(tree = 0; tree < Ntrees; tree++)
     {      

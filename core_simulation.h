@@ -1,4 +1,27 @@
+#ifdef TIAMAT
+struct tiamat_halo_data
+{
 
+  // merger tree pointers 
+  int FirstProgenitor;
+  int NextProgenitor;
+  int FirstHaloInFOFgroup;
+  int NextHaloInFOFgroup;
+
+  // properties of halo 
+  float Pos[3];
+  float Vel[3];
+  float Spin; 
+  int Len;
+  float Mvir;  // for Millennium, Mvir=M_Crit200
+  float Vvir;
+  float Vmax;
+  
+  // original position in simulation tree files
+  int SnapNum;
+} 
+*Halo;
+#else
 struct halo_data
 {
   // merger tree pointers 
@@ -25,6 +48,6 @@ struct halo_data
   float SubHalfMass;
 }
 *Halo;
-
+#endif
 
 
