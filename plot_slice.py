@@ -1201,12 +1201,9 @@ def Power_Spectrum(ionized_cells, Ncell):
 
 ##########
 
-def plot_power(fractions_HI, k, Power, Error, model_tags, OutputDir, output_tag):
+def plot_power(fractions_HI, k, Power, Error, fraction_idx_array, model_tags, OutputDir, output_tag):
 
 	ax1 = plt.subplot(111)
-
-	print len(Power)
-	print len(Power[0])	
 	
 	for p in xrange(0, len(k)):
 		for q in xrange(0, len(k[0])):
@@ -2418,35 +2415,29 @@ if __name__ == '__main__':
     ###########################
     ### MKL ###
 
-    output_tags = [r"No MKL", r"MKL"]
-    model_tags = [r"No MKL", r"MKL"] 
+    output_tags = [r"Test"]
+    model_tags = [r"Test"]
  
-    number_models = 2
+    number_models = 1
 
-    model = 'mkl'
+    model = 'test'
 
     GridSize_model1 = 128
-    GridSize_model2 = 128
 
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_tmp/XHII_nomkl"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_tmp/XHII_mkl"
+
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.20"
     
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
 
     filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
 
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
 
-    GridSize_array = [GridSize_model1, GridSize_model2, GridSize_model3]
-    ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3]
-    nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3]
-    density_filepath_array = [filepath_density_model1, filepath_density_model2, filepath_density_model3]
-    photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3]
+    GridSize_array = [GridSize_model1]
+    ionized_cells_filepath_array = [filepath_model1]
+    nion_filepath_array = [filepath_nion_model1]
+    density_filepath_array = [filepath_density_model1]
+    photofield_filepath_array = [filepath_photofield_model1]
 
     ###########################
 
@@ -2619,37 +2610,23 @@ if __name__ == '__main__':
     lowerZ = 0 
     upperZ = len(ZZ) 
 
-    volume_frac_array = []
-    mass_frac_array = []
-    nion_total_array = []
-    powerspectra_array = []
-    powerspectra_error_array = []
-    wavenumber_array = []
-    photo_mean_array = []
-    photo_std_array = []
-    redshift_array = []
-    density_z_mean_array = []
+    volume_frac_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64) 
+    mass_frac_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
+    nion_total_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64) 
+    photo_mean_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
+    photo_std_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
+    hoshen_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
 
-    hoshen_array = []
+    wavenumber_array = [] 
+    powerspectra_array = [] 
+    powerspectra_error_array = [] 
+    fraction_idx_array = []
 
-    count_MC_array = np.zeros((number_models), dtype = np.int32)
-
-    redshift_array = []
-
-    for i in xrange(0, number_models):
-	volume_frac_array.append([])
-	mass_frac_array.append([])
-	nion_total_array.append([])
+    for model_number in xrange(0, number_models):
+	wavenumber_array.append([])
 	powerspectra_array.append([])
 	powerspectra_error_array.append([])
-	wavenumber_array.append([])
-	photo_mean_array.append([])
-	photo_std_array.append([])
-	redshift_array.append([])
-	density_z_mean_array.append([])
-	
-	hoshen_array.append([])
-
+	fraction_idx_array.append([]) 
 
     #fractions_HI = [0.90, 0.01]
     #delta_HI = [0.01, 0.01]
@@ -2663,14 +2640,13 @@ if __name__ == '__main__':
     fractions_HI = [0.95, 0.90, 0.80]
     delta_HI = [0.01, 0.02, 0.03]
 
-    MC_ZZ = np.empty((3, len(fractions_HI)))
+    HI_fraction_high = np.add(fractions_HI, delta_HI) 
+    HI_fraction_low= np.subtract(fractions_HI, delta_HI) 
+
+    MC_ZZ = np.full((3, len(fractions_HI)), -1)
     MC_Snaps = np.empty((3, len(fractions_HI)))
 
-    do_MC = 0
-    count_MC_model1 = 0
-    count_MC_model2 = 0
-    count_MC_model3 = 0
-
+    do_MC = 0 
     calculate_MC = 0 # 0 to NOT calculate the MC bubbles, 1 to calculate them at the HI fractions specified by fractions_HI, 2 to calculate them at the snapshots given by calculate_MC_snaps. 
     plot_MC = 2 # 0 is nothing, 1 to plot bubble properties at specified HI fractions, 2 to plot them at specified snapshots.
     calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
@@ -2681,7 +2657,7 @@ if __name__ == '__main__':
     do_hoshen = 0
     
 
-    for snapshot_idx in xrange(lowerZ, upperZ):
+    for snapshot_idx in xrange(lowerZ+rank, upperZ, size):
 
 	do_power_array = np.zeros((number_models))	
     	ionized_cells_array = []
@@ -2716,6 +2692,15 @@ if __name__ == '__main__':
 
         ##########################################################################
 
+	def check_fractions(ionized_fraction, HI_fraction_high, HI_fraction_low):
+		for i in xrange(0, len(HI_fraction_high)):
+			if (ionized_fraction >= HI_fraction_low[i] and ionized_fraction <= HI_fraction_high[i]):
+				return i
+
+		return -1
+
+        ##########################################################################
+
 	for model_number in xrange(0, number_models): 
 
 
@@ -2741,31 +2726,30 @@ if __name__ == '__main__':
 
 		plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
 		
-		volume_frac_array[model_number].append(calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number]))
-		nion_total_array[model_number].append(calculate_total_nion(model_tags[model_number], nion_array[model_number]))
+		volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
+	
+		nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
 
-		volume_frac_model = volume_frac_array[model_number][z_index]	
+		volume_frac_model = volume_frac_array[model_number][snapshot_idx]	
 
 		if(do_hoshen == 1):
-			hoshen_array[model_number].append(hoshen_kopelman(ionized_cells_array[model_number]))	
+			hoshen_array[model_number][snapshot_idx] = hoshen_kopelman(ionized_cells_array[model_number])	
 
-		plot_nionfield(ZZ[i], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(i))
-		plot_density(ZZ[i], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(i))
+		#plot_nionfield(ZZ[i], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(i))
+		#plot_density(ZZ[i], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(i))
 		#plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
-		HI_fraction_high = fractions_HI[count_MC_array[model_number] % len(fractions_HI)] + delta_HI[count_MC_array[model_number] % len(fractions_HI)]
-		HI_fraction_low= fractions_HI[count_MC_array[model_number] % len(fractions_HI)] - delta_HI[count_MC_array[model_number] % len(fractions_HI)]
+		fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
+		if(fraction_idx != -1): 
 
-		if(volume_frac_model < HI_fraction_high and volume_frac_model > HI_fraction_low):
-			MC_ZZ[model_number, count_MC_array[model_number]] = ZZ[snapshot_idx]
-			MC_Snaps[model_number, count_MC_array[model_number]] = snapshot_idx
+			if(MC_ZZ[model_number, fraction_idx] == -1):
+				MC_ZZ[model_number, fraction_idx] = ZZ[snapshot_idx]
+				MC_Snaps[model_number, fraction_idx] = snapshot_idx
 
-			print "Model %d reached x_HI = %.3f at z = %.3f" %(model_number, fractions_HI[count_MC_array[model_number]], ZZ[snapshot_idx])
+				print "Model %d reached x_HI = %.3f at z = %.3f" %(model_number, fractions_HI[fraction_idx], ZZ[snapshot_idx])
 
-			do_MC = 1
-			do_power_array[model_number] = 1
-			count_MC_array[model_number] += 1		
-
+				do_MC = 1
+				do_power_array[model_number] = 1
 
 		if((do_MC == 1 and calculate_MC == 1) or (calculate_MC == 2 and i == calculate_MC_snaps[z_index])):
 	
@@ -2779,19 +2763,14 @@ if __name__ == '__main__':
 			wavenumber_array[model_number].append(tmp_k)
 			powerspectra_array[model_number].append(Mean_Brightness**2 * tmp_PowSpec * tmp_k**3 * 4.0 * np.pi * np.pi)
 			powerspectra_error_array[model_number].append(tmp_Error)
+			fraction_idx_array[model_number].append(fraction_idx)
 
 			do_power_array[model_number] = 0
 
+		#plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
 
-		if(snapshot_idx == 0):
-			redshift_array.append(np.zeros((GridSize_array[model_number], GridSize_array[model_number], GridSize_array[model_number])))
-
-		redshift_array[model_number] = calculate_reionization_redshift(ionized_cells_array[model_number], density_array[model_number], redshift_array[model_number], ZZ[i], GridSize_array[model_number]) 
-
-		plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
-
-		photo_mean_array[model_number].append(np.mean(photofield_array[model_number][photofield_array[model_number] != 0]))
-		photo_std_array[model_number].append(np.std(photofield_array[model_number][photofield_array[model_number] != 0]))
+		photo_mean_array[model_number][snapshot_idx] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
+		photo_std_array[model_number][snapshot_idx] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
  
        	
 	z_index += 1
@@ -2807,8 +2786,31 @@ if __name__ == '__main__':
     if (MC_ZZ[2][-1] < 5 or MC_ZZ[2][-1] > 1000):
 	MC_ZZ[2][-1] = ZZ[-1]
 
-    plot_global_frac(ZZ, mass_frac_array, volume_frac_array, MC_ZZ, model_tags, OutputDir, "GlobalFraction")
-    plot_total_nion(ZZ, nion_total_array, model_tags, OutputDir, "Nion")
+
+    comm.Barrier()
+
+    print volume_frac_array
+    volume_frac_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64) 
+    comm.Reduce([volume_frac_array, MPI.DOUBLE], [volume_frac_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
+
+    mass_frac_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
+    comm.Reduce([mass_frac_array, MPI.DOUBLE], [mass_frac_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
+
+    nion_total_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
+    comm.Reduce([nion_total_array, MPI.DOUBLE], [nion_total_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
+
+    photo_mean_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
+    comm.Reduce([photo_mean_array, MPI.DOUBLE], [photo_mean_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
+
+    photo_std_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
+    comm.Reduce([photo_std_array, MPI.DOUBLE], [photo_std_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
+
+    hoshen_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
+    comm.Reduce([hoshen_array, MPI.DOUBLE], [hoshen_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
+
+    if (rank == 0):
+	plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, MC_ZZ, model_tags, OutputDir, "GlobalFraction")
+	plot_total_nion(ZZ, nion_total_array_final, model_tags, OutputDir, "Nion")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)
@@ -2820,7 +2822,7 @@ if __name__ == '__main__':
     #save_redshifts(redshift_array_model2, OutputDir, "ReionizationRedshift_" + output_tags[1])
     #save_redshifts(redshift_array_model3, OutputDir, "ReionizationRedshift_" + output_tags[2])
  
-    plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, model_tags, OutputDir, "PowerSpectrum")
+	#plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum")
 
     if(plot_MC == 1):
 	plotting_MC_ZZ = MC_ZZ
