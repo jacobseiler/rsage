@@ -61,7 +61,7 @@ z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
 time_xlim = [315, 930]
 time_tick_interval = 25
 
-output_format = ".png"
+output_format = ".pdf"
 
 def calculate_beta(MUV, z):
 	
@@ -293,31 +293,8 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 		minimum_mass = np.floor(min(mass[model_number][snapshot_idx])) - 10*binwidth
 		maximum_mass = np.floor(max(mass[model_number][snapshot_idx])) + 10*binwidth
 
-		if rank == 0:
-			print "Rank %d had a minimum binning mass of %.3f and a maximum of %.3f" %(rank, minimum_mass, maximum_mass)
-			minimums = np.zeros((size))
-			maximums = np.zeros((size))
-
-			minimums[0] = minimum_mass
-			maximums[0] = maximum_mass
-			for p in xrange(1, size):
-
-				minimums[p] = comm.recv(source = p, tag = 0)
-				maximums[p] = comm.recv(source = p, tag = 1)	
-	
-		else:
-			print "Rank %d had a minimum binning mass of %.3f and a maximum of %.3f" %(rank, minimum_mass, maximum_mass)
-			comm.send(minimum_mass, dest = 0, tag = 0)
-			comm.send(maximum_mass, dest = 0, tag = 1)
-
-			binning_minimum = 0.0
-			binning_maximum = 0.0
-			minimums = [1e100] 
-			maximums = [-1e100] 
-
-		comm.barrier()	
-		binning_minimum = comm.bcast(min(minimums), root = 0)
-		binning_maximum = comm.bcast(max(maximums), root = 0)
+		binning_minimum = comm.allreduce(minimum_mass, op = MPI.MIN)
+		binning_maximum = comm.allreduce(maximum_mass, op = MPI.MAX)
 
 		print "I am rank %d and my binning_minimum is %.3f and my binning_maximum is %.3f" %(rank, binning_minimum, binning_maximum)
 
@@ -357,10 +334,10 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 	
 ##
 
-### Manually enter in the labels for the different simulations. ###
+	'''
     	for model_number in xrange(0, len(SnapList)):
 		plt.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
-
+	'''
 ### Draws a vertical line to denote lower bounds for what is an 'acceptable' Stellar Mass ### 
 
 #    plt.axvline(x = np.log10(HaloPartStellarMass), ymin = 0, ymax = 10, linestyle = '-.', rasterized=True)
@@ -2407,21 +2384,14 @@ HaloPart_High = 51
 
 calculate_observed_LF = 0
 
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_MeraxesPaperRescale_z5.000'
-galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_PreviousSNChange1_z5.000'
-galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_ContempChange_z5.000'
-galaxies_model4 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_new_z5.000'
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
 
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
 
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_MeraxesPaperRescale_MergedGalaxies'
-merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_PreviousSNChange2_MergedGalaxies'
-merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_ContempChange_MergedGalaxies'
-merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/Delayed_new_MergedGalaxies'
+galaxies_filepath_array = [galaxies_model1]
+merged_galaxies_filepath_array = [merged_galaxies_model1]
 
-galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3, galaxies_model4]
-merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3, merged_galaxies_model4]
-
-number_models = 4
+number_models = 1
 number_snapshots = [101, 101, 101, 101] # Property of the simulation.
 FirstFile = [0,0, 0, 0]
 LastFile = [124,124, 124, 124]
@@ -2437,7 +2407,7 @@ fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3]
 fesc = [0.15, 0.15, 0.15, 0.15]
 source_efficiency = [1, 1, 1,1]
 
-SnapList = [[78, 63, 54], [78, 63, 54], [78, 63, 54], [78, 63, 54]]
+SnapList = [[78, 63, 54]]
 
 simulation_norm = [0, 0, 0, 0] # 0 for MySim, 1 for Mini-Millennium.
 
@@ -2604,12 +2574,12 @@ for model_number in xrange(0, number_models):
 		galaxy_halo_mass_mean[model_number].append(tmp_mean)
 		galaxy_halo_mass_std[model_number].append(tmp_std)
 		 
-	print mass_gal
+
 	
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "SMF_Changes1")
+StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Paper_SMF")
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))

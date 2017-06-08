@@ -126,7 +126,7 @@ AllVars.Set_Constants()
 
 cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
-output_format = ".png"
+output_format = ".pdf"
 
 def plot_single(z, ionized_cells, Ncells, OutputDir, output_tag):
 # Plots the ionization bubbles for a single set of cells.
@@ -897,7 +897,7 @@ def calculate_bubble_MC(z, ionized_cells, Ncell, OutputDir, output_tag):
 	MCDir = OutputDir + 'MC/' 	
 	if not os.path.exists(MCDir):
 		os.makedirs(MCDir)
-	outfile = MCDir + output_tag + '_z_%.3f.dat' %(ZZ[i])
+	outfile = MCDir + output_tag + '_z_%.3f.dat' %(z)
 	MC_walk(ionized_cells, ionized_indices, 1, N, Ncell, outfile)
 
 	print("MC took %s seconds." % (time.time() - start_time))
@@ -962,7 +962,8 @@ def plot_bubble_MC(ZZ, fractions_HI, model_tags, file_tags, Ncell, OutputDir, ou
 			else:
 				label = ""
 			ls = linestyles[q%(len(linestyles))]
-			ax1.scatter(xaxeshisto, counts, label = label, color = colors[p%len(colors)], marker = markers[q%len(markers)])
+			#ax1.scatter(xaxeshisto, counts, label = label, color = colors[p%len(colors)], marker = markers[q%len(markers)])
+			ax1.plot(xaxeshisto, counts, label = label, color = colors[p%len(colors)], ls = ls) 
 
 	for q in xrange(0, len(model_tags)):
 		ax1.plot(nan, nan, ls = linestyles[q], label = model_tags[q], color = 'k', lw = 2)
@@ -2103,20 +2104,14 @@ def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
 	tau_06 = tau_04 + tau_46
 
 	ax = plt.subplot(111)
-
-	black = ma.colorAlpha_to_rgb('k', 0.3)[0]
-        ax.fill_between(np.arange(0, 20, 0.01), 0.066 - 0.013, 0.066 + 0.013, color = (black[0], black[1], black[2])) 
+	
+        ax.fill_between(np.arange(0, 20, 0.01), 0.066 - 0.013, 0.066 + 0.013, color = 'k', alpha = 0.3) 
         
 	ax.text(12, 0.0725, r"$\mathrm{Planck \: 2015}$")
 
-	cyan = ma.colorAlpha_to_rgb('c', 0.3)[0]
-        ax.fill_between(np.arange(0, 20, 0.01), 0.055 - 0.009, 0.055 + 0.009, color = (cyan[0], cyan[1], cyan[2]))
+        ax.fill_between(np.arange(0, 20, 0.01), 0.055 - 0.009, 0.055 + 0.009, color = 'c', alpha = 0.3) 
 
 	ax.text(12, 0.05, r"$\mathrm{Planck \: 2016}$")
-
-	print cyan
-	middle = [125, 181, 182]
-        ax.fill_between(np.arange(0, 20, 0.01), 0.066 - 0.013, 0.055 + 0.009, color = '#7DB5B6') 
 
 	for p in xrange(0, len(volume_frac)):
 
@@ -2413,31 +2408,41 @@ if __name__ == '__main__':
 
 
     ###########################
-    ### MKL ###
+    ### Different Prescriptions ###
 
-    output_tags = [r"Test"]
-    model_tags = [r"Test"]
+    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
+    output_tags = [r"Constant", "HaloMass", "Ejected"]
  
-    number_models = 1
+    number_models = 3
 
-    model = 'test'
+    model = 'different'
 
     GridSize_model1 = 128
+    GridSize_model2 = 128
+    GridSize_model3 = 128
 
 
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.20"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.20"
+    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.20"
     
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_MH_alpha4.52beta-0.54_nionHI"
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files//Galaxies_IRA_z5.000_Ejected_alpha1.000beta-0.997_nionHI" 
 
     filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
+    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
 
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
+    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
 
-    GridSize_array = [GridSize_model1]
-    ionized_cells_filepath_array = [filepath_model1]
-    nion_filepath_array = [filepath_nion_model1]
-    density_filepath_array = [filepath_density_model1]
-    photofield_filepath_array = [filepath_photofield_model1]
+    GridSize_array = [GridSize_model1, GridSize_model2, GridSize_model3]
+    ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3]
+    nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3]
+    density_filepath_array = [filepath_density_model1, filepath_density_model2, filepath_density_model3]
+    photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3]
 
     ###########################
 
@@ -2637,8 +2642,8 @@ if __name__ == '__main__':
     #fractions_HI = [0.75, 0.50]
     #delta_HI = [0.01, 0.03]
 
-    fractions_HI = [0.95, 0.90, 0.80]
-    delta_HI = [0.01, 0.02, 0.03]
+    fractions_HI = [0.95, 0.50, 0.25]
+    delta_HI = [0.01, 0.05, 0.05]
 
     HI_fraction_high = np.add(fractions_HI, delta_HI) 
     HI_fraction_low= np.subtract(fractions_HI, delta_HI) 
@@ -2648,7 +2653,7 @@ if __name__ == '__main__':
 
     do_MC = 0 
     calculate_MC = 0 # 0 to NOT calculate the MC bubbles, 1 to calculate them at the HI fractions specified by fractions_HI, 2 to calculate them at the snapshots given by calculate_MC_snaps. 
-    plot_MC = 2 # 0 is nothing, 1 to plot bubble properties at specified HI fractions, 2 to plot them at specified snapshots.
+    plot_MC = 1 # 0 is nothing, 1 to plot bubble properties at specified HI fractions, 2 to plot them at specified snapshots.
     calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
     MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
  
@@ -2724,12 +2729,10 @@ if __name__ == '__main__':
 
 		#
 
-		plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
+		#plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
 		
 		volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
-	
 		nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
-
 		volume_frac_model = volume_frac_array[model_number][snapshot_idx]	
 
 		if(do_hoshen == 1):
@@ -2787,9 +2790,6 @@ if __name__ == '__main__':
 	MC_ZZ[2][-1] = ZZ[-1]
 
 
-    comm.Barrier()
-
-    print volume_frac_array
     volume_frac_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64) 
     comm.Reduce([volume_frac_array, MPI.DOUBLE], [volume_frac_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
 
@@ -2811,7 +2811,7 @@ if __name__ == '__main__':
     if (rank == 0):
 	plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, MC_ZZ, model_tags, OutputDir, "GlobalFraction")
 	plot_total_nion(ZZ, nion_total_array_final, model_tags, OutputDir, "Nion")
-
+    	plot_optical_depth(ZZ, volume_frac_array_final, model_tags, OutputDir, "OpticalDepth")
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[2], (cosmo.lookback_time(MC_ZZ[2][0]).value - cosmo.lookback_time(MC_ZZ[2][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[2][0]).value, cosmo.lookback_time(MC_ZZ[2][-1]).value)
@@ -2824,13 +2824,13 @@ if __name__ == '__main__':
  
 	#plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum")
 
-    if(plot_MC == 1):
-	plotting_MC_ZZ = MC_ZZ
-	plotting_HI = fractions_HI
-    elif(plot_MC == 2):
-	plotting_MC_ZZ = MC_ZZ_snaps 
-	plotting_HI = volume_frac_array 
-    #plot_bubble_MC(plotting_MC_ZZ, fractions_HI, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
+    	if(plot_MC == 1):
+		plotting_MC_ZZ = MC_ZZ
+		plotting_HI = fractions_HI
+    	elif(plot_MC == 2):
+		plotting_MC_ZZ = MC_ZZ_snaps 
+		plotting_HI = volume_frac_array 
+	#plot_bubble_MC(plotting_MC_ZZ, fractions_HI, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
     #plot_hoshen(hoshen_array, volume_frac_array, model_tags, OutputDir, "Hoshen")
     #find_max_bubble(plotting_MC_ZZ, plotting_HI, plot_MC, volume_frac_array,  model_tags, output_tags, GridSize_array, OutputDir, "MaxBubble_withNB_z_ylog")
 
@@ -2845,5 +2845,5 @@ if __name__ == '__main__':
     #plot_nine_panel_slices(ZZ, [filepath_model1, filepath_model2, filepath_model3], [GridSize_model1, GridSize_model2, GridSize_model3], MC_Snaps, fractions_HI, model_tags, OutputDir, "9PanelSlices")
     #plot_nine_panel_photHI(ZZ, [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3], [GridSize_model1, GridSize_model2, GridSize_model3], MC_Snaps, fractions_HI, model_tags, OutputDir, "9PanelSlices_PhotHI")
 
-    #plot_optical_depth(ZZ, volume_frac_array, model_tags, OutputDir, "OpticalDepth")
+
     print "t_BigBang = %.4e Gyr.  t(z = 6) = %.4f Gyr" %(t_BigBang, cosmo.lookback_time(6).value)
