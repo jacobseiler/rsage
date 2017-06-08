@@ -16,7 +16,7 @@ double integrand_time_to_present(double a, void *param);
 void estimate_grid_memory(void);
 void estimate_gal_memory(int NtotGals);
 
-void update_grid_properties(int p, int merged, int GridNr);
+void update_grid_properties(int p, int merged, int GridNr, int filenr);
 void update_grid_halo(int totNHalos, int GridNr);
 void update_grid_diffuse(int GridNr);
 void update_grid_density(int GridNr);
@@ -25,7 +25,7 @@ void count_grid_properties(int GridNr);
 void normalize_photon(int GridNr); 
 void normalize_slope_photons(int GridNr);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
-double calculate_fesc(int p, int i);
+double calculate_fesc(int p, int i, int filenr);
 
 const char* getfield(char* line, int num);
 

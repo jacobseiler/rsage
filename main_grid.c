@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 
         for(p = 0; p < NtotGals; ++p)
         {    	
-          update_grid_properties(p, i, GridNr); // Go through each galaxy and read it's grid history and grid the properties.
+          update_grid_properties(p, i, GridNr, filenr); // Go through each galaxy and read it's grid history and grid the properties.
         }
 
 	free_gals();	

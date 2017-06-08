@@ -86,6 +86,9 @@ void load_gals(char *fname)
     GalGrid[i].CentralGalaxyMass = malloc(sizeof(*(GalGrid[i].CentralGalaxyMass)) * MAXSNAPS);
     fread(GalGrid[i].CentralGalaxyMass, sizeof(*(GalGrid[i].CentralGalaxyMass)), MAXSNAPS, load_fd);
 
+    GalGrid[i].Pad = malloc(sizeof(*(GalGrid[i].Pad)) * MAXSNAPS);
+    fread(GalGrid[i].Pad, sizeof(*(GalGrid[i].Pad)), MAXSNAPS, load_fd);
+
     GalGrid[i].MfiltGnedin = malloc(sizeof(*(GalGrid[i].MfiltGnedin)) * MAXSNAPS);
     fread(GalGrid[i].MfiltGnedin, sizeof(*(GalGrid[i].MfiltGnedin)), MAXSNAPS, load_fd);
 
@@ -97,9 +100,6 @@ void load_gals(char *fname)
 
     GalGrid[i].LenHistory = malloc(sizeof(*(GalGrid[i].LenHistory)) * MAXSNAPS);
     fread(GalGrid[i].LenHistory, sizeof(*(GalGrid[i].LenHistory)), MAXSNAPS, load_fd);
-
-    GalGrid[i].Pad = malloc(sizeof(*(GalGrid[i].Pad)) * MAXSNAPS);
-    fread(GalGrid[i].Pad, sizeof(*(GalGrid[i].Pad)), MAXSNAPS, load_fd);
 
   }
 
