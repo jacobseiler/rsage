@@ -56,12 +56,15 @@ markers = ['x', 'o', '^', 's', 'D']
 linestyles = ['-', '--', '-.', ':']
 
 AllVars.Set_Constants()
+AllVars.Set_Params_Mysim()
 
+cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
+t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
 z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
 time_xlim = [315, 930]
 time_tick_interval = 25
 
-output_format = ".pdf"
+output_format = ".png"
 
 def calculate_beta(MUV, z):
 	
@@ -1093,57 +1096,78 @@ def PhotonsVsStellarMass(Simulation, SnapListZ, Mass, Photons):
 
 ##
 
-def fesc(simulation, SnapListZ, fesc, model_tags, Output_Tag):
+def plot_fesc(SnapList, fesc, galaxy_mass, halo_mass, model_tags, output_tag):
 
-    ax1 = plt.subplot(111)
+    mean_fesc = []
+    std_fesc = []
 
-    t = np.empty(len(SnapListZ))
-        
-    for i in xrange(0, len(SnapListZ)):
-	t[i] = (t_BigBang - cosmo.lookback_time(SnapListZ[i]).value) * 1.0e3   
+    mean_times_N = []
 
-    print SnapListZ
-    print t
-    print len(t)
+    pooled_mean_fesc = []
+    for model_number in xrange(0, len(SnapList)): 
+	mean_fesc.append([])
+	std_fesc.append([])
+	mean_times_N.append([])	
 
-    for j in xrange(0, len(fesc)):
-	avg = []
-	std = []
+	pooled_mean_fesc.append([])
+    	for snapshot_idx in xrange(0, len(SnapList[model_number])):
+	    	mean_fesc[model_number].append(np.mean(fesc[model_number][snapshot_idx]))
+		std_fesc[model_number].append(np.std(fesc[model_number][snapshot_idx]))
+
+		mean_times_N[model_number].append(mean_fesc[model_number][snapshot_idx]*len(fesc[model_number][snapshot_idx]))
 	
-    	for i in xrange(0, len(SnapListZ)):
-	    	avg.append(np.mean(fesc[j][i]))
-	    	std.append(np.std(fesc[j][i]))
-    	ax1.plot(t, avg, color = colors[j], ls = linestyles[j], label = model_tags[j], lw = 3)  
-    	ax1.fill_between(t, np.subtract(avg,std), np.add(avg,std), color = colors[j], alpha = 0.25)
+		numerator = comm.reduce(mean_times_N[model_number][snapshot_idx], op = MPI.SUM, root = 0)
+		denominator = comm.reduce(len(fesc[model_number][snapshot_idx]), op = MPI.SUM, root = 0)
 
-    ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
-    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
-    ax1.set_xlim(time_xlim)
-    ax1.set_ylim([-0.05, 0.7])
+		print numerator
+		print denominator
 
-    ax2 = ax1.twiny()
+		if (rank == 0):
+			pooled_mean_fesc[model_number].append(numerator / denominator)
 
-    t_plot = (t_BigBang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
-    z_labels = ["$%d$" % x for x in z_plot] # Properly Latex-ize the labels.
+	
+    if (rank == 0):
+    	ax1 = plt.subplot(111)
 
-    ax2.set_xlabel(r"$z$", size = label_size)
-    ax2.set_xlim(time_xlim)
-    ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
-    ax2.set_xticklabels(z_labels) # But label them as redshifts.
+	for model_number in xrange(0, len(SnapList)):
+    		t = np.empty(len(SnapList[model_number]))
+		for snapshot_idx in xrange(0, len(SnapList[model_number])):
+       			t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3   
 
-    ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
-    ax1.set_ylabel(r'$f_\mathrm{esc}$', fontsize = talk_fontsize)
 
-    leg = ax1.legend(loc=1, numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(talk_legendsize)
+    		print t
+		print pooled_mean_fesc[model_number] 
+    		ax1.plot(t, pooled_mean_fesc[model_number], color = colors[model_number], ls = linestyles[model_number], label = model_tags[model_number], lw = 3)  
+    	#ax1.fill_between(t, np.subtract(avg,std), np.add(avg,std), color = colors[j], alpha = 0.25)
 
-    plt.tight_layout()
-    outputFile = './' + Output_Tag + Output_Format
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-    plt.close()
+    	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
+    	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
+    	ax1.set_xlim(time_xlim)
+    	ax1.set_ylim([-0.05, 0.7])
+
+    	ax2 = ax1.twiny()
+
+    	t_plot = (t_BigBang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
+    	z_labels = ["$%d$" % x for x in z_plot] # Properly Latex-ize the labels.
+
+    	ax2.set_xlabel(r"$z$", size = label_size)
+    	ax2.set_xlim(time_xlim)
+    	ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
+    	ax2.set_xticklabels(z_labels) # But label them as redshifts.
+
+    	ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
+    	ax1.set_ylabel(r'$f_\mathrm{esc}$', fontsize = talk_fontsize)
+
+	leg = ax1.legend(loc=1, numpoints=1, labelspacing=0.1)
+    	leg.draw_frame(False)  # Don't want a box frame
+    	for t in leg.get_texts():  # Reduce the size of the text
+        	t.set_fontsize(talk_legendsize)
+
+    	plt.tight_layout()
+    	outputFile = './' + output_tag + output_format
+    	plt.savefig(outputFile)  # Save the figure
+    	print 'Saved file to', outputFile
+    	plt.close()
 
 ##
 
@@ -2385,13 +2409,17 @@ HaloPart_High = 51
 calculate_observed_LF = 0
 
 galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
+galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
+galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
 
 merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
+merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
+merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
 
-galaxies_filepath_array = [galaxies_model1]
-merged_galaxies_filepath_array = [merged_galaxies_model1]
+galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3]
+merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3]
 
-number_models = 1
+number_models = 3
 number_snapshots = [101, 101, 101, 101] # Property of the simulation.
 FirstFile = [0,0, 0, 0]
 LastFile = [124,124, 124, 124]
@@ -2403,11 +2431,13 @@ model_tags = ["None", "Previous SN Change1", "Contemp Change", "Both"]
 sSFR_min = [1.0e100, 1.0e100, 1e10,0]
 sSFR_max = [-1.0e100, -1.0e100, 0, 0]
 halo_cut = [1, 1, 1,1]
-fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3]
-fesc = [0.15, 0.15, 0.15, 0.15]
 source_efficiency = [1, 1, 1,1]
 
-SnapList = [[78, 63, 54]]
+fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3]
+fesc_prescription = [0, 1, 2]
+fesc_normalization = [0.25, [pow(10, 4.52), -0.54], [1.00, -0.997]] 
+
+SnapList = [[78, 63, 54], [78, 63, 54], [78, 63, 54]]
 
 simulation_norm = [0, 0, 0, 0] # 0 for MySim, 1 for Mini-Millennium.
 
@@ -2505,10 +2535,18 @@ for model_number in xrange(0, number_models):
 	if(simulation_norm[model_number] == 0):
 		AllVars.Set_Params_Mysim()
 
-	current_fesc = fesc[model_number]
 	current_fesc_lyman_alpha = fesc_lyman_alpha[model_number]
 	current_source_efficiency = source_efficiency[model_number]
 	current_halo_cut = halo_cut[model_number]
+
+	def calculate_fesc(fesc_prescription, halo_mass, ejected_fraction, fesc_normalization):
+		print "calculating fesc with prescription %d" %(fesc_prescription) 
+		if (fesc_prescription == 0):
+			return np.full((len(halo_mass)), fesc_normalization)
+		elif (fesc_prescription == 1):
+			return pow(10, log10(fesc_normalization[0]) + fesc_normalization[1]*halo_mass)
+		elif (fesc_prescription == 2):
+			return fesc_normalization[1]*ejected_fraction + fesc_normalization[0]
 
 	for snapshot_idx in xrange(0, len(SnapList[model_number])):
    		 
@@ -2566,20 +2604,27 @@ for model_number in xrange(0, number_models):
 			M_UV_obs[model_number].append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
 		ejected_fraction[model_number].append(G.EjectedFraction[current_idx, current_snap])
-
-		fesc_local[model_number].append(current_fesc)
+	
+		print "Ejected Fraction", ejected_fraction[model_number][snapshot_idx]
+		fesc_local[model_number].append(calculate_fesc(fesc_prescription[model_number], mass_central[model_number][snapshot_idx], ejected_fraction[model_number][snapshot_idx], fesc_normalization[model_number])) 
 
 		tmp_mean, tmp_std = Calculate_HaloPartStellarMass(halo_part_count[model_number][snapshot_idx], mass_gal[model_number][snapshot_idx], galaxy_halo_mass_lower[model_number], galaxy_halo_mass_upper[model_number])
 
 		galaxy_halo_mass_mean[model_number].append(tmp_mean)
 		galaxy_halo_mass_std[model_number].append(tmp_std)
 		 
-
 	
 
+print "Constant fesc"	
+print fesc_local[0]
+print "fesc as MH"
+print fesc_local[1]
+print "fesc as Ejected"
+print fesc_local[2]
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Paper_SMF")
+#StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Paper_SMF") ## PARALLEL COMPATIBLE
+plot_fesc(SnapList, fesc_local, mass_gal, mass_central, model_tags, "fesc") 
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
@@ -2590,7 +2635,7 @@ StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, 
 #PhotonsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
 #LymanAlphaLF(Simulation, SnapListZ_MySim, LymanAlpha_MySim2, len(SnapList_MySim))
 #PhotonsVsStellarMass(Simulation, SnapListZ_MySim, mass_G_MySim2, Photons_HI_G_MySim2)
-#fesc(Simulation, SnapListZ_MySim, mass_Central_MySim2, fesc_Kimm_MySim2)
+
 #UVLF(Simulation, SnapListZ, (MUV_MySim), (MUV_Obs_MySim), len(SnapList_MySim), r"Recursive $SAGE, f_\mathrm{esc} \: \propto \: M_H^{-\beta}$", "MH_pos_UVLF")
 #UVLF(Simulation, SnapListZ, (MUV_MySim2), (MUV_Obs_MySim2), len(SnapList_MySim), r"Recursive $SAGE, f_\mathrm{esc} = 0.10$", "fesc0.10_UVLF")
 #SFR_Hist(Simulation, SnapListZ, (SFR_G_MySim + SFR_G_MySim2), len(SnapList_MySim)) 
