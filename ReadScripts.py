@@ -20,6 +20,7 @@ import time
 from matplotlib.ticker import MultipleLocator
 from os.path import getsize as getFileSize
 from numpy import inf 
+import h5py
 
 from mpi4py import MPI
 
@@ -123,7 +124,6 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
    
     # Convert the Galaxy array into a recarray
     G = G.view(np.recarray)
-    
     return G
 
 def ReadHalos(DirName, First_File, Last_File):
@@ -550,3 +550,13 @@ def read_binary_grid(filepath, GridSize):
     fd.close()
 
     return grid
+
+
+def read_meraxes_hdf5():
+    hdf5_file_name = '/home/msinha/scratch/tao/data_products/output/meraxes/tiamat/meraxes.hdf5'
+    dataset = '/home/msinha/scratch/tao/data_products/output/meraxes/tiamat/meraxes_0.hdf5'
+
+    container = h5py.File(hdf5_file_name, 'r')
+    print "Keys: %s" %(container.keys())
+    
+
