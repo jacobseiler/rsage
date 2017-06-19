@@ -273,7 +273,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     {  
       Gal[p].MfiltSobacchi[SnapCurr] = do_myreionization(centralgal, ZZ[SnapCurr], 1); 
     }
-
+ 
     if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
 	Gal[p].EjectedFraction[SnapCurr] = 0.0;
     else 
