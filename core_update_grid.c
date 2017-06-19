@@ -49,7 +49,7 @@ void update_grid_properties(int p, int merged, int GridNr, int filenr)
 
         Grid[grid_position].Nion_HI += pow(10, Ngamma_HI)*fesc_local;
 	
-	//XASSERT(Grid[grid_position].Nion_HI >= 0.0 && Grid[grid_position].Nion_HI < 1e100, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid cell = %d, Galaxy Number = %d, Snapshot = %d, Ngamma_HI = %.4e, fesc_local = %.4e\n", grid_position, p, i, Ngamma_HI, fesc_local);
+	XASSERT(Grid[grid_position].Nion_HI >= 0.0 && Grid[grid_position].Nion_HI < 1e100, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid cell = %d, Galaxy Number = %d, Snapshot = %d, Ngamma_HI = %.4e, fesc_local = %.4e\n", grid_position, p, i, Ngamma_HI, fesc_local);
      
       
         Grid[grid_position].Nion_HeI += pow(10, Ngamma_HeI)*fesc_local; 
@@ -61,6 +61,45 @@ void update_grid_properties(int p, int merged, int GridNr, int filenr)
     // Tracking the Merging Types. //
   }
 }
+
+void update_meraxes_grid_properties(int p, int GridNr)
+{
+  if (meraxes_Halo[p].SFR > 1e-10)
+  {
+    int i, grid_position;
+    double fesc_local;
+    float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; // Number of ionizing photons (in s^-1). 
+  
+    int x_grid, y_grid, z_grid;
+    
+    x_grid = meraxes_Halo[p].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
+    y_grid = meraxes_Halo[p].Pos[1]*GridSize/BoxSize;
+    z_grid = meraxes_Halo[p].Pos[2]*GridSize/BoxSize; 
+  
+    grid_position = (x_grid*GridSize+y_grid)*GridSize+z_grid; // Convert the grid (x,y,z) to a 1D value.
+   
+    XASSERT(grid_position >= 0 && grid_position < CUBE(GridSize), "The grid index must be between 0 and the GridSize cubed (%d cubed = %d).  The index for Halo %d is %d.\n", GridSize, CUBE(GridSize), p, grid_position);
+  
+    Grid[grid_position].Sfr += meraxes_Halo[p].SFR; 
+    Grid[grid_position].Count += 1;
+    Grid[grid_position].StellarMass += meraxes_Halo[p].StellarMass;
+  
+    XASSERT(PhotonPrescription == 1, "We're using the MERAXES galaxies so we have to be using a galaxy based photon prescription. The current variable (PhotonPrescription) is set to a Halo based model.\n");
+  
+    double Z = 0.01; // Dummy metallicity for now.
+    
+    calculate_photons(meraxes_Halo[p].SFR, Z, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
+    fesc_local = calculate_fesc(p, 999, 999);
+
+    Grid[grid_position].Nion_HI += pow(10, Ngamma_HI)*fesc_local;
+
+    XASSERT(Grid[grid_position].Nion_HI >= 0.0 && Grid[grid_position].Nion_HI < 1e100, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid cell = %d, Galaxy Number = %d, Snapshot = %d, Ngamma_HI = %.4e, fesc_local = %.4e\n", grid_position, p, GridNr, Ngamma_HI, fesc_local);
+       
+    Grid[grid_position].Nion_HeI += pow(10, Ngamma_HeI)*fesc_local; 
+    Grid[grid_position].Nion_HeII += pow(10, Ngamma_HeII)*fesc_local;
+  }  
+}
+
 
 // Takes the number of halos loaded in memory (totNHalos) and maps the properties onto the grid. //
 
@@ -349,20 +388,33 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
 double calculate_fesc(int p, int i, int filenr)
 {
 
-  double fesc_local;
+  double fesc_local, halomass, ejectedfraction, SFR;
+
+  if (use_sage == 1)
+  {
+    halomass = GalGrid[p].CentralGalaxyMass[i];
+    ejectedfraction = GalGrid[p].EjectedFraction[i];
+    SFR = GalGrid[p].SFR[i];
+  }
+  else
+  { 
+    halomass = meraxes_Halo[p].Mvir;
+    ejectedfraction = meraxes_Halo[p].EjectedGas / (meraxes_Halo[p].EjectedGas + meraxes_Halo[p].ColdGas + meraxes_Halo[p].HotGas);
+    SFR = meraxes_Halo[p].SFR;
+  }
 
   if (fescPrescription == 0) 
     fesc_local = fesc;
   else if (fescPrescription == 1)
-    fesc_local = pow(10,1.0 - 0.2*log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
+    fesc_local = pow(10,1.0 - 0.2*log10(halomass * 1.0e10 / Hubble_h));
   else if (fescPrescription == 2)
-    fesc_local = pow(10, log10(alpha) + beta * log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h));
+    fesc_local = pow(10, log10(alpha) + beta * log10(halomass * 1.0e10 / Hubble_h));
   else if (fescPrescription == 3)	
-    fesc_local = beta * GalGrid[p].EjectedFraction[i] + alpha;
+    fesc_local = beta * ejectedfraction + alpha;
 	
   if (fesc_local > 1.0)
   {
-    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), GalGrid[p].EjectedFraction[i]);
+    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(SFR), ejectedfraction);
     fesc_local = 1.0;
   
   }

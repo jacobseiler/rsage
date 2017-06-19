@@ -186,6 +186,19 @@ struct halo_data
 }
 *Halo;
 
+struct meraxes_halo_data
+{
+  double SFR;
+  double StellarMass;
+  double Mvir;
+  double ColdGas;
+  double HotGas;
+  double EjectedGas;
+  double Pos[3]; 
+
+}
+*meraxes_Halo;
+
 extern double UnitLength_in_cm,
   UnitTime_in_s,
   UnitVelocity_in_cm_per_s,
@@ -306,4 +319,6 @@ extern double beta;
 extern double kappa;
 extern double delta;
 extern int HaloPartCut;
+
+extern int use_sage;
 #endif

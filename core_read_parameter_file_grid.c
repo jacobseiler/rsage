@@ -177,6 +177,10 @@ void read_parameter_file(char *fname)
   addr[nt] = &HaloPartCut; 
   id[nt++] = INT;
 
+  strcpy(tag[nt], "use_sage");
+  addr[nt] = &use_sage;
+  id[nt++] = INT;
+
   if((fd = fopen(fname, "r")))
   {
     while(!feof(fd))

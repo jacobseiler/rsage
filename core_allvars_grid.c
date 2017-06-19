@@ -9,6 +9,8 @@ struct GALAXY_INPUT
 
 struct halo_data *Halo;
 
+struct meraxes_halo_data *meraxes_Halo;
+
 double UnitLength_in_cm = 3.08578e+24,
   UnitTime_in_s,
   UnitVelocity_in_cm_per_s = 100000,
@@ -127,3 +129,5 @@ double beta;
 double kappa;
 double delta;
 int HaloPartCut;
+
+int use_sage;

@@ -8,8 +8,10 @@ void read_snap_list(void);
 void read_parameter_file(char *fname);
 
 void load_gals(char *fname);
+int load_meraxes_halos(int snapnum);
 void load_merged_gals(char *fname);
 void free_gals(void);
+void free_meraxes_halos(void);
 
 double time_to_present(double z);
 double integrand_time_to_present(double a, void *param);
@@ -17,6 +19,7 @@ void estimate_grid_memory(void);
 void estimate_gal_memory(int NtotGals);
 
 void update_grid_properties(int p, int merged, int GridNr, int filenr);
+void update_meraxes_grid_properties(int p, int GridNr);
 void update_grid_halo(int totNHalos, int GridNr);
 void update_grid_diffuse(int GridNr);
 void update_grid_density(int GridNr);

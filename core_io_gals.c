@@ -146,3 +146,218 @@ void load_merged_gals(char *fname)
   fclose(load_fd);
 
 }
+
+void free_meraxes_halos(void)
+{
+  myfree(meraxes_Halo);
+}
+
+int load_meraxes_halos(int snapnum)
+{
+
+  char buf[MAXLEN];
+  char tag[MAXLEN];
+  char line[MAXLEN];
+
+  int num_halos = 0;
+
+  XASSERT(snapnum < 1000, "Help, we have more than 1000 snapshots!  The code was written for only three digits.\n");
+
+  double SFR;
+  double StellarMass;
+  double Mvir;
+  double ColdGas;
+  double HotGas;
+  double EjectedGas;
+  double Pos[3]; 
+
+  if(snapnum < 10)
+  {
+    snprintf(tag, MAXLEN, "00%d", snapnum);
+  }
+  else if (snapnum < 100)
+  {	
+    snprintf(tag, MAXLEN, "0%d", snapnum);
+  }
+  else
+  {
+    snprintf(tag, MAXLEN, "%d", snapnum);
+  }
+
+  snprintf(buf, MAXLEN, "%s/halolist_%s.Sfr.txt", GalaxiesInputDir, tag); 
+
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+
+  while (fgets(line, MAXLEN, load_fd))
+  {
+    if(*line == '#')
+      continue;    
+    num_halos++;
+  }
+  fclose(load_fd);
+  fprintf(stderr, "For snapshot %d there is %d halos.\n", snapnum, num_halos);  
+  meraxes_Halo = mymalloc(sizeof(struct meraxes_halo_data) * (num_halos)); 
+
+  int counter = 0; 
+
+  // SFR //
+
+  snprintf(buf, MAXLEN, "%s/halolist_%s.Sfr.txt", GalaxiesInputDir, tag);  
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+ 
+  while (fgets(line, MAXLEN, load_fd))
+  {
+    if(*line == '#')
+	continue; 
+    sscanf(line, "%lf", &SFR);
+    meraxes_Halo[counter].SFR = SFR;
+    counter++;
+  } 
+  fclose(load_fd);
+  fprintf(stderr, "Read in the SFR data.\n");
+  // Stellar Mass //
+
+  counter = 0;
+
+  snprintf(buf, MAXLEN, "%s/halolist_%s.StellarMass.txt", GalaxiesInputDir, tag);  
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+ 
+  while (fgets(line, MAXLEN, load_fd))
+  {
+    if(*line == '#')
+	continue;
+    sscanf(line, "%lf", &StellarMass);
+    meraxes_Halo[counter].StellarMass = StellarMass;
+    counter++;
+  } 
+  fclose(load_fd);
+
+  fprintf(stderr, "Read in the StellarMass data.\n");
+  // Mvir //  
+
+  counter = 0;
+
+  snprintf(buf, MAXLEN, "%s/halolist_%s.Mvir.txt", GalaxiesInputDir, tag);  
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+ 
+  while (fgets(line, MAXLEN, load_fd))
+  {
+    if(*line == '#')
+	continue;
+    sscanf(line, "%lf", &Mvir);
+    meraxes_Halo[counter].Mvir = Mvir;
+    counter++;
+  } 
+  fclose(load_fd);
+
+  fprintf(stderr, "Read in the Mvir data.\n");
+  // ColdGas //  
+
+  counter = 0;
+
+  snprintf(buf, MAXLEN, "%s/halolist_%s.ColdGas.txt", GalaxiesInputDir, tag);  
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+ 
+  while (fgets(line, MAXLEN, load_fd))
+  {
+    if(*line == '#')
+	continue;
+    sscanf(line, "%lf", &ColdGas);
+    meraxes_Halo[counter].ColdGas = ColdGas;
+    counter++;
+  } 
+  fclose(load_fd);
+
+  fprintf(stderr, "Read in the ColdGas data.\n");
+  // HotGas //  
+
+  counter = 0;
+
+  snprintf(buf, MAXLEN, "%s/halolist_%s.HotGas.txt", GalaxiesInputDir, tag);  
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+ 
+  while (fgets(line, MAXLEN, load_fd))
+  {
+    if(*line == '#')
+	continue;
+    sscanf(line, "%lf", &HotGas);
+    meraxes_Halo[counter].HotGas = HotGas;
+    counter++;
+  } 
+  fclose(load_fd);
+
+  fprintf(stderr, "Read in the HotGas data.\n");
+  // EjectedGas // 
+
+  counter = 0;
+
+  snprintf(buf, MAXLEN, "%s/halolist_%s.EjectedGas.txt", GalaxiesInputDir, tag);  
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+ 
+  while (fgets(line, MAXLEN, load_fd))
+  {
+    if(*line == '#')
+	continue;
+    sscanf(line, "%lf", &EjectedGas);
+    meraxes_Halo[counter].EjectedGas = EjectedGas;
+    counter++;
+  } 
+  fclose(load_fd);
+
+  fprintf(stderr, "Read in the EjectedGas data.\n");
+  // Pos // 
+
+  counter = 0;
+
+  snprintf(buf, MAXLEN, "%s/halolist_%s.Pos.txt", GalaxiesInputDir, tag);  
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+ 
+  while (fgets(line, MAXLEN, load_fd))
+  {
+    if(*line == '#')
+	continue;
+    sscanf(line, "%lf %lf %lf", &Pos[0], &Pos[1], &Pos[2]);
+    meraxes_Halo[counter].Pos[0] = Pos[0]; // Note to Future Jacob, if Manodeep ever says anything about putting this in a loop tell him that I considered it at 6:13pm Monday 19th June, 2017.
+    meraxes_Halo[counter].Pos[1] = Pos[1]; // I was unsure if it was worth though. 
+    meraxes_Halo[counter].Pos[2] = Pos[2];
+
+    counter++;
+  } 
+  fclose(load_fd);
+
+  fprintf(stderr, "Read in the Pos data.\n");
+
+  return num_halos;
+}

@@ -18,7 +18,7 @@ FILE* file_count = NULL;
 
 void save_grid(int GridNr)
 {
-  char name_HI[MAXLEN], name_HeI[MAXLEN], name_HeII[MAXLEN], tag[MAXLEN];
+  char name_HI[MAXLEN], name_HeI[MAXLEN], name_HeII[MAXLEN], tag[MAXLEN], sage_tag[MAXLEN];
   int i;
 
   if ((NGrid -1 - GridNr) < 10)
@@ -28,15 +28,24 @@ void save_grid(int GridNr)
   else
     snprintf(tag, MAXLEN, "%s", "");
 
+  if (use_sage == 1)
+  {
+    snprintf(sage_tag, MAXLEN, "%s", "sage");
+  }
+  else
+  {
+    snprintf(sage_tag, MAXLEN, "%s", "meraxes");
+  }
+
   if (PhotonPrescription == 0) // Changes the output tag depending on whether we are using halo or galaxy photon prescription.
           snprintf(name_HI, MAXLEN, "%s/Halos_fgamma_%.0f_%s_nionHI_%s%d", GridOutputDir, SourceEfficiency, FileNameGalaxies, tag, (NGrid-1) - GridNr); 
   else
   {
     if (fescPrescription == 0)
     {
-      snprintf(name_HI, MAXLEN, "%s/Galaxies_%s_fesc%.2f_HaloPartCut%d_nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, tag, (NGrid - 1) - GridNr); 
-      snprintf(name_HeI, MAXLEN, "%s/Galaxies_%s_fesc%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
-      snprintf(name_HeII, MAXLEN, "%s/Galaxies_%s_fesc%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      snprintf(name_HI, MAXLEN, "%s/%s_Galaxies_%s_fesc%.2f_HaloPartCut%d_nionHI_%s%d", GridOutputDir, sage_tag, FileNameGalaxies, fesc, HaloPartCut, tag, (NGrid - 1) - GridNr); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_Galaxies_%s_fesc%.2f_nionHeI_%s%d", GridOutputDir, sage_tag, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_Galaxies_%s_fesc%.2f_nionHeII_%s%d", GridOutputDir, sage_tag, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
     } else if (fescPrescription == 1)
     {
       snprintf(name_HI, MAXLEN, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHI_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
