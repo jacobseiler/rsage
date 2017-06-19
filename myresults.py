@@ -1772,12 +1772,21 @@ def plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, o
 
     mean_ejected_array = []
     std_ejected_array = []
+
+    mean_halomass_array = []
+    std_halomass_array = []
+
     bin_middle_array = []
 
     for model_number in xrange(0, len(SnapList)):
 	redshift_labels.append([])
+
 	mean_ejected_array.append([])
 	std_ejected_array.append([])
+
+	mean_halomass_array.append([])
+	std_halomass_array.append([])
+
 	bin_middle_array.append([])
     print "Plotting the Ejected Fraction"
     
@@ -1800,11 +1809,10 @@ def plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, o
 
 
 		mean_ejected_array[model_number], std_ejected_array[model_number] = calculate_pooled_stats(mean_ejected_array[model_number], std_ejected_array[model_number], mean_ejected_fraction, std_ejected_fraction, N)
+		mean_halomass_array[model_number], std_ejected_array[model_number] = calculate_pooled_stats(mean_halomass_array[model_number], std_halomass_array[model_number], np.mean(mass_central[model_number][snapshot_idx]), np.std(mass_central[model_number][snapshot_idx]), len(mass_central[model_number][snapshot_idx]))
+
 		bin_middle_array[model_number].append(bin_middle)
 		
-		#print "Mean", mean_ejected_array[model_number][snapshot_idx]
-		#print "STd", std_ejected_array[model_number][snapshot_idx]
-	
 
     if rank == 0:
 	f = plt.figure()  
@@ -1816,14 +1824,15 @@ def plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, o
 				title = redshift_labels[model_number][snapshot_idx]
 			else:
 				title = ''
-			print "Bin_middle", bin_middle_array[model_number][snapshot_idx], "shape", len(bin_middle_array[model_number][snapshot_idx])
-			print "mean", mean_ejected_array[model_number][snapshot_idx], "shape", len(mean_ejected_array[model_number][snapshot_idx])
+				
 			mean = mean_ejected_array[model_number][snapshot_idx]
 			std = std_ejected_array[model_number][snapshot_idx]
 			bin_middle = bin_middle_array[model_number][snapshot_idx]
 
 			ax1.plot(bin_middle, mean, color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = title)
-    			ax1.fill_between(bin_middle, np.subtract(mean,std), np.add(mean,std), color = colors[snapshot_idx], alpha = 0.25)
+			ax1.scatter(mean_halomass_array[model_number][snapshot_idx], np.mean(~np.isnan(mean)), color = colors[snapshot_idx], marker = 'o', rasterized = True, s = 40, lw = 3)	
+			#if (len(SnapList) == 1):
+    			#	ax1.fill_between(bin_middle, np.subtract(mean,std), np.add(mean,std), color = colors[snapshot_idx], alpha = 0.25)
 
 			ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{H}}\ [M_{\odot}]$', size = talk_fontsize) 
     			ax1.set_ylabel(r'$\mathrm{Ejected \: Fraction}$', size = talk_fontsize)
@@ -1833,12 +1842,18 @@ def plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, o
     			ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))
     			ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
     			#ax1.set_xticklabels([])
-   
+ 
 
-    			leg = ax1.legend(loc=1, numpoints=1, labelspacing=0.1)
-    			leg.draw_frame(False)  # Don't want a box frame
-    			for t in leg.get_texts():  # Reduce the size of the text
-        			t.set_fontsize('medium')
+
+		
+    	for model_number in xrange(0, len(SnapList)):
+		ax1.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
+	
+	
+    	leg = ax1.legend(loc=1, numpoints=1, labelspacing=0.1)
+    	leg.draw_frame(False)  # Don't want a box frame
+    	for t in leg.get_texts():  # Reduce the size of the text
+        	t.set_fontsize('medium')
 
 	outputFile = './' + output_tag + output_format
     	plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
@@ -2553,34 +2568,40 @@ calculate_observed_LF = 0
 galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
 galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
 galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
+galaxies_model4 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
 
 merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
 merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
 merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
+merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
 
-galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3]
-merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3]
+galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3, galaxies_model4]
+merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3, merged_galaxies_model4]
 
 number_models = 1
 number_snapshots = [101, 101, 101, 101] # Property of the simulation.
 FirstFile = [0,0, 0, 0]
 LastFile = [124,124, 124, 124]
-model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
+model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
+#model_tags = [r"No Cut", r"10 Particle Cut", r"100 Particle Cut"]
 
 ## Constants used for each model. ##
 # Need to add an entry for EACH model. #
 
 sSFR_min = [1.0e100, 1.0e100, 1e10,0]
 sSFR_max = [-1.0e100, -1.0e100, 0, 0]
-halo_cut = [1, 1, 1,1]
+halo_cut = [1, 1, 1, 1]
 source_efficiency = [1, 1, 1,1]
 
 fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3]
-fesc_prescription = [0, 1, 2]
-fesc_normalization = [0.25, [pow(10, 4.52), -0.54], [1.00, -0.997]] 
+fesc_prescription = [0, 1, 1, 2]
 
-#SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
-SnapList = [[78, 63, 54]]
+fesc_normalization = [0.25, [pow(10, 4.52), -0.54], [pow(10, -7.02), 0.60], [1.00, -0.997]] 
+#fesc_normalization = [[1.00, -0.997], [1.00, -0.997], [1.00, -0.997]] 
+
+#SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
+#SnapList = [[78, 54, 40, 30], [78, 54, 40, 30], [78, 54, 40, 30]]
+SnapList = [[78, 54, 40, 30]]
 
 simulation_norm = [0, 0, 0, 0] # 0 for MySim, 1 for Mini-Millennium.
 
@@ -2623,11 +2644,9 @@ mean_A = []
 
 ejected_fraction = []
 
-fesc_local = []
-fesc_local2 = []
-fesc_local3 = []
-
 halo_count = []
+
+fesc_local = []
 
 galaxy_halo_mass_mean = []
 galaxy_halo_mass_std = []
@@ -2661,8 +2680,6 @@ for model_number in xrange(0, number_models):
 	ejected_fraction.append([])
 
 	fesc_local.append([])
-	fesc_local2.append([])
-	fesc_local3.append([])
 
 	halo_count.append([])
 
@@ -2748,7 +2765,6 @@ for model_number in xrange(0, number_models):
 
 		ejected_fraction[model_number].append(G.EjectedFraction[current_idx, current_snap])
 	
-		print "Ejected Fraction", ejected_fraction[model_number][snapshot_idx]
 		fesc_local[model_number].append(calculate_fesc(fesc_prescription[model_number], mass_central[model_number][snapshot_idx], ejected_fraction[model_number][snapshot_idx], fesc_normalization[model_number])) 
 
 		tmp_mean, tmp_std = Calculate_HaloPartStellarMass(halo_part_count[model_number][snapshot_idx], mass_gal[model_number][snapshot_idx], galaxy_halo_mass_lower[model_number], galaxy_halo_mass_upper[model_number])
@@ -2760,7 +2776,7 @@ for model_number in xrange(0, number_models):
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
 #StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Paper_SMF") ## PARALLEL COMPATIBLE
-#plot_fesc(SnapList, fesc_local, mass_gal, mass_central, model_tags, "fesc") ## PARALELL COMPATIBLE 
+#plot_fesc(SnapList, fesc_local, mass_gal, mass_central, model_tags, "fesc_different_prescriptions") ## PARALELL COMPATIBLE 
 plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "EjectedMass_HaloMass") ## PARALELL COMPATIBLE 
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
