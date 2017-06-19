@@ -14,7 +14,7 @@
 #include "core_allvars_grid.h"
 #include "core_proto_grid.h"
 
-// Takes index of a galaxy (p) and maps the properties (SFR, StellarMass etc) onto the grid. //
+// Takes index of a galaxy (p) and maps the properties (SFR, StellarMass etc) onto the grid.
 
 void update_grid_properties(int p, int merged, int GridNr, int filenr)
 {
@@ -291,10 +291,8 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
     *Ngamma_HI = 0;
     *Ngamma_HeI = 0;
     *Ngamma_HeII = 0; 
-  }
- 
-  
-  if (Z < 0.0025) // 11
+  }   
+  else if (Z < 0.0025) // 11
   { 
     *Ngamma_HI = log10(SFR) + 53.354;
     *Ngamma_HeI = log10(SFR) + 52.727;
