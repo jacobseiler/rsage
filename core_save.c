@@ -193,7 +193,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   o->SfrBulge = 0.0;
   o->SfrDiskZ = 0.0;
   o->SfrBulgeZ = 0.0;
-  
+ 
   // NOTE: in Msun/yr 
   for(step = 0; step < STEPS; step++)
   {
