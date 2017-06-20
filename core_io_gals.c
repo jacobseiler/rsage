@@ -169,6 +169,7 @@ int load_meraxes_halos(int snapnum)
   double ColdGas;
   double HotGas;
   double EjectedGas;
+  double MetalsColdGas;
   double Pos[3]; 
 
   if(snapnum < 10)
@@ -359,5 +360,28 @@ int load_meraxes_halos(int snapnum)
 
   fprintf(stderr, "Read in the Pos data.\n");
 
+  // Pos // 
+
+  counter = 0;
+
+  snprintf(buf, MAXLEN, "/lustre/projects/p004_swin/jseiler/meraxes-tiamat/halolist_%s.MetalsColdGas.txt", tag);  
+  if(!(load_fd = fopen(buf, "r")))
+  {
+    printf("can't open file `%s'\n", buf);
+    exit(0); 
+  }
+ 
+  while (fgets(line, MAXLEN, load_fd))
+  {
+    if(*line == '#')
+	continue;
+    sscanf(line, "%lf", &MetalsColdGas); 
+    meraxes_Halo[counter].MetalsColdGas = MetalsColdGas;
+
+    counter++;
+  } 
+  fclose(load_fd);
+
+  fprintf(stderr, "Read in the MetalsColdGas data.\n");
   return num_halos;
 }

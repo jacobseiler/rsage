@@ -194,6 +194,7 @@ struct meraxes_halo_data
   double ColdGas;
   double HotGas;
   double EjectedGas;
+  double MetalsColdGas;
   double Pos[3]; 
 
 }

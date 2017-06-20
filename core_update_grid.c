@@ -66,7 +66,7 @@ void update_meraxes_grid_properties(int p, int GridNr)
 {
   if (meraxes_Halo[p].SFR > 1e-10)
   {
-    int i, grid_position;
+    int grid_position;
     double fesc_local;
     float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; // Number of ionizing photons (in s^-1). 
   
@@ -86,7 +86,7 @@ void update_meraxes_grid_properties(int p, int GridNr)
   
     XASSERT(PhotonPrescription == 1, "We're using the MERAXES galaxies so we have to be using a galaxy based photon prescription. The current variable (PhotonPrescription) is set to a Halo based model.\n");
   
-    double Z = 0.01; // Dummy metallicity for now.
+    double Z = get_metallicity(meraxes_Halo[p].ColdGas, meraxes_Halo[p].MetalsColdGas); 
     
     calculate_photons(meraxes_Halo[p].SFR, Z, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
     fesc_local = calculate_fesc(p, 999, 999);
@@ -429,4 +429,19 @@ double calculate_fesc(int p, int i, int filenr)
 
 }
 
+double get_metallicity(double gas, double metals)
+{
+  double metallicity;
 
+  if(gas > 0.0 && metals > 0.0)
+  {
+    metallicity = metals / gas;
+    if(metallicity < 1.0)
+      return metallicity;
+    else
+      return 1.0;
+  }
+  else
+    return 0.0;
+
+}

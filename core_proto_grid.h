@@ -29,6 +29,7 @@ void normalize_photon(int GridNr);
 void normalize_slope_photons(int GridNr);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
 double calculate_fesc(int p, int i, int filenr);
+double get_metallicity(double gas, double metals);
 
 const char* getfield(char* line, int num);
 
