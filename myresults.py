@@ -29,6 +29,7 @@ import ReadScripts
 import AllVars
 
 from mpi4py import MPI
+from tqdm import tqdm
 
 comm= MPI.COMM_WORLD
 rank = comm.Get_rank()
