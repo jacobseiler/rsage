@@ -65,7 +65,6 @@ void construct_galaxies(int halonr, int tree, int filenr)
       fofhalo = Halo[fofhalo].NextHaloInFOFgroup;
     }
 
-//    fprintf(stderr, "tree = %d \t ngal = %d \t filenr = %d \t halonr = %d \t Halo[halonr].FirstHaloInFOFgroup = %d \t Halo[halonr].SnapNum = %d\n", tree, ngal, filenr, halonr, Halo[halonr].FirstHaloInFOFgroup, Halo[halonr].SnapNum);
     evolve_galaxies(Halo[halonr].FirstHaloInFOFgroup, ngal, tree, filenr);
   }
 
@@ -113,7 +112,15 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
     for(i = 0; i < HaloAux[prog].NGalaxies; i++)
     {
 
-			assert(ngal < FoF_MaxGals);
+      //fprintf(stderr, "ngal = %d, FoF_MaxGals = %d.\n", ngal, FoF_MaxGals);
+      if(ngal == (FoF_MaxGals-1)) 
+      {
+	fprintf(stderr, "Current FoF_MaxGals = %d. Reallocing.\n", FoF_MaxGals);
+        FoF_MaxGals += 10000;
+        Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY));
+      }
+	
+      assert(ngal < FoF_MaxGals);
 
       // This is the cruical line in which the properties of the progenitor galaxies 
       // are copied over (as a whole) to the (temporary) galaxies Gal[xxx] in the current snapshot 
@@ -272,7 +279,8 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 {
   int p, i, step, centralgal, merger_centralgal, currenthalo, offset;
   double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;
-
+//  fprintf(stderr, "Evolve galaxies has been called with ngal = %d tree = %d halonr = %d\n", ngal, tree, halonr);
+  
   centralgal = Gal[0].CentralGal;
  
   XASSERT(Gal[centralgal].Type == 0 && (Gal[centralgal].HaloNr == halonr), "We require that Gal[centralgal].Type = 0 and Gal[centralgal].HaloNr = halonr.\nWe have Gal[centralgal].Type = %d, Gal[centralgal].HaloNr = %d, halonr = %d, centralgal = %d\n", Gal[centralgal].Type, Gal[centralgal].HaloNr, halonr, centralgal);
@@ -461,6 +469,21 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
     
     if(Gal[p].mergeType == 0)
     {
+      //fprintf(stderr, "NumGals = %d, ngal = %d\n", NumGals, ngal);
+
+    /*        
+      if(NumGals == (FoF_MaxGals-1)) 
+      {
+	fprintf(stderr, "Current FoF_MaxGals = %d. Reallocing.\n", FoF_MaxGals);
+        FoF_MaxGals += 10000;
+	MergedGal = myrealloc(MergedGal, FoF_MaxGals * sizeof(struct GALAXY));
+	fprintf(stderr, "MergedGal realloced.\n");	
+        Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY));
+	fprintf(stderr, "Gal realloced.\n");
+	HaloGal = myrealloc(HaloGal, FoF_MaxGals * sizeof(struct GALAXY));
+	fprintf(stderr, "HaloGal realloced.\n");
+      }
+*/
         if(NumGals > MaxGals)
         {
 	  printf("ngal = %d \t MaxGals = %d\n", NumGals, MaxGals);

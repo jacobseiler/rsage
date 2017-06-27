@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
   struct stat filestatus;
   FILE *fd;
-
+  char tag[MAXLEN];
 #ifdef MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
@@ -118,7 +118,25 @@ int main(int argc, char **argv)
     
    //if(filenr == 33 || filenr == 49 || filenr == 80)
 //	continue;
-    sprintf(bufz0, "%s/%s.%d", SimulationDir, TreeName, filenr);
+//
+//
+//
+//
+    if(use_tiamat == 1)
+    {
+      if(filenr < 10)
+        snprintf(tag, MAXLEN, "00%d", filenr);
+      else if (filenr >= 10 && filenr < 100)
+        snprintf(tag, MAXLEN, "0%d", filenr);
+      else
+        snprintf(tag, MAXLEN, "%d", filenr);
+      snprintf(bufz0, MAXLEN, "%s/%s_%s.dat", SimulationDir, TreeName, tag);
+    }
+    else
+    {
+      snprintf(bufz0, MAXLEN, "%s/%s.%d", SimulationDir, TreeName, filenr);
+    }
+
     if(!(fd = fopen(bufz0, "r")))
     {
       printf("-- missing tree %s ... skipping\n", bufz0);

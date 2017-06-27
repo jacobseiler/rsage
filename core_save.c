@@ -150,14 +150,8 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
   {
     o->Pos[j] = g->Pos[j];
     o->Vel[j] = g->Vel[j];
-#ifndef TIAMAT
     o->Spin[j] = Halo[g->HaloNr].Spin[j];
-#endif
   }
-
-#ifdef TIAMAT
-  o->Spin = Halo[g->HaloNr].Spin; 
-#endif
 
   o->Len = g->Len;
   o->Mvir = g->Mvir;

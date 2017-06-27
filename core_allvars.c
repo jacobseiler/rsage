@@ -5,11 +5,7 @@
 struct GALAXY			
   *Gal, *HaloGal, *MergedGal;
 
-#ifdef TIAMAT
-struct tiamat_halo_data *Halo;
-#else
 struct halo_data *Halo;
-#endif
 
 struct GRID
   *Grid;
@@ -66,7 +62,7 @@ double BoxSize;
 int GridSize;
 double EnergySNcode, EnergySN;
 double EtaSNcode, EtaSN;
-
+int use_tiamat;
 
 // recipe flags 
 int ReionizationOn;

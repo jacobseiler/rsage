@@ -18,7 +18,7 @@ do {                                                                \
 #define  MAX_NODE_NAME_LEN 50
 #define  ABSOLUTEMAXSNAPS 1000
 
-
+#define  MAXLEN      1024
 #define  GRAVITY     6.672e-8
 #define  SOLAR_MASS  1.989e33
 #define  SOLAR_LUM   3.826e33
@@ -69,11 +69,7 @@ struct GALAXY_OUTPUT
   // (sub)halo properties
   float Pos[3];
   float Vel[3];
-#ifdef TIAMAT
-  float Spin;
-#else
   float Spin[3];
-#endif
   int   Len;   
   float Mvir;
   float CentralMvir;
@@ -309,6 +305,7 @@ extern int GridSize;
 extern double Hubble_h;
 extern double EnergySNcode, EnergySN;
 extern double EtaSNcode, EtaSN;
+extern int use_tiamat;
 
 // recipe flags 
 extern int    ReionizationOn;

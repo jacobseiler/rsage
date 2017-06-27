@@ -19,11 +19,23 @@ FILE* load_fd = NULL;
 void load_tree_table(int filenr)
 {
   int i, n, totNHalos;
-  char buf[1000];
+  char buf[MAXLEN], tag[MAXLEN];
   FILE *fd;
 
-	// open the file each time this function is called
-  sprintf(buf, "%s/%s.%d", SimulationDir, TreeName, filenr);
+  if(use_tiamat == 1)
+  {
+    if(filenr < 10)
+      snprintf(tag, MAXLEN, "00%d", filenr);
+    else if (filenr >= 10 && filenr < 100)
+      snprintf(tag, MAXLEN, "0%d", filenr);
+    else
+      snprintf(tag, MAXLEN, "%d", filenr);
+    sprintf(buf, "%s/%s_%s.dat", SimulationDir, TreeName, tag);
+  }
+  else
+  {  
+    snprintf(buf, MAXLEN, "%s/%s.%d", SimulationDir, TreeName, filenr);
+  }
   fprintf(stderr, "Reading file %s\n", buf);
   if(!(load_fd = fopen(buf, "r")))
   {
@@ -97,20 +109,16 @@ void load_tree(int filenr, int nr)
   // must have an FD
   assert( load_fd );
 
-#ifdef TIAMAT 
-  Halo = mymalloc(sizeof(struct tiamat_halo_data) * TreeNHalos[nr]);
-  myfread(Halo, TreeNHalos[nr], sizeof(struct tiamat_halo_data), load_fd);
-#else
   Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[nr]);  
   myfread(Halo, TreeNHalos[nr], sizeof(struct halo_data), load_fd);
-#endif 
 
   MaxGals = (int)(MAXGALFAC * TreeNHalos[nr]);
-  
-  MaxGals = 100000;
+
+  if(MaxGals < 10000)  
+    MaxGals = 10000;
 
   MaxMergedGals = MaxGals;
-  FoF_MaxGals = 100000;
+  FoF_MaxGals = 10000; 
 
   HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[nr]);
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);

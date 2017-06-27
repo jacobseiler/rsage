@@ -146,6 +146,10 @@ void read_parameter_file(char *fname)
   addr[nt] = &GridSize;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "use_tiamat");
+  addr[nt] = &use_tiamat;
+  id[nt++] = INT;
+
   strcpy(tag[nt], "EnergySN");
   addr[nt] = &EnergySN;
   id[nt++] = DOUBLE;
