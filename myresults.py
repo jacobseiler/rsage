@@ -321,9 +321,6 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
     caps = 5
     ##
 
-    print "SnapList:", SnapList
-    print "Mass:", mass
-
     ## Normalization for each model. ##
     for model_number in xrange(0, len(SnapList)): 
 
@@ -331,6 +328,9 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 		AllVars.Set_Params_Mysim()
 	elif (simulation_norm[model_number] == 1):
 		AllVars.Set_Params_MiniMill()
+	elif (simulation_norm[model_number] == 3):
+		AllVars.Set_Params_Tiamat_extended()
+
 
         norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
         normalization_array.append(norm)
@@ -385,10 +385,10 @@ def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass,
 	
 ##
 
-	'''
+	
     	for model_number in xrange(0, len(SnapList)):
 		plt.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
-	'''
+	
 ### Draws a vertical line to denote lower bounds for what is an 'acceptable' Stellar Mass ### 
 
 #    plt.axvline(x = np.log10(HaloPartStellarMass), ymin = 0, ymax = 10, linestyle = '-.', rasterized=True)
@@ -2566,24 +2566,21 @@ HaloPart_High = 51
 
 calculate_observed_LF = 0
 
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
-galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
-galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
-galaxies_model4 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/fiducial_z1.827'
 
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
-merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
-merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
-merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/fiducial_MergedGalaxies'
 
-galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3, galaxies_model4]
-merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3, merged_galaxies_model4]
+galaxies_filepath_array = [galaxies_model1]
+merged_galaxies_filepath_array = [merged_galaxies_model1]
 
 number_models = 1
-number_snapshots = [101, 101, 101, 101] # Property of the simulation.
-FirstFile = [0,0, 0, 0]
-LastFile = [124,124, 124, 124]
-model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
+number_snapshots = [164] # Property of the simulation.
+FirstFile = [0]
+LastFile = [26]
+for model_number in xrange(0,number_models):
+	assert(LastFile[model_number] - FirstFile[model_number] + 1 >= size)
+model_tags = [r"Tiamat"]
+#model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 #model_tags = [r"No Cut", r"10 Particle Cut", r"100 Particle Cut"]
 
 ## Constants used for each model. ##
@@ -2602,9 +2599,9 @@ fesc_normalization = [0.25, [pow(10, 4.52), -0.54], [pow(10, -7.02), 0.60], [1.0
 
 #SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
 #SnapList = [[78, 54, 40, 30], [78, 54, 40, 30], [78, 54, 40, 30]]
-SnapList = [[78, 54, 40, 30]]
+SnapList = [[78, 58, 50]]
 
-simulation_norm = [0, 0, 0, 0] # 0 for MySim, 1 for Mini-Millennium.
+simulation_norm = [3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
 
 galaxy_halo_mass_lower = [95, 95, 95, 95] # These limits are for the number of particles in a halo.  
 galaxy_halo_mass_upper = [105, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
@@ -2695,6 +2692,10 @@ for model_number in xrange(0, number_models):
 
 	if(simulation_norm[model_number] == 0):
 		AllVars.Set_Params_Mysim()
+	elif(simulation_norm[model_number] == 3):
+		AllVars.Set_Params_Tiamat_extended()
+	else:
+		print "Simulation norm was set to %d.  This option hasn't been implemented yet." %(simulation_norm[model_number])
 
 	current_fesc_lyman_alpha = fesc_lyman_alpha[model_number]
 	current_source_efficiency = source_efficiency[model_number]
@@ -2776,9 +2777,9 @@ for model_number in xrange(0, number_models):
 	
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-#StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Paper_SMF") ## PARALLEL COMPATIBLE
+StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Tiamat") ## PARALLEL COMPATIBLE
 #plot_fesc(SnapList, fesc_local, mass_gal, mass_central, model_tags, "fesc_different_prescriptions") ## PARALELL COMPATIBLE 
-plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "EjectedMass_HaloMass") ## PARALELL COMPATIBLE 
+#plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "EjectedMass_HaloMass") ## PARALELL COMPATIBLE 
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
