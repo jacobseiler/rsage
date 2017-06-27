@@ -351,6 +351,7 @@ int load_meraxes_halos(int snapnum)
 	continue;
     sscanf(line, "%lf %lf %lf", &Pos[0], &Pos[1], &Pos[2]);
     meraxes_Halo[counter].Pos[0] = Pos[0]; // Note to Future Jacob, if Manodeep ever says anything about putting this in a loop tell him that I considered it at 6:13pm Monday 19th June, 2017.
+    XPRINT(Pos[0] < 80, "Galaxy has a position of %.4f\n", Pos[0]);
     meraxes_Halo[counter].Pos[1] = Pos[1]; // I was unsure if it was worth though. 
     meraxes_Halo[counter].Pos[2] = Pos[2];
 

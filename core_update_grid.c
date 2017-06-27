@@ -75,7 +75,8 @@ void update_meraxes_grid_properties(int p, int GridNr)
     x_grid = meraxes_Halo[p].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
     y_grid = meraxes_Halo[p].Pos[1]*GridSize/BoxSize;
     z_grid = meraxes_Halo[p].Pos[2]*GridSize/BoxSize; 
-  
+ 
+    XPRINT(meraxes_Halo[p].Pos[0] < 80, "Halo %d has an x position of %.4f Mpc/h", p, meraxes_Halo[p].Pos[0]); 
     grid_position = (x_grid*GridSize+y_grid)*GridSize+z_grid; // Convert the grid (x,y,z) to a 1D value.
    
     XASSERT(grid_position >= 0 && grid_position < CUBE(GridSize), "The grid index must be between 0 and the GridSize cubed (%d cubed = %d).  The index for Halo %d is %d.\n", GridSize, CUBE(GridSize), p, grid_position);
