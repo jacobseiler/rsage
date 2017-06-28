@@ -309,31 +309,35 @@ void add_galaxy_to_merger_list(int p)
 {
   int j;
 
-  MergedGal[MergedNr] = Gal[p]; // This is a shallow copy and does not copy the memory the pointers are pointing to.
-  malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
 
-  for (j = 0; j < MAXSNAPS; ++j)
+  if(Gal[p].SnapNum < ListOutputSnaps[0]) // Only want to output those galaxies before the highest output snapshot. 
   {
-    MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
-    MergedGal[MergedNr].GridStellarMass[j] = Gal[p].GridStellarMass[j];
-    MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
-    MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
-    MergedGal[MergedNr].GridCentralGalaxyMass[j] = Gal[p].GridCentralGalaxyMass[j];
-    MergedGal[MergedNr].MfiltGnedin[j] = Gal[p].MfiltGnedin[j];
-    MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
-    MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
-    MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
-//    MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j]; 
-  }
+    MergedGal[MergedNr] = Gal[p]; // This is a shallow copy and does not copy the memory the pointers are pointing to.
+    malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
+
+    for (j = 0; j < MAXSNAPS; ++j)
+    {
+      MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
+      MergedGal[MergedNr].GridStellarMass[j] = Gal[p].GridStellarMass[j];
+      MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
+      MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
+      MergedGal[MergedNr].GridCentralGalaxyMass[j] = Gal[p].GridCentralGalaxyMass[j];
+      MergedGal[MergedNr].MfiltGnedin[j] = Gal[p].MfiltGnedin[j];
+      MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
+      MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
+      MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
+    }
  
-  for (j = 0; j < SN_Array_Len; ++j)
-  {
-    MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
-  }
+    for (j = 0; j < SN_Array_Len; ++j)
+    {
+      MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
+    }
+    ++MergedNr;
 
   free_grid_arrays(&Gal[p]);
   Gal[p].IsMalloced = 0;
   Gal[p].IsMerged = 1; 
-  ++MergedNr;
+  }
+  
 }
  
