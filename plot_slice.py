@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import numpy as np
 from numpy import *
 np.set_printoptions(threshold = np.nan, linewidth = 1000000)

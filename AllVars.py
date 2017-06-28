@@ -170,6 +170,7 @@ def Set_Constants():
     global pc_to_m
     global m_to_cm
     global Sigmat
+    global H0
 
     Proton_Mass = 1.6726219e-24 # Grams.
     Solar_Mass = 1.98855e33 # Grams.
@@ -186,7 +187,7 @@ def Set_Constants():
     pc_to_m = 3.086e16 # Parsec to metres. 
     m_to_cm = 1.0e2 # Meters to centimetres.
     Sigmat = 6.652e-29 # Thomson cross-section for an electron in m^2.
-
+    H0 = 3.24078e-18 # In h/sec
 
 def spectralflux_wavelength_to_frequency(Flux, Wavelength):
 
