@@ -542,10 +542,18 @@ def Create_Snap_Arrays(G, NumSnaps, SnapList):
                 SnapCount[j] += 1
 
 
-def read_binary_grid(filepath, GridSize):
+def read_binary_grid(filepath, GridSize, precision):
 
+    print "Reading with precision", precision
+    byte = 'None'
+    if precision == 0:
+	byte = np.int32
+    elif precision == 1:
+	byte = np.float32
+    elif precision == 2: 
+	byte = np.float64
     fd = open(filepath, 'rb')
-    grid = np.fromfile(fd, count = GridSize**3, dtype = float64)
+    grid = np.fromfile(fd, count = GridSize**3, dtype = byte) 
     grid.shape = (GridSize, GridSize, GridSize)
     fd.close()
 

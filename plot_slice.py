@@ -349,6 +349,7 @@ def calculate_total_nion(model_name, nion):
 # Output: The total number of ionizing photons (per second) in the grid.
 
 #        nion_total = sum(nion)/Hubble_h/(BoxSize**3/Hubble_h**3)
+
 	nion_total = sum(nion)
 
 	print
@@ -631,7 +632,7 @@ def plot_density(z, density, OutputDir, output_tag):
 	ax = plt.subplot(111)
 	
 	#im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,BoxSize,0,BoxSize], cmap = 'Purples', norm = colors.LogNorm(vmin = 0.12, vmax = 50)) 
-	im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,BoxSize,0,BoxSize], cmap = 'Purples', vmin = 0.12, vmax = 10) 
+	im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], cmap = 'Purples', vmin = 0.12, vmax = 10) 
 
 	cbar = plt.colorbar(im, ax = ax)
 	cbar.set_label(r'$\rho/\langle \rho \rangle$')
@@ -639,8 +640,8 @@ def plot_density(z, density, OutputDir, output_tag):
 	ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
 	ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
 
-	ax.set_xlim([0.0, BoxSize]) 
-	ax.set_ylim([0.0, BoxSize])
+	ax.set_xlim([0.0, AllVars.BoxSize]) 
+	ax.set_ylim([0.0, AllVars.BoxSize])
 
 	title = r"$z = %.3f$" %(z)
         ax.set_title(title)
@@ -2493,7 +2494,7 @@ if __name__ == '__main__':
     photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3, filepath_photofield_model4]
 
     '''
-
+    '''
     ###########################
     ### SAGE vs MERAXES ###
  
@@ -2531,161 +2532,44 @@ if __name__ == '__main__':
     nion_filepath_array = [filepath_nion_model1, filepath_nion_model2]
     density_filepath_array = [filepath_density_model1, filepath_density_model2]
     photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2]
-
-    ###########################
-
-
-    ##### Homogenous Density/Random Nion Comparison ####
-   
-    ''' 
- 
-    output_tags = [r"Homogenous_Random", "Homogenous_Correct", "Correct_Random"]
-    model_tags = [r"Homo + Random", "Homo + Correct", "Correct + Random"] 
- 
-    number_models = 3
-
-    model = 'HomoComparison'
-
-    GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 128 
-
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_homo_May/XHII_homo_randomnion"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_homo_May/XHII_homo_correctnion"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_homo_May/XHII_correctdensity_randomnion"  
-   
-    filepath_nion_model1 = "/home/jseiler/grid_tools/test"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
-    filepath_nion_model3 = "/home/jseiler/grid_tools/test"
-
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/density_grids/homo_grid128/density"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/density_grids/homo_grid128/density" 
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
-
     '''
 
     ###########################
 
-    '''    
 
-    ##### Constant fesc Comparisons ####
-
-    output_tags = [r"IRA - Model 1", "IRA - Model 2", "Delayed"] 
-    model_tags = [r"IRA - Model 1", "IRA - Model 2", "Delayed"] 
- 
-    number_models = 3
-
-    model = 'Delayed'
-
-    GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 128 
-
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_IRA_fesc0.25_photHImodel1"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_IRA_fesc0.25"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_SN5Myr_fesc0.25"
-
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_Delayed_SN5Myr_z5.000_fesc0.25_HaloPartCut0_nionHI"
-
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
-
-    '''    
+    ##### SimFast Prescription ##### 
     
-    ###########################
+    output_tags = [r"SimFast"]
+    model_tags = [r"SimFast"]
+    number_models = 1
+    model = 'SimFast'
 
+    cosmo = AllVars.Set_Params_Mysim()
 
-    ##### MH Comparison #####
+    ## Sets the properties of the simulation.  0 for Manodeep's Simulation, 1 for Mini-millennium, 2 for Tiamat.
+    simulation_model1 = 0
 
-    '''
-    output_tags = ["fesc0.25", "MH_pos", "MH_neg"]
-    model_tags = [r"$f_\mathrm{esc} = 0.25$", r"$f_\mathrm{esc} \: \propto \: M_H^{\beta}$", r"$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$"]
-
-    model = 'MHCompClean'
     GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 128
 
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.25"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_MH_pos"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_MH_neg"
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_fesc0.25_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_MH_alpha-2.81beta0.22_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut0_fescMHneg//Galaxies_LenHistory_SF0.01_noreion_z5.000_MH_alpha4.52beta-0.54_nionHI"
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens" 
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.25"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_MH_pos"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_MH_neg"
-    '''
+    precision_model1 = 1 # 0 for int reading, 1 for float, 2 for double.
 
-    ###########################
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc0.25" 
+     
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid128/nion/nion"
 
-    ##### Ejected Comparison #####
+    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid128/density/density"
 
-    '''
-    output_tags = ["fesc0.25", "MH_neg", "Ejected"]
-    model_tags = [r"$f_\mathrm{esc} = 0.25$", r"$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$", r"$f_\mathrm{esc} \: \propto \: m_\mathrm{ejected}$"]
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20" 
+  
+    simulation_norm = [simulation_model1] 
+    precision_array = [precision_model1]
+    GridSize_array = [GridSize_model1]
+    ionized_cells_filepath_array = [filepath_model1]
+    nion_filepath_array = [filepath_nion_model1]
+    density_filepath_array = [filepath_density_model1]
+    photofield_filepath_array = [filepath_photofield_model1]
 
-    #model = 'EjectedCompClean'
-    model = 'PerthImages'
-    GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 128
-
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc0.25"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_MH_neg"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/XHII_noreion_fesc_Ejected"
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_fesc0.25_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_MH_alpha3.62beta-0.43_nionHI"  
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/Galaxies_SF0.01_noreion_z5.000_Ejected_alpha0.001beta0.999_nionHI"  
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens" 
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.25"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_MH_neg"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc_Ejected"
-    '''
-    
-
-    ###########################   
-   
-    ##### HaloCut Comparison #####
-
-    '''
-    output_tags = ["fesc0.25", "MH_neg", "Ejected"]
-    model_tags = [r"$f_\mathrm{esc} = 0.25$", r"$f_\mathrm{esc} \: \propto \: M_H^{-\beta}$", r"$f_\mathrm{esc} \: \propto \: m_\mathrm{ejected}$"]
-
-    model = 'HaloPartCut10'
-    GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 128
-
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fesc0.25_HaloPartCut10/XHII"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fescMHneg_HaloPartCut10/XHII"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fescEjected_HaloPartCut10/XHII"
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut10_fesc0.25/Galaxies_LenHistory_SF0.01_noreion_z5.000_fesc0.25_HaloPartCut10_nionHI" 
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut10_fescMHneg/Galaxies_LenHistory_SF0.01_noreion_z5.000_MH_alpha3.62beta-0.43_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/grid/HaloPartCut10_fescEjected/Galaxies_LenHistory_SF0.01_noreion_z5.000_Ejected_alpha0.100beta0.900_nionHI"
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens" 
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fesc0.25_HaloPartCut10/PhotHI"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fescMHneg_HaloPartCut10/PhotHI"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/fescEjected_HaloPartCut10/PhotHI"
-    '''
+    ########################### 
 
     ###########################   
 
@@ -2693,7 +2577,8 @@ if __name__ == '__main__':
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
  
-    snaplist = np.arange(5, 80)
+    #snaplist = np.arange(5, 80)
+    snaplist = np.arange(20, 50)
 
     ZZ = np.empty(len(snaplist))
     
@@ -2809,16 +2694,16 @@ if __name__ == '__main__':
 	        #######################################
 
 		ionized_cells_path = ionized_cells_filepath_array[model_number] + number_tag_anne 	
-		ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model))
+		ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, 2)) 
 
 		nion_path = nion_filepath_array[model_number] + number_tag_mine 
-		nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model))
+		nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))
 
 		density_path = density_filepath_array[model_number] + number_tag_mine
-		density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model))		
+		density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))		
 
 		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
-		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model))
+		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
 
 		#
 
@@ -2832,7 +2717,8 @@ if __name__ == '__main__':
 			hoshen_array[model_number][snapshot_idx] = hoshen_kopelman(ionized_cells_array[model_number])	
 
 		#plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snapshot_idx))
-		#plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
+		density_array[model_number] = density_array[model_number] + 1
+		plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
 		#plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
 		fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
@@ -2904,7 +2790,7 @@ if __name__ == '__main__':
  
     if (rank == 0):
 	#plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, MC_ZZ_final, 1, model_tags, OutputDir, "GlobalFraction_time")
-	#plot_total_nion(ZZ, nion_total_array_final, simulation_norm, 1, model_tags, OutputDir, "Nion_z")
+	plot_total_nion(ZZ, nion_total_array_final, simulation_norm, 1, model_tags, OutputDir, "Nion_z")
     	#plot_optical_depth(ZZ, volume_frac_array_final, model_tags, OutputDir, "OpticalDepth")
 
     	#plot_nine_panel_slices(ZZ, ionized_cells_filepath_array, GridSize_array, simulation_norm, MC_Snaps_final, fractions_HI, model_tags, OutputDir, "3PanelSlice")
@@ -2918,7 +2804,7 @@ if __name__ == '__main__':
 	print plotting_MC_ZZ
 	print plotting_HI
 	#plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
-	plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum")
+	#plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)

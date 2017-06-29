@@ -150,10 +150,14 @@ def Calculate_2D_Histogram(Data_x, Data_y, Bin_Width, min_hist_x = None, max_his
     for i in xrange(0, len(bins)): 
 	data_y_binned.append([])
     for i in xrange(0, len(Data_x)):
-    	data_y_binned[bins_x[i]].append(Data_y[i])
-	N_data_y[bins_x[i]] += 1 
+	idx = bins_x[i]
+	if idx == len(data_y_binned):
+		idx -= 1
 
-#    print data_y_binned
+    	data_y_binned[idx].append(Data_y[i])
+	N_data_y[idx] += 1 
+
+    print data_y_binned
     mean_data_y = np.zeros((len(bins))) 
     std_data_y = np.zeros((len(bins))) 
 
@@ -166,8 +170,7 @@ def Calculate_2D_Histogram(Data_x, Data_y, Bin_Width, min_hist_x = None, max_his
 	else:
 		mean_data_y[i] = np.nan
 		std_data_y[i] = np.nan
-    print mean_data_y
-    print std_data_y
+
     return mean_data_y[:-1], std_data_y[:-1], N_data_y[:-1], bins_mid
 
 
@@ -1891,7 +1894,7 @@ def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_ta
 	std_halomass_array.append([])
 
 	bin_middle_array.append([])
-    print "Plotting the Ejected Fraction"
+    print "Plotting Ngamma*fesc against Mvir" 
     
     binwidth = 0.1
     Frequency = 1  
@@ -1905,6 +1908,9 @@ def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_ta
 		minimum_mass = np.floor(min(mass_central[model_number][snapshot_idx])) - 10*binwidth
 		maximum_mass = np.floor(max(mass_central[model_number][snapshot_idx])) + 10*binwidth
 
+		minimum_mass = 6.0
+		maximum_mass = 12.0
+
 		binning_minimum = comm.allreduce(minimum_mass, op = MPI.MIN)
 		binning_maximum = comm.allreduce(maximum_mass, op = MPI.MAX)
 
@@ -1913,19 +1919,39 @@ def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_ta
 		halomass_nonlog = [10**x for x in mass_central[model_number][snapshot_idx]]
 		(mean_ngammafesc, std_ngammafesc, N, bin_middle) = Calculate_2D_Histogram(mass_central[model_number][snapshot_idx], np.multiply(Ngamma_nonlog, fesc[model_number][snapshot_idx]), binwidth, binning_minimum, binning_maximum)
 
+		print "mean", mean_ngammafesc
+		print "std", std_ngammafesc
+		print "mean/std", std_ngammafesc/mean_ngammafesc
+		print 0.434*std_ngammafesc/mean_ngammafesc
+
+
 		mean_ngammafesc_array[model_number], std_ngammafesc_array[model_number] = calculate_pooled_stats(mean_ngammafesc_array[model_number], std_ngammafesc_array[model_number], mean_ngammafesc, std_ngammafesc, N)
 		mean_halomass_array[model_number], std_halomass_array[model_number] = calculate_pooled_stats(mean_halomass_array[model_number], std_halomass_array[model_number], np.mean(halomass_nonlog), np.std(halomass_nonlog), len(mass_central[model_number][snapshot_idx]))
 
-		print "mean_ngammafesc_array", mean_ngammafesc_array[model_number]
 		## If want to do mean/etc of halo mass need to update script. ##
 		bin_middle_array[model_number].append(bin_middle)
-	std_ngammafesc_array[model_number] = 0.434 * np.divide(std_ngammafesc_array[model_number], mean_ngammafesc_array[model_number])
-	mean_ngammafesc_array[model_number] = np.log10(mean_ngammafesc_array[model_number])
 
+		'''
+		if rank == 0:
+			mean_ngammafesc_array[model_number][snapshot_idx] = np.nan_to_num(mean_ngammafesc_array[model_number][snapshot_idx])
+			std_ngammafesc_array[model_number][snapshot_idx] = np.nan_to_num(std_ngammafesc_array[model_number][snapshot_idx])
+			outfile = '/lustre/projects/p004_swin/jseiler/tiamat/mean_mvir_ngammafesc_z%.3f.dat' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+			with open(outfile, 'w') as f:
+				np.savetxt(outfile, mean_ngammafesc_array[model_number][snapshot_idx])
+			print "Saved %s" %(outfile)
+
+
+			outfile = '/lustre/projects/p004_swin/jseiler/tiamat/std_mvir_ngammafesc_z%.3f.dat' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+			with open(outfile, 'w') as f:
+				np.savetxt(outfile, std_ngammafesc_array[model_number][snapshot_idx])
+			print "Saved %s" %(outfile)
+		'''
+	#std_ngammafesc_array[model_number] = 0.434 * np.divide(std_ngammafesc_array[model_number], mean_ngammafesc_array[model_number])
+	
+	#mean_ngammafesc_array[model_number] = np.log10(~np.isnan(mean_ngammafesc_array[model_number]))
 	
 	mean_halomass_array[model_number] = np.log10(mean_halomass_array[model_number])	
 		
-
     if rank == 0:
 	f = plt.figure()  
 	ax1 = plt.subplot(111)  
@@ -1937,27 +1963,28 @@ def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_ta
 			else:
 				title = ''
 			
-			mean = mean_ngammafesc_array[model_number][snapshot_idx]
-			std = std_ngammafesc_array[model_number][snapshot_idx]
+			mean = np.log10(mean_ngammafesc_array[model_number][snapshot_idx])
+			std = 0.434 * np.divide(std_ngammafesc_array[model_number][snapshot_idx], mean_ngammafesc_array[model_number][snapshot_idx])
 			bin_middle = bin_middle_array[model_number][snapshot_idx]
 
-			print "mean", mean
-			print "std", std	
+
+
 			ax1.plot(bin_middle, mean, color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = title)
-			ax1.scatter(mean_halomass_array[model_number][snapshot_idx], np.mean(~np.isnan(mean)), color = colors[snapshot_idx], marker = 'o', rasterized = True, s = 40, lw = 3)	
+			#ax1.scatter(mean_halomass_array[model_number][snapshot_idx], np.mean(~np.isnan(mean)), color = colors[snapshot_idx], marker = 'o', rasterized = True, s = 40, lw = 3)	
 			if (len(SnapList) == 1):
     				ax1.fill_between(bin_middle, np.subtract(mean,std), np.add(mean,std), color = colors[snapshot_idx], alpha = 0.25)
 
 	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = talk_fontsize) 
     	ax1.set_ylabel(r'$\dot{N}_\gamma \: f_\mathrm{esc} \: [\mathrm{s}^{-1}]$', size = talk_fontsize)
     	ax1.set_xlim([8.5, 12])
-    	ax1.set_ylim([50, 53.5])   
+    	#ax1.set_ylim([1e50, 1e54])   
 
     	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))
-    	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+#    	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
  	
-    	for model_number in xrange(0, len(SnapList)):
-		ax1.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
+#    	ax1.set_yscale('log', nonposy='clip')
+#    	for model_number in xrange(0, len(SnapList)):
+#		ax1.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
 	
 	
     	leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1)
@@ -1970,6 +1997,7 @@ def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_ta
     	print 'Saved file to', outputFile
     	plt.close()
 
+    print "Done"	
 
 def HaloPartCount(Simulation, Redshift, HaloCount, MySim_Len): 
 
@@ -2667,8 +2695,8 @@ merged_galaxies_filepath_array = [merged_galaxies_model1]
 number_models = 1
 number_snapshots = [164] # Property of the simulation.
 #number_snapshots = [101] # Property of the simulation.
-FirstFile = [12]
-LastFile = [14]
+FirstFile = [0]
+LastFile = [7]
 #LastFile = [2]
 for model_number in xrange(0,number_models):
 	assert(LastFile[model_number] - FirstFile[model_number] + 1 >= size)
@@ -2692,7 +2720,9 @@ fesc_normalization = [0.25, [pow(10, 4.52), -0.54], [pow(10, -7.02), 0.60], [1.0
 
 #SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
 #SnapList = [[78, 54, 40, 30], [78, 54, 40, 30], [78, 54, 40, 30]]
-SnapList = [[78, 58, 50]]
+#SnapList = [[78, 58, 50, 40, 30]]
+#SnapList = [[78, 58, 50, 40]]
+SnapList = [[78]]
 
 simulation_norm = [3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
 
@@ -2902,10 +2932,10 @@ for model_number in xrange(0, number_models):
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Tiamat") ## PARALLEL COMPATIBLE
+#StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Tiamat") ## PARALLEL COMPATIBLE
 #plot_fesc(SnapList, fesc_local, mass_gal, mass_central, model_tags, "fesc_different_prescriptions") ## PARALELL COMPATIBLE 
 #plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "EjectedMass_HaloMass") ## PARALELL COMPATIBLE 
-#plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma") 
+plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma_1file")  
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
