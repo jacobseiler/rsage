@@ -200,7 +200,8 @@ int main(int argc, char **argv)
     finalize_merged_galaxy_file(filenr);
     
     free_tree_table();
-    printf("\ndone file %d\n\n", filenr); 
+    printf("\ndone file %d\n\n", filenr);
+    break; 
   }
 
   exitfail = 0;

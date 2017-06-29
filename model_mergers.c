@@ -332,12 +332,11 @@ void add_galaxy_to_merger_list(int p)
     {
       MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
     }
-    ++MergedNr;
-
-  free_grid_arrays(&Gal[p]);
-  Gal[p].IsMalloced = 0;
-  Gal[p].IsMerged = 1; 
+    ++MergedNr; 
+    Gal[p].IsMalloced = 0;
+    Gal[p].IsMerged = 1; 
   }
-  
+  free_grid_arrays(&Gal[p]); 
+
 }
  

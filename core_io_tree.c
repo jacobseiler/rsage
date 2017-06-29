@@ -152,7 +152,7 @@ void free_galaxies_and_tree(void)
 
   for(i = 0; i < NumGals; ++i)
   { 
-    if(HaloGal[i].SnapNum == ListOutputSnaps[0]) // The pointed to memory that we malloced is NOT copied over when we generate a new MergedGal entry. 
+    if(HaloGal[i].SnapNum == LastSnapShotNr) // The pointed to memory that we malloced is NOT copied over when we generate a new MergedGal entry. 
     {
       free_grid_arrays(&HaloGal[i]); 
      
