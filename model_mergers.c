@@ -311,7 +311,7 @@ void add_galaxy_to_merger_list(int p)
  
     MergedGal[MergedNr] = Gal[p]; // This is a shallow copy and does not copy the memory the pointers are pointing to.
     malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
-
+    ++mergedgal_mallocs;
     for (j = 0; j < MAXSNAPS; ++j)
     {
       MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
@@ -329,11 +329,10 @@ void add_galaxy_to_merger_list(int p)
     {
       MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
     }
-    ++MergedNr; 
-    Gal[p].IsMalloced = 0;
-    Gal[p].IsMerged = 1; 
-  
+    ++MergedNr;  
+    Gal[p].IsMerged = 1;
+   
   free_grid_arrays(&Gal[p]); 
-
+  ++gal_frees;
 }
  

@@ -484,6 +484,8 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 	fprintf(stderr, "HaloGal realloced.\n");
       }
 */
+if(Gal[p].SnapNum == LastSnapShotNr && Halo[Gal[p].HaloNr].NextProgenitor == -1)
+        fprintf(stderr, "ETHQTH\n");
         if(NumGals > MaxGals)
         {
 	  printf("ngal = %d \t MaxGals = %d\n", NumGals, MaxGals);

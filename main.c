@@ -193,7 +193,8 @@ int main(int argc, char **argv)
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree();
-            
+
+  //    break;            
     }
 
     finalize_galaxy_file(filenr);  
@@ -203,7 +204,7 @@ int main(int argc, char **argv)
     printf("\ndone file %d\n\n", filenr);
     break; 
   }
-
+  fprintf(stderr, "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees);
   exitfail = 0;
   printf("There was %d firstSF and %d notfirstSF\n", count_firstSF, count_notfirstSF);
   gsl_rng_free(random_generator); 

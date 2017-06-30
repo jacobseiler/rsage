@@ -50,6 +50,19 @@ do {                                                                \
     } while (0)
 #endif
 
+#ifdef NDEBUG
+#define XPRINT(EXP, ...)                                do{} while(0)
+#else
+#define XPRINT(EXP, ...)                                              \
+    do { if (!(EXP)) {                                                  \
+            printf("Warning in file: %s\tfunc: %s\tline: %d with expression `"#EXP"'\n", __FILE__, __FUNCTION__, __LINE__); \
+            printf(__VA_ARGS__);                                        \
+            fflush(stdout);                                             \
+        } \
+    } while (0)
+#endif
+
+
 struct GALAXY_OUTPUT
 {
   int   SnapNum;
@@ -201,7 +214,7 @@ struct GALAXY
   float *EjectedFraction;
   int *LenHistory;
   double *Stars;
-//  double *GridOutflowRate;
+  int *MergerHistory;
 
   double StellarAge_Numerator;
   double StellarAge_Denominator;
@@ -400,4 +413,9 @@ extern int count_firstSF;
 extern int count_notfirstSF;
 
 extern int RescaleSN;
+extern int mergedgal_mallocs;
+extern int gal_mallocs;
+
+extern int mergedgal_frees;
+extern int gal_frees;
 #endif  // #ifndef ALLVARS_H

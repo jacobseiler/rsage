@@ -105,6 +105,11 @@ void init(void)
     fprintf(stderr, "Length of the supernova array is %d\n", SN_Array_Len);
   }
   
+  mergedgal_mallocs = 0;
+  gal_mallocs = 0 ;
+
+  mergedgal_frees = 0;
+  gal_frees = 0;
   
 }
 

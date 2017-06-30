@@ -87,9 +87,12 @@ void init_galaxy(int p, int halonr)
   Gal[p].infallVvir = -1.0;
   Gal[p].infallVmax = -1.0;
 
-  malloc_grid_arrays(&Gal[p]);
-  Gal[p].IsMalloced = 1;
-
+  Gal[p].IsMerged = -1;
+//  if(Gal[p].IsMalloced != 1)
+//  {
+  	malloc_grid_arrays(&Gal[p]);
+  ++gal_mallocs;	
+//  }
   
   for (j = 0; j < MAXSNAPS; ++j)
   {
@@ -102,7 +105,6 @@ void init_galaxy(int p, int halonr)
     Gal[p].MfiltSobacchi[j] = 1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
-//    Gal[p].GridOutflowRate[j] = 0.0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -113,7 +115,6 @@ void init_galaxy(int p, int halonr)
   Gal[p].Total_SF_Time = 0.0;
   Gal[p].Total_Stars = 0.0;
 
-  Gal[p].IsMerged = -1;
   Gal[p].GrandSum = 0.0;
  
   Gal[p].StellarAge_Numerator = 0.0;

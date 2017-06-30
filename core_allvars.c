@@ -152,6 +152,10 @@ double epsilon_mass_max;
 int count_firstSF;
 int count_notfirstSF;
 
-int *Gal_to_free;
-
 int RescaleSN;
+
+int mergedgal_mallocs;
+int gal_mallocs;
+
+int mergedgal_frees;
+int gal_frees;
