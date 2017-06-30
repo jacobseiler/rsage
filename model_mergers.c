@@ -308,10 +308,7 @@ void disrupt_satellite_to_ICS(int centralgal, int gal, int tree)
 void add_galaxy_to_merger_list(int p)
 {
   int j;
-
-
-  if(Gal[p].SnapNum < ListOutputSnaps[0]) // Only want to output those galaxies before the highest output snapshot. 
-  {
+ 
     MergedGal[MergedNr] = Gal[p]; // This is a shallow copy and does not copy the memory the pointers are pointing to.
     malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
 
@@ -335,7 +332,7 @@ void add_galaxy_to_merger_list(int p)
     ++MergedNr; 
     Gal[p].IsMalloced = 0;
     Gal[p].IsMerged = 1; 
-  }
+  
   free_grid_arrays(&Gal[p]); 
 
 }
