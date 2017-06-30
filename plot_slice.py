@@ -2539,25 +2539,25 @@ if __name__ == '__main__':
 
     ##### SimFast Prescription ##### 
     
-    output_tags = [r"SimFast"]
-    model_tags = [r"SimFast"]
+    output_tags = [r"Simfast"]
+    model_tags = [r"Simfast"]
     number_models = 1
-    model = 'SimFast'
+    model = 'Simfast'
 
     cosmo = AllVars.Set_Params_Mysim()
 
     ## Sets the properties of the simulation.  0 for Manodeep's Simulation, 1 for Mini-millennium, 2 for Tiamat.
     simulation_model1 = 0
 
-    GridSize_model1 = 128
+    GridSize_model1 = 512
 
     precision_model1 = 1 # 0 for int reading, 1 for float, 2 for double.
 
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc0.25" 
      
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid128/nion/nion"
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid512/nion/nion"
 
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid128/density/density"
+    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid512/density/density"
 
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20" 
   
@@ -2694,16 +2694,18 @@ if __name__ == '__main__':
 	        #######################################
 
 		ionized_cells_path = ionized_cells_filepath_array[model_number] + number_tag_anne 	
-		ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, 2)) 
+		ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, 128, 2)) 
 
 		nion_path = nion_filepath_array[model_number] + number_tag_mine 
 		nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))
+
+		nion_array[model_number] = [i*1e50 for i in nion_array[model_number]]
 
 		density_path = density_filepath_array[model_number] + number_tag_mine
 		density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))		
 
 		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
-		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
+		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, 128, 2)) 
 
 		#
 
