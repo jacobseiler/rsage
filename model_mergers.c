@@ -331,7 +331,7 @@ void add_galaxy_to_merger_list(int p)
     }
     ++MergedNr;  
     Gal[p].IsMerged = 1;
-   
+// fprintf(stderr, "Galaxy %d merged.\n", p); 
   free_grid_arrays(&Gal[p]); 
   ++gal_frees;
 }

@@ -213,8 +213,7 @@ struct GALAXY
   double *MfiltSobacchi;
   float *EjectedFraction;
   int *LenHistory;
-  double *Stars;
-  int *MergerHistory;
+  double *Stars; 
 
   double StellarAge_Numerator;
   double StellarAge_Denominator;
@@ -418,4 +417,6 @@ extern int gal_mallocs;
 
 extern int mergedgal_frees;
 extern int gal_frees;
+
+extern int *gal_to_free;
 #endif  // #ifndef ALLVARS_H

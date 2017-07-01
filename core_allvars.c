@@ -159,3 +159,5 @@ int gal_mallocs;
 
 int mergedgal_frees;
 int gal_frees;
+
+int *gal_to_free;

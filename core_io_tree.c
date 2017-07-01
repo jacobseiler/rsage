@@ -120,6 +120,7 @@ void load_tree(int filenr, int nr)
   MaxMergedGals = MaxGals;
   FoF_MaxGals = 10000; 
 
+  gal_to_free = malloc(sizeof(int) * MaxMergedGals);
   HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[nr]);
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
   Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
@@ -137,8 +138,8 @@ void load_tree(int filenr, int nr)
     HaloAux[i].DoneFlag = 0;
     HaloAux[i].HaloFlag = 0;
     HaloAux[i].NGalaxies = 0;
-    if (Halo[i].SnapNum != LastSnapShotNr && Halo[i].Descendant == -1)
-fprintf(stderr, "STUPID TREES! Halo[%d].SnapNum = %d Halo[%d].Descendant = %d\n", i, Halo[i].SnapNum, i, Halo[i].Descendant); 
+//    if (Halo[i].SnapNum != LastSnapShotNr && Halo[i].Descendant == -1)
+//fprintf(stderr, "STUPID TREES! Halo[%d].SnapNum = %d Halo[%d].Descendant = %d\n", i, Halo[i].SnapNum, i, Halo[i].Descendant); 
   }
  
 //  exit(EXIT_FAILURE);
@@ -148,18 +149,38 @@ fprintf(stderr, "STUPID TREES! Halo[%d].SnapNum = %d Halo[%d].Descendant = %d\n"
 
 void free_galaxies_and_tree(void)
 {
-  int i;
+  int i, j, max_snap, count_frees = 0;
 
   for(i = 0; i < NumGals; ++i)
-  { 
-    if(HaloGal[i].SnapNum == LastSnapShotNr) // The pointed to memory that we malloced is NOT copied over when we generate a new MergedGal entry. 
+  {
+    max_snap = 0;
+    for(j = 1; j < MAXSNAPS; ++j)
+    { 
+      if(HaloGal[i].GridHistory[j] != -1)
+      {
+	//fprintf(stderr, "For HaloGal[%d], SnapHistory[%d] is not -1\n", i, j);
+        max_snap = j;
+      }
+    }
+    if(HaloGal[i].SnapNum == max_snap && Halo[HaloGal[i].HaloNr].Descendant == -1)
     {
       XPRINT(HaloGal[i].IsMalloced == 1, "HaloGal %d doesn't have grids mallocced but we're trying to free it.\n", i); 
-      free_grid_arrays(&HaloGal[i]); 
-     ++gal_frees;
+      gal_to_free[count_frees] = i;
+
+    fprintf(stderr, "HaloGal[%d] MaxSnap = %d, HaloGal[%d].SnapNum = %d\n", i, max_snap, i, HaloGal[i].SnapNum); 
+//      free_grid_arrays(&HaloGal[i]); 
+      ++count_frees;
     } 
   }
 
+  for(i = 0; i < count_frees; ++i)
+  {
+    fprintf(stderr, "Freeing HaloGal %d. HaloGal.SnapNum = %d\n", gal_to_free[i], HaloGal[gal_to_free[i]].SnapNum);
+    free_grid_arrays(&HaloGal[gal_to_free[i]]);
+    ++gal_frees;
+  }
+
+  free(gal_to_free);
   for(i = 0; i < MergedNr; ++i)
   {
       XPRINT(MergedGal[i].IsMalloced == 1, "MergedGal %d doesn't have grids mallocced but we're trying to free it.\n", i); 
