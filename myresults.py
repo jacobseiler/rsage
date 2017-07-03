@@ -157,7 +157,7 @@ def Calculate_2D_Histogram(Data_x, Data_y, Bin_Width, min_hist_x = None, max_his
     	data_y_binned[idx].append(Data_y[i])
 	N_data_y[idx] += 1 
 
-    print data_y_binned
+
     mean_data_y = np.zeros((len(bins))) 
     std_data_y = np.zeros((len(bins))) 
 
@@ -1227,6 +1227,7 @@ def plot_fesc(SnapList, fesc, galaxy_mass, halo_mass, model_tags, output_tag):
     pooled_mean_fesc = []
     pooled_std_fesc = []
 
+    print "Plotting fesc."
     for model_number in xrange(0, len(SnapList)): 
 	mean_fesc.append([])
 	std_fesc.append([])
@@ -1245,9 +1246,9 @@ def plot_fesc(SnapList, fesc, galaxy_mass, halo_mass, model_tags, output_tag):
 		## Taken from https://en.wikipedia.org/wiki/Pooled_variance ## 
 
 		N = len(fesc[model_number][snapshot_idx])
-
+		comm.Barrier()
 		pooled_mean_fesc[model_number], pooled_std_fesc[model_number] = calculate_pooled_stats(pooled_mean_fesc[model_number], pooled_std_fesc[model_number], mean_fesc[model_number][snapshot_idx], std_fesc[model_number][snapshot_idx], N)
-	
+
     if (rank == 0):
     	ax1 = plt.subplot(111)
 
@@ -1256,7 +1257,7 @@ def plot_fesc(SnapList, fesc, galaxy_mass, halo_mass, model_tags, output_tag):
 		for snapshot_idx in xrange(0, len(SnapList[model_number])):
        			t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3   
 
-
+		
 		mean = pooled_mean_fesc[model_number]
 		std = pooled_std_fesc[model_number]   
 
@@ -1266,7 +1267,7 @@ def plot_fesc(SnapList, fesc, galaxy_mass, halo_mass, model_tags, output_tag):
     	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
     	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
     	ax1.set_xlim(time_xlim)
-    	ax1.set_ylim([-0.1, 1.1])
+    	#ax1.set_ylim([0.0, 0.3])
 
     	ax2 = ax1.twiny()
 
@@ -2645,18 +2646,131 @@ def OutflowRate(SnapList, mass1, mass2, outflow1, outflow2, Model_Tags, Output_T
 
 ##
 
+##
+
+'''
+At this point each process has it's own slice of the data set.  
+Each of these slices has inputs at each of the redshifts and for each model considered.
+What we do here is calculate the mean and standard deviation for each processor and then pool it and pass back to the master task.
+'''
+
+def plot_photoncount(SnapList, ngamma, fesc, model_tags, output_tag): 
+
+    print "Plotting a count of the photons."
+    mean_ngammafesc = []
+    std_ngammafesc = []
+
+    mean_times_N = []
+    std_times_N = []
+
+    pooled_mean_ngammafesc = []
+    pooled_std_ngammafesc = []
+
+    for model_number in xrange(0, len(SnapList)): 
+	mean_ngammafesc.append([])
+	std_ngammafesc.append([])
+
+	mean_times_N.append([])	
+	std_times_N.append([])
+
+	pooled_mean_ngammafesc.append([])
+	pooled_std_ngammafesc.append([])
+
+    	for snapshot_idx in xrange(0, len(SnapList[model_number])):
+		
+		ngammafesc = np.multiply(np.power(10, ngamma[model_number][snapshot_idx]), fesc[model_number][snapshot_idx])
+	    	mean_ngammafesc[model_number].append(np.mean(np.multiply(np.power(10,ngamma[model_number][snapshot_idx]), fesc[model_number][snapshot_idx]))) 
+		std_ngammafesc[model_number].append(np.std(np.multiply(np.power(10,ngamma[model_number][snapshot_idx]), fesc[model_number][snapshot_idx]))) 
+
+		## Calculation of pooled mean and standard deviation (unecessary for this case because they should be the same as the base mean/std.##
+		## Taken from https://en.wikipedia.org/wiki/Pooled_variance ## 
+
+		N = len(fesc[model_number][snapshot_idx])
+		comm.Barrier()
+		pooled_mean_ngammafesc[model_number], pooled_std_ngammafesc[model_number] = calculate_pooled_stats(pooled_mean_ngammafesc[model_number], pooled_std_ngammafesc[model_number], mean_ngammafesc[model_number][snapshot_idx], std_ngammafesc[model_number][snapshot_idx], N)
+
+    if (rank == 0):
+    	ax1 = plt.subplot(111)
+
+	for model_number in xrange(0, len(SnapList)):
+    		t = np.empty(len(SnapList[model_number]))
+		for snapshot_idx in xrange(0, len(SnapList[model_number])):
+       			t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3   
+
+		
+		mean = pooled_mean_ngammafesc[model_number]
+		std = pooled_std_ngammafesc[model_number]   
+
+    		ax1.plot(t, np.log10(mean), color = colors[model_number], ls = linestyles[model_number], label = model_tags[model_number], lw = 3)  
+    		#ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = colors[model_number], alpha = 0.25)
+
+    	#ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
+    	#ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
+    	ax1.set_xlim(time_xlim)
+    	#ax1.set_ylim([-0.1, 1.1])
+
+    	ax2 = ax1.twiny()
+
+    	t_plot = (t_BigBang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
+    	z_labels = ["$%d$" % x for x in z_plot] # Properly Latex-ize the labels.
+
+    	ax2.set_xlabel(r"$z$", size = label_size)
+    	ax2.set_xlim(time_xlim)
+    	ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
+    	ax2.set_xticklabels(z_labels) # But label them as redshifts.
+
+    	ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
+    	ax1.set_ylabel(r'$\dot{N}_\gamma f_\mathrm{esc} \: [\mathrm{s}^{-1}]$', fontsize = talk_fontsize)
+
+	leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
+    	leg.draw_frame(False)  # Don't want a box frame
+    	for t in leg.get_texts():  # Reduce the size of the text
+        	t.set_fontsize(talk_legendsize)
+
+	plot_time = 1
+	bouwens_z = np.arange(6,16) # Redshift range for the observations.
+	bouwens_t = (AllVars.t_BigBang - cosmo.lookback_time(bouwens_z).value) * 1.0e3 # Corresponding values for what we will plot on the x-axis.
+
+	bouwens_1sigma_lower = [50.81, 50.73, 50.60, 50.41, 50.21, 50.00, 49.80, 49.60, 49.39, 49.18] # 68% Confidence Intervals for the ionizing emissitivity from Bouwens 2015.
+	bouwens_1sigma_upper = [51.04, 50.85, 50.71, 50.62, 50.56, 50.49, 50.43, 50.36, 50.29, 50.23]
+
+	bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI. 
+	bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
+
+
+	if plot_time == 1:
+		ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.3, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+		ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.5, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+	else:
+		ax1.fill_between(bouwens_z, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.3, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+		ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.5, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+
+#	ax1.text(0.075, 0.965, '(a)', horizontalalignment='center', verticalalignment='center', transform = ax.transAxes)
+#	ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
+#	ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
+
+
+    	plt.tight_layout()
+    	outputFile = './' + output_tag + output_format
+    	plt.savefig(outputFile)  # Save the figure
+    	print 'Saved file to', outputFile
+    	plt.close()
+
+
+
+
 ## Calculates the stellar mass for galaxies with host halos that have a certain amount of particles.
 
 def Calculate_HaloPartStellarMass(HaloPart, StellarMass, BoundLow, BoundHigh):
 
-	print HaloPart
+#	print HaloPart
 	print 
 	w = np.where((HaloPart > BoundLow) & (HaloPart < BoundHigh))[0]
 
 	Mass = np.mean(10**(StellarMass[w]))
 	Mass_std = np.std(10**(StellarMass[w]))
 	count = len(StellarMass[w])
-	print "Mass %.4e \t Mass_std = %.4e \t Count = %d" %(Mass, Mass_std, count) 
+#	print "Mass %.4e \t Mass_std = %.4e \t Count = %d" %(Mass, Mass_std, count) 
 
 	return Mass, Mass_std
 
@@ -2683,25 +2797,33 @@ HaloPart_High = 51
 
 calculate_observed_LF = 0
 
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/fiducial_z4.929'
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_z4.929'
+galaxies_model2 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_z4.929'
+galaxies_model3 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_z4.929'
+galaxies_model4 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_z4.929'
 #galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_z5.000'
 
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/fiducial_MergedGalaxies'
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_MergedGalaxies'
+merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_MergedGalaxies'
+merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_MergedGalaxies'
+merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_MergedGalaxies'
 #merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/IRA_MergedGalaxies'
 
-galaxies_filepath_array = [galaxies_model1]
-merged_galaxies_filepath_array = [merged_galaxies_model1]
+galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3, galaxies_model4]
+merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3, merged_galaxies_model4] 
 
-number_models = 1
-number_snapshots = [164] # Property of the simulation.
+number_models = 4
+number_snapshots = [164, 164, 164, 164] # Property of the simulation.
 #number_snapshots = [101] # Property of the simulation.
-FirstFile = [0]
-LastFile = [7]
+FirstFile = [0, 0, 0, 0]
+LastFile = [11, 11, 11, 11]
+
 #LastFile = [2]
 for model_number in xrange(0,number_models):
 	assert(LastFile[model_number] - FirstFile[model_number] + 1 >= size)
-model_tags = [r"Tiamat"]
+#model_tags = [r"Tiamat"]
 #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
+model_tags = [r"$f_\mathrm{esc} = 0.20$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 #model_tags = [r"No Cut", r"10 Particle Cut", r"100 Particle Cut"]
 
 ## Constants used for each model. ##
@@ -2709,22 +2831,26 @@ model_tags = [r"Tiamat"]
 
 sSFR_min = [1.0e100, 1.0e100, 1e10,0]
 sSFR_max = [-1.0e100, -1.0e100, 0, 0]
-halo_cut = [1, 1, 1, 1]
+halo_cut = [100, 100, 100, 100]
 source_efficiency = [1, 1, 1,1]
 
 fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3]
 fesc_prescription = [0, 1, 1, 2]
+#fesc_prescription = [2,2,2,2]
 
-fesc_normalization = [0.25, [pow(10, 4.52), -0.54], [pow(10, -7.02), 0.60], [1.00, -0.997]] 
+#fesc_normalization = [0.25, [pow(10, 4.52), -0.54], [pow(10, -7.02), 0.60], [1.00, -0.997]] 
+fesc_normalization = [0.11, [100.0, -0.3], [9.0e-6, 0.40], [0.5, -0.25]] 
+#fesc_normalization = [[0.00, 0.997], [0.00, 0.997], [0.00, 0.997], [0.00, 0.997]]
 #fesc_normalization = [[1.00, -0.997], [1.00, -0.997], [1.00, -0.997]] 
 
-#SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
+SnapList = [np.arange(100, 10, -1), np.arange(100, 10, -1), np.arange(100, 10, -1), np.arange(100, 10, -1)]
+#SnapList = [[59, 61, 63, 65]]
 #SnapList = [[78, 54, 40, 30], [78, 54, 40, 30], [78, 54, 40, 30]]
 #SnapList = [[78, 58, 50, 40, 30]]
-#SnapList = [[78, 58, 50, 40]]
-SnapList = [[78]]
+#SnapList = [[78], [78], [78], [78]]
 
-simulation_norm = [3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
+
+simulation_norm = [3, 3, 3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
 
 galaxy_halo_mass_lower = [95, 95, 95, 95] # These limits are for the number of particles in a halo.  
 galaxy_halo_mass_upper = [105, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
@@ -2813,9 +2939,9 @@ dilute_galaxies = 100000
 for model_number in xrange(0, number_models):
 
     	GG, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(galaxies_filepath_array[model_number], FirstFile[model_number], LastFile[model_number], number_snapshots[model_number], comm)
-    	G_Merged, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(merged_galaxies_filepath_array[model_number], FirstFile[model_number], LastFile[model_number], number_snapshots[model_number], comm)
-		
-	G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc)
+    	#G_Merged, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(merged_galaxies_filepath_array[model_number], FirstFile[model_number], LastFile[model_number], number_snapshots[model_number], comm)
+	G = GG
+	#G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc)
 
 	if(simulation_norm[model_number] == 0):
 		AllVars.Set_Params_Mysim()
@@ -2831,12 +2957,21 @@ for model_number in xrange(0, number_models):
 	def calculate_fesc(fesc_prescription, halo_mass, ejected_fraction, fesc_normalization):
 		print "calculating fesc with prescription %d" %(fesc_prescription) 
 		if (fesc_prescription == 0):
-			return np.full((len(halo_mass)), fesc_normalization)
+			fesc = np.full((len(halo_mass)), fesc_normalization)
 		elif (fesc_prescription == 1):
-			return pow(10, log10(fesc_normalization[0]) + fesc_normalization[1]*halo_mass)
+			fesc = fesc_normalization[0]*pow(10,halo_mass*fesc_normalization[1])
 		elif (fesc_prescription == 2):
-			return fesc_normalization[1]*ejected_fraction + fesc_normalization[0]
+			fesc = fesc_normalization[0]*ejected_fraction + fesc_normalization[1]
+		'''
+		fesc = fesc[~np.isnan(fesc)] # Get rid of any lingering Nans.
+		fesc = fesc[fesc < 1] # Get rid of any values above 1. 
+		fesc = fesc[fesc > 0] # Get rid of any values below 0. 
+		'''
 
+		fesc[np.isnan(fesc)] = 0 # Get rid of any lingering Nans.
+		fesc[fesc > 1] = 1.0  # Get rid of any values above 1. 
+		fesc[fesc < 0] = 0.0  # Get rid of any values below 0. 
+		return fesc
 
 	def calculate_photons(SFR, Z):
 
@@ -2866,10 +3001,10 @@ for model_number in xrange(0, number_models):
    		 
 		current_snap = SnapList[model_number][snapshot_idx]
 
-		w_gal[model_number].append(np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridSFR[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut))[0])
+		w_gal[model_number].append(np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridStellarMass[:, current_snap] < 1e5) & (G.GridCentralGalaxyMass[:, current_snap] < 1e5) & (G.GridSFR[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut))[0])
 		current_idx = w_gal[model_number][snapshot_idx]
 	
-		print "There were %d galaxies for snapshot %d (Redshift %.4f) model %d." %(len(current_idx), current_snap, AllVars.SnapZ[current_snap], snapshot_idx)
+		print "There were %d galaxies for snapshot %d (Redshift %.4f) model %d." %(len(current_idx), current_snap, AllVars.SnapZ[current_snap], model_number)
 
       		halo_count[model_number].append(G.LenHistory[current_idx, current_snap])
 		mass_gal[model_number].append(np.log10(G.GridStellarMass[current_idx, current_snap] * 1.0e10 / AllVars.Hubble_h))
@@ -2891,13 +3026,13 @@ for model_number in xrange(0, number_models):
 		
 #		lyman_alpha[model_number].append(np.log10(0.68*(1.0 - current_fesc) * current_fesc_lyman_alpha * (AllVars.LymanAlpha_Energy * AllVars.eV_to_erg)) + photons_HI[model_number]
 
-		print "Calculating intrinsic Mag"
+
 
 		L_UV[model_number].append(SFR_gal[model_number][snapshot_idx] + 39.927)# Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
 		M_UV[model_number].append(AllVars.Luminosity_to_ABMag(L_UV[model_number][snapshot_idx], 1600))
 
 		if (calculate_observed_LF == 1):
-			print "Calculating dust"
+
 	      		M_UV_bins = np.arange(-24, -16, 0.1)
 	      		A_Mean = np.zeros((len(MUV_bins)))	
 
@@ -2908,7 +3043,7 @@ for model_number in xrange(0, number_models):
 				A[A < 0] = 0
 		
 				A_Mean[j] = np.mean(A)
-			print "Binning the intrinsic into Observed."
+
 
 			indices = np.digitize(M_UV[model_number][snap_idz], M_UV_bins) # Bins the simulation magnitude into the MUV bins. Note that digitize defines an index i if bin[i-1] <= x < bin[i] whereas I prefer bin[i] <= x < bin[i+1]
 			dust = A_Mean[indices]
@@ -2921,7 +3056,7 @@ for model_number in xrange(0, number_models):
 		ejected_fraction[model_number].append(G.EjectedFraction[current_idx, current_snap])
 	
 		fesc_local[model_number].append(calculate_fesc(fesc_prescription[model_number], mass_central[model_number][snapshot_idx], ejected_fraction[model_number][snapshot_idx], fesc_normalization[model_number])) 
-
+		print fesc_local[model_number][snapshot_idx]
 		tmp_mean, tmp_std = Calculate_HaloPartStellarMass(halo_part_count[model_number][snapshot_idx], mass_gal[model_number][snapshot_idx], galaxy_halo_mass_lower[model_number], galaxy_halo_mass_upper[model_number])
 
 		galaxy_halo_mass_mean[model_number].append(tmp_mean)
@@ -2932,10 +3067,11 @@ for model_number in xrange(0, number_models):
 
 #Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
 #Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
-#StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Tiamat") ## PARALLEL COMPATIBLE
-#plot_fesc(SnapList, fesc_local, mass_gal, mass_central, model_tags, "fesc_different_prescriptions") ## PARALELL COMPATIBLE 
+#StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Tiamat_Investigating") ## PARALLEL COMPATIBLE
+plot_fesc(SnapList, fesc_local, mass_gal, mass_central, model_tags, "timaat_fesc_different_prescriptions_HaloPart100_test10") ## PARALELL COMPATIBLE 
 #plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "EjectedMass_HaloMass") ## PARALELL COMPATIBLE 
-plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma_1file")  
+plot_photoncount(SnapList, photons_HI_gal, fesc_local, model_tags, "Nion_total_Tiamat_test10") 
+#plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma_1file")  
 #HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
