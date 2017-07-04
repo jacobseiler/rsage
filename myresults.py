@@ -53,7 +53,7 @@ plt.rc('text', usetex=True)
 tick_interval = 0.25
 np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
 
-colors = ['r', 'b', 'g', 'c', 'm', 'k']
+colors = ['r', 'b', 'g', 'm', 'c', 'k']
 markers = ['x', 'o', '^', 's', 'D']
 linestyles = ['-', '--', '-.', ':']
 
@@ -66,8 +66,13 @@ z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
 time_xlim = [315, 930]
 time_tick_interval = 25
 
-output_format = ".png"
+output_format = ".pdf"
 
+kink_low = 10.3
+kink_high = 10.30000001
+m_low = 8.5
+m_high = 100
+	
 def calculate_beta(MUV, z):
 	
 ## Calculation of the dust attenuation parameter Beta ##
@@ -300,6 +305,126 @@ def Photon_Totals(Simulation, Redshift, Photons, Mysim_Len):
     print Photons
 
     PlotScripts.Plot_Scatter(Redshift, Photons, title, [4.5, 15.5, 53, 58.3], [0,0], ['z', r'Log Ionizing Photons [s$^{-1}$]'], 1, 2, OutputFile, '.png')  
+
+def HaloMassFunction(SnapList, mass, simulation_norm, model_tags, output_tag):
+
+    title = []
+    normalization_array = []
+    redshift_labels = []
+
+    counts_array = []
+    bin_middle_array = []
+
+    for model_number in xrange(0, len(SnapList)):
+	counts_array.append([])
+	bin_middle_array.append([])
+	redshift_labels.append([])
+
+    ## Plot Parameters ##
+    binwidth = 0.1
+    Observations = 1
+
+    Frequency = 0 # 0 for a frequency (count) histogram, 1 for a probability histogram.
+    errorwidth = 2
+    delta = 0.05
+    caps = 5
+    ##
+
+    ## Normalization for each model. ##
+    for model_number in xrange(0, len(SnapList)): 
+
+	if (simulation_norm[model_number] == 0):
+		AllVars.Set_Params_Mysim()
+	elif (simulation_norm[model_number] == 1):
+		AllVars.Set_Params_MiniMill()
+	elif (simulation_norm[model_number] == 3):
+		AllVars.Set_Params_Tiamat_extended()
+
+        norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
+        normalization_array.append(norm)
+
+	## Redshift labels for each redshift within each model. ##
+	for snapshot_idx in xrange(0, len(SnapList[model_number])):
+
+#		w = np.where((mass[model_number][snapshot_idx] < 10.3) | (mass[model_number][snapshot_idx] > 10.5))[0]
+		w = xrange(0, len(mass[model_number][snapshot_idx]))
+		print "Doing Snapshot %d" %(SnapList[model_number][snapshot_idx])
+		tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+		redshift_labels[model_number].append(tmp)
+
+		minimum_mass = np.floor(min(mass[model_number][snapshot_idx][w])) - 10*binwidth
+		maximum_mass = np.floor(max(mass[model_number][snapshot_idx][w])) + 10*binwidth
+
+		if minimum_mass < -10:
+			minimum_mass = -3
+		if maximum_mass > 15:
+			maximum_mass = 13
+#		minimum_mass = -2 
+#		maximum_mass = 10 
+
+		binning_minimum = comm.allreduce(minimum_mass, op = MPI.MIN)
+		binning_maximum = comm.allreduce(maximum_mass, op = MPI.MAX)
+
+		print "I am rank %d and my binning_minimum is %.3f and my binning_maximum is %.3f" %(rank, binning_minimum, binning_maximum)
+
+		(counts_local, bin_edges, bin_middle) = Calculate_Histogram(mass[model_number][snapshot_idx][w], binwidth, Frequency, binning_minimum, binning_maximum)
+		#counts_array[model_number].append(counts)
+		#bin_middle_array[model_number].append(bin_middle) 
+
+		print bin_middle
+		print counts_local
+		if rank == 0:
+			counts_total = np.zeros_like(counts_local)
+		else:
+			counts_total = None
+		comm.Reduce([counts_local, MPI.DOUBLE], [counts_total, MPI.DOUBLE], op = MPI.SUM, root = 0)
+
+		if rank == 0:
+			counts_array[model_number].append(counts_total)
+			bin_middle_array[model_number].append(bin_middle)
+
+### Plotting ###
+
+    if rank == 0:
+    	f = plt.figure()  
+	ax = plt.subplot(111)  
+
+	for model_number in xrange(0, len(SnapList)):
+		for snapshot_idx in xrange(0, len(SnapList[model_number])):
+			if model_number == 0:
+				title = redshift_labels[model_number][snapshot_idx]
+			else:
+				title = ''
+
+			plt.plot(bin_middle_array[model_number][snapshot_idx], counts_array[model_number][snapshot_idx] / normalization_array[model_number], color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = title)
+	
+##
+	
+    	for model_number in xrange(0, len(SnapList)):
+		plt.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
+
+
+    	plt.yscale('log', nonposy='clip')
+
+    	plt.axis([7.5, 12.0, 1e-5, 1e-0])
+
+    	ax.set_xlabel(r'$\log_{10}\ M_{\mathrm{H}} \:[M_{\odot}]$', fontsize = talk_fontsize)
+    	ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = talk_fontsize)
+    	ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
+
+    	leg = plt.legend(loc='lower left', numpoints=1, labelspacing=0.1)
+    	leg.draw_frame(False)  # Don't want a box frame
+    	for t in leg.get_texts():  # Reduce the size of the text
+        	t.set_fontsize(talk_legendsize)
+
+    	#plt.tight_layout()
+
+
+	outputFile = './%s%s' %(output_tag, output_format)
+    	#f.savefig("foo.pdf", bbox_inches='tight')
+    	plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    	print 'Saved file to', outputFile
+    	plt.close()
 
 def StellarMassFunction(SnapList, mass, simulation_norm, halo_part_stellar_mass, model_tags, output_tag):
 
@@ -612,52 +737,6 @@ def Metallicity(Simulation, Redshift, Mass, Z):
 
 ##
 
-def HaloMassFunction(Simulation, Redshift, Mass, Mysim_Len): 
-
-    title = []
-    normalization = []
-    binwidth = 0.1
-
-    
-    for i in xrange(0, Mysim_Len): 
-        tmp = 'Mysim 512: z = %.2f' %(Redshift[i])
-        title.append(tmp)
-
-        AllVars.Set_Params_Mysim()
-        norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
-    
-        normalization.append(norm)
- 
-    for i in xrange(0, Mysim_Len): 
-        tmp = 'Mysim 1024: z = %.2f' %(Redshift[i])
-        title.append(tmp)
-
-        AllVars.Set_Params_Mysim()
-        norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
-    
-        normalization.append(norm)
-
-    '''    
-    for i in xrange(Mysim_Len, len(Redshift)):
-
-        tmp = 'Millennium: z = %.2f' %(Redshift[i])
-        title.append(tmp)
-
-        AllVars.Set_Params_MiniMill()
-        norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * binwidth 
-    
-        normalization.append(norm)
-    ''' 
-    if Simulation == 0:
-        OutputFile = 'HaloMassFunction_Millennium'
-    elif Simulation == 1:
-        OutputFile = 'HaloMassFunction_Comparison'
-    elif Simulation ==2:   
-        OutputFile = 'HaloMassFunction_Comparison'
-
-    PlotScripts.Plot_Histogram(Mass, title, [7, 13.5, 1e-6, 1e-1], binwidth, normalization, 0, [0, 1], [r'$\log_{10}\ M_{\mathrm{Vir}}\ (M_{\odot})$', r'$\Phi\ (\mathrm{Mpc}^{-3}\ \mathrm{dex}^{-1})$'], 1, 0, OutputFile, '.png')
-
-##
 
 def Central_Galaxy_Projection(Simulation, Redshift, Mass, Photons):
 
@@ -1239,13 +1318,15 @@ def plot_fesc(SnapList, fesc, galaxy_mass, halo_mass, model_tags, output_tag):
 	pooled_std_fesc.append([])
 
     	for snapshot_idx in xrange(0, len(SnapList[model_number])):
-	    	mean_fesc[model_number].append(np.mean(fesc[model_number][snapshot_idx])) # Mean of this slice of the fesc.
-		std_fesc[model_number].append(np.std(fesc[model_number][snapshot_idx])) # Standard deviation of this slice of the fesc.
+		w = np.where(((halo_mass[model_number][snapshot_idx] < kink_low) & (halo_mass[model_number][snapshot_idx] > m_low))| ((halo_mass[model_number][snapshot_idx] > kink_high) & (halo_mass[model_number][snapshot_idx] < m_high)))[0]
+		
+	    	mean_fesc[model_number].append(np.mean(fesc[model_number][snapshot_idx][w])) # Mean of this slice of the fesc.
+		std_fesc[model_number].append(np.std(fesc[model_number][snapshot_idx][w])) # Standard deviation of this slice of the fesc.
 
 		## Calculation of pooled mean and standard deviation (unecessary for this case because they should be the same as the base mean/std.##
 		## Taken from https://en.wikipedia.org/wiki/Pooled_variance ## 
 
-		N = len(fesc[model_number][snapshot_idx])
+		N = len(fesc[model_number][snapshot_idx][w])
 		comm.Barrier()
 		pooled_mean_fesc[model_number], pooled_std_fesc[model_number] = calculate_pooled_stats(pooled_mean_fesc[model_number], pooled_std_fesc[model_number], mean_fesc[model_number][snapshot_idx], std_fesc[model_number][snapshot_idx], N)
 
@@ -1261,7 +1342,7 @@ def plot_fesc(SnapList, fesc, galaxy_mass, halo_mass, model_tags, output_tag):
 		mean = pooled_mean_fesc[model_number]
 		std = pooled_std_fesc[model_number]   
 
-    		ax1.plot(t, mean, color = colors[model_number], ls = linestyles[model_number], label = model_tags[model_number], lw = 3)  
+    		ax1.plot(t, mean, color = colors[model_number], ls = linestyles[model_number], label = model_tags[model_number], lw = 4)  
     		ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = colors[model_number], alpha = 0.25)
 
     	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
@@ -1869,6 +1950,128 @@ def plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, o
     	plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     	print 'Saved file to', outputFile
     	plt.close()
+
+##
+
+
+def plot_mvir_fesc(SnapList, mass_central, fesc, model_tags, output_tag): 
+
+    title = []
+    redshift_labels = []
+
+    mean_fesc_array = []
+    std_fesc_array = []
+
+    mean_halomass_array = []
+    std_halomass_array = []
+
+    bin_middle_array = []
+
+    for model_number in xrange(0, len(SnapList)):
+	redshift_labels.append([])
+
+	mean_fesc_array.append([])
+	std_fesc_array.append([])
+
+	mean_halomass_array.append([])
+	std_halomass_array.append([])
+
+	bin_middle_array.append([])
+    print "Plotting fesc against Mvir" 
+    
+    binwidth = 0.1
+    Frequency = 1  
+ 
+    for model_number in xrange(0, len(SnapList)): 
+	for snapshot_idx in xrange(0, len(SnapList[model_number])):
+		print "Doing Snapshot %d" %(SnapList[model_number][snapshot_idx])
+		tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+		redshift_labels[model_number].append(tmp)
+
+		minimum_mass = np.floor(min(mass_central[model_number][snapshot_idx])) - 10*binwidth
+		maximum_mass = np.floor(max(mass_central[model_number][snapshot_idx])) + 10*binwidth
+
+		minimum_mass = 6.0
+		maximum_mass = 12.0
+
+		binning_minimum = comm.allreduce(minimum_mass, op = MPI.MIN)
+		binning_maximum = comm.allreduce(maximum_mass, op = MPI.MAX)
+		
+		halomass_nonlog = [10**x for x in mass_central[model_number][snapshot_idx]]
+		(mean_fesc, std_fesc, N, bin_middle) = Calculate_2D_Histogram(mass_central[model_number][snapshot_idx], fesc[model_number][snapshot_idx], binwidth, binning_minimum, binning_maximum)
+
+		mean_fesc_array[model_number], std_fesc_array[model_number] = calculate_pooled_stats(mean_fesc_array[model_number], std_fesc_array[model_number], mean_fesc, std_fesc, N)
+		mean_halomass_array[model_number], std_halomass_array[model_number] = calculate_pooled_stats(mean_halomass_array[model_number], std_halomass_array[model_number], np.mean(halomass_nonlog), np.std(halomass_nonlog), len(mass_central[model_number][snapshot_idx]))
+
+		## If want to do mean/etc of halo mass need to update script. ##
+		bin_middle_array[model_number].append(bin_middle)
+
+
+		'''
+		if rank == 0:
+			mean_ngammafesc_array[model_number][snapshot_idx] = np.nan_to_num(mean_ngammafesc_array[model_number][snapshot_idx])
+			std_ngammafesc_array[model_number][snapshot_idx] = np.nan_to_num(std_ngammafesc_array[model_number][snapshot_idx])
+			outfile = '/lustre/projects/p004_swin/jseiler/tiamat/mean_mvir_ngammafesc_z%.3f.dat' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+			with open(outfile, 'w') as f:
+				np.savetxt(outfile, mean_ngammafesc_array[model_number][snapshot_idx])
+			print "Saved %s" %(outfile)
+
+
+			outfile = '/lustre/projects/p004_swin/jseiler/tiamat/std_mvir_ngammafesc_z%.3f.dat' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+			with open(outfile, 'w') as f:
+				np.savetxt(outfile, std_ngammafesc_array[model_number][snapshot_idx])
+			print "Saved %s" %(outfile)
+		'''
+	#std_ngammafesc_array[model_number] = 0.434 * np.divide(std_ngammafesc_array[model_number], mean_ngammafesc_array[model_number])
+	
+	#mean_ngammafesc_array[model_number] = np.log10(~np.isnan(mean_ngammafesc_array[model_number]))
+	
+	mean_halomass_array[model_number] = np.log10(mean_halomass_array[model_number])	
+		
+    if rank == 0:
+	f = plt.figure()  
+	ax1 = plt.subplot(111)  
+
+	for model_number in xrange(0, len(SnapList)):
+		for snapshot_idx in xrange(0, len(SnapList[model_number])):
+			if model_number == 0:
+				title = redshift_labels[model_number][snapshot_idx]
+			else:
+				title = ''
+			
+			mean = mean_fesc_array[model_number][snapshot_idx]
+			std = std_fesc_array[model_number][snapshot_idx] 
+			bin_middle = bin_middle_array[model_number][snapshot_idx]
+
+			ax1.plot(bin_middle, mean, color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = title)
+			#ax1.scatter(mean_halomass_array[model_number][snapshot_idx], np.mean(~np.isnan(mean)), color = colors[snapshot_idx], marker = 'o', rasterized = True, s = 40, lw = 3)	
+			if (len(SnapList) == 1):
+    				ax1.fill_between(bin_middle, np.subtract(mean,std), np.add(mean,std), color = colors[snapshot_idx], alpha = 0.25)
+
+	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = talk_fontsize) 
+    	ax1.set_ylabel(r'$f_\mathrm{esc}$', size = talk_fontsize)
+    	#ax1.set_xlim([8.5, 12])
+    	#ax1.set_ylim([0.0, 1.0])   
+
+    	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+#    	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+ 	
+#    	ax1.set_yscale('log', nonposy='clip')
+#    	for model_number in xrange(0, len(SnapList)):
+#		ax1.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
+	
+	
+    	leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+    	leg.draw_frame(False)  # Don't want a box frame
+    	for t in leg.get_texts():  # Reduce the size of the text
+        	t.set_fontsize('medium')
+
+	outputFile = './' + output_tag + output_format
+    	plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    	print 'Saved file to', outputFile
+    	plt.close()
+
+
 
 ##
 
@@ -2654,40 +2857,39 @@ Each of these slices has inputs at each of the redshifts and for each model cons
 What we do here is calculate the mean and standard deviation for each processor and then pool it and pass back to the master task.
 '''
 
-def plot_photoncount(SnapList, ngamma, fesc, model_tags, output_tag): 
+def plot_photoncount(SnapList, ngamma, fesc, halo_mass, num_files, model_tags, output_tag): 
 
     print "Plotting a count of the photons."
-    mean_ngammafesc = []
-    std_ngammafesc = []
 
-    mean_times_N = []
-    std_times_N = []
-
-    pooled_mean_ngammafesc = []
-    pooled_std_ngammafesc = []
+    sum_array = []
 
     for model_number in xrange(0, len(SnapList)): 
-	mean_ngammafesc.append([])
-	std_ngammafesc.append([])
-
-	mean_times_N.append([])	
-	std_times_N.append([])
-
-	pooled_mean_ngammafesc.append([])
-	pooled_std_ngammafesc.append([])
+	sum_array.append([])
 
     	for snapshot_idx in xrange(0, len(SnapList[model_number])):
 		
-		ngammafesc = np.multiply(np.power(10, ngamma[model_number][snapshot_idx]), fesc[model_number][snapshot_idx])
-	    	mean_ngammafesc[model_number].append(np.mean(np.multiply(np.power(10,ngamma[model_number][snapshot_idx]), fesc[model_number][snapshot_idx]))) 
-		std_ngammafesc[model_number].append(np.std(np.multiply(np.power(10,ngamma[model_number][snapshot_idx]), fesc[model_number][snapshot_idx]))) 
+		w = np.array(np.where(((halo_mass[model_number][snapshot_idx] < kink_low) & (halo_mass[model_number][snapshot_idx] > m_low))| ((halo_mass[model_number][snapshot_idx] > kink_high) & (halo_mass[model_number][snapshot_idx] < m_high)))[0])
 
-		## Calculation of pooled mean and standard deviation (unecessary for this case because they should be the same as the base mean/std.##
-		## Taken from https://en.wikipedia.org/wiki/Pooled_variance ## 
+		tmp = np.array(ngamma[model_number][snapshot_idx])
+		tmp2 = np.array(fesc[model_number][snapshot_idx])
+#		ngamma_cut = ngamma[model_number][snapshot_idx][w]
+		ngamma_cut = tmp[w] 
+		fesc_cut = tmp2[w] 
+		ngammafesc = np.multiply(np.power(10, ngamma_cut), fesc_cut)
+	    
 
-		N = len(fesc[model_number][snapshot_idx])
-		comm.Barrier()
-		pooled_mean_ngammafesc[model_number], pooled_std_ngammafesc[model_number] = calculate_pooled_stats(pooled_mean_ngammafesc[model_number], pooled_std_ngammafesc[model_number], mean_ngammafesc[model_number][snapshot_idx], std_ngammafesc[model_number][snapshot_idx], N)
+		sum_local = np.sum(ngammafesc)
+
+
+		if rank == 0:
+			sum_total = np.zeros_like(sum_local)
+		else:
+			sum_total = None
+		comm.Reduce([sum_local, MPI.DOUBLE], [sum_total, MPI.DOUBLE], op = MPI.SUM, root = 0)
+
+		if rank == 0:
+			sum_array[model_number].append(sum_total / (pow(AllVars.BoxSize / AllVars.Hubble_h,3) * (float(num_files) / float(27.0))))
+	
 
     if (rank == 0):
     	ax1 = plt.subplot(111)
@@ -2696,18 +2898,14 @@ def plot_photoncount(SnapList, ngamma, fesc, model_tags, output_tag):
     		t = np.empty(len(SnapList[model_number]))
 		for snapshot_idx in xrange(0, len(SnapList[model_number])):
        			t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3   
-
-		
-		mean = pooled_mean_ngammafesc[model_number]
-		std = pooled_std_ngammafesc[model_number]   
-
-    		ax1.plot(t, np.log10(mean), color = colors[model_number], ls = linestyles[model_number], label = model_tags[model_number], lw = 3)  
+	
+    		ax1.plot(t, np.log10(sum_array[model_number]), color = colors[model_number], ls = linestyles[model_number], label = model_tags[model_number], lw = 4)  
     		#ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = colors[model_number], alpha = 0.25)
 
     	#ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
     	#ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
     	ax1.set_xlim(time_xlim)
-    	#ax1.set_ylim([-0.1, 1.1])
+    	ax1.set_ylim([48.5, 51.5])
 
     	ax2 = ax1.twiny()
 
@@ -2720,7 +2918,7 @@ def plot_photoncount(SnapList, ngamma, fesc, model_tags, output_tag):
     	ax2.set_xticklabels(z_labels) # But label them as redshifts.
 
     	ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
-    	ax1.set_ylabel(r'$\dot{N}_\gamma f_\mathrm{esc} \: [\mathrm{s}^{-1}]$', fontsize = talk_fontsize)
+    	ax1.set_ylabel(r'$\sum \dot{N}_\gamma \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$', fontsize = talk_fontsize)
 
 	leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
     	leg.draw_frame(False)  # Don't want a box frame
@@ -2739,15 +2937,15 @@ def plot_photoncount(SnapList, ngamma, fesc, model_tags, output_tag):
 
 
 	if plot_time == 1:
-		ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.3, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-		ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.5, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+		ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+		ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
 	else:
-		ax1.fill_between(bouwens_z, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.3, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-		ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.5, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+		ax1.fill_between(bouwens_z, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+		ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
 
 #	ax1.text(0.075, 0.965, '(a)', horizontalalignment='center', verticalalignment='center', transform = ax.transAxes)
-#	ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
-#	ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
+	ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
+	ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
 
 
     	plt.tight_layout()
@@ -2816,14 +3014,14 @@ number_models = 4
 number_snapshots = [164, 164, 164, 164] # Property of the simulation.
 #number_snapshots = [101] # Property of the simulation.
 FirstFile = [0, 0, 0, 0]
-LastFile = [11, 11, 11, 11]
+LastFile = [4, 4, 4, 4]
 
 #LastFile = [2]
 for model_number in xrange(0,number_models):
 	assert(LastFile[model_number] - FirstFile[model_number] + 1 >= size)
 #model_tags = [r"Tiamat"]
 #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
-model_tags = [r"$f_\mathrm{esc} = 0.20$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
+model_tags = [r"$f_\mathrm{esc} = 0.25$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 #model_tags = [r"No Cut", r"10 Particle Cut", r"100 Particle Cut"]
 
 ## Constants used for each model. ##
@@ -2839,16 +3037,24 @@ fesc_prescription = [0, 1, 1, 2]
 #fesc_prescription = [2,2,2,2]
 
 #fesc_normalization = [0.25, [pow(10, 4.52), -0.54], [pow(10, -7.02), 0.60], [1.00, -0.997]] 
-fesc_normalization = [0.11, [100.0, -0.3], [9.0e-6, 0.40], [0.5, -0.25]] 
 #fesc_normalization = [[0.00, 0.997], [0.00, 0.997], [0.00, 0.997], [0.00, 0.997]]
 #fesc_normalization = [[1.00, -0.997], [1.00, -0.997], [1.00, -0.997]] 
 
+##Tests##
+fesc_normalization = [0.20, [500.0, -0.3], [5.0e-5, 0.40], [0.5, 0.0]] #test
+fesc_normalization = [0.40, [600.0, -0.4], [7.0e-5, 0.40], [0.7, 0.0]] #test2
+fesc_normalization = [0.40, [1000.0, -0.4], [6.0e-5, 0.375], [0.7, 0.0]] #test3
+fesc_normalization = [0.40, [5000.0, -0.4], [8.0e-5, 0.35], [0.7, 0.0]] #test4
+fesc_normalization = [0.40, [5000.0, -0.4], [6.0e-5, 0.375], [0.7, 0.0]] #test5
+fesc_normalization = [0.25, [3000.0, -0.4], [5.0e-5, 0.375], [0.6, 0.0]] #test6
+
+
 SnapList = [np.arange(100, 10, -1), np.arange(100, 10, -1), np.arange(100, 10, -1), np.arange(100, 10, -1)]
 #SnapList = [[59, 61, 63, 65]]
-#SnapList = [[78, 54, 40, 30], [78, 54, 40, 30], [78, 54, 40, 30]]
+#SnapList = [[78, 54, 40, 30], [78, 54, 40, 30], [78, 54, 40, 30], [78, 54, 40, 30]]
 #SnapList = [[78, 58, 50, 40, 30]]
 #SnapList = [[78], [78], [78], [78]]
-
+#SnapList = [[63, 64, 65, 66, 67]]
 
 simulation_norm = [3, 3, 3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
 
@@ -2939,9 +3145,9 @@ dilute_galaxies = 100000
 for model_number in xrange(0, number_models):
 
     	GG, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(galaxies_filepath_array[model_number], FirstFile[model_number], LastFile[model_number], number_snapshots[model_number], comm)
-    	#G_Merged, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(merged_galaxies_filepath_array[model_number], FirstFile[model_number], LastFile[model_number], number_snapshots[model_number], comm)
-	G = GG
-	#G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc)
+    	G_Merged, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(merged_galaxies_filepath_array[model_number], FirstFile[model_number], LastFile[model_number], number_snapshots[model_number], comm)
+	#G = GG
+	G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc)
 
 	if(simulation_norm[model_number] == 0):
 		AllVars.Set_Params_Mysim()
@@ -3056,7 +3262,7 @@ for model_number in xrange(0, number_models):
 		ejected_fraction[model_number].append(G.EjectedFraction[current_idx, current_snap])
 	
 		fesc_local[model_number].append(calculate_fesc(fesc_prescription[model_number], mass_central[model_number][snapshot_idx], ejected_fraction[model_number][snapshot_idx], fesc_normalization[model_number])) 
-		print fesc_local[model_number][snapshot_idx]
+		
 		tmp_mean, tmp_std = Calculate_HaloPartStellarMass(halo_part_count[model_number][snapshot_idx], mass_gal[model_number][snapshot_idx], galaxy_halo_mass_lower[model_number], galaxy_halo_mass_upper[model_number])
 
 		galaxy_halo_mass_mean[model_number].append(tmp_mean)
@@ -3065,14 +3271,13 @@ for model_number in xrange(0, number_models):
 		photons_HI_gal[model_number].append(calculate_photons(SFR_gal[model_number][snapshot_idx], metallicity_gal[model_number][snapshot_idx])) 
 
 
-#Metallicity(Simulation, SnapListZ, mass_G_MySim, Metallicity_Tremonti_G_model1)
-#Photon_Totals(Simulation, [SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim, SnapListZ_MySim], [Photons_Tot_Central_MySim, Photons_Tot_G_MySim, Photons_Tot_Central_MySim2, Photons_Tot_G_MySim2], len(SnapList_MySim))
+#HaloMassFunction(SnapList, mass_central, simulation_norm, model_tags, "HaloMassFunction_Kink")
 #StellarMassFunction(SnapList, mass_gal, simulation_norm, galaxy_halo_mass_mean, model_tags, "Tiamat_Investigating") ## PARALLEL COMPATIBLE
-plot_fesc(SnapList, fesc_local, mass_gal, mass_central, model_tags, "timaat_fesc_different_prescriptions_HaloPart100_test10") ## PARALELL COMPATIBLE 
 #plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "EjectedMass_HaloMass") ## PARALELL COMPATIBLE 
-plot_photoncount(SnapList, photons_HI_gal, fesc_local, model_tags, "Nion_total_Tiamat_test10") 
+plot_fesc(SnapList, fesc_local, mass_gal, mass_central, model_tags, "fesc_test6") ## PARALELL COMPATIBLE 
+plot_photoncount(SnapList, photons_HI_gal, fesc_local, mass_central, 5, model_tags, "Nion_test6") ## PARALELL COMPATIBLE
 #plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma_1file")  
-#HaloMassFunction(Simulation, SnapListZ, (mass_H_MySim + mass_H_MySim2 + mass_H_Millennium), len(SnapList_MySim)) 
+#plot_mvir_fesc(SnapList, mass_central, fesc_local, model_tags, "Mvir_fesc")  
 #CentralGalaxy_Comparison(Simulation, SnapListZ_MySim, (mass_Central_MySim2 + mass_Central_MySim2), (Photons_Central_MySim2 + Photons_G_MySim2))
 #CentralGalaxy_Comparison_Difference(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_model1), (Photons_Central_model1 + Photons_G_model1))
 #CentralGalaxy_Projection(Simulation, SnapListZ, (mass_Central_MySim + mass_Central_MySim2), (Photons_G_MySim + Photons_G_MySim2))  

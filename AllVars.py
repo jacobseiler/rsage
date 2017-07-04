@@ -236,8 +236,8 @@ def Luminosity_to_ABMag(Luminosity, Wavelength):
     f_nu = spectralflux_wavelength_to_frequency(10**Flux, 1600) # Spectral flux density in Janksy.
     M = -2.5 * np.log10(f_nu) + 8.90 # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
-    print "Flux from AllVars.py", Flux
-    print "M from AllVars.py", M
+    #print "Flux from AllVars.py", Flux
+    #print "M from AllVars.py", M
     return M
 
 
@@ -386,3 +386,48 @@ def Set_Params_Tiamat_extended():
 
     return cosmo
 
+
+def Set_Params_Simfast21():
+
+    print "Setting parameters to what I use for Simfast()" 
+    
+    global Hubble_h
+    global Omega_m
+    global Omega_L
+    global Omega_b
+    global BoxSize
+    global Volume
+    global SnapZ
+    global BaryonFrac
+    global Y
+
+    global SnapZ
+    global Lookback_Time
+
+    global cosmo
+    global t_BigBang
+    
+    Hubble_h = 0.678
+    Omega_m = 0.308
+    Omega_L = 0.692
+    Omega_b = 0.0484
+    BoxSize = 100*Hubble_h # Mpc/h
+    Volume = BoxSize**3
+    BaryonFrac = 0.17
+    Y = 0.24   
+ 
+    SnapZ = np.arange(15.0, 5.75, -0.25) 
+    cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
+
+    Lookback_Time = cosmo.lookback_time(SnapZ).value # In Gyr 
+                                 
+    print "######################"
+    print "BoxSize = %.3f (Mpc/h)" %(BoxSize)
+    print "Hubble_h = %.3f" %(Hubble_h)
+    print "Omega_m = %.3f" %(Omega_m)
+    print "Omega_L = %.3f" %(Omega_L)
+    print "BaryonFrac = %.3f" %(BaryonFrac)
+    print "t_BigBang = %.3f Gyr" %(t_BigBang)
+    print "######################"
+
+    return cosmo
