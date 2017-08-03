@@ -153,20 +153,12 @@ void read_parameter_file(char *fname)
   addr[nt] = &fescPrescription;
   id[nt++] = INT;
 
-  strcpy(tag[nt], "MH_min");
-  addr[nt] = &MH_min;
+  strcpy(tag[nt], "alpha");
+  addr[nt] = &alpha;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "MH_max");
-  addr[nt] = &MH_max;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "kappa");
-  addr[nt] = &kappa;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "delta");
-  addr[nt] = &delta; 
+  strcpy(tag[nt], "beta");
+  addr[nt] = &beta; 
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "fesc");

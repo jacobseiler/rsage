@@ -53,9 +53,9 @@ void save_grid(int GridNr)
       snprintf(name_HeII, MAXLEN, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, fesc, tag, (NGrid - 1) - GridNr); 
     } else if (fescPrescription == 2)
     {
-      snprintf(name_HI, MAXLEN, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
-      snprintf(name_HeI, MAXLEN, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
-      snprintf(name_HeII, MAXLEN, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, log10(alpha), beta, tag, (NGrid - 1) - GridNr); 
+      snprintf(name_HI, MAXLEN, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, alpha, beta, tag, (NGrid - 1) - GridNr); 
+      snprintf(name_HeI, MAXLEN, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHeI_%s%d", GridOutputDir, FileNameGalaxies, alpha, beta, tag, (NGrid - 1) - GridNr); 
+      snprintf(name_HeII, MAXLEN, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHeII_%s%d", GridOutputDir, FileNameGalaxies, alpha, beta, tag, (NGrid - 1) - GridNr); 
     } else if (fescPrescription == 3)
     { 
       snprintf(name_HI, MAXLEN, "%s/Galaxies_%s_Ejected_alpha%.3fbeta%.3f_nionHI_%s%d", GridOutputDir, FileNameGalaxies, alpha, beta, tag, (NGrid - 1) - GridNr); 

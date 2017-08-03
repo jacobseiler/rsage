@@ -122,12 +122,8 @@ double fesc;
 
 double tot_Halomass;
 
-double MH_min;
-double MH_max;
 double alpha;
 double beta;
-double kappa;
-double delta;
 int HaloPartCut;
 
 int use_sage;

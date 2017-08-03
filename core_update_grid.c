@@ -409,17 +409,17 @@ double calculate_fesc(int p, int i, int filenr)
   else if (fescPrescription == 1)
     fesc_local = pow(10,1.0 - 0.2*log10(halomass * 1.0e10 / Hubble_h));
   else if (fescPrescription == 2)
-    fesc_local = pow(10, log10(alpha) + beta * log10(halomass * 1.0e10 / Hubble_h));
+    fesc_local = alpha * pow((halomass * 1.0e10 / Hubble_h), beta); 
   else if (fescPrescription == 3)	
-    fesc_local = beta * ejectedfraction + alpha;
+    fesc_local = alpha * ejectedfraction + beta; 
 	
   if (fesc_local > 1.0)
   {
-    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(SFR), ejectedfraction);
+  //  fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(SFR), ejectedfraction);
     fesc_local = 1.0;
   
   }
- 
+   
   if (fesc_local < 0.0)
   {
     fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), GalGrid[p].EjectedFraction[i]);

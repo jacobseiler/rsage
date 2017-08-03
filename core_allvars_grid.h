@@ -325,12 +325,8 @@ extern int PhotonPrescription;
 extern int fescPrescription;
 extern double fesc; 
 
-extern double MH_min;
-extern double MH_max;
 extern double alpha;
 extern double beta;
-extern double kappa;
-extern double delta;
 extern int HaloPartCut;
 
 extern int use_sage;

@@ -36,21 +36,15 @@ void init(void)
  
   if (fescPrescription == 2)
   {
-    beta = (delta - kappa)/(MH_max - MH_min); // Index of the power law.	
-    alpha = pow(10, kappa - beta * MH_min);  // Constant out the front of the power law.
-    printf("kappa = %.4f \t MH_min = %.4f \t pow(10,MH_min = %.4e \t -beta = %.4f\n", kappa, MH_min, pow(10, MH_min), beta);
-    printf("\n\nUsing an fesc prescription that scales with halo mass.\n");
-    printf("The smallest halo mass is %.4e and is fixed to have fesc = %.4e, and the largest halo mass is %.4e and is fixed to have fesc = %.4e\n", pow(10,MH_min),  pow(10, kappa), pow(10, MH_max), pow(10, delta)); 
-    printf("This results in a power law of the form fesc = A*MH^B with A = %.4e and B = %.4e\n\n", alpha, beta);
+    fprintf(stderr,"\n\nUsing an fesc prescription that scales with halo mass.\n\n");
+    fprintf(stderr,"\nThis takes the form A*B^H + B with A = %.4e and B = %.4e\n", alpha, beta); 
   }
   else if (fescPrescription == 3)
   {
-    beta = pow(10, delta) - pow(10, kappa); // Slope of the linear relation. 
-    alpha = pow(10, kappa);  // Intercept.
-    printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\n"); 
-    printf("We are setting an Ejected Fraction of 0 to have escape fraction %.4e and an Ejected Fraction of 1 to have escape fraction %.4e\n", pow(10, kappa), pow(10, delta)); 
-    printf("This results in a linear relationship of the form fesc = B*Ejected + A with A = %.4e and B = %.4e\n\n", alpha, beta);
+    fprintf(stderr, "\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\n");
+    fprintf(stderr, "\n This takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta); 
   }
+
 }
 
 
