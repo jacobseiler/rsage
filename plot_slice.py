@@ -39,56 +39,7 @@ from mpi4py import MPI
 comm= MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
-
-G = 6.674e-11 # Gravitational constant.
-mp_kg = 1.673e-27 # Mass proton in kg.
-Mpc_per_km = 3.24e-20 # How many Mpc in a km.
-Mpc_m = 3.0857e22 # Mpc in m
-Cubic_cm_Cubic_Mpc = 2.93799e73 # cm^-3 to Mpc_3
-km_m = 1e3 # km in m
-sec_per_Myr = 3.154e13 # How many seconds are in a Myr. 
-nb = 2.5e-7 # Number density of baryons in cm^-3.
-def linear_growth(z, OM, OL):
-        D = (OM*((1+z)**3) / (OM*(1+z) - (OM + OL - 1)*((1+z)**2) + OM))**(4/7)
-        return D
-
-def cosmo_density(z, Hubble_h):
-        rho = (3*100*100*Hubble_h*Hubble_h*km_m*km_m)/(8*np.pi*G*Mpc_m*Mpc_m)*(1+z)**3
-        return rho
-
-## Number density of hydrogen in m^-3##
-def n_HI(z, Hubble_h, OB, Y):
-	n_HI = cosmo_density(z, Hubble_h)*OB*(1-Y)/mp_kg 
-	return n_HI
-
-
-def stromgren_sphere(Q, T, z, Y):
-	# Takes the photon flux (Q, photons per second) with an electron temperature (T, Kelvin) and helium fraction (Y)
-	# And returns the radius of a Stromgren sphere at redshift z in Mpc/h.
-
-	Beta = 2.e-16*(T_e)**(-3./4.) # Recombination rate (m^3 s^-1).
-	num_HI = n_HI(z, Hubble_h, OB, Y) # Number density of hydrogen (m^3).
-
-	R = ((3.*Q)/(4.*np.pi*num_HI*num_HI*Beta)) ** (1./3.)
-	R /= Mpc_m # Stromgren radius in units of Mpc.
-	R *= Hubble_h
-
-	print "Stromgren Radius for a flux of %.3e photons per second at a redshift %.3f and an electron temperature of %.3e is %.3e Mpc/h" %(Q, z, T_e, R)
-	return R
-
-def T_naught(z, OB, h, OM):
-	# T0 brightness temperature from Hutter et al (2016)
-	# Output in units of mK.
-
-	T0 = 28.5 * ((1.0+z)/10.0)**(0.5) * OB/0.042 * h/0.73 * (OM/0.24)**(-0.5) 
-	return T0
-
-def Hubble_Param(z, h, OM):
-
-	H0 = h*100
-	H = H0**2 * (OM * (1+z)**3 + (1 - OM))
-
-	return np.sqrt(H)
+AllVars.Set_Constants()
 
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
@@ -106,9 +57,12 @@ plt.rc('ytick', labelsize=label_size)
 plt.rc('text', usetex=True)
 tick_interval = 0.25
 time_tick_interval = 25
-z_plot = np.arange(26, 5, -1)  #Range of redshift we wish to plot. 
+z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
+
 cosmo = AllVars.Set_Params_Mysim()
-time_xlim = [round((AllVars.t_BigBang - cosmo.lookback_time(z_plot[-1]).value) * 1.0e3), round((AllVars.t_BigBang - cosmo.lookback_time(z_plot[0]).value) * 1.0e3)]
+
+time_xlim = [315, 930]
+#time_xlim = [round((AllVars.t_BigBang - cosmo.lookback_time(z_plot[-1]).value) * 1.0e3), round((AllVars.t_BigBang - cosmo.lookback_time(z_plot[0]).value) * 1.0e3)]
 
 time_subplot_label = 350 # Location (in 'Time Since Big Bang [Myr^-1]) of subplot identifier (a), (b), (c) etc.
 
@@ -119,13 +73,55 @@ linestyles = ['-', '--', '-.', ':']
 
 cut_slice = 44
 
-AllVars.Set_Constants()
-
 #cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 #t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
-output_format = ".png"
+output_format = ".pdf"
 
-def plot_single(z, ionized_cells, Ncells, OutputDir, output_tag):
+def linear_growth(z, OM, OL):
+        D = (OM*((1+z)**3) / (OM*(1+z) - (OM + OL - 1)*((1+z)**2) + OM))**(4/7)
+        return D
+
+def cosmo_density(z, Hubble_h):
+        rho = (3*100*100*Hubble_h*Hubble_h*km_to_m*km_to_m)/(8*np.pi*AllVars.G*AllVars.mpc_to_m*AllVars.mpc_to_m)*(1+z)**3
+        return rho
+
+## Number density of hydrogen in m^-3##
+def n_HI(z, Hubble_h, OB, Y):
+	n_HI = cosmo_density(z, Hubble_h)*OB*(1-Y)/(AllVars.proton_mass/1000.0) 
+	return n_HI
+
+
+def stromgren_sphere(Q, T, z, Y):
+	# Takes the photon flux (Q, photons per second) with an electron temperature (T, Kelvin) and helium fraction (Y)
+	# And returns the radius of a Stromgren sphere at redshift z in Mpc/h.
+
+	Beta = 2.e-16*(T_e)**(-3./4.) # Recombination rate (m^3 s^-1).
+	num_HI = n_HI(z, Hubble_h, OB, Y) # Number density of hydrogen (m^3).
+
+	R = ((3.*Q)/(4.*np.pi*num_HI*num_HI*Beta)) ** (1./3.)
+	R /= Mpc_m # Stromgren radius in units of Mpc.
+	R *= Hubble_h
+
+	print "Stromgren Radius for a flux of %.3e photons per second at a redshift %.3f and an electron temperature of %.3e is %.3e Mpc/h" %(Q, z, T_e, R)
+	return R
+
+
+def T_naught(z, OB, h, OM):
+	# T0 brightness temperature from Hutter et al (2016)
+	# Output in units of mK.
+
+	T0 = 28.5 * ((1.0+z)/10.0)**(0.5) * OB/0.042 * h/0.73 * (OM/0.24)**(-0.5) 
+	return T0
+
+def Hubble_Param(z, h, OM):
+
+	H0 = h*100
+	H = H0**2 * (OM * (1+z)**3 + (1 - OM))
+
+	return np.sqrt(H)
+
+
+def plot_single(z, ionized_cells, Ncells, simulation_norm, OutputDir, output_tag):
 # Plots the ionization bubbles for a single set of cells.
 
 ## Input ##
@@ -530,7 +526,6 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
 		ax1.set_xlim(time_xlim)
 
 		ax2 = ax1.twiny()
-
 		
 		t_plot = (AllVars.t_BigBang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
 		z_labels = ["$%d$" % x for x in z_plot] # Properly Latex-ize the labels.
@@ -548,7 +543,7 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
 
 
     	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
-	ax1.set_ylim([48.0, 51.5])
+	ax1.set_ylim([48.5, 51.5])
 
 	'''
 	ax3.set_xlim(time_xlim)
@@ -566,37 +561,30 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize(legend_size + 3)
 
+        bouwens_z = np.arange(6,16) # Redshift range for the observations.
+        bouwens_t = (AllVars.t_BigBang - cosmo.lookback_time(bouwens_z).value) * 1.0e3 # Corresponding values for what we will plot on the x-axis.
 
-	bouwens_z = np.arange(6,16) # Redshift range for the observations.
-	bouwens_t = (AllVars.t_BigBang - cosmo.lookback_time(bouwens_z).value) * 1.0e3 # Corresponding values for what we will plot on the x-axis.
+        bouwens_1sigma_lower = [50.81, 50.73, 50.60, 50.41, 50.21, 50.00, 49.80, 49.60, 49.39, 49.18] # 68% Confidence Intervals for the ionizing emissitivity from Bouwens 2015.
+        bouwens_1sigma_upper = [51.04, 50.85, 50.71, 50.62, 50.56, 50.49, 50.43, 50.36, 50.29, 50.23]
 
-	bouwens_1sigma_lower = [50.81, 50.73, 50.60, 50.41, 50.21, 50.00, 49.80, 49.60, 49.39, 49.18] # 68% Confidence Intervals for the ionizing emissitivity from Bouwens 2015.
-	bouwens_1sigma_upper = [51.04, 50.85, 50.71, 50.62, 50.56, 50.49, 50.43, 50.36, 50.29, 50.23]
+        bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI.
+        bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
 
-	bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI. 
-	bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
+        if plot_time == 1:
+                ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+                ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+        else:
+                ax1.fill_between(bouwens_z, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+                ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
 
-
-	if plot_time == 1:
-		ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.3, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-		ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.5, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-	else:
-		ax1.fill_between(bouwens_z, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.3, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-		ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.5, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-
-#	ax1.text(0.075, 0.965, '(a)', horizontalalignment='center', verticalalignment='center', transform = ax.transAxes)
-	ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
-	ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
-
-	## Creating a second x-axis on the top to track redshift. ##
+#       ax1.text(0.075, 0.965, '(a)', horizontalalignment='center', verticalalignment='center', transform = ax.transAxes)
+        ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
+        ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
 
 
-	#ax4.set_xlabel(r"$z$", size = label_size)
-	#ax4.set_xlim(time_xlim)
-	#ax4.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
-	#ax4.set_xticklabels(z_labels) # But label them as redshifts.
 
-	##
+
+
 
 	plt.tight_layout()
 
@@ -715,11 +703,12 @@ def plot_nionfield(z, nion, OutputDir, output_tag):
 
 	if (np.mean(nion) == 0):
 		return
-	nion_slice = nion[:,:,cut_slice:cut_slice+50].mean(axis = -1)
+	print nion.shape
+	#nion_slice = nion[:,:,cut_slice:cut_slice+1].mean(axis = -1)
+	nion_slice = nion[:,:,40:41].mean(axis = -1)
 
-	
-	nion_min = np.amin(np.log10(nion[nion > 1e20]))
-	nion_max = np.amax(np.log10(nion[nion > 1e20]))
+	nion_min = np.amin(np.log10(nion[nion > 0]))
+	nion_max = np.amax(np.log10(nion[nion > 0]))
 
 	print
 	print "Plotting photoionization slice."
@@ -732,6 +721,7 @@ def plot_nionfield(z, nion, OutputDir, output_tag):
 	ax = plt.subplot(111)
 	
 	im = ax.imshow(np.log10(nion_slice), interpolation='bilinear', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], cmap = 'Purples', vmin = nion_min, vmax = nion_max) 
+
 
 	cbar = plt.colorbar(im, ax = ax)
 	cbar.set_label(r'$\mathrm{log}_{10}N_{\gamma} [\mathrm{s}^{-1}]$')
@@ -1228,18 +1218,18 @@ def plot_power(fractions_HI, k, Power, Error, fraction_idx_array, model_tags, Ou
 	ax1 = plt.subplot(111)
 
 	print "len(k)", len(k)
-	print k
 	print "len(k[0])", len(k[0])
-	print k[0]	
+
 	for p in xrange(0, len(k)):
 		for q in xrange(0, len(k[0])):
 			if p == 0:	
 				label = r"$\langle x_\mathrm{HI}\rangle = %.2f$" %(fractions_HI[q])
 			else:
 				label = ""	
-			print p
-			print q
-			print label
+			print "p = ", p
+			print "len(k[p])", len(k[p])
+			print "q = ", q
+			print 
 			ax1.plot(k[p][q], Power[p][q], color = colors[q], ls = linestyles[p], label = label, lw = 2) 
 			if (p == 0):
 				error = Error[p][q] * Power[p][q] 
@@ -1313,7 +1303,7 @@ def calculate_reionization_redshift(ionized_cells, density, redshift_array, z, N
 def photon_baryon(lowerZ, upperZ, ZZ, total_nion, Hubble_h, OB, Y, labels, OutputDir, output_tag): 
 
 
-    Baryons = nb * (Mpc_m * 1e2)**3 # Number density of baryons (in cm^-3) to Mpc^-3 
+    Baryons = density_baryons * (Mpc_m * 1e2)**3 # Number density of baryons (in cm^-3) to Mpc^-3 
     print Baryons
     Baryons *= (BoxSize/Hubble_h)**3 # Total number of baryons in our box
     print Baryons
@@ -1380,8 +1370,8 @@ def analytic_HII(total_nion, redshift, upperZ, snaplist, OutputDir, output_tag):
 
 	## Using the prescription given by Lapi 2016 ## 
 	
-	hydrogen = n_HI(redshift[i], Hubble_h, OB, Y) * 1e-6 * Cubic_cm_Cubic_Mpc 
-	#hydrogen = 2e-7 * (OB*(Hubble_h**2)/0.022) * Cubic_cm_Cubic_Mpc # Number density of Hydrogen in Mpc^-3 
+	hydrogen = n_HI(redshift[i], Hubble_h, OB, Y) * 1e-6 * AlVars.cubic_cm_cubic_mpc 
+	#hydrogen = 2e-7 * (OB*(Hubble_h**2)/0.022) * AllVars.cubic_cm_cubic_mpc # Number density of Hydrogen in Mpc^-3 
 	print "Hydrogen per Mpc^-3", hydrogen
 	Nion = total_nion[i] * 1e1 / ((BoxSize/Hubble_h)**3) # Number of ionizing photons in s^-1 Mpc^-3
 	print "Nion = %.4e s^-1 Mpc^-3" %(Nion)
@@ -1389,14 +1379,14 @@ def analytic_HII(total_nion, redshift, upperZ, snaplist, OutputDir, output_tag):
 	one_plus_z = (1 + redshift[i])/float(7)
 	print "one_plus_z", one_plus_z
 
-	t_rec = 3.2 * sec_per_Myr * 1e3 * (one_plus_z**(-3)) * (3**(-1)) # Recombination time in seconds. 
+	t_rec = 3.2 * AllVars.sec_per_Myr * 1e3 * (one_plus_z**(-3)) * (3**(-1)) # Recombination time in seconds. 
 	print "t_rec", t_rec
 
 	Q_dot = Nion/hydrogen - Q/t_rec
 
 	print "Q_dot",Q_dot
 
-	dt = (AllVars.Lookback_Time[snaplist[i]] - AllVars.Lookback_Time[snaplist[i+1]]) * sec_per_Myr * 1e3
+	dt = (AllVars.Lookback_Time[snaplist[i]] - AllVars.Lookback_Time[snaplist[i+1]]) * AllVars.sec_per_Myr * 1e3
 	print len(AllVars.Lookback_Time)
 	print "dt", dt
 
@@ -2453,20 +2443,29 @@ if __name__ == '__main__':
     ### Different Prescriptions ###
 
     '''
-    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
+    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"] 
     output_tags = [r"Constant", "HaloMass", "PosHaloMass", "Ejected"]
  
     number_models = 4
 
-    model = 'differentprescription'
+    simulation_model1 = 0
+    simulation_model2 = 0
+    simulation_model3 = 0
+    simulation_model4 = 0
+
+    model = 'differentprescription_asa'
 
     GridSize_model1 = 128
     GridSize_model2 = 128
     GridSize_model3 = 128
     GridSize_model4 = 128
 
+    precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
+    precision_model2 = 2 # 0 for int reading, 1 for float, 2 for double.
+    precision_model3 = 2 # 0 for int reading, 1 for float, 2 for double.
+    precision_model4 = 2 # 0 for int reading, 1 for float, 2 for double.
 
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc0.25"
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc0.25" 
     filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc_HaloMass" 
     filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc_PosHaloMass"
     filepath_model4 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc_Ejected"
@@ -2487,13 +2486,15 @@ if __name__ == '__main__':
     filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
     filepath_photofield_model4 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
 
+    simulation_norm = [simulation_model1, simulation_model2, simulation_model3, simulation_model4] 
+    precision_array = [precision_model1, precision_model2, precision_model3, precision_model4]
     GridSize_array = [GridSize_model1, GridSize_model2, GridSize_model3, GridSize_model4]
     ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3, filepath_model4]
     nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3, filepath_nion_model4]
     density_filepath_array = [filepath_density_model1, filepath_density_model2, filepath_density_model3, filepath_density_model4]
     photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3, filepath_photofield_model4]
-
     '''
+    
     '''
     ###########################
     ### SAGE vs MERAXES ###
@@ -2536,30 +2537,30 @@ if __name__ == '__main__':
 
     ###########################
 
-
+    '''
     ##### SimFast Prescription ##### 
     
     output_tags = [r"Simfast"]
     model_tags = [r"Simfast"]
     number_models = 1
-    model = 'Simfast'
+    model = 'Simfast3'
 
     cosmo = AllVars.Set_Params_Mysim()
 
-    ## Sets the properties of the simulation.  0 for Manodeep's Simulation, 1 for Mini-millennium, 2 for Tiamat.
-    simulation_model1 = 0
+    ## Sets the properties of the simulation.  0 for Manodeep's Simulation, 1 for Mini-millennium, 2 for Tiamat. 3, for extended Tiamat, 4 for Simfast21
+    simulation_model1 = 4
 
     GridSize_model1 = 512
 
     precision_model1 = 1 # 0 for int reading, 1 for float, 2 for double.
 
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc0.25" 
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/Ionization/anne_tag_nosubgrid"
      
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid512/nion/nion"
 
     filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid512/density/density"
 
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20" 
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_output/grid512/photHI"
   
     simulation_norm = [simulation_model1] 
     precision_array = [precision_model1]
@@ -2569,16 +2570,71 @@ if __name__ == '__main__':
     density_filepath_array = [filepath_density_model1]
     photofield_filepath_array = [filepath_photofield_model1]
 
-    ########################### 
+    '''
+
+    #############################
+
+	
+    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"] 
+    
+    output_tags = [r"Test"]
+ 
+    number_models = 3
+
+    simulation_model1 = 0
+    simulation_model2 = 0
+    simulation_model3 = 0
+
+    model = '18month'
+
+    GridSize_model1 = 128
+    GridSize_model2 = 128
+    GridSize_model3 = 128
+
+    
+    precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
+    precision_model2 = 2 # 0 for int reading, 1 for float, 2 for double.
+    precision_model3 = 2 # 0 for int reading, 1 for float, 2 for double.
+
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_constantfesc"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_haloneg"
+    filepath_model3 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_fej"
+
+   
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/sage_Galaxies_IRA_z5.000_fesc0.50_HaloPartCut100_nionHI"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/Galaxies_IRA_z5.000_MH_alpha6000.00beta-0.40_nionHI"
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/Galaxies_IRA_z5.000_Ejected_alpha1.000beta0.000_nionHI"
+
+    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/density/dens_grid128"
+    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/density/dens_grid128"
+    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/density/dens_grid128"
+     
+    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_constantfesc"
+    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_haloneg"
+    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_fej"  
+
+    simulation_norm = [simulation_model1, simulation_model2, simulation_model3]
+    precision_array = [precision_model1, precision_model2, precision_model3]
+    GridSize_array = [GridSize_model1, GridSize_model2, GridSize_model3]
+    ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3]
+    nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3]
+    density_filepath_array = [filepath_density_model1, filepath_density_model2, filepath_density_model3]
+    photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3]
+    
 
     ###########################   
+
+    #cosmo = AllVars.Set_Params_Simfast21()
+    #cosmo = AllVars.Set_Params_Tiamat()
+    cosmo = AllVars.Set_Params_Mysim()
 
     OutputDir = "./ionization_plots/" + model + '/'
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
- 
-    #snaplist = np.arange(5, 80)
-    snaplist = np.arange(20, 50)
+
+    #snaplist = np.arange(0, len(AllVars.SnapZ)) 
+    snaplist = np.arange(26, 80) 
+    #snaplist = np.arange(20, 50)
 
     ZZ = np.empty(len(snaplist))
     
@@ -2616,8 +2672,8 @@ if __name__ == '__main__':
     #fractions_HI = [0.75, 0.50]
     #delta_HI = [0.01, 0.03]
 
-    fractions_HI = [0.90, 0.60, 0.30]
-    delta_HI = [0.01, 0.05, 0.05]
+    fractions_HI = [0.75, 0.50, 0.25]
+    delta_HI = [0.03, 0.03, 0.03]
 
     HI_fraction_high = np.add(fractions_HI, delta_HI) 
     HI_fraction_low= np.subtract(fractions_HI, delta_HI) 
@@ -2687,29 +2743,34 @@ if __name__ == '__main__':
 			cosmo = AllVars.Set_Params_Mysim()
 		elif (simulation_norm[model_number] == 2):
 			cosmo = AllVars.Set_Params_Tiamat()
+		elif (simulation_norm[model_number] == 4):
+			cosmo = AllVars.Set_Params_Simfast21()
+		else:
+			print "The current value for simulation norm (%d) is not implmented yet." %(simulation_norm[model_number])
+			exit()
 		GridSize_model = GridSize_array[model_number]
+		precision_model = precision_array[model_number]
 
         	#######################################
 	        ##### Reading in all the files. ####### 
 	        #######################################
 
-		ionized_cells_path = ionized_cells_filepath_array[model_number] + number_tag_anne 	
-		ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, 128, 2)) 
+
+		ionized_cells_path = ionized_cells_filepath_array[model_number] + "_%02d" %(snapshot_idx) 
+		ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, precision_model)) 
 
 		nion_path = nion_filepath_array[model_number] + number_tag_mine 
-		nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))
-
-		nion_array[model_number] = [i*1e50 for i in nion_array[model_number]]
+		nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))		
 
 		density_path = density_filepath_array[model_number] + number_tag_mine
 		density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))		
 
-		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
-		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, 128, 2)) 
+#		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
+#		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
 
 		#
 
-		#plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
+		#plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
 		
 		volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
 		nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
@@ -2717,13 +2778,14 @@ if __name__ == '__main__':
 
 		if(do_hoshen == 1):
 			hoshen_array[model_number][snapshot_idx] = hoshen_kopelman(ionized_cells_array[model_number])	
-
+	
 		#plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snapshot_idx))
-		density_array[model_number] = density_array[model_number] + 1
-		plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
+		#density_array[model_number] = density_array[model_number] + 1
+		#plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
 		#plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
 		fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
+		
 		if(fraction_idx != -1): 
 
 			if(MC_ZZ[model_number, fraction_idx] == -1):	
@@ -2734,7 +2796,7 @@ if __name__ == '__main__':
 
 				do_MC = 1
 				do_power_array[model_number] = 1
-
+	
 		if((do_MC == 1 and calculate_MC == 1) or (calculate_MC == 2 and snapshot_idx == calculate_MC_snaps[snapshot_idx])):
 	
 			calculate_bubble_MC(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number])
@@ -2745,7 +2807,7 @@ if __name__ == '__main__':
 		
 			tmp_k, tmp_PowSpec, tmp_Error, Mean_Brightness = calculate_power_spectrum(ionized_cells_array[model_number], density_array[model_number], GridSize_array[model_number])
 			wavenumber_array[model_number].append(tmp_k)
-			powerspectra_array[model_number].append(Mean_Brightness**2 * tmp_PowSpec * tmp_k**3 * 4.0 * np.pi * np.pi)
+			powerspectra_array[model_number].append(Mean_Brightness**2 * tmp_PowSpec * tmp_k**3 * 2.0 * np.pi * np.pi)
 			powerspectra_error_array[model_number].append(tmp_Error)
 			fraction_idx_array[model_number].append(fraction_idx)
 
@@ -2753,8 +2815,8 @@ if __name__ == '__main__':
 
 		#plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
 
-		photo_mean_array[model_number][snapshot_idx] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
-		photo_std_array[model_number][snapshot_idx] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
+		#photo_mean_array[model_number][snapshot_idx] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
+		#photo_std_array[model_number][snapshot_idx] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
  
 	#print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
 
@@ -2791,11 +2853,11 @@ if __name__ == '__main__':
     comm.Reduce([MC_ZZ, MPI.DOUBLE], [MC_ZZ_final, MPI.DOUBLE], op = MPI.MAX, root = 0)
  
     if (rank == 0):
-	#plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, MC_ZZ_final, 1, model_tags, OutputDir, "GlobalFraction_time")
-	plot_total_nion(ZZ, nion_total_array_final, simulation_norm, 1, model_tags, OutputDir, "Nion_z")
+	plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, MC_ZZ_final, 1, model_tags, OutputDir, "GlobalFraction_time")
+	plot_total_nion(ZZ, nion_total_array_final, simulation_norm, 1, model_tags, OutputDir, "Nion_z2")
     	#plot_optical_depth(ZZ, volume_frac_array_final, model_tags, OutputDir, "OpticalDepth")
 
-    	#plot_nine_panel_slices(ZZ, ionized_cells_filepath_array, GridSize_array, simulation_norm, MC_Snaps_final, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+    	plot_nine_panel_slices(ZZ, ionized_cells_filepath_array, GridSize_array, simulation_norm, MC_Snaps_final, fractions_HI, model_tags, OutputDir, "3PanelSlice")
 
     	if(plot_MC == 1):
 		plotting_MC_ZZ = MC_ZZ_final
@@ -2803,10 +2865,10 @@ if __name__ == '__main__':
     	elif(plot_MC == 2):
 		plotting_MC_ZZ = MC_ZZ_snaps 
 		plotting_HI = volume_frac_array 
-	print plotting_MC_ZZ
-	print plotting_HI
+
+
 	#plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
-	#plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum")
+	#plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum2")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)

@@ -171,23 +171,34 @@ def Set_Constants():
     global m_to_cm
     global Sigmat
     global H0
-
-    Proton_Mass = 1.6726219e-24 # Grams.
-    Solar_Mass = 1.98855e33 # Grams.
-    Sec_Per_Year = 3.155e7
-    Sec_Per_Megayear = 3.155e13
-    Ionized_Mass_H = 0.53 # Molecular mass of ionized H.
-    LymanAlpha_Energy = 10.2 # Energy of Lyman Alpha photon in eV.
+    global G
+    global mpc_to_m 
+    global cubic_cm_per_cubic_mpc
+    global km_to_m
+    global density_baryons  
+ 
+    proton_mass = 1.6726219e-24 # Grams.
+    solar_mass = 1.98855e33 # Grams.
+    sec_per_year = 3.155e7
+    sec_per_megayear = 3.155e13
+    ionized_mass_H = 0.53 # Molecular mass of ionized H.
+    LymanAlpha_energy = 10.2 # Energy of Lyman Alpha photon in eV.
     eV_to_erg = 1.6202e-12 # Conversion from eV to erg. 
-    M_Bol_Sun = 4.74 # Bolometric magnitude of the sun.
-    L_Sun = 3.828e26 # Luminosity of the Sun in W.
+    M_bol_Sun = 4.74 # Bolometric magnitude of the sun.
+    L_sun = 3.828e26 # Luminosity of the Sun in W.
     W_to_ergs = 1.0e7 # Watts to erg s^-1.
     A_to_m = 1.0e-10 # Angstroms to meters.
     c_in_ms = 3.0e8 # Speed of light in m s^-1 
     pc_to_m = 3.086e16 # Parsec to metres. 
     m_to_cm = 1.0e2 # Meters to centimetres.
-    Sigmat = 6.652e-29 # Thomson cross-section for an electron in m^2.
-    H0 = 3.24078e-18 # In h/sec
+    sigmat = 6.652e-29 # Thomson cross-section for an electron in m^2.
+    H0 = 3.24078e-18 # In h/sec.
+    G = 6.674e-11 # Gravitational constant in m^3 kg^-1 s^-2.
+    mpc_to_m = 3.0857e22 # How many metres in a Mpc 
+    cubic_cm_per_cubic_mpc = 2.93799e73 # cm^-3 to Mpc_3
+    km_to_m = 1.0e3 # Kilometres to metres.
+    density_baryons = 2.5e-7 # Number density of baryons in cm^-3 (flat Universe).
+
 
 def spectralflux_wavelength_to_frequency(Flux, Wavelength):
 
