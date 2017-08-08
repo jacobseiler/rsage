@@ -36,7 +36,7 @@ endif
 
 GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
 GSL_LIBS = -L/usr/local/lib
-OPTIMIZE = -g -O0 -Wall  -Wshadow # optimization and warning flags
+OPTIMIZE = -g -O3 -Wall  -Wshadow # optimization and warning flags
 
 LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
 

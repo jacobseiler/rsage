@@ -39,7 +39,7 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 
 
 
-void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step, int tree)
+void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal)
 {
   double mi, ma, mass_ratio;
 
@@ -71,7 +71,7 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   }
   // starburst recipe similar to Somerville et al. 2001
 
-  collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step, tree);
+  collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step, tree, ngal);
 
   if(mass_ratio > 0.1)
 		Gal[merger_centralgal].TimeOfLastMinorMerger = time;
@@ -232,7 +232,7 @@ void make_bulge_from_burst(int p)
 
 
 
-void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree)
+void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree, int ngal)
 {
   double stars, eburst;
   double reheated_mass = 0.0; 
@@ -269,13 +269,13 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     stars *= factor; 
   }
 
-  update_from_star_formation(merger_centralgal, stars, dt, step, true, tree); 
+  update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal); 
   update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
 
   // check for disk instability
   if(DiskInstabilityOn && mode == 0)
     if(mass_ratio < ThreshMajorMerger)
-    check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step, tree);
+    check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step, tree, ngal);
 
 }
 

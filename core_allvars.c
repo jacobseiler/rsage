@@ -156,8 +156,13 @@ int RescaleSN;
 
 int mergedgal_mallocs;
 int gal_mallocs;
+int ismerged_mallocs;
 
 int mergedgal_frees;
 int gal_frees;
+int ismerged_frees;
 
 int *gal_to_free;
+
+int good_steps;
+int bad_steps;

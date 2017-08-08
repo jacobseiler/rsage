@@ -223,6 +223,8 @@ struct GALAXY
   int IsMerged;
   double GrandSum;
   int IsMalloced;
+ 
+
 }
 *Gal, *HaloGal, *MergedGal;
 
@@ -414,9 +416,15 @@ extern int count_notfirstSF;
 extern int RescaleSN;
 extern int mergedgal_mallocs;
 extern int gal_mallocs;
+extern int ismerged_mallocs;
 
 extern int mergedgal_frees;
 extern int gal_frees;
+extern int ismerged_frees;
 
 extern int *gal_to_free;
+
+
+extern int good_steps;
+extern int bad_steps;
 #endif  // #ifndef ALLVARS_H

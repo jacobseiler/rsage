@@ -128,6 +128,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
       // they are copied to the end of the list of permanent galaxies HaloGal[xxx] 
 
       Gal[ngal] = HaloGal[HaloAux[prog].FirstGalaxy + i];
+      HaloGal[HaloAux[prog].FirstGalaxy + i].IsMerged = 0;
       Gal[ngal].HaloNr = halonr;
 
       Gal[ngal].dT = -1.0;
@@ -302,6 +303,12 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
       deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
       time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
 
+      if(deltaT *UnitTime_in_Megayears / Hubble_h < 50)
+	++good_steps;
+      else
+        ++bad_steps;
+//      fprintf(stderr, "dt = %.4e \t Halo Snapshot = %d \t Galaxy Snapshot = %d\n", deltaT * UnitTime_in_Megayears / Hubble_h, Halo[halonr].SnapNum, Gal[p].SnapNum); 
+
       Gal[p].Age = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
 
       if(Gal[p].dT < 0.0)
@@ -325,7 +332,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
       // If we are doing delayed SN (N_SFH != 0) then let's do that. 
  
-      starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step, tree);
+      starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step, tree, ngal);
 
     }
 
@@ -364,6 +371,8 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
  
           Gal[p].mergeIntoID = NumGals + merger_centralgal;  // position in output 
 
+
+          XASSERT(p != merger_centralgal, "A galaxy is trying to merge into itself!\nGalaxy = %d \t Halonr = %d \t Snapshot = %d\n", p, halonr, Gal[p].SnapNum);
           if(Gal[p].MergTime > 0.0)  // disruption has occured!
           {
 
@@ -378,7 +387,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
             {
               time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);   
 
-              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step, tree);
+              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step, tree, ngal);
 	      update_grid_array(p, halonr, step, centralgal); // Updates the grid before it's added to the merger list.
               add_galaxy_to_merger_list(p);
 
@@ -423,6 +432,9 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
   }
 
+
+//  for(p = 0; p < ngal; p++)
+//    fprintf(stderr, "halo %d \t gal %d\n", halonr, p);
 
   // Attach final galaxy list to halo 
   offset = 0;

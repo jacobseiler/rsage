@@ -9,7 +9,7 @@
 
 
 
-void check_disk_instability(int p, int centralgal, int halonr, double time, double dt, int step, int tree)
+void check_disk_instability(int p, int centralgal, int halonr, double time, double dt, int step, int tree, int ngal)
 {
   double Mcrit, gas_fraction, unstable_gas, unstable_gas_fraction, unstable_stars, diskmass, metallicity;
   double star_fraction;
@@ -66,7 +66,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
       if(AGNrecipeOn > 0)
         grow_black_hole(p, unstable_gas_fraction);
     
-      collisional_starburst_recipe(unstable_gas_fraction, p, centralgal, time, dt, halonr, 1, step, tree);
+      collisional_starburst_recipe(unstable_gas_fraction, p, centralgal, time, dt, halonr, 1, step, tree, ngal);
     }
 
   }

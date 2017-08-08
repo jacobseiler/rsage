@@ -243,29 +243,39 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 
   ++count;
 
+  XASSERT(g->IsMalloced == 1, "We are trying to write out the grid arrays for a galaxies who has already been freed.\n");
+  XASSERT(!(!(fp)), "We are trying to write to a file which has a NULL pointer.\n"); 
   double SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
-  
+ 
+  XPRINT(!(!(g->GridHistory)), "GridHistory has a NULL pointer.\n"); 
   for (j = 0; j < MAXSNAPS; ++j)
   { 
       myfwrite(&g->GridHistory[j], sizeof(*(g->GridHistory)), 1, fp);
   }
 
+  XPRINT(!(!(g->GridStellarMass)), "GridStellarMass has a NULL pointer.\n"); 
   for (j = 0; j < MAXSNAPS; ++j)
   { 
       myfwrite(&g->GridStellarMass[j], sizeof(*(g->GridStellarMass)), 1, fp);
   }
-  
+ 
+  XPRINT(!(!(g->GridSFR)), "GridSFR has a NULL pointer.\n"); 
   for (j = 0; j < MAXSNAPS; ++j)
   {
       SFR = g->GridSFR[j]*SFR_conversion;    
       myfwrite(&SFR, sizeof(*(g->GridSFR)), 1, fp);
   }
 
+  XPRINT(!(!(g->GridZ)), "GridZ has a NULL pointer.\n"); 
   for (j = 0; j < MAXSNAPS; ++j)
   {
+      XPRINT(j < MAXSNAPS, "Trying to save Mfilt Gnedin and have index j = %d \t MAXSNAPS = %d\n", j, MAXSNAPS);
+
+
       myfwrite(&g->GridZ[j], sizeof(*(g->GridZ)), 1, fp);
   }
 
+  XPRINT(!(!(g->GridCentralGalaxyMass)), "GridCentralGalaxyMass has a NULL pointer.\n"); 
   for (j = 0; j < MAXSNAPS; ++j)
   {
       myfwrite(&g->GridCentralGalaxyMass[j], sizeof(*(g->GridCentralGalaxyMass)), 1, fp);
@@ -277,23 +287,27 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
       myfwrite(&tmp, sizeof(float), 1, fp);
   }
 
+  XPRINT(!(!(g->MfiltGnedin)), "MfiltGnedin has a NULL pointer.\n"); 
   for (j = 0; j < MAXSNAPS; ++j)
   {
- 
+      XPRINT(j < MAXSNAPS, "Trying to save Mfilt Gnedin and have index j = %d \t MAXSNAPS = %d\n", j, MAXSNAPS); 
       myfwrite(&g->MfiltGnedin[j], sizeof(*(g->MfiltGnedin)), 1, fp);  
       //XASSERT(g->MfiltGnedin[j] == 1.0, "Somehow got a value for MfiltGned = %.4e.  Snapshot %d\n", g->MfiltGnedin[j], j);
   }
 
+  XPRINT(!(!(g->MfiltSobacchi)), "MfilSobacchi has a NULL pointer.\n"); 
   for (j = 0; j < MAXSNAPS; ++j)
   { 
       myfwrite(&g->MfiltSobacchi[j], sizeof(*(g->MfiltSobacchi)), 1, fp);   
   }
 
+  XPRINT(!(!(g->EjectedFraction)), "EjectedFraction has a NULL pointer.\n"); 
   for (j = 0; j < MAXSNAPS; ++j)
   {  
      myfwrite(&g->EjectedFraction[j], sizeof(*(g->EjectedFraction)), 1, fp); 
   }
 
+  XPRINT(!(!(g->LenHistory)), "LenHistory has a NULL pointer.\n"); 
   for (j = 0; j < MAXSNAPS; ++j)
   {  
      myfwrite(&g->LenHistory[j], sizeof(*(g->LenHistory)), 1, fp);  

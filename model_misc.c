@@ -86,8 +86,9 @@ void init_galaxy(int p, int halonr)
   Gal[p].infallMvir = -1.0;  
   Gal[p].infallVvir = -1.0;
   Gal[p].infallVmax = -1.0;
-
+ 
   Gal[p].IsMerged = -1;
+
 //  if(Gal[p].IsMalloced != 1)
 //  {
   	malloc_grid_arrays(&Gal[p]);
@@ -244,6 +245,8 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     }
 
     Gal[p].GridPos = grid_position; 
+
+    XPRINT(grid_position != 0, "Grid_position = 0!");
 
     // NOTE: We use the Snapshot number of the FOF-Halo (i.e. the main halo the galaxy belongs to) because the snapshot number of the galaxy has been shifted by -1. //
     // This is self-consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. //

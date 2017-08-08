@@ -110,7 +110,10 @@ void init(void)
 
   mergedgal_frees = 0;
   gal_frees = 0;
-  
+ 
+  good_steps = 0;
+  bad_steps = 0;
+ 
 }
 
 

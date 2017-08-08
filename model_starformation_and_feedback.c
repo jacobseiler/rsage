@@ -66,7 +66,7 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
 }
 
 
-void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree) 
+void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal) 
 {
 
 //  if(tree == 476)
@@ -91,7 +91,7 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
   }
 
   if(IRA == 0) 
-      update_stars_array(p, stars, dt, tree, step);
+      update_stars_array(p, stars, dt, tree, step, ngal);
 
   // update gas and metals from star formation 
   Gal[p].ColdGas -= stars;
@@ -117,40 +117,68 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
 //
 // OUTPUT: None.
 
-void update_stars_array(int p, double stars, double dt, int tree, int step)
+void update_stars_array(int p, double stars, double dt, int tree, int step, int ngal)
 {
 
   double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
 
-  XASSERT(time_spanned < 50, "The time spanned by a single star formation event is larger than 50Myr.  You have chosen to use delayed supernova feedback (IRA == 0) but this time step indicates that instantaneous is perhaps acceptable.\ntime_spanned = %.4eMyr.\n", time_spanned);
+  /*
+  if(time_spanned > 50) 
+  {
+    if(Gal[p].SnapNum < Halo[Gal[p].HaloNr].SnapNum - 1)
+    {
+      fprintf(stderr, "Warning: The time spanned by a single star formation event is larger than 50Myr.  The instantaneous approximation MAY be acceptable.  time_spanned = %.4eMyr.\n", time_spanned);
+    }
+    if(Gal[p].SnapNum < Halo[Gal[p].HaloNr].SnapNum - 1)
+    {
+      fprintf(stderr, "\n\n Warning: The snapshot difference between the galaxy and the halo (i.e. the number of snapshots the galaxy is evolving through this step) is greater than 1.  This has resulted in the time spanned by the star formation event to be greater than 50Myr.\n  The time spanned by this star formation event is %.4eMyr.\n  The stars array has been reset.  If the time spanned is approximately 50Myr EVERYTHING IS FINE.  If the time spanned is much much larger than 50Myr, consider increasing the STEPS parameter.\n\n", time_spanned);   
+       time_spanned = 50.0;
+       fprintf(stderr, "%d %d\n", (int) round((Gal[p].Total_SF_Time + time_spanned)/TimeResolutionSN), SN_Array_Len);
+    }
+  }
+   */  
+//  XASSERT(time_spanned < 50, "The time spanned by a single star formation event is larger than 50Myr.  You have chosen to use delayed supernova feedback (IRA == 0) but this time step indicates that instantaneous is perhaps acceptable.\ntime_spanned = %.4eMyr at Snapshot %d, Halo redshift = %d.\n", time_spanned, Gal[p].SnapNum, Halo[Gal[p].HaloNr].SnapNum);
 
   Gal[p].Total_SF_Time += time_spanned; // How long it has been since we've updated the array?
   Gal[p].Total_Stars += stars; // How many stars we will need to bin once we do update the array?
+
+  if(Gal[p].Total_SF_Time > TimeResolutionSN * SN_Array_Len)
+    Gal[p].Total_SF_Time = TimeResolutionSN * SN_Array_Len;
 
   if(Gal[p].Total_SF_Time < TimeResolutionSN) // If it hasn't been long enough yet, don't update the array. 
     return;
 
   int num_shuffled = round(Gal[p].Total_SF_Time/TimeResolutionSN); // How many cells will this SF event span.
+
+  
+
   double stars_spread = Gal[p].Total_Stars/num_shuffled; // We spread the stars evenly over time.
 
   int i;
 
+  XASSERT(Gal[p].IsMalloced == 1, "We are attempting to update the stars array but this galaxy has already had its arrays freed.\nGalaxy %d \t Halo %d \t Tree %d \t Time spanned %.4eMyr\n", p, Gal[p].HaloNr, tree, time_spanned);  
 
   //fprintf(stderr, "time_spanned = %.4e \t num_shuffled = %d \t stars = %.4e \t stars_spread = %.4e\n", time_spanned, num_shuffled, stars, stars_spread); 
   for(i = SN_Array_Len - 1; i > num_shuffled - 1; --i)
   {
+      XPRINT(i < SN_Array_Len, "i = %d \t SN_Array_Len = %d.  Loop 1.\n", i, SN_Array_Len); 
       Gal[p].Stars[i] = Gal[p].Stars[i-num_shuffled]; // Shuffle the current elements of the array far enough along so we can store the new stars.
       //Gal[p].StellarAge_Numerator += Gal[p].Stars[i] * (Age[Gal[p].SnapNum] - (Time_SFH / UnitTime_in_Megayears * Hubble_h));
   }
-
+    XPRINT(p < ngal, "We have the case where the galaxy p is greater than the number of galaxies.  p = %d \t ngal = %d\n", p, ngal);
   for(i = SN_Array_Len - 1; i > (SN_Array_Len - num_shuffled - 1); --i)
-  {  
+  {
+  //  XPRINT(time_spanned < 49, "In the second loop, i = %d \t p = %d \t ngal = %d \t Gal[p].SnapNum = %d\n", i, p, ngal, Gal[p].SnapNum);
+
+      XPRINT(i < SN_Array_Len, "i = %d \t SN_Array_Len = %d.  Loop 2.\n", i, SN_Array_Len); 
     Gal[p].StellarAge_Numerator += Gal[p].Stars[i] * (Age[Gal[p].SnapNum - 4]);
     Gal[p].StellarAge_Denominator += Gal[p].Stars[i]; 
   }
 
   for(i = 0; i < num_shuffled; ++i) 
   {
+XPRINT(i < SN_Array_Len, "i = %d \t SN_Array_Len = %d \t num_shuffled = %d \t Gal[p].Total_SF_Time = %.4e.  Loop 3.\n", i, SN_Array_Len, num_shuffled, Gal[p].Total_SF_Time); 
+    Gal[p].StellarAge_Numerator += Gal[p].Stars[i] * (Age[Gal[p].SnapNum - 4]);
     Gal[p].Stars[i] = stars_spread; // Update the vacated elements with the new stars.
     Gal[p].GrandSum += stars_spread; 
   } 
@@ -160,7 +188,7 @@ void update_stars_array(int p, double stars, double dt, int tree, int step)
 }
 
 
-void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree)
+void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal)
 {
   double reff, tdyn, strdot, stars;
   double cold_crit; 
@@ -220,12 +248,12 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
     stars *= factor; 
   }
   
-  update_from_star_formation(p, stars, dt, step, false, tree); 
+  update_from_star_formation(p, stars, dt, step, false, tree, ngal); 
   update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
 
   // check for disk instability
   if(DiskInstabilityOn)
-    check_disk_instability(p, centralgal, halonr, time, dt, step, tree);
+    check_disk_instability(p, centralgal, halonr, time, dt, step, tree, ngal);
 
 }
 

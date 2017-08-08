@@ -159,8 +159,16 @@ void free_galaxies_and_tree(void)
   for(i = 0; i < NumGals; ++i)
   {
     max_snap = 0;
+    XASSERT(HaloGal[i].IsMalloced == 1, "HaloGal %d doesn't have grids mallocced but we're trying to free it.\n", i);
+    XPRINT(HaloGal[i].GridHistory, "GridHistory has a NULL pointer for HaloGal %d\n", i);
+
+    if(HaloGal[i].IsMerged != -1)
+      continue;
     for(j = 1; j < MAXSNAPS; ++j)
-    { 
+    {
+
+      //XPRINT(HaloGal[i].GridHistory[j] != 0, "Had a GridHistory index of 0 for HaloGal %d at Snapshot %d \t GridHistory = %d\n", i, j, HaloGal[i].GridHistory[j]);
+      double tmp = HaloGal[i].LenHistory[j];
       if(HaloGal[i].GridHistory[j] != -1)
       {
 	//fprintf(stderr, "For HaloGal[%d], SnapHistory[%d] is not -1\n", i, j);
@@ -182,8 +190,15 @@ void free_galaxies_and_tree(void)
   {
     //fprintf(stderr, "Freeing HaloGal %d. HaloGal.SnapNum = %d\n", gal_to_free[i], HaloGal[gal_to_free[i]].SnapNum);
     free_grid_arrays(&HaloGal[gal_to_free[i]]);
-    ++gal_frees;
+    ++gal_frees; 
   }
+
+  for(i = 0; i < NumGals; ++i)
+  {
+    
+  
+  }
+
 
   free(gal_to_free);
   for(i = 0; i < MergedNr; ++i)
@@ -212,7 +227,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->EjectedFraction);
   free(g->LenHistory);
   free(g->Stars);
-//  free(g->GridOutflowRate);
+
   g->IsMalloced = 0;
 }
 
