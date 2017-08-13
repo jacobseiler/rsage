@@ -442,3 +442,25 @@ def Set_Params_Simfast21():
     print "######################"
 
     return cosmo
+
+def depth(l):
+    '''
+    Determines the nested level of a list.
+
+    Parameters
+    ----------
+    l : `np.darray'
+	List that we are determining the nested level of.
+
+    Returns
+    ------
+    int
+	Nested level of the list.
+    '''    
+
+
+    if isinstance(l, list):
+        return 1 + max(depth(item) for item in l)
+    else:
+        return 0
+

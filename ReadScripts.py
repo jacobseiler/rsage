@@ -543,22 +543,53 @@ def Create_Snap_Arrays(G, NumSnaps, SnapList):
 
 
 def read_binary_grid(filepath, GridSize, precision):
+    '''
+    Reads a cubic, Cartesian grid that was stored in binary.
+    NOTE: Assumes the grid has equal number of cells in each dimension.
 
-    print "Reading with precision", precision
-    byte = 'None'
+    Parameters
+    ----------
+    filepath : string
+	Location of the grid file
+    GridSize : integer
+	Number of cells along one dimension.  Grid is assumed to be saved in the form N*N*N. 
+    precision : integer
+	Denotes the precision of the data being read in.
+	0 : Integer (4 bytes)
+	1 : Float (4 bytes)
+	2 : Double (4 bytes)
+
+    Returns
+    -------
+    grid : `np.darray'
+	The read in grid as a numpy object.  Shape will be N*N*N.
+    '''
+    print "Reading binary grid %s with precision option %d" %(filepath, precision) 
+
+    ## Set the format the input file is in. ##
+    readformat = 'None'
     if precision == 0:
-	byte = np.int32
+	readformat = np.int32
+	byte_size = 4
     elif precision == 1:
-	byte = np.float32
+	readformat = np.float32
+	byte_size = 4
     elif precision == 2: 
-	byte = np.float64
+	readformat = np.float64
+	byte_size = 8
+
+    ## Check that the file is the correct size. ##
+    filesize = os.stat(filepath).st_size
+    if(GridSize*GridSize*GridSize * byte_size != filesize):
+	print "The size of the file is %d bytes whereas we expected it to be %d bytes" %(filesize, GridSize*GridSize*GridSize * byte_size)
+	raise ValueError("Mismatch between size of file and expected size.")
+
     fd = open(filepath, 'rb')
-    grid = np.fromfile(fd, count = GridSize**3, dtype = byte) 
-    grid.shape = (GridSize, GridSize, GridSize)
+    grid = np.fromfile(fd, count = GridSize**3, dtype = readformat) 
+    grid.shape = (GridSize, GridSize, GridSize) 
     fd.close()
 
     return grid
-
 
 def read_meraxes_hdf5():
     hdf5_file_name = '/home/msinha/scratch/tao/data_products/output/meraxes/tiamat/meraxes.hdf5'

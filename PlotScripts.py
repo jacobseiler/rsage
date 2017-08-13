@@ -27,6 +27,7 @@ def Set_Params_Plot():
 	global global_legendsize
 	global global_linewidth
 	global global_tickinterval
+	global global_errorwidth
 
 	global colors
 	global markers
@@ -41,6 +42,7 @@ def Set_Params_Plot():
 	global_legendsize = 18
 	global_linewidth = 3
 	global_tickinterval = 0.25
+	global_errorwidth = 3
 
 	matplotlib.rcdefaults()
 	plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
