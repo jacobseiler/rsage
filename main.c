@@ -168,7 +168,7 @@ int main(int argc, char **argv)
     {      
 			assert(!gotXCPU);
 
-      if(tree % 1000 == 0)
+      if(tree % 10 == 0)
       {
 #ifdef MPI
         printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);

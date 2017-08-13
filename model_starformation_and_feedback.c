@@ -420,7 +420,7 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
   double ejected_mass = 0.0;
 
   int i; 
-  double m_low, m_high, t_low, t_high;
+  double m_low = -1.0, m_high = -1.0, t_low = -1.0, t_high = -1.0;
   double Delta_Eta, Delta_m;
   double time_until_next_SN;
 

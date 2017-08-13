@@ -81,7 +81,7 @@ void save_galaxies(int filenr, int tree)
       
         prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
-        if(HaloGal[i].SnapNum == ListOutputSnaps[0]) // We only want to write out the grid properties for the final snapshot.
+        if(HaloGal[i].SnapNum == ListOutputSnaps[0] && HaloGal[i].IsMerged == 0) // We only want to write out the grid properties for the final snapshot.
             write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
         //fprintf(stderr, "On write the GrandSum was %.4e and Stellar Mass was %.4e for Galaxy %d\n", HaloGal[i].GrandSum, HaloGal[i].StellarMass, i);
         /*
@@ -238,92 +238,78 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 void write_gridarray(struct GALAXY *g, FILE *fp)
 {
 
-  int j; 
-  float SFR; 
+  int j;  
+  size_t nwritten;
 
   ++count;
 
   XASSERT(g->IsMalloced == 1, "We are trying to write out the grid arrays for a galaxies who has already been freed.\n");
-  XASSERT(!(!(fp)), "We are trying to write to a file which has a NULL pointer.\n"); 
-  double SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
  
-  XPRINT(!(!(g->GridHistory)), "GridHistory has a NULL pointer.\n"); 
-  for (j = 0; j < MAXSNAPS; ++j)
-  { 
-      myfwrite(&g->GridHistory[j], sizeof(*(g->GridHistory)), 1, fp);
-  }
-
-  XPRINT(!(!(g->GridStellarMass)), "GridStellarMass has a NULL pointer.\n"); 
-  for (j = 0; j < MAXSNAPS; ++j)
-  { 
-      myfwrite(&g->GridStellarMass[j], sizeof(*(g->GridStellarMass)), 1, fp);
-  }
+  float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
  
-  XPRINT(!(!(g->GridSFR)), "GridSFR has a NULL pointer.\n"); 
-  for (j = 0; j < MAXSNAPS; ++j)
-  {
-      SFR = g->GridSFR[j]*SFR_conversion;    
-      myfwrite(&SFR, sizeof(*(g->GridSFR)), 1, fp);
-  }
+  XASSERT(g->GridHistory != NULL, "GridHistory has a NULL pointer.\n"); 
+  nwritten = fwrite(g->GridHistory, sizeof(*(g->GridHistory)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing GridHistory, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
 
-  XPRINT(!(!(g->GridZ)), "GridZ has a NULL pointer.\n"); 
-  for (j = 0; j < MAXSNAPS; ++j)
-  {
-      XPRINT(j < MAXSNAPS, "Trying to save Mfilt Gnedin and have index j = %d \t MAXSNAPS = %d\n", j, MAXSNAPS);
-
-
-      myfwrite(&g->GridZ[j], sizeof(*(g->GridZ)), 1, fp);
-  }
-
-  XPRINT(!(!(g->GridCentralGalaxyMass)), "GridCentralGalaxyMass has a NULL pointer.\n"); 
-  for (j = 0; j < MAXSNAPS; ++j)
-  {
-      myfwrite(&g->GridCentralGalaxyMass[j], sizeof(*(g->GridCentralGalaxyMass)), 1, fp);
-  }
+  XASSERT(g->GridStellarMass != NULL, "GridStellarMass has a NULL pointer.\n"); 
+  nwritten = fwrite(g->GridStellarMass, sizeof(*(g->GridStellarMass)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing GridStellarMass, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
  
+  XASSERT(g->GridSFR != NULL, "GridSFR has a NULL pointer.\n"); 
+
+  
+  float *SFR_tmp = malloc(sizeof(*(g->GridSFR)) * MAXSNAPS);
   for (j = 0; j < MAXSNAPS; ++j)
   {
-      float tmp = -999.99;
-      myfwrite(&tmp, sizeof(float), 1, fp);
+      SFR_tmp[j] = g->GridSFR[j]*SFR_conversion;    
   }
+  
+  nwritten = fwrite(g->GridSFR, sizeof(*(g->GridSFR)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing GridSFR, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
+  free(SFR_tmp);  
 
-  XPRINT(!(!(g->MfiltGnedin)), "MfiltGnedin has a NULL pointer.\n"); 
+  XASSERT(g->GridZ != NULL, "GridZ has a NULL pointer.\n"); 
+  nwritten = fwrite(g->GridZ, sizeof(*(g->GridZ)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing GridZ, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
+
+  XASSERT(g->GridCentralGalaxyMass != NULL, "GridCentralGalaxyMass has a NULL pointer.\n");  
+  nwritten = fwrite(g->GridCentralGalaxyMass, sizeof(*(g->GridCentralGalaxyMass)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing GridCentralGalaxyMass, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
+
+  float *tmp = malloc(sizeof(float) * MAXSNAPS);
   for (j = 0; j < MAXSNAPS; ++j)
   {
-      XPRINT(j < MAXSNAPS, "Trying to save Mfilt Gnedin and have index j = %d \t MAXSNAPS = %d\n", j, MAXSNAPS); 
-      myfwrite(&g->MfiltGnedin[j], sizeof(*(g->MfiltGnedin)), 1, fp);  
-      //XASSERT(g->MfiltGnedin[j] == 1.0, "Somehow got a value for MfiltGned = %.4e.  Snapshot %d\n", g->MfiltGnedin[j], j);
-  }
+    tmp[j] = -999.99;  
+  } 
+  nwritten = fwrite(tmp, sizeof(float), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing tmp, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
+  free(tmp);    
 
-  XPRINT(!(!(g->MfiltSobacchi)), "MfilSobacchi has a NULL pointer.\n"); 
-  for (j = 0; j < MAXSNAPS; ++j)
-  { 
-      myfwrite(&g->MfiltSobacchi[j], sizeof(*(g->MfiltSobacchi)), 1, fp);   
-  }
+  XASSERT(g->MfiltGnedin != NULL, "MfiltGnedin has a NULL pointer.\n"); 
+  nwritten = fwrite(g->MfiltGnedin, sizeof(*(g->MfiltGnedin)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing MfiltGnedin, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
 
-  XPRINT(!(!(g->EjectedFraction)), "EjectedFraction has a NULL pointer.\n"); 
-  for (j = 0; j < MAXSNAPS; ++j)
-  {  
-     myfwrite(&g->EjectedFraction[j], sizeof(*(g->EjectedFraction)), 1, fp); 
-  }
+  XASSERT(g->MfiltSobacchi != NULL, "MfilSobacchi has a NULL pointer.\n"); 
+  nwritten = fwrite(g->MfiltSobacchi, sizeof(*(g->MfiltSobacchi)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing MfiltSobacchi, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
 
-  XPRINT(!(!(g->LenHistory)), "LenHistory has a NULL pointer.\n"); 
-  for (j = 0; j < MAXSNAPS; ++j)
-  {  
-     myfwrite(&g->LenHistory[j], sizeof(*(g->LenHistory)), 1, fp);  
-  }
+  XASSERT(g->EjectedFraction != NULL, "EjectedFraction has a NULL pointer.\n"); 
+  nwritten = fwrite(g->EjectedFraction, sizeof(*(g->EjectedFraction)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing EjectedFraction, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
 
-  /*
-  // Padding // 
-  for (j = 0; j < MAXSNAPS; ++j)
-  {
-      float tmpOutflowRate = g->GridOutflowRate[j] * SFR_conversion * STEPS; 
-      if(tmpOutflowRate > 1e4 && j == 63)
-	fprintf(stderr, "tmpOutflowRate = %.4e \t g->GridOutflowRate[j] = %.4e \t SFR_conversion * STEPS = %.4e \t Gal[p].OutflowRate = %.4e\n", tmpOutflowRate, g->GridOutflowRate[j], SFR_conversion * STEPS, g->OutflowRate); 
-      myfwrite(&tmpOutflowRate, sizeof(float), 1, fp); 
-  }
-  */
-
+  XASSERT(g->LenHistory != NULL, "LenHistory has a NULL pointer.\n"); 
+  nwritten = fwrite(g->LenHistory, sizeof(*(g->LenHistory)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing LenHistory, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
 }
 
 void finalize_galaxy_file(int filenr)
