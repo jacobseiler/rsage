@@ -36,35 +36,12 @@ comm= MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-matplotlib.rcdefaults()
-plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
-plt.rc('lines', linewidth='2.0')
-# plt.rc('font', variant='monospace')
-plt.rc('legend', numpoints=1, fontsize='x-large')
-plt.rc('text', usetex=True)
-
-label_size = 20
-extra_size = 2
-talk_fontsize = 20
-talk_legendsize = 18
-plt.rc('xtick', labelsize=talk_fontsize)
-plt.rc('ytick', labelsize=talk_fontsize)
-plt.rc('text', usetex=True)
-tick_interval = 0.25
-np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
-
-colors = ['r', 'b', 'g', 'm', 'c', 'k']
-markers = ['x', 'o', '^', 's', 'D']
-linestyles = ['-', '--', '-.', ':']
-
 AllVars.Set_Constants()
 AllVars.Set_Params_Mysim()
+PlotScripts.Set_Params_Plot()
 
 cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
-z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
-time_xlim = [315, 930]
-time_tick_interval = 25
 
 output_format = ".png"
 
@@ -556,8 +533,8 @@ def StellarMassFunction(SnapList, mass, simulation_norm, model_tags, observation
 
     	plt.axis([6, 11.5, 1e-6, 1e-1])
 
-    	ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}} \:[M_{\odot}]$', fontsize = talk_fontsize)
-    	ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = talk_fontsize)
+    	ax.set_xlabel(r'$\log_{10}\ m_{\mathrm{*}} \:[M_{\odot}]$', fontsize = PlotScripts.global_fontsize)
+    	ax.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = PlotScripts.global_fontsize)
     	ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
 	####
 
@@ -789,7 +766,7 @@ def plot_fesc(SnapList, fesc, galaxy_mass, halo_mass, mass_low, mass_high, model
     	ax2.set_xticklabels(z_labels) # But label them as redshifts.
 
     	ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
-    	ax1.set_ylabel(r'$f_\mathrm{esc}$', fontsize = talk_fontsize)
+    	ax1.set_ylabel(r'$f_\mathrm{esc}$', fontsize = PlotScripts.global_fontsize) 
 
 	leg = ax1.legend(loc=1, numpoints=1, labelspacing=0.1)
     	leg.draw_frame(False)  # Don't want a box frame
@@ -881,69 +858,10 @@ def plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, o
 	f = plt.figure()  
 	ax1 = plt.subplot(111)  
 
-	def plot_mean(ax, x_data, y_mean, y_std):
+	ax1 = plot_xy(ax1, bin_middle_array, mean_ejected_array, std_ejected_array, redshift_labels[0], model_tags)
 
-		dimension = depth(x_data) # Determines the dimension of the input data.
-
-		## Since I want this script to be able to plot multiple snapshots and even multiple models we need to set up variables to control the colour and linestyles correctly.##
-		## I use different colours for snapshots and different linestyles for models. ##
-
-		## The first case is where we are simply plotting a single snapshot. ##
-		## Data is of the form [point0, point1, ..., pointN]. ##
-		if dimension == 1:			
-			color_len = 0
-			ls_len = 0
-
-			ax.plot(x_data, y_mean, color = colors[0], linestyle = linestyles[0], rasterized = True, label = snapshot_labels[0]) 
-
-		## The second case is where we have multiple snapshots that we are plotting at; our input data is a 2D array. ##
-		## Data is of the form [[snap0_point0, snap0_point1, ... , snap0_pointN] , ... , [snapN_point0, snapN_point1, ..., snapN_pointN]]. ##
-		if dimension == 2:	
- 
-			color_len = len(x_data)
-			ls_len = 0
-
-			for snapshot_idx in xrange(0, len(x_data)):
-				ax.plot(x_data[snapshot_idx], y_mean[snapshot_idx], color = colors[snapshot_idx], linestyle = linestyles[0], rasterized = True, label = snapshot_labels[snapshot_idx])
-
-		## The third case is we have multiple snapshots over multiple modles that we wish to plot; our input data is a 3D array. ##
-		## Data is of the form [[[model0_snap0_point0, ..., model0_snap0_pointN], ..., [model0_snapN_point0, ..., model0_snapN_pointN]], ..., [[modelN_snap0_point0, ..., modelN_snap0_pointN], ..., [modelN_snapN_point0, ..., modelN_snapN_pointN]]]. ##
-		if dimension == 3: 	
-	
-			color_len = len(x_data[0])
-			ls_len = len(x_data) 
-
-			for model_number in xrange(0, len(x_data)):
-				for snapshot_idx in xrange(0, len(x_data[snapshot_idx])):
-					ax.plot(x_data[model_number][snapshot_idx], y_mean[model_number][snapshot_idx], color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = snapshot_labels[snapshot_idx])
-
-			for model_number in xrange(0, len(x_data)):
-				ax.plot(np.nan, np.nan, color = 'k', linestyle = linestyles[model_number], rasterized = True, label = model_labels[model_number])
-		
-
-		return ax
-
-	for model_number in xrange(0, len(SnapList)):
-		for snapshot_idx in xrange(0, len(SnapList[model_number])):
-			if model_number == 0:
-				title = redshift_labels[model_number][snapshot_idx]
-			else:
-				title = ''
-				
-			mean = mean_ejected_array[model_number][snapshot_idx]
-			std = std_ejected_array[model_number][snapshot_idx]
-			bin_middle = bin_middle_array[model_number][snapshot_idx]
-
-			ax1.plot(bin_middle, mean, color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = title, lw = 3)
-			ax1.scatter(mean_halomass_array[model_number][snapshot_idx], np.mean(~np.isnan(mean)), color = colors[snapshot_idx], marker = 'o', rasterized = True, s = 40, lw = 3)	
-			#if (len(SnapList) == 1):
-    			#	ax1.fill_between(bin_middle, np.subtract(mean,std), np.add(mean,std), color = colors[snapshot_idx], alpha = 0.25)
-
-    	for model_number in xrange(0, len(SnapList)): # Note this is done after the main loop to get formatting correct.
-		ax1.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True) # Plots a junk value so we can get the model in the legend.
-
-	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = talk_fontsize) 
-    	ax1.set_ylabel(r'$\mathrm{Ejected \: Fraction}$', size = talk_fontsize)
+	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
+    	ax1.set_ylabel(r'$\mathrm{Ejected \: Fraction}$', size = PlotScripts.global_fontsize)
     	ax1.set_xlim([8.5, 12])
     	ax1.set_ylim([-0.05, 1.0])   
 
@@ -1057,8 +975,8 @@ def plot_mvir_fesc(SnapList, mass_central, fesc, model_tags, output_tag):
 			if (len(SnapList) == 1):
     				ax1.fill_between(bin_middle, np.subtract(mean,std), np.add(mean,std), color = colors[snapshot_idx], alpha = 0.25)
 
-	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = talk_fontsize) 
-    	ax1.set_ylabel(r'$f_\mathrm{esc}$', size = talk_fontsize)
+	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
+    	ax1.set_ylabel(r'$f_\mathrm{esc}$', size = PlotScripts.global_fontsize) 
     	#ax1.set_xlim([8.5, 12])
     	#ax1.set_ylim([0.0, 1.0])   
 
@@ -1086,6 +1004,9 @@ def plot_mvir_fesc(SnapList, mass_central, fesc, model_tags, output_tag):
 
 def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_tag): 
 
+    print "Plotting Ngamma*fesc against the halo mass" 
+
+    ## Array initialization. ##
     title = []
     redshift_labels = []
 
@@ -1107,10 +1028,8 @@ def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_ta
 	std_halomass_array.append([])
 
 	bin_middle_array.append([])
-    print "Plotting Ngamma*fesc against Mvir" 
     
-    binwidth = 0.1
-    Frequency = 1  
+    bin_width = 0.1
  
     for model_number in xrange(0, len(SnapList)): 
 	for snapshot_idx in xrange(0, len(SnapList[model_number])):
@@ -1118,52 +1037,19 @@ def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_ta
 		tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
 		redshift_labels[model_number].append(tmp)
 
-		minimum_mass = np.floor(min(mass_central[model_number][snapshot_idx])) - 10*binwidth
-		maximum_mass = np.floor(max(mass_central[model_number][snapshot_idx])) + 10*binwidth
-
-		minimum_mass = 6.0
-		maximum_mass = 12.0
-
+		## Calculate the global (across all processes) minimum/maximum binning halo mass ##
+		minimum_mass = np.floor(min(mass_central[model_number][snapshot_idx])) - 10*bin_width
+		maximum_mass = np.floor(max(mass_central[model_number][snapshot_idx])) + 10*bin_width
 		binning_minimum = comm.allreduce(minimum_mass, op = MPI.MIN)
 		binning_maximum = comm.allreduce(maximum_mass, op = MPI.MAX)
 
-
 		Ngamma_nonlog = [10**x for x in Ngamma[model_number][snapshot_idx]]
 		halomass_nonlog = [10**x for x in mass_central[model_number][snapshot_idx]]
-		(mean_ngammafesc, std_ngammafesc, N, bin_middle) = Calculate_2D_Mean(mass_central[model_number][snapshot_idx], np.multiply(Ngamma_nonlog, fesc[model_number][snapshot_idx]), binwidth, binning_minimum, binning_maximum)
-
-		print "mean", mean_ngammafesc
-		print "std", std_ngammafesc
-		print "mean/std", std_ngammafesc/mean_ngammafesc
-		print 0.434*std_ngammafesc/mean_ngammafesc
-
+		(mean_ngammafesc, std_ngammafesc, N, bin_middle) = Calculate_2D_Mean(mass_central[model_number][snapshot_idx], np.multiply(Ngamma_nonlog, fesc[model_number][snapshot_idx]), bin_width, binning_minimum, binning_maximum)
 
 		mean_ngammafesc_array[model_number], std_ngammafesc_array[model_number] = calculate_pooled_stats(mean_ngammafesc_array[model_number], std_ngammafesc_array[model_number], mean_ngammafesc, std_ngammafesc, N)
-		mean_halomass_array[model_number], std_halomass_array[model_number] = calculate_pooled_stats(mean_halomass_array[model_number], std_halomass_array[model_number], np.mean(halomass_nonlog), np.std(halomass_nonlog), len(mass_central[model_number][snapshot_idx]))
-
-		## If want to do mean/etc of halo mass need to update script. ##
+	
 		bin_middle_array[model_number].append(bin_middle)
-
-		'''
-		if rank == 0:
-			mean_ngammafesc_array[model_number][snapshot_idx] = np.nan_to_num(mean_ngammafesc_array[model_number][snapshot_idx])
-			std_ngammafesc_array[model_number][snapshot_idx] = np.nan_to_num(std_ngammafesc_array[model_number][snapshot_idx])
-			outfile = '/lustre/projects/p004_swin/jseiler/tiamat/mean_mvir_ngammafesc_z%.3f.dat' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
-			with open(outfile, 'w') as f:
-				np.savetxt(outfile, mean_ngammafesc_array[model_number][snapshot_idx])
-			print "Saved %s" %(outfile)
-
-
-			outfile = '/lustre/projects/p004_swin/jseiler/tiamat/std_mvir_ngammafesc_z%.3f.dat' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
-			with open(outfile, 'w') as f:
-				np.savetxt(outfile, std_ngammafesc_array[model_number][snapshot_idx])
-			print "Saved %s" %(outfile)
-		'''
-	#std_ngammafesc_array[model_number] = 0.434 * np.divide(std_ngammafesc_array[model_number], mean_ngammafesc_array[model_number])
-	
-	#mean_ngammafesc_array[model_number] = np.log10(~np.isnan(mean_ngammafesc_array[model_number]))
-	
-	mean_halomass_array[model_number] = np.log10(mean_halomass_array[model_number])	
 		
     if rank == 0:
 	f = plt.figure()  
@@ -1180,25 +1066,14 @@ def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_ta
 			std = 0.434 * np.divide(std_ngammafesc_array[model_number][snapshot_idx], mean_ngammafesc_array[model_number][snapshot_idx])
 			bin_middle = bin_middle_array[model_number][snapshot_idx]
 
+			ax1.plot(bin_middle, mean, color = PlotScripts.colors[snapshot_idx], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = title, linewidth = PlotScripts.global_linewidth)	
 
-
-			ax1.plot(bin_middle, mean, color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = title)
-			#ax1.scatter(mean_halomass_array[model_number][snapshot_idx], np.mean(~np.isnan(mean)), color = colors[snapshot_idx], marker = 'o', rasterized = True, s = 40, lw = 3)	
-			if (len(SnapList) == 1):
-    				ax1.fill_between(bin_middle, np.subtract(mean,std), np.add(mean,std), color = colors[snapshot_idx], alpha = 0.25)
-
-	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = talk_fontsize) 
-    	ax1.set_ylabel(r'$\dot{N}_\gamma \: f_\mathrm{esc} \: [\mathrm{s}^{-1}]$', size = talk_fontsize)
+	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
+    	ax1.set_ylabel(r'$\dot{N}_\gamma \: f_\mathrm{esc} \: [\mathrm{s}^{-1}]$', size = PlotScripts.global_fontsize) 
     	ax1.set_xlim([8.5, 12])
     	#ax1.set_ylim([1e50, 1e54])   
 
-    	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))
-#    	ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
- 	
-#    	ax1.set_yscale('log', nonposy='clip')
-#    	for model_number in xrange(0, len(SnapList)):
-#		ax1.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
-	
+    	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))	
 	
     	leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1)
     	leg.draw_frame(False)  # Don't want a box frame
@@ -1209,9 +1084,6 @@ def plot_mvir_Ngamma(SnapList, mass_central, Ngamma, fesc, model_tags, output_ta
     	plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     	print 'Saved file to', outputFile
     	plt.close()
-
-
-
 
 '''
 At this point each process has it's own slice of the data set.  
@@ -1282,7 +1154,7 @@ def plot_photoncount(SnapList, ngamma, fesc, halo_mass, num_files, model_tags, o
     	ax2.set_xticklabels(z_labels) # But label them as redshifts.
 
     	ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
-    	ax1.set_ylabel(r'$\sum f_\mathrm{esc}\dot{N}_\gamma \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$', fontsize = talk_fontsize)
+    	ax1.set_ylabel(r'$\sum f_\mathrm{esc}\dot{N}_\gamma \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$', fontsize = PlotScripts.global_fontsize) 
 
 	leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
     	leg.draw_frame(False)  # Don't want a box frame
@@ -1298,7 +1170,6 @@ def plot_photoncount(SnapList, ngamma, fesc, halo_mass, num_files, model_tags, o
 
 	bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI. 
 	bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
-
 
 	if plot_time == 1:
 		ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
@@ -1360,7 +1231,7 @@ calculate_observed_LF = 0
 
 ### The arrays in this block control constants for each model ##
 
-number_models = 4
+number_models = 1
 
 '''
 galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_z4.929'
@@ -1420,7 +1291,9 @@ fesc_prescription = [0, 1, 1, 2] # 0 is constant, 1 is scaling with halo mass, 2
 fesc_normalization = [0.50, [6000.0, -0.4], [5.0e-5, 0.375], [1.0, 0.0]] 
 ##
 
-SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
+#SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
+#SnapList =  [[78, 64, 51],[78, 64, 51], [78, 64, 51], [78, 64, 51]]
+SnapList =  [[78, 64, 51]]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
 
 simulation_norm = [0, 0, 0, 0] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
@@ -1642,10 +1515,10 @@ for model_number in xrange(0, number_models):
 
 #HaloMassFunction(SnapList, mass_central, simulation_norm, model_tags, "HaloMassFunction_Kink")
 #StellarMassFunction(SnapList, mass_gal, simulation_norm, model_tags, "18month_SMF") ## PARALLEL COMPATIBLE
-#plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "18month_Ejected") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Map 
-plot_fesc(SnapList, fesc_local, mass_gal, mass_central, 8.5, 100.0, model_tags, "18month_fesc_diffprescription") ## PARALELL COMPATIBLE 
-plot_photoncount(SnapList, photons_HI_gal, fesc_local, mass_central, 125, model_tags, "18month_nion_diffprescription2") ## PARALELL COMPATIBLE
+#plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "18month_Ejected_test") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Map 
+#plot_fesc(SnapList, fesc_local, mass_gal, mass_central, 8.5, 100.0, model_tags, "18month_fesc_diffprescription") ## PARALELL COMPATIBLE 
+#plot_photoncount(SnapList, photons_HI_gal, fesc_local, mass_central, 125, model_tags, "18month_nion_diffprescription2") ## PARALELL COMPATIBLE
 
-#plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma_1file") # Started parallel compatibility. 
+plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma_test") # Started parallel compatibility. 
 #plot_mvir_fesc(SnapList, mass_central, fesc_local, model_tags, "Mvir_fesc")   # Stared parallel compatibility
 
