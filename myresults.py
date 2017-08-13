@@ -814,8 +814,8 @@ def plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, o
     ---------
     SnapList : Nested `np.darray', SnapList[model_number0] = [snapshot0_model0, ..., snapshotN_model0], with length equal to the number of models.
 	Snapshots for each model. 
-    mass_central, ejected_fraction : Nested 2-dimensional `np.darray', mass_central[model_number0][snapshot0]  = [halomass0_model0_snapshot0, ..., halomassN_model0_snapshot0], with length equal to the number of halos 
-	Escape fraction/mass/halo_mass for the galaxies for a given model at a given snapshot.
+    mass_central, ejected_fraction : Nested 2-dimensional `np.darray', mass_central[model_number0][snapshot0]  = [halomass0_model0_snapshot0, ..., halomassN_model0_snapshot0], with length equal to the number of models. 
+	Escape fraction/halo mass for the galaxies for a given model at a given snapshot.
     model_tags : `np.darray' of strings with length equal to the number of models.
 	Strings that contain the tag for each model.  Will be placed on the plot.
     output_tag : string
@@ -881,6 +881,48 @@ def plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, o
 	f = plt.figure()  
 	ax1 = plt.subplot(111)  
 
+	def plot_mean(ax, x_data, y_mean, y_std):
+
+		dimension = depth(x_data) # Determines the dimension of the input data.
+
+		## Since I want this script to be able to plot multiple snapshots and even multiple models we need to set up variables to control the colour and linestyles correctly.##
+		## I use different colours for snapshots and different linestyles for models. ##
+
+		## The first case is where we are simply plotting a single snapshot. ##
+		## Data is of the form [point0, point1, ..., pointN]. ##
+		if dimension == 1:			
+			color_len = 0
+			ls_len = 0
+
+			ax.plot(x_data, y_mean, color = colors[0], linestyle = linestyles[0], rasterized = True, label = snapshot_labels[0]) 
+
+		## The second case is where we have multiple snapshots that we are plotting at; our input data is a 2D array. ##
+		## Data is of the form [[snap0_point0, snap0_point1, ... , snap0_pointN] , ... , [snapN_point0, snapN_point1, ..., snapN_pointN]]. ##
+		if dimension == 2:	
+ 
+			color_len = len(x_data)
+			ls_len = 0
+
+			for snapshot_idx in xrange(0, len(x_data)):
+				ax.plot(x_data[snapshot_idx], y_mean[snapshot_idx], color = colors[snapshot_idx], linestyle = linestyles[0], rasterized = True, label = snapshot_labels[snapshot_idx])
+
+		## The third case is we have multiple snapshots over multiple modles that we wish to plot; our input data is a 3D array. ##
+		## Data is of the form [[[model0_snap0_point0, ..., model0_snap0_pointN], ..., [model0_snapN_point0, ..., model0_snapN_pointN]], ..., [[modelN_snap0_point0, ..., modelN_snap0_pointN], ..., [modelN_snapN_point0, ..., modelN_snapN_pointN]]]. ##
+		if dimension == 3: 	
+	
+			color_len = len(x_data[0])
+			ls_len = len(x_data) 
+
+			for model_number in xrange(0, len(x_data)):
+				for snapshot_idx in xrange(0, len(x_data[snapshot_idx])):
+					ax.plot(x_data[model_number][snapshot_idx], y_mean[model_number][snapshot_idx], color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = snapshot_labels[snapshot_idx])
+
+			for model_number in xrange(0, len(x_data)):
+				ax.plot(np.nan, np.nan, color = 'k', linestyle = linestyles[model_number], rasterized = True, label = model_labels[model_number])
+		
+
+		return ax
+
 	for model_number in xrange(0, len(SnapList)):
 		for snapshot_idx in xrange(0, len(SnapList[model_number])):
 			if model_number == 0:
@@ -892,7 +934,7 @@ def plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, o
 			std = std_ejected_array[model_number][snapshot_idx]
 			bin_middle = bin_middle_array[model_number][snapshot_idx]
 
-			ax1.plot(bin_middle, mean, color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = title)
+			ax1.plot(bin_middle, mean, color = colors[snapshot_idx], linestyle = linestyles[model_number], rasterized = True, label = title, lw = 3)
 			ax1.scatter(mean_halomass_array[model_number][snapshot_idx], np.mean(~np.isnan(mean)), color = colors[snapshot_idx], marker = 'o', rasterized = True, s = 40, lw = 3)	
 			#if (len(SnapList) == 1):
     			#	ax1.fill_between(bin_middle, np.subtract(mean,std), np.add(mean,std), color = colors[snapshot_idx], alpha = 0.25)
