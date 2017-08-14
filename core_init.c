@@ -113,7 +113,7 @@ void init(void)
  
   good_steps = 0;
   bad_steps = 0;
- 
+  times_written = 0; 
 }
 
 

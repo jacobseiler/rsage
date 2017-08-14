@@ -166,3 +166,4 @@ int *gal_to_free;
 
 int good_steps;
 int bad_steps;
+int times_written;

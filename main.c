@@ -168,7 +168,7 @@ int main(int argc, char **argv)
     {      
 			assert(!gotXCPU);
 
-      if(tree % 10 == 0)
+      if(tree % 1000 == 0)
       {
 #ifdef MPI
         printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
@@ -193,7 +193,6 @@ int main(int argc, char **argv)
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree();
-
       //break;            
     }
 
@@ -202,12 +201,13 @@ int main(int argc, char **argv)
     
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
-    break; 
+    //break; 
   }
   fprintf(stderr, "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\nWe had %d ismerged Mallocs and %d ismerged frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees, ismerged_mallocs, ismerged_frees);
   exitfail = 0;
   printf("There was %d firstSF and %d notfirstSF\n", count_firstSF, count_notfirstSF);
   fprintf(stderr, "There was %d good steps and %d bad steps giving a ratio of %.4e (bad-to-good)\n", good_steps, bad_steps, (float) bad_steps/(float) good_steps); 
+  fprintf(stderr, "Write grid array was called %d times.\n", times_written);
   gsl_rng_free(random_generator); 
   return 0;
 }

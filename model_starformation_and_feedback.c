@@ -150,8 +150,6 @@ void update_stars_array(int p, double stars, double dt, int tree, int step, int 
 
   int num_shuffled = round(Gal[p].Total_SF_Time/TimeResolutionSN); // How many cells will this SF event span.
 
-  
-
   double stars_spread = Gal[p].Total_Stars/num_shuffled; // We spread the stars evenly over time.
 
   int i;

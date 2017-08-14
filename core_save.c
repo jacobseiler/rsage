@@ -19,7 +19,7 @@ void save_galaxies(int filenr, int tree)
 {
   char buf[1000];
   int i, n;
-  struct GALAXY_OUTPUT galaxy_output;
+  //struct GALAXY_OUTPUT galaxy_output;
 
   int OutputGalCount[MAXSNAPS], *OutputGalOrder;
   
@@ -76,23 +76,12 @@ void save_galaxies(int filenr, int tree)
      
     for(i = 0; i < NumGals; i++)
     {
-      if(HaloGal[i].SnapNum == ListOutputSnaps[n])
+      if(HaloGal[i].SnapNum == ListOutputSnaps[n]) 
       { 	       
       
-        prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
-        myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
-        if(HaloGal[i].SnapNum == ListOutputSnaps[0] && HaloGal[i].IsMerged == 0) // We only want to write out the grid properties for the final snapshot.
-            write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
-        //fprintf(stderr, "On write the GrandSum was %.4e and Stellar Mass was %.4e for Galaxy %d\n", HaloGal[i].GrandSum, HaloGal[i].StellarMass, i);
-        /*
-        if(HaloGal[i].StellarMass != 0)
-	{ 
-		//double ratio = HaloGal[i].GrandSum/HaloGal[i].StellarMass;
-		//fprintf(stderr, "Ratio: %.4e \t StellarMass = %.4e \t GrandSum = %.4e\n", ratio, HaloGal[i].StellarMass, HaloGal[i].GrandSum); 	
-		//fprintf(stderr, "%.4f\n", ratio);
-
-        }
-        */
+        //prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
+        //myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
+        write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
     	TotGalaxies[n]++;
         TreeNgals[n][tree]++;
 
@@ -258,8 +247,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 	   MAXSNAPS, nwritten);
  
   XASSERT(g->GridSFR != NULL, "GridSFR has a NULL pointer.\n"); 
-
-  
+ 
   float *SFR_tmp = malloc(sizeof(*(g->GridSFR)) * MAXSNAPS);
   for (j = 0; j < MAXSNAPS; ++j)
   {
@@ -310,6 +298,8 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   nwritten = fwrite(g->LenHistory, sizeof(*(g->LenHistory)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing LenHistory, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
+  ++times_written;
+//  fprintf(stderr, "sizeof(*(g->GridHistory)) = %zu \nsizeof(*(g->GridCentralGalaxyMass = %zu\nsizeof(*(MfiltGnedin)) = %zu\n", sizeof(*(g->GridHistory)), sizeof(*(g->GridCentralGalaxyMass)), sizeof(*(g->MfiltGnedin))); 
 }
 
 void finalize_galaxy_file(int filenr)
@@ -343,7 +333,7 @@ void save_merged_galaxies(int filenr, int tree)
 {
   char buf[1000];
   int i;
-  struct GALAXY_OUTPUT galaxy_output;
+  //struct GALAXY_OUTPUT galaxy_output;
 
   int OutputGalCount, *OutputGalOrder;
   
@@ -378,8 +368,8 @@ void save_merged_galaxies(int filenr, int tree)
 
   for(i = 0; i < MergedNr; i++)
   {
-    prepare_galaxy_for_output(filenr, tree, &MergedGal[i], &galaxy_output);
-    myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd2);
+    //prepare_galaxy_for_output(filenr, tree, &MergedGal[i], &galaxy_output);
+    //myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd2);
     write_gridarray(&MergedGal[i], save_fd2);
 
     TotMerged++;
