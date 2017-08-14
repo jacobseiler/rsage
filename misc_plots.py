@@ -265,6 +265,71 @@ def plot_clump_field(clump):
 
 ##
 
+def plot_density_field():
+
+    fname = "/lustre/projects/p004_swin/jseiler/Simfast21/delta/delta_z0_N512_L100.0.dat"
+    fd = open(fname, 'rb')
+    density = ReadScripts.read_binary_grid(fname, 512, 1) 
+    fd.close()
+   
+    cut_slice = 40
+
+    print
+    print "Plotting density slice."
+    ax = plt.subplot(111)
+	
+    im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,100,0,100], cmap = 'Purples', vmin = 0.12, vmax = 10) 
+    cbar = plt.colorbar(im, ax = ax)
+    cbar.set_label(r'$\rho/\langle \rho \rangle$')
+				    
+    ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
+    ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
+
+    ax.set_xlim([0.0, 100])
+    ax.set_ylim([0.0, 100])
+
+    outputFile = "./Simfast21_dens.png" 
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+			
+    plt.close()	
+
+##
+
+def plot_ionized_field(z):
+
+    fname = "/lustre/projects/p004_swin/jseiler/Simfast21/Ionization/xHII_z%.3f_N128_L100.0.dat" %(z)
+    fd = open(fname, 'rb')
+    ionized_cells = ReadScripts.read_binary_grid(fname, 128, 1) 
+    fd.close()
+       
+    print "Plotting ionized bubbles at z = %.3f." %(z)
+
+    ionized_cells = np.log10(1 - ionized_cells)
+    cut_slice = 40
+
+    ax = plt.subplot(111)
+
+    im = ax.imshow(ionized_cells[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='nearest', origin='low', extent =[0,100.0,0,100.0], vmin = -8, vmax = 0, cmap = 'afmhot_r')
+
+    cbar = plt.colorbar(im, ax = ax)
+    cbar.set_label(r'$\mathrm{log}_{10}\left(x_\mathrm{HI}\right)$')
+
+    ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')
+    ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')
+
+    ax.set_xlim([0.0, 100.0])
+    ax.set_ylim([0.0, 100.0]) 
+
+    title = r"z = %.3f" %(z)
+    ax.set_title(title)
+ 
+    outputFile = './Simfast21_z%.3f_bubbles.png' %(z) 
+    plt.savefig(outputFile)  # Save the figure
+    print 'Saved file to', outputFile
+
+    plt.close()
+
 if __name__ == '__main__':
 
     #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_filter_1024_DRAGONS.dat" 
@@ -281,12 +346,6 @@ if __name__ == '__main__':
     #plot_filtervalues(z, Mfilt, Mvir, Mod)
     #plot_filtervalues(z, Mfilt)
 
-    fname = "/home/jseiler/SAGE-stuff/post_processed_SAGE/millennium_grandsum.dat"
-    fd = open(fname, 'rb')
-    Ratio = np.loadtxt(fd, unpack=True, dtype = np.float32)  
-    fd.close()
-    plot_grandsum_ratio(Ratio)
-
     #GridSize = 128
     #fname = "/home/jseiler/grid-model/data_files/grid128/clump11_ic.in"
     #fd = open(fname, 'rb')
@@ -294,4 +353,11 @@ if __name__ == '__main__':
     #clump.shape = (GridSize, GridSize, GridSize)
     #fd.close()
     #plot_clump_field(clump)
+
+    #plot_density_field()
+
+    #for i in np.arange(6.00, 12.500, 0.250):
+#		plot_ionized_field(i)
+
+
 

@@ -1234,14 +1234,13 @@ def plot_photoncount(SnapList, ngamma, fesc, halo_mass, num_files, max_files, mo
 	ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize) 
 	ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
 
-    	plt.tight_layout()
+	plt.tight_layout()
     	outputFile = './' + output_tag + output_format
-    	plt.savefig(outputFile)  # Save the figure
-    	print 'Saved file to', outputFile
-    	plt.close()
+	plt.savefig(outputFile)  # Save the figure
+	print 'Saved file to', outputFile
+	plt.close()
 
-
-## Calculates the stellar mass for galaxies with host halos that have a certain amount of particles.
+##
 
 def Calculate_HaloPartStellarMass(halo_part, stellar_mass, bound_low, bound_high):
     '''
@@ -1267,12 +1266,12 @@ def Calculate_HaloPartStellarMass(halo_part, stellar_mass, bound_low, bound_high
     Output mean/std Stellar Mass is in units of log10(Msun).
     '''
 
-	w = np.where((HaloPart >= BoundLow) & (HaloPart <= BoundHigh))[0] # Find the halos with particle number between the bounds.
+    w = np.where((halo_part >= bound_low) & (halo_part <= bound_high))[0] # Find the halos with particle number between the bounds.
 
-	mass = np.mean(10**(stellar_mass[w]))
-	mass_std = np.std(10**(stellar_mass[w]))
+    mass = np.mean(10**(stellar_mass[w]))
+    mass_std = np.std(10**(stellar_mass[w]))
 
-	return np.log10(mass), np.log10(mass_std)
+    return np.log10(mass), np.log10(mass_std)
 
 ##
 
@@ -1306,46 +1305,46 @@ def calculate_fesc(fesc_prescription, halo_mass, ejected_fraction, fesc_normaliz
     Input Halo Mass is in units of log10(Msun).
     '''
 
-	if(len(halo_mass) != len(ejected_fraction)):
-		print "The length of the halo_mass array is %d and the length of the ejected_fraction array is %d" %(len(halo_mass), len(ejected_fraction))
-		raise ValueError("These two should be equal.")
+    if(len(halo_mass) != len(ejected_fraction)):
+	print "The length of the halo_mass array is %d and the length of the ejected_fraction array is %d" %(len(halo_mass), len(ejected_fraction))
+	raise ValueError("These two should be equal.")
 
-	if(fesc_prescription > 2):
-		print "The prescription value you've chosen is %d" %(fesc_prescription)
-		raise ValueError("Currently we only have prescriptions 0 (constant), 1 (scaling with halo mass) and 2 (scaling with ejected fraction).")
+    if(fesc_prescription > 2):
+	print "The prescription value you've chosen is %d" %(fesc_prescription)
+	raise ValueError("Currently we only have prescriptions 0 (constant), 1 (scaling with halo mass) and 2 (scaling with ejected fraction).")
 
-	if((fesc_prescription == 0 and isinstance(fesc_normalization, list) == True)):
-		print "The escape fraction prescription is 0 but fesc_normalization was a list with value of ", fesc_normalization
-		raise ValueError("For a constant escape fraction, fesc_noramlization should be a single float.")
+    if((fesc_prescription == 0 and isinstance(fesc_normalization, list) == True)):
+	print "The escape fraction prescription is 0 but fesc_normalization was a list with value of ", fesc_normalization
+	raise ValueError("For a constant escape fraction, fesc_noramlization should be a single float.")
 
-	if((fesc_prescription != 1 and isinstance(fesc_normalization, list) == False)):
-		print "The escape fraction prescription is ", fesc_prescription, " but fesc_normalization was not a list; it instead had a value of ", fesc_normalization
-		raise ValueError("For a scaling escape fraction fesc_normalization should be a list of the form [A, B]") 
+    if((fesc_prescription == 1 or fesc_prescription == 2) and (isinstance(fesc_normalization, list) == False)):
+	print "The escape fraction prescription is ", fesc_prescription, " but fesc_normalization was not a list; it instead had a value of ", fesc_normalization
+	raise ValueError("For a scaling escape fraction fesc_normalization should be a list of the form [A, B]") 
 
-	print "Calculating fesc with prescription %d" %(fesc_prescription) 
-	if (fesc_prescription == 0):
-		fesc = np.full((len(halo_mass)), fesc_normalization)
-	elif (fesc_prescription == 1):
-		fesc = fesc_normalization[0]*pow(10,halo_mass*fesc_normalization[1])
-	elif (fesc_prescription == 2):
-		fesc = fesc_normalization[0]*ejected_fraction + fesc_normalization[1]
+    print "Calculating fesc with prescription %d" %(fesc_prescription) 
+    if (fesc_prescription == 0):
+	fesc = np.full((len(halo_mass)), fesc_normalization)
+    elif (fesc_prescription == 1):
+	fesc = fesc_normalization[0]*pow(10,halo_mass*fesc_normalization[1])
+    elif (fesc_prescription == 2):
+	fesc = fesc_normalization[0]*ejected_fraction + fesc_normalization[1]
 
-	## Adjust bad values, provided there isn't a riduculous amount of them. ##	
-	nan_values += len(fesc[np.isnan(fesc)])
-	aboveone_values += len(fesc[fesc > 1.0])
-	belowzero_values += len(fesc[fesc < 0.0])
-	print "There was %d escape fraction values that were NaN, %d > 1.0 and %d < 0.0.  There was %d in total." %(nan_values, aboveone_values, belowzero_values, len(fesc))
-	bad_ratio = float(len(fesc)) / (float(nan_values) + float(aboveone_values) + float(belowzero_values))
+    ## Adjust bad values, provided there isn't a riduculous amount of them. ##	
+    nan_values = len(fesc[np.isnan(fesc)])
+    aboveone_values = len(fesc[fesc > 1.0])
+    belowzero_values = len(fesc[fesc < 0.0])
+    print "There was %d escape fraction values that were NaN, %d > 1.0 and %d < 0.0.  There was %d in total." %(nan_values, aboveone_values, belowzero_values, len(fesc))
+    bad_ratio =  (float(nan_values) + float(aboveone_values) + float(belowzero_values)) / float(len(fesc))
 	
-	if (bad_ratio > 0.10):
-		print "The ratio of bad escape fractions to good is %.4f" %(bad_ratio)
-		raise ValueError("This was above the tolerance level of 10%.")
+    if (bad_ratio > 0.10):
+	print "The ratio of bad escape fractions to good is %.4f" %(bad_ratio)
+	raise ValueError("This was above the tolerance level of 10%.")
 
-	fesc[np.isnan(fesc)] = 0 # Get rid of any lingering Nans.
-	fesc[fesc > 1] = 1.0  # Get rid of any values above 1. 
-	fesc[fesc < 0] = 0.0  # Get rid of any values below 0. 
+    fesc[np.isnan(fesc)] = 0 # Get rid of any lingering Nans.
+    fesc[fesc > 1] = 1.0  # Get rid of any values above 1. 
+    fesc[fesc < 0] = 0.0  # Get rid of any values below 0. 
 
-	return fesc
+    return fesc
 
 ##
 
@@ -1374,45 +1373,75 @@ def calculate_photons(SFR, Z):
     ngamma_HI is in units of log10(s^-1).
     '''
 
-	ngamma_HI = []
+    ngamma_HI = []
 
-	## Fits are based on the blah tracks of STARBURST99. ##
-	for i in xrange(0, len(SFR)):
-		ngamma_HI_tmp = 0.0
-		if (SFR[i] == 0):
-			ngamma_HI_tmp = 0.0	
-		elif (Z[i] < 0.0025):
-			ngamma_HI_tmp = SFR[i] + 53.354
-		elif (Z[i] >= 0.0025 and Z[i] < 0.006):
-			ngamma_HI_tmp = SFR[i] + 53.290
-		elif (Z[i] >= 0.006 and Z[i] < 0.014):
-			ngamma_HI_tmp = SFR[i] + 53.240
-		elif (Z[i] >= 0.014 and Z[i] < 0.30):
-			ngamma_HI_tmp = SFR[i] + 53.166
-		else:
-			ngamma_HI_tmp = SFR[i] + 53.041 
-		if (SFR[i] != 0):
-			assert(Ngamma_HI_tmp > 0.0)	
-		ngamma_HI.append(Ngamma_HI_tmp)
-	return Ngamma_HI
+    ## Fits are based on the blah tracks of STARBURST99. ##
+    for i in xrange(0, len(SFR)):
+	ngamma_HI_tmp = 0.0
+	if (SFR[i] == 0):
+		ngamma_HI_tmp = 0.0	
+	elif (Z[i] < 0.0025):
+		ngamma_HI_tmp = SFR[i] + 53.354
+	elif (Z[i] >= 0.0025 and Z[i] < 0.006):
+		ngamma_HI_tmp = SFR[i] + 53.290
+	elif (Z[i] >= 0.006 and Z[i] < 0.014):
+		ngamma_HI_tmp = SFR[i] + 53.240
+	elif (Z[i] >= 0.014 and Z[i] < 0.30):
+		ngamma_HI_tmp = SFR[i] + 53.166
+	else:
+		ngamma_HI_tmp = SFR[i] + 53.041 
+    if (SFR[i] != 0):
+	assert(ngamma_HI_tmp > 0.0)	
+    ngamma_HI.append(ngamma_HI_tmp)
+    return ngamma_HI
+
+
+##
+def calculate_UV_extinction(z, L, M):
+    '''
+    Calculates the observed UV magnitude after dust extinction is accounted for.
+
+    Parameters
+    ----------
+    z : float
+	Redshift we are calculating the extinction at.
+    L, M : `np.darray', length equal to the number of galaxies at this snapshot.
+	Array containing the UV luminosities and magnitudes.
+
+    Returns
+    -------
+    M_UV_obs : `np.darray', length equal to the number of galaxies at this snapshot.
+	Array containing the observed UV magnitudes.
+
+    Units
+    -----
+    Luminosities are in units of log10(erg s^-1 A^-1).
+    Magnitudes are in the AB system.
+    '''
+    M_UV_bins = np.arange(-24, -16, 0.1)
+    A_mean = np.zeros((len(MUV_bins))) # A_mean is the average UV extinction for a given UV bin.	
+
+    for j in xrange(0, len(M_UV_bins)):
+	beta = calculate_beta(M_UV_bins[j], AllVars.SnapZ[current_snap]) # Fits the beta parameter for the current redshift/UV bin. 
+	dist = np.random.normal(beta, 0.34, 10000) # Generates a normal distribution with mean beta and standard deviation of 0.34.
+	A = 4.43 + 1.99*dist 
+	A[A < 0] = 0 # Negative extinctions don't make sense.
+		
+	A_Mean[j] = np.mean(A)
+
+    indices = np.digitize(M, M_UV_bins) # Bins the simulation magnitude into the MUV bins. Note that digitize defines an index i if bin[i-1] <= x < bin[i] whereas I prefer bin[i] <= x < bin[i+1]
+    dust = A_Mean[indices]
+    flux = AllVars.Luminosity_to_Flux(L, 10.0) # Calculate the flux from a distance of 10 parsec, units of log10(erg s^-1 A^-1 cm^-2). 
+    flux_observed = flux - 0.4*dust
+	
+    f_nu = ALlVars.spectralflux_wavelength_to_frequency(10**flux_observed, 1600) # Spectral flux desnity in Janksy.
+    M_UV_obs(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
+
+    return M_UV_obs
 
 #################################
 
  
-'''
-countSnap_low = 30
-countSnap_high = 99
-
-idx_low = [i for i in range(len(G_MySim.GridHistory)) if G_MySim.GridHistory[i,countSnap_low] != -1] # Indices for all galaxies that exist at snapshot 'countSnap_low'.
-numgals_low = len(idx_low)
-
-numgals_high = len(G_MySim.GridHistory[G_MySim.GridHistory[idx_low, countSnap_high] != -1])
- 
-
-print numgals_low
-print numgals_high
-'''
-
 HaloPart_Low = 41 # Bounds for where we define the cutoff for a 'Dark Matter Halo'. Below this we can't be sure of the results.
 HaloPart_High = 51
 
@@ -1422,25 +1451,12 @@ calculate_observed_LF = 0
 
 number_models = 1
 
-'''
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_z4.929'
-galaxies_model2 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_z4.929'
-galaxies_model3 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_z4.929'
-galaxies_model4 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_z4.929'
-'''
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/18month/IRA_z5.000'
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/18month/IRA_smalltest_z5.000'
 galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/IRA_z5.000'
 galaxies_model3 = '/lustre/projects/p004_swin/jseiler/18month/IRA_z5.000'
 galaxies_model4 = '/lustre/projects/p004_swin/jseiler/18month/IRA_z5.000'
 
-'''
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_MergedGalaxies'
-merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_MergedGalaxies'
-merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_MergedGalaxies'
-merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/tiamat/lowz_MergedGalaxies'
-'''
-
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/18month/IRA_MergedGalaxies'
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/18month/IRA_smalltest_MergedGalaxies'
 merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/IRA_MergedGalaxies'
 merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/18month/IRA_MergedGalaxies'
 merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/18month/IRA_MergedGalaxies'
@@ -1450,14 +1466,11 @@ merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2
 
 #number_snapshots = [164, 164, 164, 164] # Property of the simulation.
 number_snapshots = [101, 101, 101, 101] # Property of the simulation.
-#number_snapshots = [101] # Property of the simulation.
 FirstFile = [0, 0, 0, 0]
 LastFile = [124, 124, 124, 124]
 
-#model_tags = [r"Tiamat"]
 #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 model_tags = [r"$f_\mathrm{esc} = 0.50$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
-#model_tags = [r"No Cut", r"10 Particle Cut", r"100 Particle Cut"]
 
 for model_number in xrange(0,number_models):
 	assert(LastFile[model_number] - FirstFile[model_number] + 1 >= size)
@@ -1597,7 +1610,7 @@ for model_number in xrange(0, number_models):
    		 
 		current_snap = SnapList[model_number][snapshot_idx]
 
-		w_gal[model_number].append(np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridStellarMass[:, current_snap] < 1e5) & (G.GridCentralGalaxyMass[:, current_snap] < 1e5) & (G.GridSFR[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut))[0])
+		w_gal[model_number].append(np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridStellarMass[:, current_snap] < 1e5) & (G.GridCentralGalaxyMass[:, current_snap] < 1e5) & (G.GridSFR[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut))[0]) # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
 		current_idx = w_gal[model_number][snapshot_idx]
 	
 		print "There were %d galaxies for snapshot %d (Redshift %.4f) model %d." %(len(current_idx), current_snap, AllVars.SnapZ[current_snap], model_number)
@@ -1627,27 +1640,8 @@ for model_number in xrange(0, number_models):
 		L_UV[model_number].append(SFR_gal[model_number][snapshot_idx] + 39.927)# Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
 		M_UV[model_number].append(AllVars.Luminosity_to_ABMag(L_UV[model_number][snapshot_idx], 1600))
 
-		if (calculate_observed_LF == 1):
-
-	      		M_UV_bins = np.arange(-24, -16, 0.1)
-	      		A_Mean = np.zeros((len(MUV_bins)))	
-
-			for j in xrange(0, len(M_UV_bins)):
-				beta = calculate_beta(M_UV_bins[j], AllVars.SnapZ[current_snap]) 
-				dist = np.random.normal(beta, 0.34, 10000)
-				A = 4.43 + 1.99*dist
-				A[A < 0] = 0
-		
-				A_Mean[j] = np.mean(A)
-
-
-			indices = np.digitize(M_UV[model_number][snap_idz], M_UV_bins) # Bins the simulation magnitude into the MUV bins. Note that digitize defines an index i if bin[i-1] <= x < bin[i] whereas I prefer bin[i] <= x < bin[i+1]
-			dust = A_Mean[indices]
-			Flux = AllVars.Luminosity_to_Flux(L_UV[model_number][snapshot_idx], 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units.  
-			Flux_Observed = Flux - 0.4*dust
-	
-			f_nu = ALlVars.spectralflux_wavelength_to_frequency(10**Flux_Observed, 1600) # Spectral flux desnity in Janksy.
-			M_UV_obs[model_number].append(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
+		if (calculate_observed_LF == 1): # Calculate the UV extinction if requested. 
+			M_UV_obs.append(calculate_UV_extinction(AllVars.SnapZ[current_snap], L_UV[model_number][snap_idx], M_UV[model_number][snap_idx]))
 
 		ejected_fraction[model_number].append(G.EjectedFraction[current_idx, current_snap])
 	
@@ -1660,11 +1654,10 @@ for model_number in xrange(0, number_models):
 		 
 		photons_HI_gal[model_number].append(calculate_photons(SFR_gal[model_number][snapshot_idx], metallicity_gal[model_number][snapshot_idx])) 
 
-
-#StellarMassFunction(SnapList, mass_gal, simulation_norm, model_tags, 1, "18month_SMF_test") ## PARALLEL COMPATIBLE
+StellarMassFunction(SnapList, mass_gal, simulation_norm, model_tags, 1, "18month_SMF_test") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "18month_Ejected_test") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Map 
 #plot_fesc(SnapList, fesc_local, mass_gal, mass_central, 8.5, 100.0, model_tags, "18month_fesc_diffprescription") ## PARALELL COMPATIBLE 
-plot_photoncount(SnapList, photons_HI_gal, fesc_local, mass_central, 125, 125, model_tags, "18month_nion_diffprescription2") ## PARALELL COMPATIBLE
+#plot_photoncount(SnapList, photons_HI_gal, fesc_local, mass_central, 125, 125, model_tags, "18month_nion_diffprescription2") ## PARALELL COMPATIBLE
 #plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma_test") ## PARALELL COMPATIBLE 
 
 #plot_mvir_fesc(SnapList, mass_central, fesc_local, model_tags, "Mvir_fesc")   # Stared parallel compatibility
