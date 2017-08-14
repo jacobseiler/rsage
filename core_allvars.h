@@ -209,8 +209,8 @@ struct GALAXY
   float *GridSFR;
   float *GridZ;
   float *GridCentralGalaxyMass;
-  double *MfiltGnedin;
-  double *MfiltSobacchi;
+  float *MfiltGnedin;
+  float *MfiltSobacchi;
   float *EjectedFraction;
   int *LenHistory;
   double *Stars; 

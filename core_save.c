@@ -269,16 +269,6 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   XASSERT( nwritten == MAXSNAPS, "Error: While writing GridCentralGalaxyMass, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
 
-  float *tmp = malloc(sizeof(float) * MAXSNAPS);
-  for (j = 0; j < MAXSNAPS; ++j)
-  {
-    tmp[j] = -999.99;  
-  } 
-  nwritten = fwrite(tmp, sizeof(float), MAXSNAPS, fp);
-  XASSERT( nwritten == MAXSNAPS, "Error: While writing tmp, expected to write %d times but wrote %zu times instead\n",
-	   MAXSNAPS, nwritten);
-  free(tmp);    
-
   XASSERT(g->MfiltGnedin != NULL, "MfiltGnedin has a NULL pointer.\n"); 
   nwritten = fwrite(g->MfiltGnedin, sizeof(*(g->MfiltGnedin)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing MfiltGnedin, expected to write %d times but wrote %zu times instead\n",
