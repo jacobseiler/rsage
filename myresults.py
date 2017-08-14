@@ -50,6 +50,9 @@ output_format = ".png"
 # The calculation of fesc skips this hump range (defined from kink_low to kink_high)
 kink_low = 10.3
 kink_high = 10.30000001
+
+m_low = 8.5 # We only sum the photons coming from halos within the mass range m_low < Halo Mass < m_high
+m_high = 14
 	
 def calculate_beta(MUV, z):
 	''' 
@@ -178,7 +181,7 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
     print "The minimum of the data being binned is %.4e" %(range_low)
     print "The maximum of the data being binned is %.4e" %(range_high) 
 	    
-    NB = (range_high - range_low) / bin_width 
+    NB = round((range_high - range_low) / bin_width) 
 
     bins = np.arange(range_low, range_high + bin_width, bin_width)
     bins_mid = bins + bin_width/2.0
@@ -258,7 +261,8 @@ def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
 	range_low = min_hist 
 	range_high = max_hist 
 
-    if range_high <= range_low: 
+    if range_high <= range_low:
+	print "Upper bin range = %.4f, lower bing range = %.4f" %(range_high, range_low) 
         raise ValueError("The upper bin range should be less than the lower bin range")
 
     print "The minimum of the data being binned is %.4e" %(range_low)
@@ -267,14 +271,10 @@ def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
     NB = round((range_high - range_low) / bin_width) 
 
     if NB < 1:
+	print "Number of bins = %d" %(NB)
 	raise ValueError("The number of bins should be greater than one.")
 
     if (weights == 0): # Running in frequency mode.
-
-	print data
-	print range_low
-	print range_high
-	print NB	
         (counts, bin_edges) = np.histogram(data, range=(range_low, range_high), bins=NB)
     else: # Running in probability mode.
         weights = np.ones_like(data)/len(data)
@@ -1008,7 +1008,7 @@ def plot_mvir_fesc(SnapList, mass_central, fesc, model_tags, output_tag):
 
 ##
 
-def plot_mvir_Ngamma(SnapList, halo_mass, ngamma, fesc, model_tags, output_tag): 
+def plot_mvir_Ngamma(SnapList, halo_mass, ngamma, fesc, model_tags, output_tag,fesc_prescription=None, fesc_normalization=None, fitpath=None): 
     '''
     Plots the number of ionizing photons (pure ngamma times fesc) as a function of halo mass. 
     Parallel compatible.
@@ -1024,6 +1024,20 @@ def plot_mvir_Ngamma(SnapList, halo_mass, ngamma, fesc, model_tags, output_tag):
 	Strings that contain the tag for each model.  Will be placed on the plot.
     output_tag : string
 	Name of the file that will be generated.
+    fesc_prescription : int (optional)
+	If this parameter is defined, we will save the Mvir-Ngamma results in a text file (not needed if not saving).
+	Number that controls what escape fraction prescription was used to generate the escape fractions.
+	0 : Constant, fesc = Constant.
+	1 : Scaling with Halo Mass, fesc = A*Mh^B.
+	2 : Scaling with ejected fraction, fesc = fej*A + B.
+    fesc_normalization : float (if fesc_prescription == 0) or `numpy.darray' with length 2 (if fesc_prescription == 1 or == 2) (optional).
+	If this parameter is defined, we will save the Mvir-Ngamma results in a text file (not needed if not saving).
+	Parameter not needed if you're not saving the Mvir-Ngamma results.
+	If fesc_prescription == 0, gives the constant value for the escape fraction.
+	If fesc_prescription == 1 or == 2, gives A and B with the form [A, B].
+    fitpath : string (optional)	
+	If this parameter is defined, we will save the Mvir-Ngamma results in a text file (not needed if not saving).
+	Defines the base path for where we are saving the results.
 
     Returns
     -------
@@ -1075,11 +1089,13 @@ def plot_mvir_Ngamma(SnapList, halo_mass, ngamma, fesc, model_tags, output_tag):
 		binning_minimum = comm.allreduce(minimum_mass, op = MPI.MIN)
 		binning_maximum = comm.allreduce(maximum_mass, op = MPI.MAX)
 
+		print "I am rank %d and my binning_minimum is %.3f and my binning_maximum is %.3f" %(rank, binning_minimum, binning_maximum)
 		## Move to non-log space. ##
-		Ngamma_nonlog = [10**x for x in Ngamma[model_number][snapshot_idx]]
+		ngamma_nonlog = [10**x for x in ngamma[model_number][snapshot_idx]]
 		halomass_nonlog = [10**x for x in mass_central[model_number][snapshot_idx]]
 
-		(mean_ngammafesc, std_ngammafesc, N, bin_middle) = Calculate_2D_Mean(mass_central[model_number][snapshot_idx], np.multiply(Ngamma_nonlog, fesc[model_number][snapshot_idx]), bin_width, binning_minimum, binning_maximum) # Bin the halo mass in the x-axis then calculate the mean value of ngamma*fesc in each of the bin. 
+		(mean_ngammafesc, std_ngammafesc, N, bin_middle) = Calculate_2D_Mean(mass_central[model_number][snapshot_idx], np.multiply(ngamma_nonlog, fesc[model_number][snapshot_idx]), bin_width, binning_minimum, binning_maximum) # Bin the halo mass in the x-axis then calculate the mean value of ngamma*fesc in each of the bin.
+		
 		mean_ngammafesc_array[model_number], std_ngammafesc_array[model_number] = calculate_pooled_stats(mean_ngammafesc_array[model_number], std_ngammafesc_array[model_number], mean_ngammafesc, std_ngammafesc, N) # Collate the values from all processors.	
 		bin_middle_array[model_number].append(bin_middle)
 		
@@ -1094,12 +1110,33 @@ def plot_mvir_Ngamma(SnapList, halo_mass, ngamma, fesc, model_tags, output_tag):
 			else:
 				title = ''
 			
-			mean = np.log10(mean_ngammafesc_array[model_number][snapshot_idx])
+			mean = np.log10(mean_ngammafesc_array[model_number][snapshot_idx])	
 			std = 0.434 * np.divide(std_ngammafesc_array[model_number][snapshot_idx], mean_ngammafesc_array[model_number][snapshot_idx]) # We're plotting in log space so the standard deviation is 0.434*log10(std)/log10(mean).
 			bin_middle = bin_middle_array[model_number][snapshot_idx]
 
-			ax1.plot(bin_middle, mean, color = PlotScripts.colors[snapshot_idx], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = title, linewidth = PlotScripts.global_linewidth)	
+			#ax1.plot(bin_middle, mean, color = PlotScripts.colors[snapshot_idx], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = title, linewidth = PlotScripts.global_linewidth)	
 
+			if (fesc_prescription != None or fesc_normalization != None or fitpath != None):
+
+				if (fesc_prescription == None or fesc_normalization == None or fitpath == None):
+					raise ValueError("You've specified you want to save the Mvir-Ngamma results but haven't provided an escape fraction prescription, normalization and base path name")
+				# Note: All the checks that escape fraction normalization was written correctly were performed in 'calculate_fesc()', hence it will be correct by this point and we don't need to double check.	
+
+				if (fesc_prescription[model_number] == 0): # Slightly different naming scheme for the constant case (it only has a float for fesc_normalization).
+					fname = "%s/fesc%d_%.3f_z%.3f.txt" %(fitpath, fesc_prescription[model_number], fesc_normalization[model_number], AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+				elif (fesc_prescription[model_number] == 1 or fesc_prescription[model_number] == 2):	
+					fname = "%s/fesc%d_A%.3eB%.3f_z%.3f.txt" %(fitpath, fesc_prescription[model_number], fesc_normalization[model_number][0], fesc_normalization[model_number][1], AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+				f = open(fname, "w+")
+				if not os.access(fname, os.W_OK):
+					print "The filename is %s" %(fname)
+					raise ValueError("Can't write to this file.")
+		
+				for i in xrange(0, len(bin_middle)):
+					f.write("%.4f %.4f %.4f\n" %(bin_middle[i], mean[i], std[i]))
+				f.close() 
+				print "Wrote successfully to file %s" %(fname)
+
+	'''
 	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
     	ax1.set_ylabel(r'$\log_{10}\ \dot{N}_\gamma \: f_\mathrm{esc} \: [\mathrm{s}^{-1}]$', size = PlotScripts.global_fontsize) 
     	ax1.set_xlim([8.5, 12])
@@ -1115,7 +1152,29 @@ def plot_mvir_Ngamma(SnapList, halo_mass, ngamma, fesc, model_tags, output_tag):
 	outputFile = './' + output_tag + output_format
     	plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     	print 'Saved file to', outputFile
+	'''
     	plt.close()
+
+
+def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, GridSize):
+
+   
+    for model_number in xrange(0, len(SnapList)):
+    	for halo_z_idx in xrange(0, len(RedshiftList)):
+		snapshot_idx = min(range(len(SnapList)), key=lambda i: abs(SnapList[i]-RedshiftList[halo_z_idx])) # This finds the index of the simulation redshift that most closely matches the Halo redshift. 
+
+		if (fesc_prescription[model_number] == 0): 
+			fname = "%s/fesc%d_%.3f_z%.3f.txt" %(fitpath, fesc_prescription[model_number], fesc_normalization[model_number], AllVars.SnapZ[snapshot_idx]) 
+		elif (fesc_prescription[model_number] == 1 or fesc_prescription[model_number] == 2):	
+			fname = "%s/fesc%d_A%.3eB%.3f_z%.3f.txt" %(fitpath, fesc_prescription[model_number], fesc_normalization[model_number][0], fesc_normalization[model_number][1], AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+	
+		f = open(fname, 'r')
+		fit_mean, fit_std = np.loadtxt(f, unpack = True)
+
+		print fit_mean
+		print fit_std
+		
+	
 
 def plot_photoncount(SnapList, ngamma, fesc, halo_mass, num_files, max_files, model_tags, output_tag): 
     '''
@@ -1153,8 +1212,6 @@ def plot_photoncount(SnapList, ngamma, fesc, halo_mass, num_files, max_files, mo
 
     sum_array = []
 
-    m_low = 8.5 # We only sum the photons coming from halos within the mass range m_low < Halo Mass < m_high
-    m_high = 100
     for model_number in xrange(0, len(SnapList)): 
 	sum_array.append([])
 
@@ -1330,14 +1387,24 @@ def calculate_fesc(fesc_prescription, halo_mass, ejected_fraction, fesc_normaliz
 	fesc = fesc_normalization[0]*ejected_fraction + fesc_normalization[1]
 
     ## Adjust bad values, provided there isn't a riduculous amount of them. ##	
-    nan_values = len(fesc[np.isnan(fesc)])
-    aboveone_values = len(fesc[fesc > 1.0])
-    belowzero_values = len(fesc[fesc < 0.0])
+    w = np.where((halo_mass >= m_low) & (halo_mass <= m_high))[0] # Only care about the escape fraction values between these bounds. 
+    nan_values = len(fesc[w][np.isnan(fesc[w])]) 
+    aboveone_values = len(fesc[w][fesc[w] > 1.0])
+    belowzero_values = len(fesc[w][fesc[w] < 0.0])
     print "There was %d escape fraction values that were NaN, %d > 1.0 and %d < 0.0.  There was %d in total." %(nan_values, aboveone_values, belowzero_values, len(fesc))
     bad_ratio =  (float(nan_values) + float(aboveone_values) + float(belowzero_values)) / float(len(fesc))
 	
     if (bad_ratio > 0.10):
 	print "The ratio of bad escape fractions to good is %.4f" %(bad_ratio)
+	print "Values above 1: ", fesc[fesc > 1.0]
+	w = np.where(fesc > 1.0)[0]
+	print "Halo mass is; ", halo_mass[w]
+	print "Ejected fraction is: ", ejected_fraction[w]
+	print
+	print "Values below 0: ", fesc[fesc < 0.0]
+	w = np.where(fesc < 0.0)[0]
+	print "Halo mass is; ", halo_mass[w]
+	print "Ejected fraction is: ", ejected_fraction[w]
 	raise ValueError("This was above the tolerance level of 10%.")
 
     fesc[np.isnan(fesc)] = 0 # Get rid of any lingering Nans.
@@ -1390,9 +1457,9 @@ def calculate_photons(SFR, Z):
 		ngamma_HI_tmp = SFR[i] + 53.166
 	else:
 		ngamma_HI_tmp = SFR[i] + 53.041 
-    if (SFR[i] != 0):
-	assert(ngamma_HI_tmp > 0.0)	
-    ngamma_HI.append(ngamma_HI_tmp)
+    	if (SFR[i] != 0):
+		assert(ngamma_HI_tmp > 0.0)	
+    	ngamma_HI.append(ngamma_HI_tmp)
     return ngamma_HI
 
 
@@ -1441,7 +1508,6 @@ def calculate_UV_extinction(z, L, M):
 
 #################################
 
- 
 HaloPart_Low = 41 # Bounds for where we define the cutoff for a 'Dark Matter Halo'. Below this we can't be sure of the results.
 HaloPart_High = 51
 
@@ -1449,7 +1515,7 @@ calculate_observed_LF = 0
 
 ### The arrays in this block control constants for each model ##
 
-number_models = 1
+number_models = 4
 
 galaxies_model1 = '/lustre/projects/p004_swin/jseiler/18month/IRA_smalltest_z5.000'
 galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/IRA_z5.000'
@@ -1490,12 +1556,12 @@ fesc_prescription = [0, 1, 1, 2] # 0 is constant, 1 is scaling with halo mass, 2
 # For prescription 0, requires a number that defines the constant fesc.
 # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
 # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
-fesc_normalization = [0.50, [6000.0, -0.4], [5.0e-5, 0.375], [1.0, 0.0]] 
+fesc_normalization = [0.50, [6000.0, -0.4], [1.0e-5, 0.375], [1.0, 0.0]] 
 ##
 
-#SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
+SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
 #SnapList =  [[78, 64, 51],[78, 64, 51], [78, 64, 51], [78, 64, 51]]
-SnapList =  [[78, 64, 51]]
+#SnapList =  [[78, 64, 51]]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
 
 simulation_norm = [0, 0, 0, 0] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
@@ -1587,6 +1653,9 @@ for model_number in xrange(0, number_models):
 
 ##
 
+
+#bin_Simfast_halos(np.arange(15.000, 5.9, -0.250), AllVars.SnapZ, "/lustre/projects/p004_swin/jseiler", "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma", 128)
+#exit()
 dilute_galaxies = 100000 # For some plots we don't want to plot more than this to avoid overcrowding.
 for model_number in xrange(0, number_models):
 
@@ -1610,7 +1679,7 @@ for model_number in xrange(0, number_models):
    		 
 		current_snap = SnapList[model_number][snapshot_idx]
 
-		w_gal[model_number].append(np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridStellarMass[:, current_snap] < 1e5) & (G.GridCentralGalaxyMass[:, current_snap] < 1e5) & (G.GridSFR[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut))[0]) # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
+		w_gal[model_number].append(np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridStellarMass[:, current_snap] < 1e5) & (G.GridCentralGalaxyMass[:, current_snap] >= 0.211873) & (G.GridCentralGalaxyMass[:, current_snap] <=  670) & (G.GridSFR[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut))[0]) # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
 		current_idx = w_gal[model_number][snapshot_idx]
 	
 		print "There were %d galaxies for snapshot %d (Redshift %.4f) model %d." %(len(current_idx), current_snap, AllVars.SnapZ[current_snap], model_number)
@@ -1652,13 +1721,14 @@ for model_number in xrange(0, number_models):
 		galaxy_halo_mass_mean[model_number].append(tmp_mean)
 		galaxy_halo_mass_std[model_number].append(tmp_std)
 		 
-		photons_HI_gal[model_number].append(calculate_photons(SFR_gal[model_number][snapshot_idx], metallicity_gal[model_number][snapshot_idx])) 
-
-StellarMassFunction(SnapList, mass_gal, simulation_norm, model_tags, 1, "18month_SMF_test") ## PARALLEL COMPATIBLE
+		photons_HI_gal[model_number].append(calculate_photons(SFR_gal[model_number][snapshot_idx], metallicity_gal[model_number][snapshot_idx]))		
+#StellarMassFunction(SnapList, mass_gal, simulation_norm, model_tags, 1, "18month_SMF_test") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mass_central, ejected_fraction, model_tags, "18month_Ejected_test") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Map 
 #plot_fesc(SnapList, fesc_local, mass_gal, mass_central, 8.5, 100.0, model_tags, "18month_fesc_diffprescription") ## PARALELL COMPATIBLE 
 #plot_photoncount(SnapList, photons_HI_gal, fesc_local, mass_central, 125, 125, model_tags, "18month_nion_diffprescription2") ## PARALELL COMPATIBLE
-#plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma_test") ## PARALELL COMPATIBLE 
+plot_mvir_Ngamma(SnapList, mass_central, photons_HI_gal, fesc_local, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 
 #plot_mvir_fesc(SnapList, mass_central, fesc_local, model_tags, "Mvir_fesc")   # Stared parallel compatibility
 
+#SimfastRedshift = np.arange(15.00, 5.9, -0.250) 
+#bin_Simfast_halos(SimFastRedshift, AllVars.SnapZ, "/lustre/projects/p004_swin/jseiler/Simfast21/Halos", "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/", 512)

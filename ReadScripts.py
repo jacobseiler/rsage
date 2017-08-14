@@ -381,17 +381,17 @@ def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS, comm=None)
          ('GridSFR', (np.float32, MAXSNAPS)),
          ('GridZ', (np.float32, MAXSNAPS)),
          ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
-         ('Pad', (np.float32, MAXSNAPS)),
-         ('MfiltGnedin', (np.dtype('d'), MAXSNAPS)),
-         ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
+         ('MfiltGnedin', (np.float32, MAXSNAPS)),
+         ('MfiltSobacchi', (np.float32, MAXSNAPS)), 
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
          ('LenHistory', (np.int32, MAXSNAPS))
          ]
-                             
+    
+                            
     print "Reading in SAGE files (Post STARBURST)."
-    print len(Galdesc_full)
+
     names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
-    formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
+    formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))] 
     Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)  
  
     return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File, comm), Gal_Desc)
