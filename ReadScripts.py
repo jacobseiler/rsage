@@ -26,7 +26,7 @@ from mpi4py import MPI
 
 
 np.set_printoptions(threshold=np.nan)
-def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File, Last_File, comm=None):
+def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=None):
     # Initialize variables.
     TotNTrees = 0
     TotNHalos = 0
@@ -39,37 +39,34 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
     
     # Read each file and determine the total number of galaxies to be read in
     goodfiles = 0
-    for fnr in xrange(First_File + rank, Last_File+1, size):
-        if (Dot == 1):
-            fname = Model_Name+'.'+str(fnr)  # Complete filename
-        else:
-            fname = Model_Name+'_'+str(fnr)  # Complete filename
 
-        if not os.path.isfile(fname):
-            print "File\t%s  \tdoes not exist!  Skipping..." % (fname)
-            quit() 
+    if (Dot == 1):
+        fname = Model_Name+'.'+str(fnr)  # Complete filename
+    else:
+        fname = Model_Name+'_'+str(fnr)  # Complete filename
+
+    if not os.path.isfile(fname):
+        print "File\t%s  \tdoes not exist!  Skipping..." % (fname)
+        quit() 
         
-        if getFileSize(fname) == 0:
-            print "File\t%s  \tis empty!  Skipping..." % (fname)
-            quit() 
+    if getFileSize(fname) == 0:
+        print "File\t%s  \tis empty!  Skipping..." % (fname)
+        quit() 
         
-        fin = open(fname, 'rb')  # Open the file
-        if (Contain_TreeInfo == 1):
-            Ntrees = np.fromfile(fin,np.dtype(np.int32),1)  # Read number of trees in file
-            TotNTrees = TotNTrees + Ntrees  # Update total sim trees number
-        NtotHalos = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of gals in file.
-        TotNHalos = TotNHalos + NtotHalos  # Update total sim gals number
-	print "Rank %d is reading File %s and contains %d total galaxies" %(rank, fname, NtotHalos)
+    fin = open(fname, 'rb')  # Open the file
+    if (Contain_TreeInfo == 1):
+        Ntrees = np.fromfile(fin,np.dtype(np.int32),1)  # Read number of trees in file
+        TotNTrees = TotNTrees + Ntrees  # Update total sim trees number
+    NtotHalos = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of gals in file.
+    TotNHalos = TotNHalos + NtotHalos  # Update total sim gals number
+    print "Rank %d is reading File %s and contains %d total galaxies" %(rank, fname, NtotHalos)
 	
-#        print "File = %d, NtotHalos = %d, TotNHalos = %d" %(fnr, NtotHalos, TotNHalos)
-        goodfiles = goodfiles + 1  # Update number of files read for volume calculation
-        fin.close()
+    goodfiles = goodfiles + 1  # Update number of files read for volume calculation
+    fin.close()
     
     print
     print "Input files contain:\t%d trees ;\t%d Halos/Galaxies." % (TotNTrees, TotNHalos)
     print
-
-
 
     # Initialize the storage array
     G = np.empty(TotNHalos, dtype=Object_Desc)
@@ -78,54 +75,35 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, First_File
     
     # Open each file in turn and read in the preamble variables and structure.
     print "Reading in files."
-    for fnr in xrange(First_File + rank, Last_File+1, size):
-	
-        if (Dot == 1):
-            fname = Model_Name+'.'+str(fnr)  # Complete filename
-        else:
-            fname = Model_Name+'_'+str(fnr)  # Complete filename
+    if (Dot == 1):
+        fname = Model_Name+'.'+str(fnr)  # Complete filename
+    else:
+        fname = Model_Name+'_'+str(fnr)  # Complete filename
         
-        if not os.path.isfile(fname):
-            print "Couldn't find file %s" %(fname)
-            continue
+    if not os.path.isfile(fname):
+        print "Couldn't find file %s" %(fname)
+        exit()
         
-        if getFileSize(fname) == 0:
-            print "File %s is empty!" %(fname)
-            continue
+    if getFileSize(fname) == 0:
+        print "File %s is empty!" %(fname)
+        exit()
     
-        fin = open(fname, 'rb')  # Open the file
-        if (Contain_TreeInfo == 1):
-            Ntrees = np.fromfile(fin, np.dtype(np.int32), 1)  # Read number of trees in file
-        NtotHalos = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Read number of gals in file.
-        if (Contain_TreeInfo == 1):
-            GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
+    fin = open(fname, 'rb')  # Open the file
+    if (Contain_TreeInfo == 1):
+        Ntrees = np.fromfile(fin, np.dtype(np.int32), 1)  # Read number of trees in file
+    NtotHalos = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Read number of gals in file.
+    if (Contain_TreeInfo == 1):
+        GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
 
-        print ":Rank %d is Reading N= %d Objects from %s: " %(rank, NtotHalos, fname)
+    print ":Rank %d is Reading N= %d Objects from %s: " %(rank, NtotHalos, fname)
  
 	
 
-        GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
+    GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
 
-        FileIndexRanges.append((offset,offset+NtotHalos))
-     
-#	print "File = %d, Offset = %d, NtotHalos = %d, offset + NtotHalos = %d" %(fnr, offset, NtotHalos, offset+NtotHalos)
- 	
-        # Slice the file array into the global array
-        # N.B. the copy() part is required otherwise we simply point to
-        # the GG data which changes from file to file
-        # NOTE THE WAY PYTHON WORKS WITH THESE INDICES!
-        G[offset:offset+NtotHalos]=GG[0:NtotHalos].copy()
-        
-        del(GG)
-        offset = offset + NtotHalos  # Update the offset position for the global array
-
-        fin.close()  # Close the file
-
-    print
-    print "Rank %d is considering %d Total Objects:" %(rank, TotNHalos)
-   
-    # Convert the Galaxy array into a recarray
-    G = G.view(np.recarray)
+    FileIndexRanges.append((offset,offset+NtotHalos))
+      
+    G = GG.view(np.recarray)
     return G
 
 def ReadHalos(DirName, First_File, Last_File):
@@ -160,220 +138,9 @@ def ReadHalos(DirName, First_File, Last_File):
     Halo_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
 
     return Read_SAGE_Objects(DirName, Halo_Desc, 1, 1, First_File, Last_File)
-
-
-def ReadGals_Post_Processed_SAGE(DirName, First_File, Last_File, MAXSNAPS):
-
-    Galdesc_full = [
-                ('SnapNum'                      , np.int32),
-                ('Type'                         , np.int32),
-                ('GalaxyIndex'                  , np.int64),
-                ('CentralGalaxyIndex'           , np.int64),
-                ('SAGEHaloIndex'                , np.int32),
-                ('SAGETreeIndex'                , np.int32),
-                ('SimulationFOFHaloIndex'       , np.int32),
-                ('mergeType'                    , np.int32),
-                ('mergeIntoID'                  , np.int32),
-                ('mergeIntoSnapNum'             , np.int32),
-                ('dT'                           , np.float32),
-                ('Pos'                          , (np.float32, 3)),
-                ('Vel'                          , (np.float32, 3)),
-                ('Spin'                         , (np.float32, 3)),
-                ('Len'                          , np.int32),
-                ('Mvir'                         , np.float32),
-                ('CentralMvir'                  , np.float32),
-                ('Rvir'                         , np.float32),
-                ('Vvir'                         , np.float32),
-                ('Vmax'                         , np.float32),
-                ('VelDisp'                      , np.float32),
-                ('ColdGas'                      , np.float32),
-                ('StellarMass'                  , np.float32),
-                ('BulgeMass'                    , np.float32),
-                ('HotGas'                       , np.float32),
-                ('EjectedMass'                  , np.float32),
-                ('BlackHoleMass'                , np.float32),
-                ('IntraClusterStars'            , np.float32),
-                ('MetalsColdGas'                , np.float32),
-                ('MetalsStellarMass'            , np.float32),
-                ('MetalsBulgeMass'              , np.float32),
-                ('MetalsHotGas'                 , np.float32),
-                ('MetalsEjectedMass'            , np.float32),
-                ('MetalsIntraClusterStars'      , np.float32),
-                ('SfrDisk'                      , np.float32),
-                ('SfrBulge'                     , np.float32),
-                ('SfrDiskZ'                     , np.float32),
-                ('SfrBulgeZ'                    , np.float32),
-                ('DiskRadius'                   , np.float32),
-                ('Cooling'                      , np.float32),
-                ('Heating'                      , np.float32),
-                ('QuasarModeBHaccretionMass'    , np.float32),
-                ('TimeOfLastMajorMerger'         , np.float32),
-                ('TimeOfLastMinorMerger'         , np.float32),
-                ('OutflowRate'                  , np.float32),
-                ('infallMvir'                   , np.float32),
-                ('infallVvir'                   , np.float32),
-                ('infallVmax'                   , np.float32),
-                ('BirthTime', np.float32),
-                ('GridHistory', (np.int32, MAXSNAPS)), # Array index 48
-                    #('deltaEjectedMass', (np.float32, 64)),
-                    #('deltaMetalsEjectedMass', (np.float32, 64)),
-                    #('deltaEnergyEjected', (np.float32, 64)),
-                    #('deltaSfr', (np.float32, 64)),
-                ('GridStellarMass', (np.float32, MAXSNAPS)),
-                ('GridSFR', (np.float32, MAXSNAPS)),
-                ('GridZ', (np.float32, MAXSNAPS)),
-                ('GridCentralGalaxyMass', (np.float32, MAXSNAPS))
-                ]
-    
-    print "Reading in SAGE files (Post processed.)."
-    
-    names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
-    formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
-    Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
-    
-
-    return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File), Gal_Desc)
-
-def ReadGals_SAGE_Photons(DirName, First_File, Last_File, MAXSNAPS):
-
-
-    Galdesc_full = [
-         ('SnapNum'                      , np.int32),
-         ('Type'                         , np.int32),
-         ('GalaxyIndex'                  , np.int64),
-         ('CentralGalaxyIndex'           , np.int64),
-         ('SAGEHaloIndex'                , np.int32),
-         ('SAGETreeIndex'                , np.int32),
-         ('SimulationFOFHaloIndex'       , np.int32),
-         ('mergeType'                    , np.int32),
-         ('mergeIntoID'                  , np.int32),
-         ('mergeIntoSnapNum'             , np.int32),
-         ('dT'                           , np.float32),
-         ('Pos'                          , (np.float32, 3)),
-         ('Vel'                          , (np.float32, 3)),
-         ('Spin'                         , (np.float32, 3)),
-         ('Len'                          , np.int32),
-         ('Mvir'                         , np.float32),
-         ('CentralMvir'                  , np.float32),
-         ('Rvir'                         , np.float32),
-         ('Vvir'                         , np.float32),
-         ('Vmax'                         , np.float32),
-         ('VelDisp'                      , np.float32),
-         ('ColdGas'                      , np.float32),
-         ('StellarMass'                  , np.float32),
-         ('BulgeMass'                    , np.float32),
-         ('HotGas'                       , np.float32),
-         ('EjectedMass'                  , np.float32),
-         ('BlackHoleMass'                , np.float32),
-         ('IntraClusterStars'            , np.float32),
-         ('MetalsColdGas'                , np.float32),
-         ('MetalsStellarMass'            , np.float32),
-         ('MetalsBulgeMass'              , np.float32),
-         ('MetalsHotGas'                 , np.float32),
-         ('MetalsEjectedMass'            , np.float32),
-         ('MetalsIntraClusterStars'      , np.float32),
-         ('SfrDisk'                      , np.float32),
-         ('SfrBulge'                     , np.float32),
-         ('SfrDiskZ'                     , np.float32),
-         ('SfrBulgeZ'                    , np.float32),                  
-         ('DiskRadius'                   , np.float32),                  
-         ('Cooling'                      , np.float32),                  
-         ('Heating'                      , np.float32),
-         ('QuasarModeBHaccretionMass'    , np.float32),
-         ('TimeOfLastMajorMerger'         , np.float32),
-         ('TimeOfLastMinorMerger'         , np.float32),
-         ('OutflowRate'                  , np.float32),
-         ('infallMvir'                   , np.float32),
-         ('infallVvir'                   , np.float32),
-         ('infallVmax'                   , np.float32),
-         ('GridHistory', (np.int32, MAXSNAPS)), # Array index 48 
-         ('GridStellarMass', (np.float32, MAXSNAPS)),
-         ('GridSFR', (np.float32, MAXSNAPS)),
-         ('GridZ', (np.float32, MAXSNAPS)),
-         ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
-         ('Photons_HI', (np.float32, MAXSNAPS)),
-         ('Photons_HeI', (np.float32, MAXSNAPS)), 
-         ('Photons_HeII', (np.float32, MAXSNAPS)), 
-         ('MfiltGnedin', (np.dtype('d'), MAXSNAPS)),
-         ('MfiltSobacchi', (np.dtype('d'), MAXSNAPS)), 
-         ('EjectedFraction', (np.float32, MAXSNAPS)),  
-         ('LenHistory', (np.int32, MAXSNAPS)) 
-]
-
-                             
-    print "Reading in SAGE files (Post STARBURST)."
-    print len(Galdesc_full)
-    names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
-    formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
-    Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)  
- 
-    return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File), Gal_Desc)
-
-
-def ReadGals_SAGE_NoGrid(DirName, First_File, Last_File, MAXSNAPS):
-
-    Galdesc_full = [
-         ('SnapNum'                      , np.int32),
-         ('Type'                         , np.int32),
-         ('GalaxyIndex'                  , np.int64),
-         ('CentralGalaxyIndex'           , np.int64),
-         ('SAGEHaloIndex'                , np.int32),
-         ('SAGETreeIndex'                , np.int32),
-         ('SimulationFOFHaloIndex'       , np.int32),
-         ('mergeType'                    , np.int32),
-         ('mergeIntoID'                  , np.int32),
-         ('mergeIntoSnapNum'             , np.int32),
-         ('dT'                           , np.float32),
-         ('Pos'                          , (np.float32, 3)),
-         ('Vel'                          , (np.float32, 3)),
-         ('Spin'                         , (np.float32, 3)),
-         ('Len'                          , np.int32),
-         ('Mvir'                         , np.float32),
-         ('CentralMvir'                  , np.float32),
-         ('Rvir'                         , np.float32),
-         ('Vvir'                         , np.float32),
-         ('Vmax'                         , np.float32),
-         ('VelDisp'                      , np.float32),
-         ('ColdGas'                      , np.float32),
-         ('StellarMass'                  , np.float32),
-         ('BulgeMass'                    , np.float32),
-         ('HotGas'                       , np.float32),
-         ('EjectedMass'                  , np.float32),
-         ('BlackHoleMass'                , np.float32),
-         ('IntraClusterStars'            , np.float32),
-         ('MetalsColdGas'                , np.float32),
-         ('MetalsStellarMass'            , np.float32),
-         ('MetalsBulgeMass'              , np.float32),
-         ('MetalsHotGas'                 , np.float32),
-         ('MetalsEjectedMass'            , np.float32),
-         ('MetalsIntraClusterStars'      , np.float32),
-         ('SfrDisk'                      , np.float32),
-         ('SfrBulge'                     , np.float32),
-         ('SfrDiskZ'                     , np.float32),
-         ('SfrBulgeZ'                    , np.float32),                  
-         ('DiskRadius'                   , np.float32),                  
-         ('Cooling'                      , np.float32),                  
-         ('Heating'                      , np.float32),
-         ('QuasarModeBHaccretionMass'    , np.float32),
-         ('TimeOfLastMajorMerger'         , np.float32),
-         ('TimeOfLastMinorMerger'         , np.float32),
-         ('OutflowRate'                  , np.float32),
-         ('infallMvir'                   , np.float32),
-         ('infallVvir'                   , np.float32),
-         ('infallVmax'                   , np.float32)
-         ]
-                             
-    print "Reading in SAGE files (Post STARBURST)."
-    print len(Galdesc_full)
-    names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
-    formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
-    Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)  
- 
-    return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File), Gal_Desc)
-
     
 ## Using this one ##   
-def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS, comm=None):
+def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
 
     Galdesc_full = [ 
          ('GridHistory', (np.int32, MAXSNAPS)), # Array index 48 
@@ -394,82 +161,7 @@ def ReadGals_SAGE_DelayedSN(DirName, First_File, Last_File, MAXSNAPS, comm=None)
     formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))] 
     Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)  
  
-    return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, First_File, Last_File, comm), Gal_Desc)
-
-
-def ReadGals_STARBURST_SAGE(DirName, First_File, Last_File, MAXSNAPS):
-
-    Galdesc_full = [
-                ('SnapNum'                      , np.int32),
-                ('Type'                         , np.int32),
-                ('GalaxyIndex'                  , np.int64),
-                ('CentralGalaxyIndex'           , np.int64),
-                ('SAGEHaloIndex'                , np.int32),
-                ('SAGETreeIndex'                , np.int32),
-                ('SimulationFOFHaloIndex'       , np.int32),
-                ('mergeType'                    , np.int32),
-                ('mergeIntoID'                  , np.int32),
-                ('mergeIntoSnapNum'             , np.int32),
-                ('dT'                           , np.float32),
-                ('Pos'                          , (np.float32, 3)),
-                ('Vel'                          , (np.float32, 3)),
-                ('Spin'                         , (np.float32, 3)),
-                ('Len'                          , np.int32),
-                ('Mvir'                         , np.float32),
-                ('CentralMvir'                  , np.float32),
-                ('Rvir'                         , np.float32),
-                ('Vvir'                         , np.float32),
-                ('Vmax'                         , np.float32),
-                ('VelDisp'                      , np.float32),
-                ('ColdGas'                      , np.float32),
-                ('StellarMass'                  , np.float32),
-                ('BulgeMass'                    , np.float32),
-                ('HotGas'                       , np.float32),
-                ('EjectedMass'                  , np.float32),
-                ('BlackHoleMass'                , np.float32),
-                ('IntraClusterStars'            , np.float32),
-                ('MetalsColdGas'                , np.float32),
-                ('MetalsStellarMass'            , np.float32),
-                ('MetalsBulgeMass'              , np.float32),
-                ('MetalsHotGas'                 , np.float32),
-                ('MetalsEjectedMass'            , np.float32),
-                ('MetalsIntraClusterStars'      , np.float32),
-                ('SfrDisk'                      , np.float32),
-                ('SfrBulge'                     , np.float32),
-                ('SfrDiskZ'                     , np.float32),
-                ('SfrBulgeZ'                    , np.float32),
-                ('DiskRadius'                   , np.float32),
-                ('Cooling'                      , np.float32),
-                ('Heating'                      , np.float32),
-                ('QuasarModeBHaccretionMass'    , np.float32),
-                ('TimeOfLastMajorMerger'         , np.float32),
-                ('TimeOfLastMinorMerger'         , np.float32),
-                ('OutflowRate'                  , np.float32),
-                ('infallMvir'                   , np.float32),
-                ('infallVvir'                   , np.float32),
-                ('infallVmax'                   , np.float32),
-                ('GridHistory', (np.int32, MAXSNAPS)),
-                #('deltaEjectedMass', (np.float32, 64)),
-                #('deltaMetalsEjectedMass', (np.float32, 64)),
-                #('deltaEnergyEjected', (np.float32, 64)),
-                #('deltaSfr', (np.float32, 64)),
-                ('GridStellarMass', (np.float32, MAXSNAPS)),
-                ('GridSFR', (np.float32, MAXSNAPS)),
-                ('GridZ', (np.float32, MAXSNAPS)),
-                ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
-                ('BirthTime', np.float32),
-                ('Photons', (np.dtype('d'), MAXSNAPS))
-                ]
-    
-    print "Reading in SAGE files (Post STARBURST)."
-    
-    names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
-    formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))]
-    Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
-    
-    
-    return (Read_SAGE_Objects(DirName, Gal_Desc, 0, 0, First_File, Last_File), Gal_Desc)
-
+    return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, fnr, comm), Gal_Desc)
 
 def Join_Arrays(Array1, Array2, Desc):
     
@@ -531,6 +223,9 @@ def read_binary_grid(filepath, GridSize, precision):
     elif precision == 2: 
 	readformat = np.float64
 	byte_size = 8
+    else:
+	print "You specified a read format of %d" %(precision)
+	raise ValueError("Only 0, 1, 2 (corresponding to integers, float or doubles respectively) are currently supported.")
 
     ## Check that the file is the correct size. ##
     filesize = os.stat(filepath).st_size
