@@ -256,7 +256,6 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 	fprintf(stderr, "%.4e\n", log10(SFR_tmp[j])); 
   }
  
-
   nwritten = fwrite(SFR_tmp, sizeof(*(g->GridSFR)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing GridSFR, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
