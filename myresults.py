@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 import matplotlib
 matplotlib.use('Agg')
 
@@ -43,7 +43,7 @@ PlotScripts.Set_Params_Plot()
 cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
 
-output_format = ".png"
+output_format = ".pdf"
 
 # For the Tiamat extended results there is a weird hump when calculating the escape fraction.
 # This hump occurs at a halo mass of approximately 10.3. 
@@ -61,8 +61,8 @@ m_low_SAGE = pow(10, m_low)/1.0e10 * AllVars.Hubble_h
 m_high_SAGE = pow(10, m_high)/1.0e10 * AllVars.Hubble_h
 
 bin_width = 0.1
-NB = round((m_high - m_low) / bin_width)
-NB_gal = round((m_gal_high - m_gal_low) / bin_width)
+NB = int((m_high - m_low) / bin_width)
+NB_gal = int((m_gal_high - m_gal_low) / bin_width)
 
 def raise_list_power(my_list, n):
 	return [pow(x, n) for x in my_list]
@@ -193,8 +193,8 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
     if range_high <= range_low: 
         raise ValueError("The upper bin range should be less than the lower bin range")
 
-    print "The minimum of the data being binned is %.4e" %(range_low)
-    print "The maximum of the data being binned is %.4e" %(range_high) 
+    #print "The minimum of the data being binned is %.4e" %(range_low)
+    #print "The maximum of the data being binned is %.4e" %(range_high) 
 	    
     NB = round((range_high - range_low) / bin_width) 
 
@@ -220,12 +220,17 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
     std_data_y = np.zeros((len(bins))) 
 
     for i in xrange(0, len(bins)):
-	if data_y_binned != None: # If there was any y-data placed into this bin. 
+	if len(data_y_binned[i]) != 0: # If there was any y-data placed into this bin. 
     		mean_data_y[i] = np.mean(data_y_binned[i])
     		std_data_y[i] = np.std(data_y_binned[i])
+#		if (isnan(mean_data_y[i]) == True):
+#			print mean_data_y[i] 
+#			print data_y_binned[i]
+			
 	else: # Otherwise if there were no data points, simply fill it with a nan.
 		mean_data_y[i] = 0.0 
 		std_data_y[i] = 0.0
+
 
     return mean_data_y[:-1], std_data_y[:-1], N_data_y[:-1], bins_mid
 
@@ -280,8 +285,8 @@ def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
 	print "Upper bin range = %.4f, lower bing range = %.4f" %(range_high, range_low) 
         raise ValueError("The upper bin range should be less than the lower bin range")
 
-    print "The minimum of the data being binned is %.4e" %(range_low)
-    print "The maximum of the data being binned is %.4e" %(range_high) 
+#    print "The minimum of the data being binned is %.4e" %(range_low)
+#    print "The maximum of the data being binned is %.4e" %(range_high) 
 	    
     NB = round((range_high - range_low) / bin_width) 
 
@@ -356,7 +361,7 @@ def Std_Log(array, mean):
 
 ##
 
-def calculate_pooled_stats(pooled_mean, pooled_std, mean_local, std_local, N_local):
+def calculate_pooled_stats(mean_pool, std_pool, mean_local, std_local, N_local):
     '''
     Calculates the pooled mean and standard deviation from multiple processors and appends it to an input array.
     Formulae taken from https://en.wikipedia.org/wiki/Pooled_variance
@@ -364,105 +369,83 @@ def calculate_pooled_stats(pooled_mean, pooled_std, mean_local, std_local, N_loc
 
     Parameters
     ----------
-    pooled_mean, pooled_std : `np.darray'
+    mean_pool, std_pool : `np.darray' of floats.
 	Arrays that contain the current pooled means/standard deviation (for rank 0) or just a junk input (for other ranks).
-    mean_local, mean_std : float
+    mean_local, mean_std : float.
 	The non-pooled mean and standard deviation unique for each process.
     N_local : int 
 	Number of data points used to calculate the mean/standard deviation that is going to be added to the pool.
 
     Returns
     -------
-    pooled_mean, pooled_std : `np.darray'
+    mean_pool, std_pool : `np.darray' of floats.
 	Original array with the new pooled mean/standard deviation appended (for rank 0) or the new pooled mean/standard deviation only (for other ranks).
 
     Units
     -----
     All units are the same as the input.
+    All inputs are in real-space (not log-space).
     '''
 
     if isinstance(mean_local, list) == True:	
     	if len(mean_local) != len(std_local):
 		print "len(mean_local) = %d \t len(std_local) = %d" %(len(mean_local), len(std_local))
         	raise ValueError("Lengths of mean_local and std_local should be equal")
-
-
-    print mean_local
-    print type(mean_local).__module__ == np.__name__
-
-
    
-    if ((type(mean_local).__module__ == np.__name__) == True): # Checks to see if we are dealing with arrays. 
+    if ((type(mean_local).__module__ == np.__name__) == True or (isinstance(mean_local, list) == True)): # Checks to see if we are dealing with arrays. 
 	
-	print "INSIDE THE LOOP"
-	N_times_mean_local = np.add(N_local, mean_local)
-	N_times_var_local = np.add(N_local, np.add(std_local, std_local))
-
-	print "n_local", N_local
-	print "n_times_mean_local", N_times_mean_local
-	print "n_times_var_local", N_times_var_local
-	N_times_mean_local = np.divide(raise_power_list(N_times_mean_local, 10),1e50)
-	N_times_var_local = raise_power_list(N_times_var_local, 10)
-	N_local = raise_power_list(N_local, 10)
-
+	N_times_mean_local = np.multiply(N_local, mean_local)
+	N_times_var_local = np.multiply(N_local, np.multiply(std_local, std_local))
+	
 	N_local = np.array(N_local).astype(int)
-	
+	N_times_mean_local = np.array(N_times_mean_local).astype(np.float32)
 
-	
-	if rank == 0:
-		pooled_N_times_mean = np.zeros_like(N_times_mean_local) 
-		pooled_N = np.zeros_like(N_local)
-
-		pooled_N_times_var = np.zeros_like(N_times_var_local)
+	if rank == 0: # Only rank 0 holds the final arrays so only it requires proper definitions.
+		N_times_mean_pool = np.zeros_like(N_times_mean_local) 
+		N_pool = np.zeros_like(N_local)
+		N_times_var_pool = np.zeros_like(N_times_var_local)
 	else:
-		pooled_N_times_mean = None
-		pooled_N = None
-
-		pooled_N_times_var = None
+		N_times_mean_pool = None
+		N_pool = None
+		N_times_var_pool = None
 
 	comm.Barrier()
-	comm.Reduce([N_times_mean_local, MPI.DOUBLE], [pooled_N_times_mean, MPI.DOUBLE], op = MPI.SUM, root = 0)
-	comm.Reduce([N_local, MPI.INT],[pooled_N, MPI.INT], op = MPI.SUM, root = 0)	
-	comm.Reduce([N_times_var_local, MPI.DOUBLE], [pooled_N_times_var, MPI.DOUBLE], op = MPI.SUM, root = 0)
+	comm.Reduce([N_times_mean_local, MPI.FLOAT], [N_times_mean_pool, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum the arrays across processors.
+	comm.Reduce([N_local, MPI.INT],[N_pool, MPI.INT], op = MPI.SUM, root = 0)	
+	comm.Reduce([N_times_var_local, MPI.FLOAT], [N_times_var_pool, MPI.FLOAT], op = MPI.SUM, root = 0)
 
-	if rank == 0:
-		print "LOGGING IT ALL"
-		N_times_mean_local = np.log10(N_times_mean_local)
-		N_local = np.log10(N_local)
-		N_times_var_local = np.log10(N_times_var_local)
-
-		print "N_times_mean_pooled", pooled_N_times_mean
-		print "N_pooled", pooled_N
-		print "N_times_var_pooled", pooled_N_times_var 
-		exit()
     else:
-
 	
 	N_times_mean_local = N_local * mean_local
 	N_times_var_local = N_local * std_local * std_local
-    	pooled_N_times_mean = comm.reduce(N_times_mean_local, op = MPI.SUM, root = 0)
 
-    	pooled_N = comm.reduce(N_local, op = MPI.SUM, root = 0)
-	pooled_N_times_var = comm.reduce(N_times_var_local, op = MPI.SUM, root = 0)
+    	N_times_mean_pool = comm.reduce(N_times_mean_local, op = MPI.SUM, root = 0)
+    	N_pool = comm.reduce(N_local, op = MPI.SUM, root = 0)
+	N_times_var_pool = comm.reduce(N_times_var_local, op = MPI.SUM, root = 0)
 	
     if rank == 0:
 
-	print "pooled_N_time_var", pooled_N_times_var
-	print "pooled_N", pooled_N
 
-	pooled_mean_function = np.subtract(pooled_N_times_mean, pooled_N)
-	pooled_std_function = 0.5*np.subtract(pooled_N_times_var, pooled_N)
-	print "pooled_mean_function", pooled_mean_function
-	print "pooled_std_function", pooled_std_function
-	exit()
+	mean_pool_function = np.zeros((len(N_pool)))
+	std_pool_function = np.zeros((len(N_pool)))
 
-	pooled_mean.append(pooled_mean_function)
+	for i in xrange(0, len(N_pool)):
+		if N_pool[i] == 0:
+			mean_pool_function[i] = 0.0
+		else:
+			mean_pool_function[i] = np.divide(N_times_mean_pool[i], N_pool[i])
+		if N_pool[i] < 3:
+			std_pool_function[i] = 0.0
+		else:
+			std_pool_function[i] = np.sqrt(np.divide(N_times_var_pool[i], N_pool[i]))
+	
+	mean_pool.append(mean_pool_function)
+	std_pool.append(std_pool_function)
 
-	pooled_std.append(pooled_std_function)
-	return pooled_mean, pooled_std 
+	return mean_pool, std_pool 
     else:
 	
-	return pooled_mean, pooled_std 
+	return mean_pool, std_pool 
 ##
 
 
@@ -544,7 +527,7 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, model_tags, observations
 	
 	for snapshot_idx in xrange(0, len(SnapList[model_number])): # Loops for each snapshot in each model.
 
-		print "Doing Snapshot %d" %(SnapList[model_number][snapshot_idx])
+#		print "Doing Snapshot %d" %(SnapList[model_number][snapshot_idx])
 		tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]) # Assigns a redshift label.
 		redshift_labels[model_number].append(tmp)
 
@@ -558,7 +541,7 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, model_tags, observations
 
 		if rank == 0:
 			counts_array[model_number].append(counts_total)
-			print counts_array[model_number][snapshot_idx]
+#			print counts_array[model_number][snapshot_idx]
 			bin_middle_array[model_number].append(np.arange(m_gal_low, m_gal_high+bin_width, bin_width)[:-1] + bin_width * 0.5)
 		####
 	
@@ -711,7 +694,7 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, model_tags, observations
 
 		####
 
-    	leg = plt.legend(loc='lower left', numpoints=1, labelspacing=0.1)
+    	leg = plt.legend(loc='upper right', numpoints=1, labelspacing=0.1)
     	leg.draw_frame(False)  # Don't want a box frame
     	for t in leg.get_texts():  # Reduce the size of the text
         	t.set_fontsize(PlotScripts.global_legendsize)
@@ -749,33 +732,16 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
     print "Plotting fesc as a function of redshift."
 
     ## Array initialization ##
-    mean_fesc = []
-    std_fesc = []
-
-    mean_times_N = []
-    std_times_N = []
-
     pooled_mean_fesc = []
     pooled_std_fesc = []
 
     for model_number in xrange(0, len(SnapList)): # Loop for each model. 
+
+	comm.Barrier()
+	print "mean_z_fesc", mean_z_fesc[model_number]
+
+	pooled_mean_fesc, pooled_std_fesc = calculate_pooled_stats(pooled_mean_fesc, pooled_std_fesc, mean_z_fesc[model_number], std_z_fesc[model_number], N_fesc[model_number]) # Calculates the pooled mean/standard deviation for this snapshot.  Only rank 0 receives a proper value here; the other ranks don't need this information. 
 	
-	mean_fesc.append([])
-	std_fesc.append([])
-
-	mean_times_N.append([])	
-	std_times_N.append([])
-
-	pooled_mean_fesc.append([])
-	pooled_std_fesc.append([])
-
-	for snapshot_idx in xrange(0, len(SnapList[model_number])):
-		## Since this function is parallel (#humblebrag) the mean/standard deviation across each process must be pooled. ##
-		N = sum(N_fesc[model_number][snapshot_idx]) # Number of data to calculate mean/standard deviation.
-		
-		comm.Barrier()
-		pooled_mean_fesc[model_number], pooled_std_fesc[model_number] = calculate_pooled_stats(pooled_mean_fesc[model_number], pooled_std_fesc[model_number], mean_z_fesc[model_number][snapshot_idx], std_z_fesc[model_number][snapshot_idx], N) # Calculates the pooled mean/standard deviation for this snapshot.  Only rank 0 receives a proper value here; the other ranks don't need this information. 
-
     if (rank == 0):
     	ax1 = plt.subplot(111)
 
@@ -789,10 +755,6 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
 		mean = pooled_mean_fesc[model_number]
 		std = pooled_std_fesc[model_number]   
 
-		print model_tags[model_number]
-		print t
-		print mean
-	
     		ax1.plot(t, mean, color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)  
     		#ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = PlotScripts.colors[model_number], alpha = 0.25)
 
@@ -812,6 +774,7 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
     	ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
     	ax2.set_xticklabels(z_labels) # But label them as redshifts.
 
+	ax1.set_ylim([0.0, 0.20])
     	ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_labelsize) 
     	ax1.set_ylabel(r'$f_\mathrm{esc}$', fontsize = PlotScripts.global_fontsize) 
 
@@ -1054,14 +1017,16 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
     '''
     Plots the number of ionizing photons (pure ngamma times fesc) as a function of halo mass. 
     Parallel compatible.
-    Accepts 3D arrays of halos/ngamma/fesc to plot ngamma for multiple models. 
+    The input data has been binned as a function of halo virial mass (Mvir), with the bins defined at the top of the file (m_low, m_high, bin_width). 
+    Accepts 3D arrays to plot ngamma for multiple models. 
 
     Parameters
     ---------
     SnapList : Nested `np.darray', SnapList[model_number0] = [snapshot0_model0, ..., snapshotN_model0], with length equal to the number of models.
 	Snapshots for each model. 
-    halo_mass, ngamma, fesc : Nested 2-dimensional `np.darray', fesc[model_number0][snapshot0]  = [galaxyfesc0_model0_snapshot0, ..., galaxyfescN_model0_snapshot0], with length equal to the number of models. 
-	Halo mass/gamma/fesc for the galaxies for a given model at a given snapshot.
+    mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma : Nested 2-dimensional `np.darray', mean_mvir_Ngamma[model_number0][snapshot0]  = [bin0_meanNgamma, ..., binN_meanNgamma], with length equal to the number of bins. 
+	Mean/Standard deviation/number of data points in each halo mass (Mvir) bin.
+	The number of photons is in units of 1.0e50 s^-1.	
     model_tags : `np.darray' of strings with length equal to the number of models.
 	Strings that contain the tag for each model.  Will be placed on the plot.
     output_tag : string
@@ -1088,8 +1053,7 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
 
     Units
     -----
-    Halo Mass is in units of log10(Msun). 
-    ngamma is in units of log10(s^-1).
+    Ngamma is in units of 1.0e50 s^-1. 
     '''
 
     print "Plotting ngamma*fesc against the halo mass" 
@@ -1124,21 +1088,10 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
 		redshift_labels[model_number].append(tmp)
 
 		N = N_Ngamma[model_number][snapshot_idx]
-		print N
 		
-#		N = np.array(N).astype(int)
-
-		#print "mean Before raise", mean_mvir_Ngamma[model_number][snapshot_idx]
-		#print "std before raise", std_mvir_Ngamma[model_number][snapshot_idx]
-		#print "mean", raise_power_list(mean_mvir_Ngamma[model_number][snapshot_idx], 10)
-		#print "std", raise_power_list(std_mvir_Ngamma[model_number][snapshot_idx], 10)
-		#exit()	
 		mean_ngammafesc_array[model_number], std_ngammafesc_array[model_number] = calculate_pooled_stats(mean_ngammafesc_array[model_number], std_ngammafesc_array[model_number], mean_mvir_Ngamma[model_number][snapshot_idx], std_mvir_Ngamma[model_number][snapshot_idx], N) # Collate the values from all processors.	
 		bin_middle_array[model_number].append(np.arange(m_low, m_high+bin_width, bin_width)[:-1] + bin_width * 0.5)	
-
-		#print "mean_ngammafesc_array", mean_ngammafesc_array[model_number]
-		#print "std_ngammafesc_array", std_ngammafesc_array[model_number]
-	#exit()
+	
     if rank == 0:
 	f = plt.figure()  
 	ax1 = plt.subplot(111)  
@@ -1150,21 +1103,28 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
 				title = redshift_labels[model_number][snapshot_idx]
 			else:
 				title = ''
-			
-			mean = np.log10(mean_ngammafesc_array[model_number][snapshot_idx])
-#			print "mean_ngammafesc_array", mean_ngammafesc_array[model_number][snapshot_idx]	
-#			print "std_ngamma_fesc_array", std_ngammafesc_array[model_number][snapshot_idx]
-#			print "N", N_Ngamma[model_number][snapshot_idx]
 
-			std = 0.434 * np.divide(std_ngammafesc_array[model_number][snapshot_idx], mean_ngammafesc_array[model_number][snapshot_idx]) # We're plotting in log space so the standard deviation is 0.434*log10(std)/log10(mean).
+
+			print "mean = ", mean_ngammafesc_array[model_number][snapshot_idx]
+			print "std = ", std_ngammafesc_array[model_number][snapshot_idx]
+
+			mean = np.zeros((len(mean_ngammafesc_array[model_number][snapshot_idx])), dtype = np.float32)
+			std = np.zeros((len(mean_ngammafesc_array[model_number][snapshot_idx])), dtype=np.float32)
+
+			for i in xrange(0, len(mean)):
+				if(mean_ngammafesc_array[model_number][snapshot_idx][i] < 1e-10):
+					mean[i] = np.nan
+					std[i] = np.nan
+				else:	
+					mean[i] = np.log10(mean_ngammafesc_array[model_number][snapshot_idx][i] * 1.0e50)
+					std[i] = 0.434 * std_ngammafesc_array[model_number][snapshot_idx][i] / mean_ngammafesc_array[model_number][snapshot_idx][i] # We're plotting in log space so the standard deviation is 0.434*log10(std)/log10(mean).
+
 			bin_middle = bin_middle_array[model_number][snapshot_idx]
-
-			print "mean", mean
-			print "std", std
-		
+	
 			if (count < 4): # Only plot at most 5 lines.
 				ax1.plot(bin_middle, mean, color = PlotScripts.colors[snapshot_idx], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = title, linewidth = PlotScripts.global_linewidth)	
 				count += 1
+			## In this block we save the Mvir-Ngamma results to a file. ##
 			if (fesc_prescription != None or fesc_normalization != None or fitpath != None):
 
 				if (fesc_prescription == None or fesc_normalization == None or fitpath == None):
@@ -1181,12 +1141,10 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
 					raise ValueError("Can't write to this file.")
 		
 				for i in xrange(0, len(bin_middle)):
-#					if (np.isnan(mean[i]) == True or np.isnan(std[i]) == True):
-#						mean[i] = 0.0
-#						std[i] = 0.0	
 					f.write("%.4f %.4f %.4f %d\n" %(bin_middle[i], mean[i], std[i], N_Ngamma[model_number][snapshot_idx][i]))
 				f.close() 
 				print "Wrote successfully to file %s" %(fname)
+			##
 
 	for model_number in xrange(0, len(SnapList)): # Just plot some garbage to get the legend labels correct.
 		ax1.plot(np.nan, np.nan, color = 'k', linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)
@@ -1194,7 +1152,6 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
 	ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
     	ax1.set_ylabel(r'$\log_{10}\ \dot{N}_\gamma \: f_\mathrm{esc} \: [\mathrm{s}^{-1}]$', size = PlotScripts.global_fontsize) 
     	ax1.set_xlim([8.5, 12])
-    	#ax1.set_ylim([1e50, 1e54])   
 
     	ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))	
 	
@@ -1210,14 +1167,12 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
     	plt.close()
 
 
-def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, fesc_prescription, fesc_normalization, GridSize):
-
+def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, fesc_prescription, fesc_normalization, GridSize, output_tag):
    
     for model_number in xrange(0, len(fesc_prescription)):
     	for halo_z_idx in xrange(0, len(RedshiftList)):
 		snapshot_idx = min(range(len(SnapList)), key=lambda i: abs(SnapList[i]-RedshiftList[halo_z_idx])) # This finds the index of the simulation redshift that most closely matches the Halo redshift.
 		print "Binning Halo redshift %.4f" %(RedshiftList[halo_z_idx])
-#		print "fesc_prescription = %d" %(fesc_prescription[model_number]) 
 		print "For the Halo redshift %.3f the nearest simulation redshift is %.3f" %(RedshiftList[halo_z_idx], SnapList[snapshot_idx])	
 		if (fesc_prescription[model_number] == 0):
 #			print "fesc_normalization = %.4f" %(fesc_normalization[model_number]) 
@@ -1229,7 +1184,7 @@ def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, fesc_prescripti
 		print "Reading in file %s" %(fname)
 		## Here we read in the results from the Mvir-Ngamma binning. ##
 		f = open(fname, 'r')
-		fit_mvir, fit_mean, fit_std = np.loadtxt(f, unpack = True)
+		fit_mvir, fit_mean, fit_std, fit_N = np.loadtxt(f, unpack = True)
 		f.close()
 
 		## Here we read in the halos created by Simfast21 ##
@@ -1251,7 +1206,7 @@ def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, fesc_prescripti
     		formats = [Halodesc_full[i][1] for i in xrange(len(Halodesc_full))]
     		Halo_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
 
-		fname = "%s/halonl_z%.3f_N%d_L90.0.dat.catalog" %(halopath, RedshiftList[halo_z_idx], GridSize)
+		fname = "%s/halonl_z%.3f_N%d_L100.0.dat.catalog" %(halopath, RedshiftList[halo_z_idx], GridSize)
 		f = open(fname, 'rb')
 		N_Halos = np.fromfile(f, count = 1, dtype = np.long)	
 		Halos = np.fromfile(f, count = N_Halos, dtype = Halo_Desc)	
@@ -1293,8 +1248,52 @@ def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, fesc_prescripti
 			binned_nion[idx]  += pow(10, nion_halo)/1.0e50 
 		print "We had %d halos (out of %d, so %.4f fraction) that had halo mass that was not covered by the Mvir-Ngamma results." %(fit_nan, N_Halos, float(fit_nan)/float(N_Halos))
 		print "There were %d cells with a non-zero ionizing flux." %(len(binned_nion[binned_nion != 0]))
-		print binned_nion[binned_nion != 0]
-				
+
+		binned_nion = binned_nion.reshape((GridSize,GridSize,GridSize))
+		cut_slice = 0
+		cut_width = 512
+		nion_slice = binned_nion[:,:, cut_slice:cut_slice+cut_width].mean(axis=-1)*1.0e50
+
+		ax1 = plt.subplot(211)
+		
+		im = ax1.imshow(np.log10(nion_slice), interpolation='bilinear', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], cmap = 'Purples', vmin = 48, vmax = 53)
+
+		cbar = plt.colorbar(im, ax = ax1)
+	        cbar.set_label(r'$\mathrm{log}_{10}N_{\gamma} [\mathrm{s}^{-1}]$')
+
+	        ax1.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')
+        	ax1.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')
+
+	        ax1.set_xlim([0.0, AllVars.BoxSize])
+	        ax1.set_ylim([0.0, AllVars.BoxSize])
+
+	        title = r"$z = %.3f$" %(RedshiftList[halo_z_idx])
+	        ax1.set_title(title)
+	
+		ax2 = plt.subplot(212)
+
+		w = np.where((Halos['Halo_z'][:] > cut_slice) & (Halos['Halo_z'][:] <= cut_slice + cut_width))[0]
+
+		x_plot = Halos['Halo_x'] * float(AllVars.BoxSize)/float(GridSize)
+		y_plot = Halos['Halo_y'] * float(AllVars.BoxSize)/float(GridSize)
+		z_plot = Halos['Halo_z'][w] * float(AllVars.BoxSize)/float(GridSize)
+		
+		ax2.scatter(x_plot[w], y_plot[w], s = 2, alpha = 0.5)
+
+	        ax2.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')
+        	ax2.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')
+
+	        ax2.set_xlim([0.0, AllVars.BoxSize])
+	        ax2.set_ylim([0.0, AllVars.BoxSize])
+
+	        tmp = "z%.3f" %(RedshiftList[halo_z_idx])
+	        
+		plt.tight_layout()
+	    	outputFile = './' + output_tag + tmp + output_format
+		plt.savefig(outputFile)  # Save the figure
+		print 'Saved file to', outputFile
+		plt.close()
+			
 			
 
 def plot_photoncount(SnapList, sum_nion, num_files, max_files, model_tags, output_tag): 
@@ -1307,9 +1306,10 @@ def plot_photoncount(SnapList, sum_nion, num_files, max_files, model_tags, outpu
     Parameters
     ---------
     SnapList : Nested `np.darray', SnapList[model_number0] = [snapshot0_model0, ..., snapshotN_model0], with length equal to the number of models.
-	Snapshots for each model, defines the x-axis we plot against. 
-    ngamma, fesc, halo_mass : Nested 2-dimensional `np.darray', fesc[model_number0][snapshot0]  = [galaxyfesc0_model0_snapshot0, ..., galaxyfescN_model0_snapshot0], with length equal to the number of models. 
-	ngamma/fesc/Halo mass for the galaxies for a given model at a given snapshot.
+	Snapshots for each model, defines the x-axis we plot against.
+    sum_nion : Nested 1-dimensional `array-like', sum_nion[z0, z1, ..., zn], with length equal to the number of redshifts. 
+	Number of escape ionizing photons (i.e., photon rate times the local escape fraction) at each redshift.
+	In units of 1.0e50 s^-1.
     num_files : int
 	Number of files that were read in to create the plot.
     max_files : int
@@ -1326,8 +1326,7 @@ def plot_photoncount(SnapList, sum_nion, num_files, max_files, model_tags, outpu
 
     Units
     -----
-    Halo Mass is in units of log10(Msun). 
-    ngamma is in units of log10(s^-1).
+    sum_nion is in units of 1.0e50 s^-1.
     '''
     print "Plotting the ionizing emissivity." 
 
@@ -1338,24 +1337,18 @@ def plot_photoncount(SnapList, sum_nion, num_files, max_files, model_tags, outpu
 
     	for snapshot_idx in xrange(0, len(SnapList[model_number])):
 		
-		## 
-
 		nion_sum_snapshot = comm.reduce(sum_nion[model_number][snapshot_idx], op = MPI.SUM, root = 0)
 
 		if rank == 0:
-			sum_array[model_number].append(nion_sum_snapshot / (pow(AllVars.BoxSize / AllVars.Hubble_h,3) * (float(num_files) / float(max_files))))
-		
-	
-	
+			sum_array[model_number].append(nion_sum_snapshot * 1.0e50 / (pow(AllVars.BoxSize / AllVars.Hubble_h,3) * (float(num_files) / float(max_files))))
+			
     if (rank == 0):
     	ax1 = plt.subplot(111)
 
 	for model_number in xrange(0, len(SnapList)):
     		t = np.empty(len(SnapList[model_number]))
 		for snapshot_idx in xrange(0, len(SnapList[model_number])):
-       			t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3   
-
-		print np.log10(sum_array[model_number])
+       			t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3   	
 	
     		ax1.plot(t, np.log10(sum_array[model_number]), color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)  
     		#ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = colors[model_number], alpha = 0.25)
@@ -1491,7 +1484,7 @@ def calculate_fesc(fesc_prescription, halo_mass, ejected_fraction, fesc_normaliz
 	print "The escape fraction prescription is ", fesc_prescription, " but fesc_normalization was not a list; it instead had a value of ", fesc_normalization
 	raise ValueError("For a scaling escape fraction fesc_normalization should be a list of the form [A, B]") 
 
-    print "Calculating fesc with prescription %d" %(fesc_prescription) 
+    #print "Calculating fesc with prescription %d" %(fesc_prescription) 
     if (fesc_prescription == 0):
 	fesc = np.full((len(halo_mass)), fesc_normalization)
     elif (fesc_prescription == 1):
@@ -1499,31 +1492,34 @@ def calculate_fesc(fesc_prescription, halo_mass, ejected_fraction, fesc_normaliz
     elif (fesc_prescription == 2):
 	fesc = fesc_normalization[0]*ejected_fraction + fesc_normalization[1]
 
-    ## Adjust bad values, provided there isn't a riduculous amount of them. ##	
-    w = np.where((halo_mass >= m_low) & (halo_mass <= m_high))[0] # Only care about the escape fraction values between these bounds. 
-    nan_values = len(fesc[w][np.isnan(fesc[w])]) 
-    aboveone_values = len(fesc[w][fesc[w] > 1.0])
-    belowzero_values = len(fesc[w][fesc[w] < 0.0])
-    print "There was %d escape fraction values that were NaN, %d > 1.0 and %d < 0.0.  There was %d in total." %(nan_values, aboveone_values, belowzero_values, len(fesc))
-    bad_ratio =  (float(nan_values) + float(aboveone_values) + float(belowzero_values)) / float(len(fesc))
-	
-    if (bad_ratio > 0.10):
-	print "The ratio of bad escape fractions to good is %.4f" %(bad_ratio)
-	print "Values above 1: ", fesc[fesc > 1.0]
-	w = np.where(fesc > 1.0)[0]
-	print "Halo mass is; ", halo_mass[w]
-	print "Ejected fraction is: ", ejected_fraction[w]
-	print
-	print "Values below 0: ", fesc[fesc < 0.0]
-	w = np.where(fesc < 0.0)[0]
-	print "Halo mass is; ", halo_mass[w]
-	print "Ejected fraction is: ", ejected_fraction[w]
-	raise ValueError("This was above the tolerance level of 10%.")
+    if len(fesc) != 0:
+	    ## Adjust bad values, provided there isn't a riduculous amount of them. ##	
+	w = np.where((halo_mass >= m_low) & (halo_mass <= m_high))[0] # Only care about the escape fraction values between these bounds. 
+	nan_values = len(fesc[w][np.isnan(fesc[w])]) 
+	aboveone_values = len(fesc[w][fesc[w] > 1.0])
+	belowzero_values = len(fesc[w][fesc[w] < 0.0])
+#	print "There was %d escape fraction values that were NaN, %d > 1.0 and %d < 0.0.  There was %d in total." %(nan_values, aboveone_values, belowzero_values, len(fesc))
+	bad_ratio =  (float(nan_values) + float(aboveone_values) + float(belowzero_values)) / float(len(fesc))
+		
+	if (bad_ratio > 0.10):
+		print "The ratio of bad escape fractions to good is %.4f" %(bad_ratio)
+		print "Values above 1: ", fesc[fesc > 1.0]
+		w = np.where(fesc > 1.0)[0]
+		print "Halo mass is; ", halo_mass[w]
+		print "Ejected fraction is: ", ejected_fraction[w]
+		print
+		print "Values below 0: ", fesc[fesc < 0.0]
+		w = np.where(fesc < 0.0)[0]
+		print "Halo mass is; ", halo_mass[w]
+		print "Ejected fraction is: ", ejected_fraction[w]
+		raise ValueError("This was above the tolerance level of 10%.")
 
-    fesc[np.isnan(fesc)] = 0 # Get rid of any lingering Nans.
-    fesc[fesc > 1] = 1.0  # Get rid of any values above 1. 
-    fesc[fesc < 0] = 0.0  # Get rid of any values below 0. 
-
+	fesc[np.isnan(fesc)] = 0 # Get rid of any lingering Nans.
+	fesc[fesc > 1] = 1.0  # Get rid of any values above 1. 
+	fesc[fesc < 0] = 0.0  # Get rid of any values below 0.
+    else:
+	fesc = np.nan	
+	 
     return fesc
 
 ##
@@ -1618,59 +1614,54 @@ def calculate_UV_extinction(z, L, M):
     M_UV_obs(-2.5 * np.log10(f_nu) + 8.90) # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
     return M_UV_obs
+
 ##
 
 def update_cumulative_stats(mean_pool, std_pool, N_pool, mean_local, std_local, N_local):
     '''
+    Update the cumulative statistics (such as Stellar Mass Function, Mvir-Ngamma, fesc-z) that are saved across files.
+    Pooled mean formulae taken : from https://www.ncbi.nlm.nih.gov/books/NBK56512/
+    Pooled variance formulae taken from : https://en.wikipedia.org/wiki/Pooled_variance
+
+    Parameters
+    ----------
+    mean_pool, std_pool, N_pool : `np.darray' of floats with length equal to the number of bins (e.g. the mass bins for the Stellar Mass Function).
+	The current mean, standard deviation and number of data points within in each bin.  This is the array that will be updated in this function.
+    mean_local, std_local, N_local : `np.darray' of floats with length equal to the number of bins.
+	The mean, standard deviation and number of data points within in each bin that will be added to the pool.
+
+    Returns
+    -------
+    mean_pool, std_pool, N_pool : (See above)
+	The updated arrays with the local values added and accounted for within the pools.
+
+    Units
+    -----
+    All units are kept the same as the input units.
+    Values are in real-space (not log-space).
     '''
    
+    N_times_mean_local = np.multiply(N_local, mean_local)
+    N_times_var_local = np.multiply(N_local - 1, np.multiply(std_local, std_local)) # Actually N - 1 because of Bessel's Correction 
+   										# https://en.wikipedia.org/wiki/Bessel%27s_correction).  #
+    N_times_mean_pool = np.add(N_times_mean_local, np.multiply(N_pool, mean_pool))
+    N_times_var_pool = np.add(N_times_var_local, np.multiply(N_pool - 1, np.multiply(std_pool, std_pool)))
+    N_pool = np.add(N_local, N_pool)
+   
+  
+    #print "N_times_mean_pool", N_times_mean_pool
+    #print "N_pool", N_pool
  
-    ## Going to ignore Bessel's Correction here where things should be N - 1. ##
-    ## Reasoning is that we're dealing with such large numbers that N >> 1. ##
-    ## https://en.wikipedia.org/wiki/Bessel%27s_correction).  ##
-
-    N_times_mean_local = np.add(N_local, mean_local)
-    N_times_var_local = np.add((N_local), np.add(std_local, std_local)) # Actually N - 1 because of Bessel's Correction (
-
-
-#    print "mean_local", mean_local
-#    print "std_local", std_local
-    
-#    print "N_times_mean_local", N_times_mean_local
-#    print "N_times_var_local", N_times_var_local
-    pooled_N_times_mean = np.log10(pow(10, N_times_mean_local) + np.add(N_pool, mean_pool))
-    pooled_N_times_var = np.log10(pow(10, N_times_var_local) + np.add(N_pool, np.add(std_pool, std_pool)))
-#    print "N_local", N_local
-#    print "N_pool", N_pool
-    N_pool = np.log10(pow(10, N_local) + pow(10, N_pool))
-
-#    print "pooled_N_times_mean", pooled_N_times_mean
-#    print "pooled_N_times_var", pooled_N_times_var
-#    print "pooled_N", N_pool
-    if((N_pool == N_local).all()):
-	print N_pool
-	print N_local
-	print "hit the if condition"
-	mean_pool = mean_local
-    else:
-    	mean_pool = np.subtract(pooled_N_times_mean, N_pool)
- 
-    for i in xrange(0, len(N_pool)): 
-    	if(N_pool[i] < np.log10(2)):
-		std_pool[i] = 0.0
-		#print N_pool[i] 
+    for i in xrange(0, len(N_pool)):
+	if(N_pool[i] == 0): 
+		mean_pool[i] = 0.0
 	else:
-#		print "Pooled_N_times_var[i]", pooled_N_times_var[i]
-#		print "N_pool[i]", N_pool[i]
-		std_pool[i] = 0.5*(pooled_N_times_var[i] - N_pool[i])
-		if(std_pool[i] == 0.0):
-			print "pooled_N_times_var[i]", pooled_N_times_var[i]
-			print "N_pool[i]", N_pool[i]
-#		std_pool[i] = pow(10, std_pool_tmp)
-#		std_pool[i] = np.sqrt(pooled_N_times_var[i] / (N_pool[i] - 2)) # Minus two because we have two instances of N - 1.
-#		print "std_pool[i]", std_pool[i]
+ 	  	mean_pool[i] = N_times_mean_pool[i]/N_pool[i]
+    	if(N_pool[i] < 3): # In this instance we don't have enough data points to properly calculate the standard deviation.
+		std_pool[i] = 0.0
+	else:
+		std_pool[i] = np.sqrt(N_times_var_pool[i]/ (N_pool[i] - 2)) # We have -2 because there is two instances of N_pool contains two 'N - 1' terms. 
 		 
-#    print std_pool
     return mean_pool, std_pool
 
 
@@ -1683,32 +1674,32 @@ calculate_observed_LF = 0
 
 ### The arrays in this block control constants for each model ##
 
-number_models = 1
+number_models = 3
 
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/galaxies/IRA_z1.827'
-galaxies_model2 = '/lustre/projects/p004_swin/jseiler/tiamat/galaxies/IRA_z1.827'
-galaxies_model3 = '/lustre/projects/p004_swin/jseiler/tiamat/galaxies/IRA_z1.827'
-galaxies_model4 = '/lustre/projects/p004_swin/jseiler/tiamat/galaxies/IRA_z1.827'
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/18month/IRA_z5.000'
+galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/IRA_z5.000'
+galaxies_model3 = '/lustre/projects/p004_swin/jseiler/18month/IRA_z5.000'
+#galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/Delayed_5Myr_z5.000'
 
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/18month/IRA_MergedGalaxies'
+merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/IRA_MergedGalaxies'
+merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/18month/IRA_MergedGalaxies'
+#merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/Delayed_5Myr_MergedGalaxies'
 
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/tiamat/galaxies/IRA_MergedGalaxies'
-merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/tiamat/galaxies/IRA_MergedGalaxies'
-merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/tiamat/galaxies/IRA_MergedGalaxies'
-merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/tiamat/galaxies/IRA_MergedGalaxies'
+galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3]
+merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3]
 
-galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3, galaxies_model4]
-merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3, merged_galaxies_model4]
-
-number_snapshots = [164, 164, 164, 164] # Property of the simulation.
-#number_snapshots = [101, 101, 101, 101] # Property of the simulation.
-FirstFile = [0, 0, 0, 0]
+#number_snapshots = [164, 164, 164, 164] # Property of the simulation.
+number_snapshots = [101, 101, 101]
+FirstFile = [0, 0, 0]
 #LastFile = [124, 124, 124, 124]
 #LastFile = [26, 26, 26, 26]
-LastFile = [1, 1, 1, 1]
+LastFile = [124, 124, 124]
 
 #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
-model_tags = [r"$f_\mathrm{esc} = 0.50$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
+model_tags = [r"$f_\mathrm{esc} = 0.50$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 #model_tags = [r"$f_\mathrm{esc} = 0.50$"]
+#model_tags = [r"Instant", r"Delayed"]
 
 for model_number in xrange(0,number_models):
 	assert(LastFile[model_number] - FirstFile[model_number] + 1 >= size)
@@ -1718,32 +1709,33 @@ for model_number in xrange(0,number_models):
 
 sSFR_min = [1.0e100, 1.0e100, 1.0e100, 1.0e100]
 sSFR_max = [-1.0e100, -1.0e100, 1.0e100, 1.0e100]
-halo_cut = [100, 100, 100, 100] # Only calculate galaxy properties whose host halo has particle number greater than this.
+halo_cut = [50, 50, 50, 100] # Only calculate galaxy properties whose host halo has particle number greater than this.
 source_efficiency = [1, 1, 1, 1] # Used for the halo based prescription for ionizing emissivity.
 
 fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3] # Escape fraction of Lyman Alpha photons.
-fesc_prescription = [0, 1, 1, 2] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction.
+fesc_prescription = [0, 1, 2] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction.
 
 ## Normalizations for the escape fractions. ##
 # For prescription 0, requires a number that defines the constant fesc.
 # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
 # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
-fesc_normalization = [0.10, [1000.0, -0.4], [1.0e-5, 0.375], [1.0, 0.0]] 
+fesc_normalization = [0.10, [1000.0, -0.4], [0.2, 0.00]] 
+#fesc_normalization = [0.50, [1000.0, -0.4], [1.0, 0.0]] 
 ##
 
 #SnapList = [np.arange(100, 20, -1)]
-#SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
+SnapList = [np.arange(100, 20, -1), np.arange(100, 20, -1), np.arange(100, 20, -1)]
 #SnapList =  [[78, 64, 51], [78, 64, 51], [78, 64, 51], [78, 64, 51]]
-SnapList =  [[78]]
+#SnapList =  [[78, 64, 51], [78, 64, 51]]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
-simulation_norm = [3, 3, 3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
+simulation_norm = [0, 0, 3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
 
 galaxy_halo_mass_lower = [95, 95, 95, 95] # These limits are for the number of particles in a halo.  
 galaxy_halo_mass_upper = [105, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
 
 ##############################################################################################################
 
-#bin_Simfast_halos(np.arange(13.000, 5.9, -0.250), AllVars.SnapZ, "/lustre/projects/p004_swin/jseiler/Simfast21/Halos/", "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma", fesc_prescription, fesc_normalization, 512)
+#bin_Simfast_halos(np.arange(13.500, 5.9, -0.250), AllVars.SnapZ, "/lustre/projects/p004_swin/jseiler/Simfast21/Halos/", "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma", fesc_prescription, fesc_normalization, 512, "Simfast_nion")
 #exit()
 dilute_galaxies = 100000 # For some plots we don't want to plot more than this to avoid overcrowding.
 
@@ -1756,13 +1748,13 @@ mean_fesc_halo_array = []
 std_fesc_halo_array = []
 mean_Ngamma_halo_array = []
 std_Ngamma_halo_array = []
-
+N_array = []
 ## Arrays for functions of redshift. ##
 sum_Ngamma_z_array = []
 mean_fesc_z_array = []
 std_fesc_z_array = []
+N_z = []
 
-N_array = []
 
 for model_number in xrange(0, number_models):
 
@@ -1784,31 +1776,32 @@ for model_number in xrange(0, number_models):
     std_fesc_halo_array.append([])
     mean_Ngamma_halo_array.append([])
     std_Ngamma_halo_array.append([])
- 
+    N_array.append([])
     ## Redshift arrays. ##
     sum_Ngamma_z_array.append([])
     mean_fesc_z_array.append([])
     std_fesc_z_array.append([])
+    N_z.append([])
 
-    N_array.append([])
+
+
 
     for snapshot_idx in xrange(0, len(SnapList[model_number])): # These arrays are used for cumulative values across all files.
 	SMF[model_number].append(np.zeros((NB_gal), dtype = np.int32)) # Stellar Mass Function for each snapshot.
 
-	## Halo arrays. ##
+	## Function of halo mass arrays. ##
 	mean_ejected_halo_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
 	std_ejected_halo_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
 	mean_fesc_halo_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
 	std_fesc_halo_array[model_number].append(np.zeros((NB), dtype = np.float32))
 	mean_Ngamma_halo_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
 	std_Ngamma_halo_array[model_number].append(np.zeros((NB), dtype = np.float32))
-
-	## Redshift arrays. ##
+	N_array[model_number].append(np.zeros((NB), dtype = np.float32)) # How many galaxies have been binned to calculate the statistics.
+	## Function of Redshift arrays. ##
 	sum_Ngamma_z_array[model_number].append(0.0) # This is the sum of ionizing photons emitted at each redshift.
 	mean_fesc_z_array[model_number].append(0.0)
 	std_fesc_z_array[model_number].append(0.0)
-
-	N_array[model_number].append(np.zeros((NB), dtype = np.float32)) # How many galaxies have been binned to calculate the statistics.
+	N_z[model_number].append(0.0)
 	
     for fnr in xrange(FirstFile[model_number] + rank, LastFile[model_number]+1, size): # Divide up the input files across the processors.
 
@@ -1876,7 +1869,7 @@ for model_number in xrange(0, number_models):
 		Mfilt_sobacchi = G.MfiltSobacchi[w_gal, current_snap]
 		ejected_fraction = G.EjectedFraction[w_gal, current_snap]
 	
-		L_UV = SFR_gal[snapshot_idx] + 39.927 # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
+		L_UV = SFR_gal + 39.927 # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
 		M_UV = AllVars.Luminosity_to_ABMag(L_UV, 1600)
 
 		if (calculate_observed_LF == 1): # Calculate the UV extinction if requested. 
@@ -1893,52 +1886,32 @@ for model_number in xrange(0, number_models):
 		## We have now calculated all the base properties for galaxies within this snapshot.  Calculate the relevant statistics and put them into their arrays. ##
 
 		(counts_local, bin_edges, bin_middle) = Calculate_Histogram(mass_gal, bin_width, 0, m_gal_low, m_gal_high) # Bin the Stellar Mass 
-		
-#		counts_local = np.array(counts_local)
 		SMF[model_number][snapshot_idx] += counts_local	
 
 		(mean_ejected_halo_local, std_ejected_halo_local, N_local, bin_middle) = Calculate_2D_Mean(mass_central, ejected_fraction, bin_width, m_low, m_high) # This bins the halo_mass (x-axis) and then calculates the mean ejected fraction (y-axis) within each of these bins.
-		(mean_ejected_halo_array[model_number][snapshot_idx], std_ejected_halo_array[model_number][snapshot_idx]) = update_cumulative_stats(mean_ejected_halo_array[model_number][snapshot_idx], std_ejected_halo_array[model_number][snapshot_idx], N_array[model_number][snapshot_idx], np.log10(mean_ejected_halo_local), np.log10(std_ejected_halo_local), np.log10(N_local)) # Update the mean ejected fraction for this Snapshot.
+		(mean_ejected_halo_array[model_number][snapshot_idx], std_ejected_halo_array[model_number][snapshot_idx]) = update_cumulative_stats(mean_ejected_halo_array[model_number][snapshot_idx], std_ejected_halo_array[model_number][snapshot_idx], N_array[model_number][snapshot_idx], mean_ejected_halo_local, std_ejected_halo_local, N_local) # Update the mean ejected fraction for this Snapshot.
 		
 		(mean_fesc_halo_local, std_fesc_halo_local, N_local, bin_middle) = Calculate_2D_Mean(mass_central, fesc_local, bin_width, m_low, m_high) # Do the same for the escape fraction as a function of halo mass.
-		(mean_fesc_halo_array[model_number][snapshot_idx], std_fesc_halo_array[model_number][snapshot_idx]) = update_cumulative_stats(mean_fesc_halo_array[model_number][snapshot_idx], std_fesc_halo_array[model_number][snapshot_idx], N_array[model_number][snapshot_idx], np.log10(mean_fesc_halo_local), np.log10(std_fesc_halo_local), np.log10(N_local)) 
+		(mean_fesc_halo_array[model_number][snapshot_idx], std_fesc_halo_array[model_number][snapshot_idx]) = update_cumulative_stats(mean_fesc_halo_array[model_number][snapshot_idx], std_fesc_halo_array[model_number][snapshot_idx], N_array[model_number][snapshot_idx], mean_fesc_halo_local, std_fesc_halo_local, N_local) 
 
 		mean_fesc_z_array[model_number][snapshot_idx] = np.mean(fesc_local)
 		std_fesc_z_array[model_number][snapshot_idx] = np.std(fesc_local)
 
 		(mean_Ngamma_halo_local, std_Ngamma_halo_local, N_local, bin_middle) = Calculate_2D_Mean(mass_central, ionizing_photons, bin_width, m_low, m_high) # Do the same for the escape fraction as a function of halo mass.
-#		print "std_Ngamma_halo_local", std_Ngamma_halo_local
 
+		mean_Ngamma_halo_local = np.divide(mean_Ngamma_halo_local, 1.0e50)
+		std_Ngamma_halo_local = np.divide(std_Ngamma_halo_local, 1.0e50)
 
+		(mean_Ngamma_halo_array[model_number][snapshot_idx], std_Ngamma_halo_array[model_number][snapshot_idx]) = update_cumulative_stats(mean_Ngamma_halo_array[model_number][snapshot_idx], std_Ngamma_halo_array[model_number][snapshot_idx], N_array[model_number][snapshot_idx], mean_Ngamma_halo_local, std_Ngamma_halo_local, N_local) 
 
-		(mean_Ngamma_halo_array[model_number][snapshot_idx], std_Ngamma_halo_array[model_number][snapshot_idx]) = update_cumulative_stats(mean_Ngamma_halo_array[model_number][snapshot_idx], std_Ngamma_halo_array[model_number][snapshot_idx], N_array[model_number][snapshot_idx], np.log10(mean_Ngamma_halo_local), np.log10(std_Ngamma_halo_local), np.log10(N_local)) 
+		sum_Ngamma_z_array[model_number][snapshot_idx] += np.sum(np.divide(ionizing_photons, 1.0e50))	
 
-#		print "mean_Ngamma_halo_array", mean_Ngamma_halo_array[model_number][snapshot_idx]
-#		print "std_Ngamma_halo_array", std_Ngamma_halo_array[model_number][snapshot_idx]
-#		print model_number, snapshot_idx	
-		
-#		print std_Ngamma_halo_array[0][0]
-		sum_Ngamma_z_array[model_number][snapshot_idx] += np.sum(ionizing_photons)	
+		N_z[model_number][snapshot_idx] += len(w_gal)
+		N_array[model_number][snapshot_idx] += N_local 
 
-		N_array[model_number][snapshot_idx] = np.log10(pow(10, N_array[model_number][snapshot_idx]) + N_local)
-		print "rank ", rank, ": N_local", N_local
-		#print "rank ", rank, ": mean_Ngamma_halo_array", mean_Ngamma_halo_array[0][0]
+#StellarMassFunction(SnapList, SMF, simulation_norm, model_tags, 1, "18month_DelayedIRA_SMF") ## PARALLEL COMPATIBLE
+#plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_array, model_tags, "18month_Ejected_test") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
+plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "18month_fesc_talk") ## PARALELL COMPATIBLE 
+#plot_photoncount(SnapList, sum_Ngamma_z_array, 50, 125, model_tags, "18month_nion_talk") ## PARALELL COMPATIBLE
+#plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 
-#		print "N_array = ", N_array[model_number][snapshot_idx]
-#		print "mean_Ngamma_halo_array = ", mean_Ngamma_halo_array[model_number][snapshot_idx]
-#		print "std_Ngamma_halo_array = ", std_Ngamma_halo_array[model_number][snapshot_idx]
-
-
-#print "rank ", rank, ": mean_Ngamma_halo_array[0][0]", mean_Ngamma_halo_array[0][0]
-#print "rank ", rank, ": std_Ngamma_halo_array[0][0]", std_Ngamma_halo_array[0][0]
-
-#StellarMassFunction(SnapList, SMF, simulation_norm, model_tags, 1, "1file_test") ## PARALLEL COMPATIBLE
-#plot_ejectedfraction(SnapList, pow(10, mean_ejected_halo_array), pow(10, std_ejected_halo_array), N_array, model_tags, "18month_Ejected_test") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
-#plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_array, model_tags, "18month_1file") ## PARALELL COMPATIBLE 
-#plot_photoncount(SnapList, sum_Ngamma_z_array, 1, 27, model_tags, "18month_nion_1file") ## PARALELL COMPATIBLE
-plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
-
-#plot_mvir_fesc(SnapList, mass_central, fesc_local, model_tags, "Mvir_fesc")   # Stared parallel compatibility
-
-#SimfastRedshift = np.arange(15.00, 5.9, -0.250) 
-#bin_Simfast_halos(SimFastRedshift, AllVars.SnapZ, "/lustre/projects/p004_swin/jseiler/Simfast21/Halos", "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/", 512)

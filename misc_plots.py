@@ -305,7 +305,9 @@ def plot_ionized_field(z):
        
     print "Plotting ionized bubbles at z = %.3f." %(z)
 
-    ionized_cells = np.log10(1 - ionized_cells)
+    print ionized_cells
+    #ionized_cells = np.log10(1 - ionized_cells)
+    ionized_cells = 1 - ionized_cells
     cut_slice = 40
 
     ax = plt.subplot(111)
@@ -324,7 +326,7 @@ def plot_ionized_field(z):
     title = r"z = %.3f" %(z)
     ax.set_title(title)
  
-    outputFile = './Simfast21_z%.3f_bubbles.png' %(z) 
+    outputFile = './Monday_Simfast21_z%.3f_bubbles.png' %(z) 
     plt.savefig(outputFile)  # Save the figure
     print 'Saved file to', outputFile
 
@@ -356,8 +358,8 @@ if __name__ == '__main__':
 
     #plot_density_field()
 
-    #for i in np.arange(6.00, 12.500, 0.250):
-#		plot_ionized_field(i)
+    for i in np.arange(8.00, 12.500, 0.250):
+		plot_ionized_field(i)
 
 
 

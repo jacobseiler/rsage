@@ -39,7 +39,7 @@ def Set_Params_Plot():
 
 	global_labelsize = 20
 	global_fontsize = 20
-	global_legendsize = 18
+	global_legendsize = 12
 	global_linewidth = 3
 	global_tickinterval = 0.25
 	global_errorwidth = 3

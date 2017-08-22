@@ -2001,7 +2001,12 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
 			ionized_cells.shape = (GridSizes[model_index], GridSizes[model_index], GridSizes[model_index])
 			fd.close()
 
+			if len(ionized_cells[ionized_cells == 1]):
+				raise ValueError("Arghhh")
+			
 			ionized_cells = np.log10(1 - ionized_cells)
+			
+			#ionized_cells = np.log10(ionized_cells)
 			redshift = ZZ[snapshot_index]
 
 		index_cut = int(cut_slice * (AllVars.BoxSize/100.0)*(GridSizes[model_index]/GridSizes[0])) # Wish to cut the box at the same spatial point for all models.  So normalize the index that this corresponds to to model1.
@@ -2036,7 +2041,7 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
 	cbar.ax.set_ylabel(r'$\mathrm{log}_{10}\left(x_\mathrm{HI}\right)$', rotation = 90)
 	cbar.ax.tick_params(labelsize = legend_size)
     	fig.subplots_adjust(right = None, hspace = 0.0, wspace = 0.0)
-
+	
 	outputFile = OutputDir + output_tag + output_format 
 	plt.savefig(outputFile)  # Save the figure
 	print 'Saved file to', outputFile
