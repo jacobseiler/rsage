@@ -39,7 +39,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 void add_galaxies_together(int t, int p);
 void init_galaxy(int p, int halonr);
 double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr);
-void add_infall_to_hot(int centralgal, double infallingGas);
+void add_infall_to_hot(int centralgal, double infallingGas, double dt);
 double cooling_recipe(int centralgal, double dt);
 void cool_gas_onto_galaxy(int centralgal, double coolingGas);
 void reincorporate_gas(int centralgal, double dt);
@@ -96,5 +96,5 @@ double calculate_reheated_mass(double Delta_Eta, double stars, double Vmax);
 double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax);
 double calculate_ejected_mass(double *reheated_mass, double reheated_energy, double Vvir);
 double calculate_coreburning(double t);
-void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new);
+void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double dt);
 void  update_stars_array(int p, double stars, double dt, int tree, int step, int ngal);

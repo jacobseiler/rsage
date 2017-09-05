@@ -12,11 +12,13 @@
 #include "core_proto.h"
 
 
-void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new)
+void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double dt) 
 {
 
   double metallicity, metallicityHot;
 
+  XASSERT((reheated_mass >= 0.0) && (ejected_mass >= 0.0) && (mass_stars_recycled >= 0.0) && (mass_metals_new >= 0.0), "When trying to update from the supernova feedback we got negative masses.\nReheated Mass = %.4e (1.0e10 Msun/h) \t Ejected Mass = %.4e (1.0e10 Msun/h) \t Mass of Stars Recycled = %.4e (1.0e10 Msun/h) \t Mass of Metals Added = %.4e (1.0e10 Msun/h)\n", reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
+ 
   Gal[p].StellarMass -= mass_stars_recycled; // The supernova remnants are instantly moved back into the cold ISM. 
   Gal[p].ColdGas += mass_stars_recycled; 
 
@@ -25,9 +27,11 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   else
       Gal[centralgal].MetalsHotGas += mass_metals_new;
 
+  // Here we do checks to see if we need to rescale the amount of mass that has been ejected/reheated. //
+
   if(reheated_mass > Gal[p].ColdGas) // Just perform this check again to be sure.
       reheated_mass = Gal[p].ColdGas; // Because SF takes gas out of cold resevoir.
-
+ 
   if(ejected_mass > Gal[centralgal].HotGas)
       ejected_mass = Gal[centralgal].HotGas; 
 
@@ -46,9 +50,10 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   Gal[centralgal].EjectedMass += ejected_mass;
   Gal[centralgal].MetalsEjectedMass += ejected_mass * metallicity;
 
-  Gal[p].OutflowRate += reheated_mass;   
-  Gal[p].GrandSum -= mass_stars_recycled;
+  Gal[p].GridOutflowRate[Gal[p].SnapNum] += ejected_mass / dt; 
+  XASSERT(Gal[p].GridOutflowRate[Gal[p].SnapNum] == Gal[p].GridOutflowRate[Gal[p].SnapNum], "For galaxy %d at snapshot %d we had a GridOutflowRate value of %.4e\n", p, Gal[p].SnapNum, Gal[p].GridOutflowRate[Gal[p].SnapNum]);
 
+  Gal[p].GrandSum -= mass_stars_recycled;
 
   if(Gal[p].ColdGas < 0.0) // Some final checks. 
     Gal[p].ColdGas = 0.0;
@@ -71,7 +76,7 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
 
 //  if(tree == 476)
 //	fprintf(stderr, "Galaxy %d, Gal[%d].SnapNum = %d \t Step = %d \t Gal[%d].Total_SF_Time = %4f \t Stars = %.4e\n", p, p, Gal[p].SnapNum, step, p, Gal[p].Total_SF_Time, stars);
-
+ 
   double metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
   if(!ismerger)
   {
@@ -195,7 +200,10 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   // Initialise variables
   strdot = 0.0;
 
-  if(IRA== 0 && (Gal[p].Total_SF_Time + (dt * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN))
+  // First we check to see if we need to do delayed supernova feedback.
+  // If this galaxy has evolved for the time defined by 'TimeResolutionSN' and 'IRA' is 0, then we perform the delayed SN feedback.
+  // i.e., the delayed prescription is only implemented every 'TimeResolutionSN' Megayears.
+  if(IRA == 0 && (Gal[p].Total_SF_Time + (dt * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN)) 
   {    
     do_previous_SN(p, centralgal, halonr, dt);
   } 
@@ -247,7 +255,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   }
   
   update_from_star_formation(p, stars, dt, step, false, tree, ngal); 
-  update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
+  update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, dt);
 
   // check for disk instability
   if(DiskInstabilityOn)
@@ -267,6 +275,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m)
 {
   *Delta_Eta = IMF_norm / (IMF_slope + 1.0) * (pow(m_high, IMF_slope + 1.0) - pow(m_low, IMF_slope + 1.0));
+//  fprintf(stderr, "m_high = %.4f \t m_low = %.4f\n", m_high, m_low);
   *Delta_m = IMF_norm / (IMF_slope + 1.0) * (pow(m_high, IMF_slope + 2.0) - pow(m_low, IMF_slope + 2.0));
 }
 
@@ -293,12 +302,17 @@ double calculate_reheated_mass(double Delta_Eta, double stars, double Vmax)
   {
     epsilon_mass = alpha_mass * (0.5 + pow(Vmax/V_mass, -beta_mass));
   }
- 
+
+
+
   if (epsilon_mass > epsilon_mass_max)
-      epsilon_mass = epsilon_mass_max; // We enforce a maximum value for the mass loading factor. 
+  {
+   //fprintf(stderr, "alpha_mass = %.4f \t Vmax = %.4f \t V_mass = %.4f \t beta_mass = %.4f \t epsilon_mass = %.4f\n", alpha_mass, Vmax, V_mass, beta_mass, epsilon_mass);    
+    epsilon_mass = epsilon_mass_max; // We enforce a maximum value for the mass loading factor. 
+  }
 
   double reheated_mass = Delta_Eta/Eta_SNII * stars * epsilon_mass;
-  // fprintf(stderr, "Delta_Eta = %.4e \t Eta_SNII = %.4e \t stars = %.4e \t epsilon_mass = %.4e \t reheated_mass = %.4e\n", Delta_Eta, Eta_SNII, stars, epsilon_mass, reheated_mass);
+  //fprintf(stderr, "Delta_Eta = %.4e \t Eta_SNII = %.4e \t stars = %.4e \t epsilon_mass = %.4e \t reheated_mass = %.4e\n", Delta_Eta, Eta_SNII, stars, epsilon_mass, reheated_mass);
 
   return reheated_mass; 
 
@@ -333,6 +347,8 @@ double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax)
   //    Delta_Eta = 1.0; 
 
   double reheated_energy = 0.5 * Delta_Eta * (stars * 1.0e10 / Hubble_h) * epsilon_energy * EnergySN; // Delta_Eta was in Msun so need to convert to stars to Msun. 
+
+//  fprintf(stderr, "Delta_Eta = %.4e \t stars = %.4e \t epsilon_energy = %.4e \t reheated_energy = %.4e\n", Delta_Eta, stars, epsilon_energy, reheated_energy);
 
 //  if(Delta_Eta > 1e-13) 
 //    fprintf(stderr, "reheated_energy = %.4e \t Delta_Eta = %.4e \t stars = %.4e epsilon_energy = %.4e \t EnergySN = %.4e\n", reheated_energy, Delta_Eta /1.0e10 * Hubble_h, stars, epsilon_energy, EnergySN);
@@ -383,7 +399,7 @@ double calculate_ejected_mass(double *reheated_mass, double reheated_energy, dou
     Delta_Ehot = (0.5 * (*reheated_mass * 1.0e10 / Hubble_h * SOLAR_MASS / 1.0e3) * (Vvir * 1.0e3) * (Vvir * 1.0e3)) * 1.0e7; // Change in the thermal energy of the hot resevoir in erg..
     // Note the units here. Want final answer in Ergs (which is 1e-7 Joules) which has SI units of kg m^2 s^-2.
     // We change the mass from 1.0e10Msun/h to kg.  Change virial velocity from km/s to m/s. Finally change Joules to erg. 
-  
+
     if(reheated_energy > Delta_Ehot) // Have enough energy to have some ejected mass.
     {
     	ejected_mass = (reheated_energy - Delta_Ehot) * 1.0e-7/(0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Balance between the excess thermal energy and the thermal energy of the hot gas.
@@ -397,6 +413,8 @@ double calculate_ejected_mass(double *reheated_mass, double reheated_energy, dou
         *reheated_mass = reheated_energy * 1.0e-7 / (0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Amount of mass that can be reheated to virial temperature of the hot halo.
 	*reheated_mass = *reheated_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; 
     }
+
+    //fprintf(stderr, "reheated_mass = %.4e \t Delta_Ehot = %.4e \t reheated_energy = %.4e t ejected_mass = %.4e\n", *reheated_mass, Delta_Ehot, reheated_energy, ejected_mass); 
   } 					
   else
     ejected_mass = 0.0;
@@ -408,7 +426,9 @@ double calculate_ejected_mass(double *reheated_mass, double reheated_energy, dou
 
 }
 
-
+// This function answers the question, "How many stars formed in the previous time steps will explode during the current supernova timestep."
+// Note: Since the time scale on which we calculate SN feedback is variable (defined by the user in 'TimeResolutionSN') we use the terminology 'supernova timestep'.
+// Double note: This function is different to "do_contemporaneous_SN" because that looks at the stars formed during the CURRENT STAR FORMATION time step, not previous ones.
 void do_previous_SN(int p, int centralgal, int halonr, double dt)
 {
   double reheated_mass = 0.0; 
@@ -423,7 +443,7 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
   double time_until_next_SN;
 
   if(dt * UnitTime_in_Megayears / Hubble_h < TimeResolutionSN) // If the star formation time scale is smaller than the time scale on which we do SN feedback
-    time_until_next_SN = TimeResolutionSN - Gal[p].Total_SF_Time; // Then the time that we next calculate delayed SN feedback would be given dictated by the time resolution of SN. 
+    time_until_next_SN = TimeResolutionSN - Gal[p].Total_SF_Time; // Then the time that we next calculate delayed SN feedback would be given dictated by the time resolution of SN (minus however long the galaxy has already been evolving for). 
   else // Otherwise the star formation time scale is larger than the SN feedback time scale.
   {
     time_until_next_SN = dt * UnitTime_in_Megayears / Hubble_h;  // Then the time that we next calculate delayed SN feedback is in the next SF timestep.
@@ -439,46 +459,45 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
 //      if((i+1) * TimeResolutionSN < 4) // The only stars that can go nova in less than 4 Myr are stars with mass >120Msun (which we don't care about).  
 //	continue;
 
-      // Here we calculate the properties (energy/mass etc) for supernova using stars that formed i Megayears ago. 
-      // Note: That we calculate the amount of 
+      // First calculate the smallest star which would have expended its H and He and gone supernova. 
+      // This defines the mass boundary below which a star will not go nova in the current SN step.
 
-      // First calculate the smallest star (which formed i Myr ago) which would have expended its H and He and gone supernova. 
-      // This defines the mass boundary below which a star will not go nova in the current SF step.
-
-      t_low = (i * TimeResolutionSN) + time_until_next_SN;
+      //t_low = (i * TimeResolutionSN) / 2.0 + time_until_next_SN; // (i * TimeResolutionSN) is the number of stars that were formed that many megayears ago.  time_until_next_SN allows us to ask how many of stars will explode in this SN step.
+      t_low = (i * TimeResolutionSN) / 2.0 + time_until_next_SN; // (i * TimeResolutionSN) is the number of stars that were formed that many megayears ago.  time_until_next_SN allows us to ask how many of stars will explode in this SN step.
       if(t_low < 4)
-	t_low = 4; 
+  	  t_low = 4; 
       m_low = calculate_coreburning(t_low);    
 
       if (m_low < 8.0) // We enforce that SN-II only occur in stars M > 8Msun. 
         m_low = 8.0;
 
+      // Next we calculate the largest stellar mass which would have expended its H and He and gone supernova.
+      // This defines the mass boundary beyond which a star would have gone nova BEFORE the current SN step. 
 
-      // Next we calcualte the largest stellar mass (which formed i Myr ago) which would have expended its H and He and gone supernova.
-      // This defines the mass boundary beyond which a star would have gone nova BEFORE the current SF step. 
-
-      t_high = (i * TimeResolutionSN) / 2.0;
+      //t_high = (i * TimeResolutionSN) / 2.0; // (i * TimeResolutionSN) is the number of stars that were formed that many Megayears ago.  The / 2.0 factor arises from the fact that we assume stars were formed in a single co-eval burst in the middle of this period.
+      t_high = (i * TimeResolutionSN) / 2.0; // (i * TimeResolutionSN) is the number of stars that were formed that many Megayears ago.  The / 2.0 factor arises from the fact that we assume stars were formed in a single co-eval burst in the middle of this period.
       if(t_high < 4)
-	t_high = 4;	
+        continue;
+//  	  t_high = 4;	
       m_high = calculate_coreburning(t_high);
+
 
       if (m_high < 8) // In this instance every star that has formed in i Myr ago has already gone supernova and accounted for.
           continue;
 
       calculate_Delta_Eta(m_low, m_high, &Delta_Eta, &Delta_m); // Calculate the number and mass fraction of stars i Myr ago that go supernova in the current SF step. 
+      //fprintf(stderr, "Stellar Mass = %.4e \t Vmax = %.4e\n", Gal[p].StellarMass, Gal[centralgal].Vmax);
       reheated_mass += calculate_reheated_mass(Delta_Eta, Gal[p].Stars[i], Gal[centralgal].Vmax); // Update the amount of mass reheated from previous stars that have gone nova.
-
-//      fprintf(stderr, "Reheated_sum = %.4e \t Reheated_mass = %.4e \t Vmax = %.4e \t m_low = %.4e \t m_high = %.4e \t stars = %.4e \t Delta_Eta = %.4e \t time_until_next_SN = %.4e\n", reheated_mass, calculate_reheated_mass(Delta_Eta, Gal[p].Stars[i], Gal[centralgal].Vmax), Gal[centralgal].Vmax, m_low, m_high, Gal[p].Stars[i], Delta_Eta, time_until_next_SN);
 
       reheated_energy += calculate_reheated_energy(Delta_Eta, Gal[p].Stars[i], Gal[centralgal].Vmax); // Update the energy injected from previous stars that have gone nova. 
       mass_stars_recycled += Delta_m * Gal[p].Stars[i]; // Update the amount of stellar mass recycled from previous stars that have gone nova.
       mass_metals_new += Delta_m / m_SNII * Yield * Gal[p].Stars[i]; // Update the amount of new metals that the supernova has enriched the ISM with.
+ 
+      XASSERT(reheated_mass >= 0.0, "i = %d \t Reheated mass = %.4e \t t_low = %.4e Myr \t m_low = %.4e \t t_high = %.4e Myr \t m_high = %.4e\n", i, reheated_mass, t_low, m_low, t_high, m_high); // Just make sure we're doing this right.
 
-      
-      XASSERT(reheated_mass >= 0.0, "Reheated mass = %.4e \t t_low = %.4e Myr \t m_low = %.4e \t t_high = %.4e Myr \t m_high = %.4e\n", reheated_mass, t_low, m_low, t_high, m_high); // Just make sure we're doing this right.
-      
+//      fprintf(stderr, "i = %d \t t_low = %.4e \t t_high = %.4e \t m_low = %.4e \t m_high = %.4e \t reheated_energy (sum) = %.4e \t reheated_energy (instant) = %.4e \t delta_eta = %.4e \t delta_m = %.4e \t reheated_mass = %.4e\n", i, t_low, t_high, m_low, m_high, reheated_energy, calculate_reheated_energy(Delta_Eta, Gal[p].Stars[i], Gal[centralgal].Vmax), Delta_Eta, Delta_m, reheated_mass); 
     } 
-
+    
     if(reheated_mass > Gal[p].ColdGas) // Can't reheated more cold gas than we currently have.
         reheated_mass = Gal[p].ColdGas;
     
@@ -487,15 +506,17 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
     assert(mass_stars_recycled >= 0.0);
     assert(mass_metals_new >= 0.0);
 
-    ejected_mass = calculate_ejected_mass(&reheated_mass, reheated_energy, Gal[centralgal].Vmax); // Calculate the amount of mass ejected from supernova events. 
-
+    ejected_mass = calculate_ejected_mass(&reheated_mass, reheated_energy, Gal[centralgal].Vmax); // Calculate the amount of mass ejected from supernova events.
+    if (ejected_mass != 0.0)
+//    fprintf(stderr, "reheated_mass = %.4e \t ejected_mass = %.4e \t cold_gas = %.4e \t hot_gas = %.4e \t ejected_ratio = %.4f \t reheated_ratio = %.4f\n", reheated_mass, ejected_mass, Gal[p].ColdGas, Gal[p].HotGas, ejected_mass/Gal[p].HotGas, reheated_mass/Gal[p].ColdGas); 
+//    fprintf(stderr, "Ejected_mass = %.4e \t Reheated_mass = %.4e\n", ejected_mass, reheated_mass);
 //    if(dt * UnitTime_in_Megayears / Hubble_h > 30)
 //      fprintf(stderr, "dt = %.4eMyr \t ejected_mass = %.4e \t reheated_mass = %.4e \t mass_stars_recycled = %.4e \t ColdGas = %.4e\n", dt * UnitTime_in_Megayears / Hubble_h, ejected_mass, reheated_mass, mass_stars_recycled, Gal[p].ColdGas); 
 
-
+    XASSERT(ejected_mass >= 0.0, "For galaxy %d the ejected mass was %.4e \t reheated_mass = %.4e\n", p, ejected_mass, reheated_mass); 
   }
 
-  update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
+  update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, dt);
  
 }
 
@@ -563,9 +584,12 @@ void do_previous_recycling(int p, int centralgal, int step, double dt)
 
 //  fprintf(stderr, "mwmsa = %.4e \t Gal[p].SnapNum = %d \t Age[Gal[p].SnapNum] = %.4e \t Age[Gal[p].SnapNum - 1] = %.4e \t time_into_snap = %.4e \t t_low = %.4e \t t_high = %.4e \t m_low = %.4e \t m_high = %.4e \t mass_stars_recycled = %.4e\n", mwmsa * UnitTime_in_Megayears / Hubble_h, Gal[p].SnapNum, Age[Gal[p].SnapNum] * UnitTime_in_Megayears / Hubble_h, Age[Gal[p].SnapNum -1] * UnitTime_in_Megayears / Hubble_h, time_into_snap * UnitTime_in_Megayears / Hubble_h, t_low, t_high, m_low, m_high, mass_stars_recycled);
 
-    update_from_SN_feedback(p, centralgal, 0.0, 0.0, mass_stars_recycled, 0.0);
+    update_from_SN_feedback(p, centralgal, 0.0, 0.0, mass_stars_recycled, 0.0, dt);
   } 
 }
+
+// In this function we answer the question, "How many stars formed in the current star formation time step will explode by the time we next calculate our supernova feedback?"
+// Note: This function only concerns itself with stars formed in the CURRENT STAR FORMATION time step, unlike "do_previous_SN" which focuses on calculated SN feedback from PREVIOUS STAR FORMATION time steps.
 
 void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass)
 {
@@ -584,7 +608,7 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
     t_low = (TimeResolutionSN - Gal[p].Total_SF_Time) / 2.0; // Then our 'sub-grid' SN feedback time will be the time from this SF episode until we next calculate SN feedback (divided by 2 as we assume the stars are formed in the middle of the interval).
   else // Otherwise the star formation time scale is larger than the SN feedback time scale.
     t_low  = (dt * UnitTime_in_Megayears / Hubble_h) / 2.0; // Then the feedback time will be the time from this SF event to the next star formation event. This is because SN feedback is only calculated when star formation occurs regardless of the actual value of 'TimeResolutionSN'.
-
+ 
   if(t_low < 4) // Below this stars with masses >120Msun would only have time to explode.
     return;
     

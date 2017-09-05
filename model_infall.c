@@ -136,6 +136,15 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
 
     Gal[centralgal].HotGas += strippedGas;
     Gal[centralgal].MetalsHotGas += strippedGas * metallicity;
+
+    if(Gal[gal].HotGas < 0.0)
+    {
+        Gal[gal].HotGas = 0.0;
+    }
+    if(Gal[gal].MetalsHotGas < 0.0)
+    {
+        Gal[gal].MetalsHotGas = 0.0;
+    }
   }
   
 }
@@ -250,7 +259,7 @@ double do_myreionization(int gal, double Zcurr, int ReturnMfilt)
 }
 
 
-void add_infall_to_hot(int gal, double infallingGas)
+void add_infall_to_hot(int gal, double infallingGas, double dt)
 {
   float metallicity; 
 
@@ -275,12 +284,15 @@ void add_infall_to_hot(int gal, double infallingGas)
   }
   
   // add (subtract) the ambient (enriched) infalling gas to the central galaxy hot component 
-    Gal[gal].HotGas += infallingGas;
+  Gal[gal].HotGas += infallingGas;
+  Gal[gal].GridInfallRate[Gal[gal].SnapNum] += infallingGas / dt;
+  metallicity = get_metallicity(ejectedmass_total, metalsejectedmass_total);
+  Gal[gal].MetalsHotGas += metallicity * infallingGas;
 
-    metallicity = get_metallicity(ejectedmass_total, metalsejectedmass_total);
-    Gal[gal].MetalsHotGas += metallicity * infallingGas;
-
-//    if(Gal[gal].HotGas < 0.0) Gal[gal].HotGas = Gal[gal].MetalsHotGas = 0.0;
-
+  if(Gal[gal].HotGas < 0.0)
+  { 
+    Gal[gal].HotGas = 0.0; 
+    Gal[gal].MetalsHotGas = 0.0;
+  }
 }
 

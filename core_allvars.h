@@ -214,6 +214,8 @@ struct GALAXY
   float *EjectedFraction;
   int *LenHistory;
   double *Stars; 
+  float *GridOutflowRate;
+  float *GridInfallRate;
 
   double StellarAge_Numerator;
   double StellarAge_Denominator;

@@ -231,7 +231,9 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   size_t nwritten;
 
   ++count;
-
+  
+  nwritten = fwrite(&g->HaloNr, sizeof(g->HaloNr), 1, fp);
+ 
   XASSERT(g->IsMalloced == 1, "We are trying to write out the grid arrays for a galaxies who has already been freed.\n");
  
   float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
@@ -290,8 +292,32 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   nwritten = fwrite(g->LenHistory, sizeof(*(g->LenHistory)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing LenHistory, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
+ 
+  float *outflow_tmp= malloc(sizeof(*(g->GridOutflowRate)) * MAXSNAPS);
+  for (j = 0; j < MAXSNAPS; ++j)
+  {
+    outflow_tmp[j] = g->GridOutflowRate[j] * (1.0e10 / Hubble_h) * SEC_PER_YEAR / UnitTime_in_s; 
+    XASSERT(outflow_tmp[j] == outflow_tmp[j], "Outflow_tmp has a value of %.4e for snapshot %d. The GridOutflowRate value was %.4e\n", outflow_tmp[j], j, g->GridOutflowRate[j]);
+  }
+
+  nwritten = fwrite(outflow_tmp, sizeof(*(g->GridOutflowRate)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing GridOutflowRate, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
+  free(outflow_tmp);  
+
+  float *infall_tmp= malloc(sizeof(*(g->GridInfallRate)) * MAXSNAPS);
+  for (j = 0; j < MAXSNAPS; ++j)
+  {
+    infall_tmp[j] = g->GridInfallRate[j] * (1.0e10 / Hubble_h) * SEC_PER_YEAR / UnitTime_in_s; 
+    XASSERT(infall_tmp[j] == infall_tmp[j], "infall_tmp has a value of %.4e for snapshot %d. The GridOutflowRate value was %.4e\n", infall_tmp[j], j, g->GridInfallRate[j]);
+  }
+
+  nwritten = fwrite(infall_tmp, sizeof(*(g->GridInfallRate)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing GridInfallRate, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
+ 
   ++times_written;
-//  fprintf(stderr, "sizeof(*(g->GridHistory)) = %zu \nsizeof(*(g->GridCentralGalaxyMass = %zu\nsizeof(*(MfiltGnedin)) = %zu\n", sizeof(*(g->GridHistory)), sizeof(*(g->GridCentralGalaxyMass)), sizeof(*(g->MfiltGnedin))); 
+
 }
 
 void finalize_galaxy_file(int filenr)

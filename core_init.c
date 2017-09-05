@@ -66,19 +66,27 @@ void init(void)
 
   }
  
+  // Testing Parameters //
+  /*
   V_energy = 70.0;
-  //V_energy = 90.0;
+  alpha_energy = 1.80; 
+  beta_energy = 16.0; 
+
+  V_mass = 80.0; 
+  alpha_mass = 40.0; 
+  beta_mass = 16.0; 
+  */
+
+  // Tiamat Parameters //
+
+  V_energy = 70.0;
   alpha_energy = 0.5;
-  //alpha_energy = 0.18;
   beta_energy = 2.0;
-  //beta_energy = 3.2;
-  
-  alpha_mass = 6.0;
-  //alpha_mass = 4.0;
-  beta_mass = 10.0; 
-  //beta_mass = 3.2;
-  V_mass = 70.0;
-  //V_mass = 80.0;
+
+  V_mass = 70.0; 
+  alpha_mass = 6.0; 
+  beta_mass = 0.0; 
+
   epsilon_mass_max = 10.0;
 
   count_firstSF = 0;

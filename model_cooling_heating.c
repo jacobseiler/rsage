@@ -150,6 +150,17 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
 		
 		if (AGNheating > 0.0)
 			Gal[centralgal].Heating += 0.5 * AGNheating * Gal[centralgal].Vvir * Gal[centralgal].Vvir;
+    if(Gal[centralgal].HotGas < 0.0)
+    {
+        Gal[centralgal].HotGas = 0.0;
+    }
+
+    if(Gal[centralgal].MetalsHotGas < 0.0)
+    {
+        Gal[centralgal].MetalsHotGas = 0.0;
+    }
+    
+
   }
 
   return coolingGas;
@@ -180,6 +191,8 @@ void cool_gas_onto_galaxy(int centralgal, double coolingGas)
       Gal[centralgal].HotGas = 0.0;
       Gal[centralgal].MetalsHotGas = 0.0;
     }
+
+
   }
 
 }

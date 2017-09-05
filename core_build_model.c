@@ -299,7 +299,6 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
       // Don't treat galaxies that have already merged 
       if(Gal[p].mergeType > 0)
         continue;
-
       deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
       time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
 
@@ -317,7 +316,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
       // For the central galaxy only 
       if(p == centralgal)
       {
-        add_infall_to_hot(centralgal, infallingGas / STEPS);
+        add_infall_to_hot(centralgal, infallingGas / STEPS, deltaT / STEPS);
 
         if(ReIncorporationFactor > 0.0)
           reincorporate_gas(centralgal, deltaT / STEPS);
@@ -329,8 +328,6 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
       // Determine the cooling gas given the halo properties 
       coolingGas = cooling_recipe(p, deltaT / STEPS);
       cool_gas_onto_galaxy(p, coolingGas);
-
-      // If we are doing delayed SN (N_SFH != 0) then let's do that. 
  
       starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step, tree, ngal);
 
@@ -377,7 +374,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
           {
 
             disrupt_satellite_to_ICS(merger_centralgal, p, tree);
-	    update_grid_array(p, halonr, step, centralgal); // Updates the grid before it's added to the merger list.
+	        update_grid_array(p, halonr, step, centralgal); // Updates the grid before it's added to the merger list.
             add_galaxy_to_merger_list(p);
 	
           }
@@ -424,7 +421,6 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 		
     Gal[p].Cooling /= deltaT;
     Gal[p].Heating /= deltaT;
-    Gal[p].OutflowRate /= deltaT;    
 		
     if(p != centralgal)
 			Gal[centralgal].TotalSatelliteBaryons += 

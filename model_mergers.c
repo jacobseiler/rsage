@@ -270,7 +270,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   }
 
   update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal); 
-  update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
+  update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, dt);
 
   // check for disk instability
   if(DiskInstabilityOn && mode == 0)
@@ -323,6 +323,8 @@ void add_galaxy_to_merger_list(int p)
       MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
       MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
       MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
+      MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j];
+      MergedGal[MergedNr].GridInfallRate[j] = Gal[p].GridInfallRate[j];
     }
  
     for (j = 0; j < SN_Array_Len; ++j)

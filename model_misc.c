@@ -106,6 +106,8 @@ void init_galaxy(int p, int halonr)
     Gal[p].MfiltSobacchi[j] = 1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
+    Gal[p].GridOutflowRate[j] = 0.0;
+    Gal[p].GridInfallRate[j] = 0.0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -251,7 +253,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     Gal[p].GridHistory[SnapCurr] = grid_position; // Remember the grid history of the galaxy over the Snapshot range.
     Gal[p].GridStellarMass[SnapCurr] = Gal[p].StellarMass; // Stellar mass at this snapshot.
 
-    for(step = 0; step < steps_completed; step++)
+    for(step = 0; step < steps_completed; step++) // We loop over the number of steps completed to allow merged galaxies to be updated. 
     {
       Gal[p].GridSFR[SnapCurr] += Gal[p].SfrBulge[step] + Gal[p].SfrDisk[step]; // Star formation rate at this snapshot.
     }
@@ -285,8 +287,6 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
       fprintf(stderr, "Have a galaxy with Len < 0.  Galaxy number %d with Len %d.\n", p, Gal[p].Len);
       exit(EXIT_FAILURE);
     }
-
-//    Gal[p].GridOutflowRate[SnapCurr] = Gal[p].OutflowRate;
 
 }
 

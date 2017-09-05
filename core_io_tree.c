@@ -303,6 +303,20 @@ void malloc_grid_arrays(struct GALAXY *g)
     exit(EXIT_FAILURE);
   }
 
+  g->GridOutflowRate = malloc(sizeof(*(g->GridOutflowRate)) * (MAXSNAPS)); 
+  if (g->GridOutflowRate == NULL)
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate OutflowRate.\n", sizeof(*(g->GridOutflowRate))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  g->GridInfallRate = malloc(sizeof(*(g->GridInfallRate)) * (MAXSNAPS)); 
+  if (g->GridInfallRate == NULL)
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridInfallRate.\n", sizeof(*(g->GridInfallRate))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
   g->IsMalloced = 1;
 }
 

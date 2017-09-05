@@ -118,10 +118,7 @@ int main(int argc, char **argv)
     
    //if(filenr == 33 || filenr == 49 || filenr == 80)
 //	continue;
-//
-//
-//
-//
+
     if(use_tiamat == 1)
     {
       if(filenr < 10)
@@ -171,9 +168,9 @@ int main(int argc, char **argv)
       if(tree % 1000 == 0)
       {
 #ifdef MPI
-        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
+//        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
 #else
-				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
+//				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
 #endif
 				fflush(stdout);
       }
@@ -203,7 +200,7 @@ int main(int argc, char **argv)
     printf("\ndone file %d\n\n", filenr);
     //break; 
   }
-  fprintf(stderr, "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\nWe had %d ismerged Mallocs and %d ismerged frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees, ismerged_mallocs, ismerged_frees);
+  XASSERT((gal_mallocs == gal_frees) && (mergedgal_mallocs == mergedgal_frees), "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees);
   exitfail = 0;
   printf("There was %d firstSF and %d notfirstSF\n", count_firstSF, count_notfirstSF);
   fprintf(stderr, "There was %d good steps and %d bad steps giving a ratio of %.4e (bad-to-good)\n", good_steps, bad_steps, (float) bad_steps/(float) good_steps); 
