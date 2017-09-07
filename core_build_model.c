@@ -302,12 +302,6 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
       deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
       time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
 
-      if(deltaT *UnitTime_in_Megayears / Hubble_h < 50)
-	++good_steps;
-      else
-        ++bad_steps;
-//      fprintf(stderr, "dt = %.4e \t Halo Snapshot = %d \t Galaxy Snapshot = %d\n", deltaT * UnitTime_in_Megayears / Hubble_h, Halo[halonr].SnapNum, Gal[p].SnapNum); 
-
       Gal[p].Age = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
 
       if(Gal[p].dT < 0.0)

@@ -164,6 +164,6 @@ int ismerged_frees;
 
 int *gal_to_free;
 
-int good_steps;
-int bad_steps;
+int small_steps;
+int large_steps;
 int times_written;

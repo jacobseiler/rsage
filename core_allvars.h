@@ -427,7 +427,7 @@ extern int ismerged_frees;
 extern int *gal_to_free;
 
 
-extern int good_steps;
-extern int bad_steps;
+extern int small_steps;
+extern int large_steps;
 extern int times_written;
 #endif  // #ifndef ALLVARS_H

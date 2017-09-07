@@ -165,12 +165,12 @@ int main(int argc, char **argv)
     {      
 			assert(!gotXCPU);
 
-      if(tree % 1000 == 0)
+      if(tree % 10000 == 0)
       {
 #ifdef MPI
-//        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
+        printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
 #else
-//				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
+				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
 #endif
 				fflush(stdout);
       }
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
   XASSERT((gal_mallocs == gal_frees) && (mergedgal_mallocs == mergedgal_frees), "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees);
   exitfail = 0;
   printf("There was %d firstSF and %d notfirstSF\n", count_firstSF, count_notfirstSF);
-  fprintf(stderr, "There was %d good steps and %d bad steps giving a ratio of %.4e (bad-to-good)\n", good_steps, bad_steps, (float) bad_steps/(float) good_steps); 
+  fprintf(stderr, "There was %d Star formation steps less than 50Myr and %d steps above 50Myr giving a ratio of %.4e \n", small_steps, large_steps, (float) large_steps/(float) small_steps); 
   fprintf(stderr, "Write grid array was called %d times.\n", times_written);
   gsl_rng_free(random_generator); 
   return 0;

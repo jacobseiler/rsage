@@ -119,8 +119,8 @@ void init(void)
   mergedgal_frees = 0;
   gal_frees = 0;
  
-  good_steps = 0;
-  bad_steps = 0;
+  small_steps = 0;
+  large_steps = 0;
   times_written = 0; 
 }
 

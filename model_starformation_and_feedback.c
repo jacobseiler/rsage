@@ -127,27 +127,19 @@ void update_stars_array(int p, double stars, double dt, int tree, int step, int 
 
   double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
 
-  /*
   if(time_spanned > 50) 
   {
-    if(Gal[p].SnapNum < Halo[Gal[p].HaloNr].SnapNum - 1)
-    {
-      fprintf(stderr, "Warning: The time spanned by a single star formation event is larger than 50Myr.  The instantaneous approximation MAY be acceptable.  time_spanned = %.4eMyr.\n", time_spanned);
-    }
-    if(Gal[p].SnapNum < Halo[Gal[p].HaloNr].SnapNum - 1)
-    {
-      fprintf(stderr, "\n\n Warning: The snapshot difference between the galaxy and the halo (i.e. the number of snapshots the galaxy is evolving through this step) is greater than 1.  This has resulted in the time spanned by the star formation event to be greater than 50Myr.\n  The time spanned by this star formation event is %.4eMyr.\n  The stars array has been reset.  If the time spanned is approximately 50Myr EVERYTHING IS FINE.  If the time spanned is much much larger than 50Myr, consider increasing the STEPS parameter.\n\n", time_spanned);   
-       time_spanned = 50.0;
-       fprintf(stderr, "%d %d\n", (int) round((Gal[p].Total_SF_Time + time_spanned)/TimeResolutionSN), SN_Array_Len);
-    }
+    ++large_steps; 
   }
-   */  
-//  XASSERT(time_spanned < 50, "The time spanned by a single star formation event is larger than 50Myr.  You have chosen to use delayed supernova feedback (IRA == 0) but this time step indicates that instantaneous is perhaps acceptable.\ntime_spanned = %.4eMyr at Snapshot %d, Halo redshift = %d.\n", time_spanned, Gal[p].SnapNum, Halo[Gal[p].HaloNr].SnapNum);
+  else
+  {
+    ++small_steps;
+  }
 
   Gal[p].Total_SF_Time += time_spanned; // How long it has been since we've updated the array?
   Gal[p].Total_Stars += stars; // How many stars we will need to bin once we do update the array?
 
-  if(Gal[p].Total_SF_Time > TimeResolutionSN * SN_Array_Len)
+  if(Gal[p].Total_SF_Time > TimeResolutionSN * SN_Array_Len) // This handles cases in which the time spanned is greater than 50Myr.  In this case we wipe the array clean and push the star formation into a 50Myr bin. 
     Gal[p].Total_SF_Time = TimeResolutionSN * SN_Array_Len;
 
   if(Gal[p].Total_SF_Time < TimeResolutionSN) // If it hasn't been long enough yet, don't update the array. 

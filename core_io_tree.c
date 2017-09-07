@@ -227,6 +227,8 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->EjectedFraction);
   free(g->LenHistory);
   free(g->Stars);
+  free(g->GridOutflowRate);
+  free(g->GridInfallRate);
 
   g->IsMalloced = 0;
 }

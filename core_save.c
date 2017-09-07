@@ -315,6 +315,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   nwritten = fwrite(infall_tmp, sizeof(*(g->GridInfallRate)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing GridInfallRate, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
+  free(infall_tmp);
  
   ++times_written;
 
