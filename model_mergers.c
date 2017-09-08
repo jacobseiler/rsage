@@ -325,6 +325,7 @@ void add_galaxy_to_merger_list(int p)
       MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
       MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j];
       MergedGal[MergedNr].GridInfallRate[j] = Gal[p].GridInfallRate[j];
+      MergedGal[MergedNr].GridEjectedMass[j] = Gal[p].GridEjectedMass[j];
     }
  
     for (j = 0; j < SN_Array_Len; ++j)

@@ -156,23 +156,18 @@ void update_stars_array(int p, double stars, double dt, int tree, int step, int 
   //fprintf(stderr, "time_spanned = %.4e \t num_shuffled = %d \t stars = %.4e \t stars_spread = %.4e\n", time_spanned, num_shuffled, stars, stars_spread); 
   for(i = SN_Array_Len - 1; i > num_shuffled - 1; --i)
   {
-      XPRINT(i < SN_Array_Len, "i = %d \t SN_Array_Len = %d.  Loop 1.\n", i, SN_Array_Len); 
       Gal[p].Stars[i] = Gal[p].Stars[i-num_shuffled]; // Shuffle the current elements of the array far enough along so we can store the new stars.
       //Gal[p].StellarAge_Numerator += Gal[p].Stars[i] * (Age[Gal[p].SnapNum] - (Time_SFH / UnitTime_in_Megayears * Hubble_h));
   }
     XPRINT(p < ngal, "We have the case where the galaxy p is greater than the number of galaxies.  p = %d \t ngal = %d\n", p, ngal);
   for(i = SN_Array_Len - 1; i > (SN_Array_Len - num_shuffled - 1); --i)
   {
-  //  XPRINT(time_spanned < 49, "In the second loop, i = %d \t p = %d \t ngal = %d \t Gal[p].SnapNum = %d\n", i, p, ngal, Gal[p].SnapNum);
-
-      XPRINT(i < SN_Array_Len, "i = %d \t SN_Array_Len = %d.  Loop 2.\n", i, SN_Array_Len); 
     Gal[p].StellarAge_Numerator += Gal[p].Stars[i] * (Age[Gal[p].SnapNum - 4]);
     Gal[p].StellarAge_Denominator += Gal[p].Stars[i]; 
   }
 
   for(i = 0; i < num_shuffled; ++i) 
   {
-XPRINT(i < SN_Array_Len, "i = %d \t SN_Array_Len = %d \t num_shuffled = %d \t Gal[p].Total_SF_Time = %.4e.  Loop 3.\n", i, SN_Array_Len, num_shuffled, Gal[p].Total_SF_Time); 
     Gal[p].StellarAge_Numerator += Gal[p].Stars[i] * (Age[Gal[p].SnapNum - 4]);
     Gal[p].Stars[i] = stars_spread; // Update the vacated elements with the new stars.
     Gal[p].GrandSum += stars_spread; 
@@ -195,6 +190,13 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   // First we check to see if we need to do delayed supernova feedback.
   // If this galaxy has evolved for the time defined by 'TimeResolutionSN' and 'IRA' is 0, then we perform the delayed SN feedback.
   // i.e., the delayed prescription is only implemented every 'TimeResolutionSN' Megayears.
+
+
+  if(IRA == 0)
+  {
+    do_previous_recycling(p, centralgal, step, dt); 
+  }
+
   if(IRA == 0 && (Gal[p].Total_SF_Time + (dt * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN)) 
   {    
     do_previous_SN(p, centralgal, halonr, dt);
@@ -443,10 +445,10 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
 
   if(SupernovaRecipeOn == 1) // Calculating the ejected mass due to previous star formation episodes.
   {   
-    for(i = 0; i < SN_Array_Len; ++i)
+    for(i = 1; i < SN_Array_Len; ++i)
     {
       if(Gal[p].Stars[i] < 1e-10)
-	continue;
+	    continue;
 
 //      if((i+1) * TimeResolutionSN < 4) // The only stars that can go nova in less than 4 Myr are stars with mass >120Msun (which we don't care about).  
 //	continue;
@@ -456,25 +458,31 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
 
       //t_low = (i * TimeResolutionSN) / 2.0 + time_until_next_SN; // (i * TimeResolutionSN) is the number of stars that were formed that many megayears ago.  time_until_next_SN allows us to ask how many of stars will explode in this SN step.
       t_low = (i * TimeResolutionSN) / 2.0 + time_until_next_SN; // (i * TimeResolutionSN) is the number of stars that were formed that many megayears ago.  time_until_next_SN allows us to ask how many of stars will explode in this SN step.
-      if(t_low < 4)
-  	  t_low = 4; 
+      if(t_low < 2)
+  	  t_low = 2; 
       m_low = calculate_coreburning(t_low);    
 
       if (m_low < 8.0) // We enforce that SN-II only occur in stars M > 8Msun. 
         m_low = 8.0;
+
+      if (m_low > 120.0)
+        continue;
 
       // Next we calculate the largest stellar mass which would have expended its H and He and gone supernova.
       // This defines the mass boundary beyond which a star would have gone nova BEFORE the current SN step. 
 
       //t_high = (i * TimeResolutionSN) / 2.0; // (i * TimeResolutionSN) is the number of stars that were formed that many Megayears ago.  The / 2.0 factor arises from the fact that we assume stars were formed in a single co-eval burst in the middle of this period.
       t_high = (i * TimeResolutionSN) / 2.0; // (i * TimeResolutionSN) is the number of stars that were formed that many Megayears ago.  The / 2.0 factor arises from the fact that we assume stars were formed in a single co-eval burst in the middle of this period.
-      if(t_high < 4)
-        continue;
+      if(t_high < 2)
+        t_high = 2;
 //  	  t_high = 4;	
       m_high = calculate_coreburning(t_high);
 
 
       if (m_high < 8) // In this instance every star that has formed in i Myr ago has already gone supernova and accounted for.
+          continue;
+
+      if (m_high > 120.0)
           continue;
 
       calculate_Delta_Eta(m_low, m_high, &Delta_Eta, &Delta_m); // Calculate the number and mass fraction of stars i Myr ago that go supernova in the current SF step. 
@@ -555,7 +563,7 @@ void do_current_SN(int p, int centralgal, int halonr, double *stars, double *reh
 
 void do_previous_recycling(int p, int centralgal, int step, double dt) 
 {
-
+ 
   if(Gal[p].StellarAge_Numerator > 0.0)
   {  
     double t_low, t_high;
@@ -599,14 +607,13 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
   if(dt * UnitTime_in_Megayears / Hubble_h / 2.0 < TimeResolutionSN) // If the star formation time scale is smaller than the time scale on which we do SN feedback
     t_low = (TimeResolutionSN - Gal[p].Total_SF_Time) / 2.0; // Then our 'sub-grid' SN feedback time will be the time from this SF episode until we next calculate SN feedback (divided by 2 as we assume the stars are formed in the middle of the interval).
   else // Otherwise the star formation time scale is larger than the SN feedback time scale.
-    t_low  = (dt * UnitTime_in_Megayears / Hubble_h) / 2.0; // Then the feedback time will be the time from this SF event to the next star formation event. This is because SN feedback is only calculated when star formation occurs regardless of the actual value of 'TimeResolutionSN'.
- 
-  if(t_low < 4) // Below this stars with masses >120Msun would only have time to explode.
-    return;
+    t_low  = (dt * UnitTime_in_Megayears / Hubble_h) / 2.0; // Then the feedback time will be the time from this SF event to the next star formation event. This is because SN feedback is only calculated when star formation occurs regardless of the actual value of 'TimeResolutionSN'. 
     
   m_low = calculate_coreburning(t_low);    
   if(m_low < 8.0)
-    m_low = 8.0;      
+    m_low = 8.0; 
+  if(m_low > 120.0)
+    return;      
  
   m_high = 120.0; 
 
@@ -666,6 +673,8 @@ void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, doub
        
   *mass_metals_new = Yield * (*stars);    
   *mass_stars_recycled = RecycleFraction * (*stars);
+
+//    fprintf(stderr, "reheated_mass = %.4e \t ejected_mass = %.4e \t cold_gas = %.4e \t hot_gas = %.4e \t ejected_ratio = %.4f \t reheated_ratio = %.4f\n", *reheated_mass, *ejected_mass, Gal[p].ColdGas, Gal[p].HotGas, *ejected_mass/Gal[p].HotGas, *reheated_mass/Gal[p].ColdGas); 
 
 }
 

@@ -316,6 +316,11 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   XASSERT( nwritten == MAXSNAPS, "Error: While writing GridInfallRate, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
   free(infall_tmp);
+
+  XASSERT(g->GridEjectedMass != NULL, "GridEjectedMass has a NULL pointer.\n"); 
+  nwritten = fwrite(g->GridEjectedMass, sizeof(*(g->GridEjectedMass)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing GridEjectedMass, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
  
   ++times_written;
 

@@ -108,6 +108,7 @@ void init_galaxy(int p, int halonr)
     Gal[p].LenHistory[j] = -1;
     Gal[p].GridOutflowRate[j] = 0.0;
     Gal[p].GridInfallRate[j] = 0.0;
+    Gal[p].GridEjectedMass[j] = 0.0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -287,6 +288,8 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
       fprintf(stderr, "Have a galaxy with Len < 0.  Galaxy number %d with Len %d.\n", p, Gal[p].Len);
       exit(EXIT_FAILURE);
     }
+    if (Gal[p].EjectedMass > 0.0)
+        Gal[p].GridEjectedMass[SnapCurr] += Gal[p].EjectedMass; 
 
 }
 

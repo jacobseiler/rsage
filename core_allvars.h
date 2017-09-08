@@ -216,6 +216,7 @@ struct GALAXY
   double *Stars; 
   float *GridOutflowRate;
   float *GridInfallRate;
+  float *GridEjectedMass;
 
   double StellarAge_Numerator;
   double StellarAge_Denominator;

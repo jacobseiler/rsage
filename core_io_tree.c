@@ -229,6 +229,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->Stars);
   free(g->GridOutflowRate);
   free(g->GridInfallRate);
+  free(g->GridEjectedMass);
 
   g->IsMalloced = 0;
 }
@@ -318,6 +319,14 @@ void malloc_grid_arrays(struct GALAXY *g)
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridInfallRate.\n", sizeof(*(g->GridInfallRate))*MAXSNAPS);
     exit(EXIT_FAILURE);
   }
+
+  g->GridEjectedMass = malloc(sizeof(*(g->GridEjectedMass)) * (MAXSNAPS)); 
+  if (g->GridEjectedMass == NULL)
+  { 
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridEjectedMass.\n", sizeof(*(g->GridEjectedMass))*MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
 
   g->IsMalloced = 1;
 }
