@@ -197,9 +197,9 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
     do_previous_recycling(p, centralgal, step, dt); 
   }
 
-  if(IRA == 0 && (Gal[p].Total_SF_Time + (dt * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN)) 
+  if(IRA == 0 && (Gal[p].Total_SF_Time + (dt * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN)) // If we are doing the delayed SN feedback and the galaxy has been evolving for long enough. 
   {    
-    do_previous_SN(p, centralgal, halonr, dt);
+    do_previous_SN(p, centralgal, halonr, dt); // Calculate the feedback.
   } 
 
   // star formation recipes 
@@ -437,7 +437,7 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
   double time_until_next_SN;
 
   if(dt * UnitTime_in_Megayears / Hubble_h < TimeResolutionSN) // If the star formation time scale is smaller than the time scale on which we do SN feedback
-    time_until_next_SN = TimeResolutionSN - Gal[p].Total_SF_Time; // Then the time that we next calculate delayed SN feedback would be given dictated by the time resolution of SN (minus however long the galaxy has already been evolving for). 
+    time_until_next_SN = TimeResolutionSN; // Then the time that we next calculate delayed SN feedback would be given dictated by the time resolution of SN. 
   else // Otherwise the star formation time scale is larger than the SN feedback time scale.
   {
     time_until_next_SN = dt * UnitTime_in_Megayears / Hubble_h;  // Then the time that we next calculate delayed SN feedback is in the next SF timestep.
@@ -643,7 +643,8 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
   assert(*mass_metals_new >= 0.0);
   assert(*ejected_mass >= 0.0);  
 
-  //fprintf(stderr, "Cold_Gas = %.4e \t t_low = %.4e \t m_low = %.4e \t reheated_mass = %.4e \t mass_stars_recycled = %.4e \t ejected_mass = %.4e \t Delta_Eta = %.4e \t Delta_m = %.4e \t reheated_mass = %.4e \t stars = %.4e \t Vmax = %.4e\n", Gal[p].ColdGas, t_low, m_low, *reheated_mass, *mass_stars_recycled, *ejected_mass, Delta_Eta, Delta_m, *reheated_mass, *stars, Gal[centralgal].Vmax);
+
+//fprintf(stderr, "Cold_Gas = %.4e \t t_low = %.4e \t m_low = %.4e \t reheated_mass = %.4e \t mass_stars_recycled = %.4e \t ejected_mass = %.4e \t Delta_Eta = %.4e \t Delta_m = %.4e \t reheated_mass = %.4e \t stars = %.4e \t Vmax = %.4e\n", Gal[p].ColdGas, t_low, m_low, *reheated_mass, *mass_stars_recycled, *ejected_mass, Delta_Eta, Delta_m, *reheated_mass, *stars, Gal[centralgal].Vmax);
 }
 
 void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass)

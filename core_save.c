@@ -254,8 +254,6 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   for (j = 0; j < MAXSNAPS; ++j)
   {
     SFR_tmp[j] = g->GridSFR[j]*SFR_conversion;   
-    if(SFR_tmp[j] != 0 && j == 78 && log10(SFR_tmp[j] > 0.0))
-	fprintf(stderr, "%.4e\n", log10(SFR_tmp[j])); 
   }
  
   nwritten = fwrite(SFR_tmp, sizeof(*(g->GridSFR)), MAXSNAPS, fp);
@@ -296,7 +294,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   float *outflow_tmp= malloc(sizeof(*(g->GridOutflowRate)) * MAXSNAPS);
   for (j = 0; j < MAXSNAPS; ++j)
   {
-    outflow_tmp[j] = g->GridOutflowRate[j] * (1.0e10 / Hubble_h) * SEC_PER_YEAR / UnitTime_in_s; 
+    outflow_tmp[j] = g->GridOutflowRate[j] * (1.0e10 / Hubble_h) * SEC_PER_YEAR / UnitTime_in_s / STEPS; 
     XASSERT(outflow_tmp[j] == outflow_tmp[j], "Outflow_tmp has a value of %.4e for snapshot %d. The GridOutflowRate value was %.4e\n", outflow_tmp[j], j, g->GridOutflowRate[j]);
   }
 
@@ -308,7 +306,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   float *infall_tmp= malloc(sizeof(*(g->GridInfallRate)) * MAXSNAPS);
   for (j = 0; j < MAXSNAPS; ++j)
   {
-    infall_tmp[j] = g->GridInfallRate[j] * (1.0e10 / Hubble_h) * SEC_PER_YEAR / UnitTime_in_s; 
+    infall_tmp[j] = g->GridInfallRate[j] * (1.0e10 / Hubble_h) * SEC_PER_YEAR / UnitTime_in_s / STEPS; 
     XASSERT(infall_tmp[j] == infall_tmp[j], "infall_tmp has a value of %.4e for snapshot %d. The GridOutflowRate value was %.4e\n", infall_tmp[j], j, g->GridInfallRate[j]);
   }
 
