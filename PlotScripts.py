@@ -37,7 +37,7 @@ def Set_Params_Plot():
 	global time_xlim
 	global time_tickinterval 
 
-	global_labelsize = 20
+	global_labelsize = 24
 	global_fontsize = 20
 	global_legendsize = 12
 	global_linewidth = 3
@@ -60,8 +60,8 @@ def Set_Params_Plot():
 	colors = ['r', 'b', 'g', 'm', 'c', 'k']
 	markers = ['x', 'o', '^', 's', 'D']
 	linestyles = ['-', '--', '-.', ':']
-	z_plot = np.arange(6, 14)  #Range of redshift we wish to plot.
-	time_xlim = [315, 930]
+	z_plot = np.arange(6, 14, 1)  #Range of redshift we wish to plot.
+	time_xlim = [290, 1000]
 	time_tickinterval = 25
 
 def plot_xy(ax, x_data, y_data, y_std, snapshot_labels, model_labels):

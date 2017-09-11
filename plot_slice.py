@@ -41,6 +41,7 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 AllVars.Set_Constants()
 
+PlotScripts.Set_Params_Plot()
 matplotlib.rcdefaults()
 plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
 plt.rc('lines', linewidth='2.0')
@@ -2021,14 +2022,14 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
 
 		if (i <= len(filepaths)): 
 			title = r"%s" %(model_tags[i-1])
-			ax.set_title(title, fontsize = label_size) 
+			ax.set_title(title, fontsize = PlotScripts.global_labelsize) 
 
 		if (model_index == 0): 
 			tmp = (r"$\langle x_\mathrm{HI}\rangle = %.3f$") %(fractions_HI[count_index])
-			ax.text(-0.55,0.5, tmp, transform = ax.transAxes, fontsize = label_size) 
+			ax.text(-0.65,0.5, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize) 
 
 		tmp = r"$z = %.2f$" %(redshift)
-		txt = ax.text(0.65,0.9, tmp, transform = ax.transAxes, fontsize = label_size - 2, color = 'k')
+		txt = ax.text(0.6,0.9, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize, color = 'k')
 		txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
 		plt.draw()
 		frame1 = plt.gca()
@@ -2036,10 +2037,10 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
 		frame1.axes.get_yaxis().set_visible(False)
 		ax.set_aspect('equal')
 	
-	cax = fig.add_axes([0.9, 0.1, 0.03, 0.8])
+	cax = fig.add_axes([0.90, 0.1, 0.03, 0.8])
 	cbar = fig.colorbar(im, cax=cax, ticks = np.arange(-8.0, 1.0, 1.0))
 	cbar.ax.set_ylabel(r'$\mathrm{log}_{10}\left(x_\mathrm{HI}\right)$', rotation = 90)
-	cbar.ax.tick_params(labelsize = legend_size)
+	cbar.ax.tick_params(labelsize = PlotScripts.global_legendsize)
     	fig.subplots_adjust(right = None, hspace = 0.0, wspace = 0.0)
 	
 	outputFile = OutputDir + output_tag + output_format 
@@ -2582,7 +2583,7 @@ if __name__ == '__main__':
 	
     model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"] 
     
-    output_tags = [r"Test"]
+    output_tags = [r"Constant", "MHNeg", "fej"]
  
     number_models = 3
 
@@ -2687,7 +2688,7 @@ if __name__ == '__main__':
     MC_Snaps = np.zeros((number_models, len(fractions_HI)))
 
     do_MC = 0 
-    calculate_MC = 0 # 0 to NOT calculate the MC bubbles, 1 to calculate them at the HI fractions specified by fractions_HI, 2 to calculate them at the snapshots given by calculate_MC_snaps. 
+    calculate_MC = 1 # 0 to NOT calculate the MC bubbles, 1 to calculate them at the HI fractions specified by fractions_HI, 2 to calculate them at the snapshots given by calculate_MC_snaps. 
     plot_MC = 1 # 0 is nothing, 1 to plot bubble properties at specified HI fractions, 2 to plot them at specified snapshots.
     calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
     MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
@@ -2798,12 +2799,19 @@ if __name__ == '__main__':
 				MC_Snaps[model_number, fraction_idx] = snapshot_idx
 
 				print "Model %d reached x_HI = %.3f at z = %.3f" %(model_number, fractions_HI[fraction_idx], ZZ[snapshot_idx])
-
+				
 				do_MC = 1
 				do_power_array[model_number] = 1
 	
 		if((do_MC == 1 and calculate_MC == 1) or (calculate_MC == 2 and snapshot_idx == calculate_MC_snaps[snapshot_idx])):
-	
+
+			'''
+			print "snapshot_idx", snapshot_idx
+			print "Model_number", model_number
+			print "ZZ[snapshot_idx", ZZ[snapshot_idx]
+			print "ionized_cells_array[model_number]", ionized_cells_array[model_number]
+			print "GridSIze_array[model_number]", GridSize_array[model_number]	
+			'''	
 			calculate_bubble_MC(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number])
 			do_MC = 0
 
@@ -2872,7 +2880,7 @@ if __name__ == '__main__':
 		plotting_HI = volume_frac_array 
 
 
-	#plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
+	plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
 	#plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum2")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)

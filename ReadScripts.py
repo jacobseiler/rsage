@@ -143,6 +143,7 @@ def ReadHalos(DirName, First_File, Last_File):
 def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
 
     Galdesc_full = [ 
+         ('HaloNr', np.int32),
          ('GridHistory', (np.int32, MAXSNAPS)), # Array index 48 
          ('GridStellarMass', (np.float32, MAXSNAPS)),
          ('GridSFR', (np.float32, MAXSNAPS)),
@@ -151,7 +152,10 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
          ('MfiltGnedin', (np.float32, MAXSNAPS)),
          ('MfiltSobacchi', (np.float32, MAXSNAPS)), 
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
-         ('LenHistory', (np.int32, MAXSNAPS))
+         ('LenHistory', (np.int32, MAXSNAPS)),
+         ('GridOutflowRate', (np.float32, MAXSNAPS)),
+         ('GridInfallRate', (np.float32, MAXSNAPS)),
+         ('GridEjectedMass', (np.float32, MAXSNAPS))
          ]
     
                             
