@@ -195,12 +195,8 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   if(IRA == 0)
   {
     do_previous_recycling(p, centralgal, step, dt); 
+    update_from_SN_feedback(p, centralgal, Gal[p].reheated_mass / STEPS, Gal[p].ejected_mass / STEPS, Gal[p].mass_stars_recycled / STEPS, Gal[p].mass_metals_new / STEPS, dt);
   }
-
-  if(IRA == 0 && (Gal[p].Total_SF_Time + (dt * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN)) // If we are doing the delayed SN feedback and the galaxy has been evolving for long enough. 
-  {    
-    do_previous_SN(p, centralgal, halonr, dt); // Calculate the feedback.
-  } 
 
   // star formation recipes 
   if(SFprescription == 0)
@@ -516,7 +512,10 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
     XASSERT(ejected_mass >= 0.0, "For galaxy %d the ejected mass was %.4e \t reheated_mass = %.4e\n", p, ejected_mass, reheated_mass); 
   }
 
-  update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, dt);
+  Gal[p].reheated_mass = reheated_mass;
+  Gal[p].ejected_mass = ejected_mass;
+  Gal[p].mass_stars_recycled = mass_stars_recycled;
+  Gal[p].mass_metals_new = mass_metals_new;
  
 }
 

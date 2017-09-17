@@ -226,8 +226,13 @@ struct GALAXY
   int IsMerged;
   double GrandSum;
   int IsMalloced;
- 
 
+  // Delayed SN Properties
+  float reheated_mass;
+  float ejected_mass;
+  float mass_stars_recycled;
+  float mass_metals_new; 
+  
 }
 *Gal, *HaloGal, *MergedGal;
 

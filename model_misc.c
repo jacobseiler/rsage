@@ -124,6 +124,12 @@ void init_galaxy(int p, int halonr)
   Gal[p].StellarAge_Numerator = 0.0;
   Gal[p].StellarAge_Denominator = 0.0;
 
+  Gal[p].reheated_mass = 0.0;
+  Gal[p].ejected_mass = 0.0;
+  Gal[p].mass_stars_recycled = 0.0;
+  Gal[p].mass_metals_new = 0.0; 
+
+
 }
 
 double get_disk_radius(int halonr, int p)

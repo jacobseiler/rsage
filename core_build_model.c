@@ -289,6 +289,18 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
   infallingGas = infall_recipe(centralgal, ngal, ZZ[Halo[halonr].SnapNum], halonr);
 
+  // We first want to determine how much delayed SN feedback needs to be applied for each galaxy over this evolution step.
+
+  for(p = 0; p < ngal; p++)
+  {
+    deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
+    if(IRA == 0 && (Gal[p].Total_SF_Time + (deltaT * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN))
+    {
+      do_previous_SN(p, centralgal, halonr, deltaT);
+    }
+
+  }
+
   // We integrate things forward by using a number of intervals equal to STEPS 
   for(step = 0; step < STEPS; step++)
   {
