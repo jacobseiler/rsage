@@ -631,7 +631,6 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
   *mass_stars_recycled += Delta_m * (*stars); // Update the amount of stellar mass recycled from previous stars that have gone nova.
   *mass_metals_new += Delta_m / m_SNII * Yield * (*stars); // Update the amount of new metals that the supernova has enriched the ISM with.
 
-  //fprintf(stderr, "Finished doing Delayed SN\n");
   if(*reheated_mass > Gal[p].ColdGas) // Can't reheated more cold gas than we currently have.
     *reheated_mass = Gal[p].ColdGas;
 
