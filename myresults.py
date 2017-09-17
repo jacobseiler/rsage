@@ -229,71 +229,6 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
 
 ##
 
-def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
-    '''
-    Calculates a 1D histogram for the input data.  Allows the calculation of the count or probability within each bin.
-
-    Parameters
-    ---------
-    data : `array-like'
-    Data used in the histogram.
-    bin_width : `array-like'
-    Width of the bins.
-    weights : either 0 or 1
-    Selects the binning mode.
-    0 : Histogram will be a frequency (count) histogram.
-    1 : Histogram will be a probability histogram.  
-    min_hist, max_hist : float (optional)
-    Defines the bounds that we will be binning over.
-    If no values defined, range will be the minimum/maximum data point +/- 10 times the bin_width.
-
-    Returns
-    -------
-    counts : `array-like'
-    Array that contains the count of probability in each bin.
-    bin_edges : `array-like'
-    Array containing the location of the bin edges.
-    bin_middle : `array-like'
-    Array containing the location of the bin middles.
-
-    Units
-    -----
-    All units are kept the same as the inputs.
-    '''
-
-    if not np.isfinite(min_hist):
-        raise ValueError("xmin should be finite")
-
-    if not np.isfinite(max_hist):
-        raise ValueError("xmax should be finite")
-
-    if (min_hist == None): 
-        range_low = np.floor(min(data)) - 10*bin_width
-        range_high = np.floor(max(data)) + 10*bin_width
-    else:
-        range_low = min_hist 
-        range_high = max_hist 
-
-    if range_high <= range_low:
-        print "Upper bin range = %.4f, lower bing range = %.4f" %(range_high, range_low) 
-        raise ValueError("The upper bin range should be less than the lower bin range")
- 
-    NB = round((range_high - range_low) / bin_width) 
-
-    if NB < 1:
-        print "Number of bins = %d" %(NB)
-        raise ValueError("The number of bins should be greater than one.")
-
-    if (weights == 0): # Running in frequency mode.
-        (counts, bin_edges) = np.histogram(data, range=(range_low, range_high), bins=NB)
-    else: # Running in probability mode.
-        weights = np.ones_like(data)/len(data)
-        (counts, bin_edges) = np.histogram(data, range=(range_low, range_high), bins=NB, weights = weights)
-
-    bin_middle = bin_edges[:-1] + 0.5 * bin_width
-
-    return (counts, bin_edges, bin_middle)
-
 def Sum_Log(array):
     '''
     Performs an element wise sum of an array who's elements are in log-space.
@@ -1371,8 +1306,10 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
     #ax5 = plt.subplot(133)
 
     look_for_alive = 0
-    #idx_array = [20004, 20005, 20016] 
-    idx_array = [20005, 20015, 20016] 
+    #idx_array = [20004, 20005, 20016]
+    #halonr_array = [7381]
+    #halonr_array = [389106]
+    halonr_array = [36885]
     for model_number in xrange(0, len(model_tags)):
         if(simulation_norm[model_number] == 0):
             AllVars.Set_Params_Mysim()
@@ -1398,44 +1335,47 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
         G_Merged, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(merged_galaxies_filepath_array[model_number], 0, number_snapshots[model_number], comm) # Also need the merged galaxies.
         G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc) # Then join them together for all galaxies that existed at this Redshift. 
 
-        alive = np.zeros((len(G))) 
 
-        gal_alive = np.where((G.GridHistory[:, number_snapshots[model_number] - 1] != -1))[0]
+        if look_for_alive == 1:
+            G.GridHistory[G.GridHistory >= 0] = 1
+            G.GridHistory[G.GridHistory < 0] = 0
+            alive = np.sum(G.GridHistory, axis = 1)
+            print "The galaxy that was present in the most snapshots is %d which was in %d snaps" %(np.argmax(alive), np.amax(alive)) 
+            most_alive = alive.argsort()[-10:][::-1] # Finds the 3 galaxies alive for the most snapshots.  Taken from https://stackoverflow.com/questions/6910641/how-to-get-indices-of-n-maximum-values-in-a-numpy-array
+            print G.HaloNr[most_alive]
+            exit() 
+
         t = np.empty((number_snapshots[model_number])) 
-
-        print np.where((G.HaloNr == 7381))[0] 
-        
-        for snapshot_idx in xrange(0, number_snapshots[model_number]):
-            if look_for_alive == 1:
-                print "Doing Snapshot", snapshot_idx
-                for gal_idx in xrange(0, len(G)):
-                    if G.GridHistory[gal_idx, snapshot_idx] != -1:
-                        alive[gal_idx] += 1  
+ 
+       
+        for snapshot_idx in xrange(0, number_snapshots[model_number]): 
             SFR_ensemble[model_number].append(np.mean(G.GridSFR[:,snapshot_idx]))
             ejected_ensemble[model_number].append(np.mean(G.GridOutflowRate[:, snapshot_idx]))
             infall_ensemble[model_number].append(np.mean(G.GridInfallRate[:, snapshot_idx]))
             ejectedmass_ensemble[model_number].append(np.mean(G.GridEjectedMass[:, snapshot_idx]) * 1.0e10 / AllVars.Hubble_h)
             
-         
             t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[snapshot_idx]).value) * 1.0e3      
     
-        if look_for_alive == 1:
-            print "The galaxy that was present in the most snapshots is %d which was in %d snaps" %(np.argmax(alive), np.amax(alive)) 
             
         for p in xrange(0, N_random):
-            if look_for_alive == 1:
-                random_idx = np.argmax(alive)
-            else:
-                random_idx = gal_alive[random.randint(0, len(gal_alive))] # Generates the index of a random galaxy in the sample.
-            random_idx = idx_array[model_number]
+            random_idx = (np.where((G.HaloNr == halonr_array[p]))[0])[0] 
             SFR_gal[model_number].append(G.GridSFR[random_idx]) # Remember the star formation rate history of the galaxy.
             ejected_gal[model_number].append(G.GridOutflowRate[random_idx])
             infall_gal[model_number].append(G.GridInfallRate[random_idx])
             ejectedmass_gal[model_number].append(G.GridEjectedMass[random_idx] * 1.0e10 / AllVars.Hubble_h)
+            for snapshot_idx in xrange(0, number_snapshots[model_number]):  
+                if snapshot_idx == 0:
+                    pass 
+                elif(G.GridHistory[random_idx, snapshot_idx] == -1):
+                    print snapshot_idx
+                    print len(SFR_gal[model_number])
+                    print np.shape(SFR_gal[model_number])
+                    print SFR_gal[model_number][p][snapshot_idx]
+                    SFR_gal[model_number][p][snapshot_idx] = SFR_gal[model_number][p][snapshot_idx - 1]
         
        
         
-#        print SFR_ensemble[model_number]
+
 
         ax1.plot(t, SFR_ensemble[model_number], color = PlotScripts.colors[0], linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)
         ax3.plot(t, ejected_ensemble[model_number], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], linewidth = PlotScripts.global_linewidth, alpha = 1.0)
@@ -1452,6 +1392,8 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
 
             #ax1.plot(t, SFR_gal[model_number][p], color = PlotScripts.colors[0], linestyle = PlotScripts.linestyles[model_number], alpha = 1.0, linewidth = 1, label = model_tags[model_number])
             #ax1.plot(t, ejected_gal[model_number][p], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], alpha = 1.0, linewidth = 1, label = model_tags[model_number])
+
+    #print abs(ejected_ensemble[1] - ejected_ensemble[0])/ejected_ensembles[0]
 
     #ax1.plot(np.nan, np.nan, color = PlotScripts.colors[0], label = 'SFR')
     #ax1.plot(np.nan, np.nan, color = PlotScripts.colors[1], label = 'Outflow')
@@ -1502,13 +1444,14 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
     ax6.set_xticklabels(z_labels) # But label them as redshifts.
     '''
 
+    plt.tight_layout()
     leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(PlotScripts.global_legendsize)
 
 
-    outputFile = './%s%s' %(output_tag, output_format) 
+    outputFile = './Halo%d_%s%s' %(halonr_array[0], output_tag, output_format) 
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print 'Saved file to', outputFile
     plt.close()
@@ -1785,8 +1728,9 @@ calculate_observed_LF = 0
 
 number_models = 2
 
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_1step_z1.827'
-galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_z1.827'
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_IRA_10step_z1.827'
+#galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_z1.827'
+galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_z1.827'
 #galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
 #galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_z1.827'
 #galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/galaxies/tiamat_test_z1.827'
@@ -1797,27 +1741,29 @@ galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_
 #merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_IRA_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_Delayed5Myr_MergedGalaxies'
 
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_1step_MergedGalaxies'
-merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_MergedGalaxies'
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_IRA_10step_MergedGalaxies'
+#merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_MergedGalaxies'
+merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
 #merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/galaxies/tiamat_test_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.01_MergedGalaxies'
 
-galaxies_filepath_array = [galaxies_model1, galaxies_model2]
-merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2]
+galaxies_filepath_array = [galaxies_model1, galaxies_model3]
+merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model3]
 
 number_snapshots = [164, 164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 # Tiamat extended has 164 snapshots.
 FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
-LastFile = [26, 26] # The last file number THAT WE ARE PLOTTING.
+LastFile = [9, 9] # The last file number THAT WE ARE PLOTTING.
 NumFile = [27, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
 
 #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 #model_tags = [r"No SN", r"Delayed - 5Myr", r"Delayed - 10 Myr"]
-#model_tags = [r"IRA", r"Delayed - 10Myr"]
+#model_tags = [r"IRA", r"Delayed - 5Myr", r"Delayed - 10Myr"]
+model_tags = [r"IRA", r"Delayed"]
 #model_tags = [r"IRA - 1 Step", r"IRA - 10 Step"]
-model_tags = [r"Delayed - 1 Step", r"Delayed - 10 Step"]
+#model_tags = [r"Delayed - 1 Step", r"Delayed - 10 Step"]
 #model_tags =  [r"Delayed5Myr - $\alpha = 0.0075$", r"Delayed5Myr - $\alpha = 0.01$"]
 
 for model_number in xrange(0,number_models):
@@ -1843,8 +1789,9 @@ fesc_normalization = [0.10, [1000.0, -0.4], [0.2, 0.00]]
 ##
 
 SnapList =  [[78, 64, 51], [78, 64, 51]]
+#SnapList =  [[163], [163], [163]]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
-simulation_norm = [3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
+simulation_norm = [3, 3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
 
 galaxy_halo_mass_lower = [95, 95, 95, 95] # These limits are for the number of particles in a halo.  
 galaxy_halo_mass_upper = [105, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
@@ -1889,8 +1836,8 @@ AllVars.Set_Params_Tiamat_extended()
 #for i in xrange(0, len(AllVars.SnapZ)-1):
 #    print "Snapshot ", i, "and Snapshot", i + 1, "have a time difference of", (AllVars.Lookback_Time[i] - AllVars.Lookback_Time[i+1]) * 1.0e3, "Myr"
 
-#plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, simulation_norm, model_tags, "singleSFR_ejectedmass_Delayed10Myr_steps")
-#exit()
+plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, simulation_norm, model_tags, "singleSFR_ejectedmass_IRAcomp_10step")
+exit()
 for model_number in xrange(0, number_models):
 
     if(simulation_norm[model_number] == 0):
@@ -2026,7 +1973,7 @@ for model_number in xrange(0, number_models):
 
             ## We have now calculated all the base properties for galaxies within this snapshot.  Calculate the relevant statistics and put them into their arrays. ##
 
-            (counts_local, bin_edges, bin_middle) = Calculate_Histogram(mass_gal, bin_width, 0, m_gal_low, m_gal_high) # Bin the Stellar Mass 
+            (counts_local, bin_edges, bin_middle) = AllVars.Calculate_Histogram(mass_gal, bin_width, 0, m_gal_low, m_gal_high) # Bin the Stellar Mass 
             SMF[model_number][snapshot_idx] += counts_local 
 
             (mean_ejected_halo_local, std_ejected_halo_local, N_local, bin_middle) = Calculate_2D_Mean(mass_central, ejected_fraction, bin_width, m_low, m_high) # This bins the halo_mass (x-axis) and then calculates the mean ejected fraction (y-axis) within each of these bins.
@@ -2052,7 +1999,7 @@ for model_number in xrange(0, number_models):
 
 
 
-StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, model_tags, 1, "tiamat_Delayed5Myr_steps_SMF") ## PARALLEL COMPATIBLE
+StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, model_tags, 0, "tiamat_IRAcomp_10step_lowz_SMF") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_array, model_tags, "18month_Ejected_test") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
 #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "18month_fesc_talk") ## PARALELL COMPATIBLE 
 #plot_photoncount(SnapList, sum_Ngamma_z_array, 50, 125, model_tags, "18month_nion_talk") ## PARALELL COMPATIBLE

@@ -464,3 +464,67 @@ def depth(l):
     else:
         return 0
 
+def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
+    '''
+    Calculates a 1D histogram for the input data.  Allows the calculation of the count or probability within each bin.
+
+    Parameters
+    ---------
+    data : `array-like'
+    Data used in the histogram.
+    bin_width : `array-like'
+    Width of the bins.
+    weights : either 0 or 1
+    Selects the binning mode.
+    0 : Histogram will be a frequency (count) histogram.
+    1 : Histogram will be a probability histogram.  
+    min_hist, max_hist : float (optional)
+    Defines the bounds that we will be binning over.
+    If no values defined, range will be the minimum/maximum data point +/- 10 times the bin_width.
+
+    Returns
+    -------
+    counts : `array-like'
+    Array that contains the count of probability in each bin.
+    bin_edges : `array-like'
+    Array containing the location of the bin edges.
+    bin_middle : `array-like'
+    Array containing the location of the bin middles.
+
+    Units
+    -----
+    All units are kept the same as the inputs.
+    '''
+
+    if (min_hist == None): 
+        range_low = np.floor(min(data)) - 10*bin_width
+        range_high = np.floor(max(data)) + 10*bin_width
+    else:
+        range_low = min_hist 
+        range_high = max_hist 
+
+    if not np.isfinite(range_low):
+        raise ValueError("The low range should be finite (it's not).")
+
+    if not np.isfinite(range_high):
+        raise ValueError("The high range should be finite (it's not).")
+
+    if range_high <= range_low:
+        print "Upper bin range = %.4f, lower bing range = %.4f" %(range_high, range_low) 
+        raise ValueError("The upper bin range should be less than the lower bin range")
+ 
+    NB = round((range_high - range_low) / bin_width) 
+
+    if NB < 1:
+        print "Number of bins = %d" %(NB)
+        raise ValueError("The number of bins should be greater than one.")
+
+    if (weights == 0): # Running in frequency mode.
+        (counts, bin_edges) = np.histogram(data, range=(range_low, range_high), bins=NB)
+    else: # Running in probability mode.
+        weights = np.ones_like(data)/len(data)
+        (counts, bin_edges) = np.histogram(data, range=(range_low, range_high), bins=NB, weights = weights)
+
+    bin_middle = bin_edges[:-1] + 0.5 * bin_width
+
+    return (counts, bin_edges, bin_middle)
