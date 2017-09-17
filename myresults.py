@@ -1305,7 +1305,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
     ax3 = plt.subplot(122)
     #ax5 = plt.subplot(133)
 
-    look_for_alive = 0
+    look_for_alive = 1
     #idx_array = [20004, 20005, 20016]
     #halonr_array = [7381]
     #halonr_array = [389106]
@@ -1343,7 +1343,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
             print "The galaxy that was present in the most snapshots is %d which was in %d snaps" %(np.argmax(alive), np.amax(alive)) 
             most_alive = alive.argsort()[-10:][::-1] # Finds the 3 galaxies alive for the most snapshots.  Taken from https://stackoverflow.com/questions/6910641/how-to-get-indices-of-n-maximum-values-in-a-numpy-array
             print G.HaloNr[most_alive]
-            exit() 
+         
 
         t = np.empty((number_snapshots[model_number])) 
  
@@ -1367,10 +1367,6 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
                 if snapshot_idx == 0:
                     pass 
                 elif(G.GridHistory[random_idx, snapshot_idx] == -1):
-                    print snapshot_idx
-                    print len(SFR_gal[model_number])
-                    print np.shape(SFR_gal[model_number])
-                    print SFR_gal[model_number][p][snapshot_idx]
                     SFR_gal[model_number][p][snapshot_idx] = SFR_gal[model_number][p][snapshot_idx - 1]
         
        
@@ -1382,8 +1378,6 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
         #ax5.plot(t, infall_ensemble[model_number], color = PlotScripts.colors[2], linestyle = PlotScripts.linestyles[model_number], linewidth = PlotScripts.global_linewidth, alpha = 1.0)
         #ax5.plot(t, ejectedmass_ensemble[model_number], color = PlotScripts.colors[2], linestyle = PlotScripts.linestyles[model_number], linewidth = PlotScripts.global_linewidth, alpha = 1.0)
     
-        print ejected_ensemble[model_number]
-    
         for p in xrange(0, N_random):
             ax1.plot(t, SFR_gal[model_number][p], color = PlotScripts.colors[0], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
             ax3.plot(t, ejected_gal[model_number][p], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
@@ -1394,7 +1388,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
             #ax1.plot(t, ejected_gal[model_number][p], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], alpha = 1.0, linewidth = 1, label = model_tags[model_number])
 
     #print abs(ejected_ensemble[1] - ejected_ensemble[0])/ejected_ensembles[0]
-
+#    exit() 
     #ax1.plot(np.nan, np.nan, color = PlotScripts.colors[0], label = 'SFR')
     #ax1.plot(np.nan, np.nan, color = PlotScripts.colors[1], label = 'Outflow')
 
@@ -1729,8 +1723,8 @@ calculate_observed_LF = 0
 number_models = 2
 
 galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_IRA_10step_z1.827'
-#galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_z1.827'
-galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_z1.827'
+galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_NewDelayed10Myr_10Step_z1.827'
+galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
 #galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
 #galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_z1.827'
 #galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/galaxies/tiamat_test_z1.827'
@@ -1742,26 +1736,26 @@ galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_Delayed5Myr_MergedGalaxies'
 
 merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_IRA_10step_MergedGalaxies'
-#merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_MergedGalaxies'
-merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_10step_MergedGalaxies'
+merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_NewDelayed10Myr_10Step_MergedGalaxies'
+merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
 #merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/galaxies/tiamat_test_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.01_MergedGalaxies'
 
-galaxies_filepath_array = [galaxies_model1, galaxies_model3]
-merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model3]
+galaxies_filepath_array = [galaxies_model1, galaxies_model2]
+merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2]
 
 number_snapshots = [164, 164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 # Tiamat extended has 164 snapshots.
-FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
-LastFile = [9, 9] # The last file number THAT WE ARE PLOTTING.
-NumFile = [27, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
+FirstFile = [0, 0, 0] # The first file number THAT WE ARE PLOTTING.
+LastFile = [9, 9, 9] # The last file number THAT WE ARE PLOTTING.
+NumFile = [27, 27, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
 
 #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 #model_tags = [r"No SN", r"Delayed - 5Myr", r"Delayed - 10 Myr"]
 #model_tags = [r"IRA", r"Delayed - 5Myr", r"Delayed - 10Myr"]
-model_tags = [r"IRA", r"Delayed"]
+model_tags = [r"IRA", r"New Delayed"]
 #model_tags = [r"IRA - 1 Step", r"IRA - 10 Step"]
 #model_tags = [r"Delayed - 1 Step", r"Delayed - 10 Step"]
 #model_tags =  [r"Delayed5Myr - $\alpha = 0.0075$", r"Delayed5Myr - $\alpha = 0.01$"]
@@ -1836,7 +1830,7 @@ AllVars.Set_Params_Tiamat_extended()
 #for i in xrange(0, len(AllVars.SnapZ)-1):
 #    print "Snapshot ", i, "and Snapshot", i + 1, "have a time difference of", (AllVars.Lookback_Time[i] - AllVars.Lookback_Time[i+1]) * 1.0e3, "Myr"
 
-plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, simulation_norm, model_tags, "singleSFR_ejectedmass_IRAcomp_10step")
+plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, simulation_norm, model_tags, "singleSFR_NewDelayedIRAComp")
 exit()
 for model_number in xrange(0, number_models):
 
@@ -1999,7 +1993,7 @@ for model_number in xrange(0, number_models):
 
 
 
-StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, model_tags, 0, "tiamat_IRAcomp_10step_lowz_SMF") ## PARALLEL COMPATIBLE
+StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, model_tags, 0, "tiamat_newDelayedComp_SMF") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_array, model_tags, "18month_Ejected_test") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
 #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "18month_fesc_talk") ## PARALELL COMPATIBLE 
 #plot_photoncount(SnapList, sum_Ngamma_z_array, 50, 125, model_tags, "18month_nion_talk") ## PARALELL COMPATIBLE
