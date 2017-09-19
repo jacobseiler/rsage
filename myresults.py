@@ -664,18 +664,18 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
     if (rank == 0):
         ax1 = plt.subplot(111)
 
-    for model_number in xrange(0, len(SnapList)):
+        for model_number in xrange(0, len(SnapList)):
     
-        ## Calculate lookback time for each snapshot ##
-        t = np.empty(len(SnapList[model_number]))
-        for snapshot_idx in xrange(0, len(SnapList[model_number])):  
-            t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3   
-                
-        mean = pooled_mean_fesc[model_number]
-        std = pooled_std_fesc[model_number]   
+            ## Calculate lookback time for each snapshot ##
+            t = np.empty(len(SnapList[model_number]))
+            for snapshot_idx in xrange(0, len(SnapList[model_number])):  
+                t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3   
+                    
+            mean = pooled_mean_fesc[model_number]
+            std = pooled_std_fesc[model_number]   
 
-        ax1.plot(t, mean, color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)  
-        #ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = PlotScripts.colors[model_number], alpha = 0.25)
+            ax1.plot(t, mean, color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)  
+            #ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = PlotScripts.colors[model_number], alpha = 0.25)
 
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(PlotScripts.time_tickinterval))
         ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
@@ -693,7 +693,7 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
         ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
         ax2.set_xticklabels(z_labels) # But label them as redshifts.
 
-        ax1.set_ylim([0.0, 0.20])
+        ax1.set_ylim([0.0, 1.0])
         ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_labelsize) 
         ax1.set_ylabel(r'$f_\mathrm{esc}$', fontsize = PlotScripts.global_fontsize) 
 
@@ -788,7 +788,7 @@ def plot_ejectedfraction(SnapList, mean_mvir_ejected, std_mvir_ejected, N_ejecte
 
         ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
         ax1.set_ylabel(r'$\mathrm{Ejected \: Fraction}$', size = PlotScripts.global_fontsize)
-        ax1.set_xlim([9.5, 12])
+        ax1.set_xlim([8.0, 12])
         ax1.set_ylim([-0.05, 1.0])   
 
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))
@@ -1178,28 +1178,25 @@ def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, fesc_prescripti
             print 'Saved file to', outputFile
             plt.close()
             
-def plot_photoncount(SnapList, sum_nion, num_files, max_files, model_tags, output_tag): 
+def plot_photoncount(SnapList, sum_nion, FirstFile, LastFile, NumFiles, model_tags, output_tag): 
     '''
     Plots the ionizing emissivity as a function of redshift. 
     We normalize the emissivity to Mpc^-3 and this function allows the read-in of only a subset of the volume.
     Parallel compatible.
-    Accepts 3D arrays of ngamma/fesc to plot Ngamma for multiple models. 
 
     Parameters
     ---------
     SnapList : Nested `array-like', SnapList[model_number0] = [snapshot0_model0, ..., snapshotN_model0], with length equal to the number of models.
-    Snapshots for each model, defines the x-axis we plot against.
+        Snapshots for each model, defines the x-axis we plot against.
     sum_nion : Nested 1-dimensional `array-like', sum_nion[z0, z1, ..., zn], with length equal to the number of redshifts. 
-    Number of escape ionizing photons (i.e., photon rate times the local escape fraction) at each redshift.
-    In units of 1.0e50 s^-1.
-    num_files : int
-    Number of files that were read in to create the plot.
-    max_files : int
-    Number of files that are required to span the entire volume.
+        Number of escape ionizing photons (i.e., photon rate times the local escape fraction) at each redshift.
+        In units of 1.0e50 s^-1.
+    FirstFile, LastFile, NumFile : `array-like' of integers with length equal to the number of models.
+        The file numbers for each model that were read in (defined by the range between [FirstFile, LastFile] inclusive) and the TOTAL number of files for this model (we may only be plotting a subset of the volume). 
     model_tags : `array-like' of strings with length equal to the number of models.
-    Strings that contain the tag for each model.  Will be placed on the plot.
+        Strings that contain the tag for each model.  Will be placed on the plot.
     output_tag : string
-    Name of the file that will be generated.
+        Name of the file that will be generated.
 
     Returns
     -------
@@ -1220,7 +1217,7 @@ def plot_photoncount(SnapList, sum_nion, num_files, max_files, model_tags, outpu
        
             nion_sum_snapshot = comm.reduce(sum_nion[model_number][snapshot_idx], op = MPI.SUM, root = 0)
             if rank == 0:
-                sum_array[model_number].append(nion_sum_snapshot * 1.0e50 / (pow(AllVars.BoxSize / AllVars.Hubble_h,3) * (float(num_files) / float(max_files))))
+                sum_array[model_number].append(nion_sum_snapshot * 1.0e50 / (pow(AllVars.BoxSize / AllVars.Hubble_h,3) * (float(LastFile[model_number] - FirstFile[model_number] + 1) / float(NumFiles[model_number]))))
             
     if (rank == 0):
         ax1 = plt.subplot(111)
@@ -1724,7 +1721,7 @@ number_models = 2
 
 galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_IRA_10step_z1.827'
 galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_NewDelayed10Myr_10Step_z1.827'
-galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
+#galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
 #galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
 #galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_z1.827'
 #galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/galaxies/tiamat_test_z1.827'
@@ -1737,7 +1734,7 @@ galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_
 
 merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_IRA_10step_MergedGalaxies'
 merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_NewDelayed10Myr_10Step_MergedGalaxies'
-merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
+#merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
 #merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/galaxies/tiamat_test_MergedGalaxies'
@@ -1748,14 +1745,14 @@ merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2
 
 number_snapshots = [164, 164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 # Tiamat extended has 164 snapshots.
-FirstFile = [0, 0, 0] # The first file number THAT WE ARE PLOTTING.
-LastFile = [9, 9, 9] # The last file number THAT WE ARE PLOTTING.
-NumFile = [27, 27, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
+FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
+LastFile = [9, 9] # The last file number THAT WE ARE PLOTTING.
+NumFile = [27, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
 
 #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 #model_tags = [r"No SN", r"Delayed - 5Myr", r"Delayed - 10 Myr"]
 #model_tags = [r"IRA", r"Delayed - 5Myr", r"Delayed - 10Myr"]
-model_tags = [r"IRA", r"New Delayed"]
+model_tags = [r"IRA", r"Delayed"]
 #model_tags = [r"IRA - 1 Step", r"IRA - 10 Step"]
 #model_tags = [r"Delayed - 1 Step", r"Delayed - 10 Step"]
 #model_tags =  [r"Delayed5Myr - $\alpha = 0.0075$", r"Delayed5Myr - $\alpha = 0.01$"]
@@ -1772,20 +1769,22 @@ halo_cut = [50, 50, 50, 100] # Only calculate galaxy properties whose host halo 
 source_efficiency = [1, 1, 1, 1] # Used for the halo based prescription for ionizing emissivity.
 
 fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3] # Escape fraction of Lyman Alpha photons.
-fesc_prescription = [0, 1, 2] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction.
+fesc_prescription = [0, 0] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction.
 
 ## Normalizations for the escape fractions. ##
 # For prescription 0, requires a number that defines the constant fesc.
 # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
 # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
-fesc_normalization = [0.10, [1000.0, -0.4], [0.2, 0.00]] 
+fesc_normalization = [0.40, 0.40] 
+#fesc_normalization = [[0.5, 0.00], [0.5, 0.00], [0.5, 0.00]]
 #fesc_normalization = [0.50, [1000.0, -0.4], [1.0, 0.0]] 
 ##
 
+#SnapList = [np.arange(20, 100, 1), np.arange(20, 100, 1)]
 SnapList =  [[78, 64, 51], [78, 64, 51]]
 #SnapList =  [[163], [163], [163]]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
-simulation_norm = [3, 3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
+simulation_norm = [3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
 
 galaxy_halo_mass_lower = [95, 95, 95, 95] # These limits are for the number of particles in a halo.  
 galaxy_halo_mass_upper = [105, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
@@ -1830,8 +1829,8 @@ AllVars.Set_Params_Tiamat_extended()
 #for i in xrange(0, len(AllVars.SnapZ)-1):
 #    print "Snapshot ", i, "and Snapshot", i + 1, "have a time difference of", (AllVars.Lookback_Time[i] - AllVars.Lookback_Time[i+1]) * 1.0e3, "Myr"
 
-plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, simulation_norm, model_tags, "singleSFR_NewDelayedIRAComp")
-exit()
+#plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, simulation_norm, model_tags, "singleSFR_NewDelayedIRAComp")
+#exit()
 for model_number in xrange(0, number_models):
 
     if(simulation_norm[model_number] == 0):
@@ -1957,9 +1956,6 @@ for model_number in xrange(0, number_models):
             fesc_local = calculate_fesc(fesc_prescription[model_number], mass_central, ejected_fraction, fesc_normalization[model_number]) 
             
             galaxy_halo_mass_mean, galaxy_halo_mass_std = Calculate_HaloPartStellarMass(halo_part_count, mass_gal, galaxy_halo_mass_lower[model_number], galaxy_halo_mass_upper[model_number])
-
-            print galaxy_halo_mass_mean
-
             
             photons_HI_gal = calculate_photons(SFR_gal, metallicity_gal)    
             photons_HI_gal_nonlog = [10**x for x in photons_HI_gal]
@@ -1994,8 +1990,8 @@ for model_number in xrange(0, number_models):
 
 
 StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, model_tags, 0, "tiamat_newDelayedComp_SMF") ## PARALLEL COMPATIBLE
-#plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_array, model_tags, "18month_Ejected_test") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
-#plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "18month_fesc_talk") ## PARALELL COMPATIBLE 
-#plot_photoncount(SnapList, sum_Ngamma_z_array, 50, 125, model_tags, "18month_nion_talk") ## PARALELL COMPATIBLE
+#plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
+#plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "tiamat_newDelayedComp_fesc2") ## PARALELL COMPATIBLE 
+#plot_photoncount(SnapList, sum_Ngamma_z_array, FirstFile, LastFile, NumFile, model_tags, "tiamat_newDelayedComp_Ngamma_constfesc2") ## PARALELL COMPATIBLE
 #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 
