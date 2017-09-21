@@ -240,7 +240,7 @@ double get_virial_radius(int halonr)
 void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 {
     int x_grid, y_grid, z_grid, grid_position, step;
-    int SnapCurr = Gal[p].SnapNum;
+    int SnapCurr = Halo[halonr].SnapNum; 
     x_grid = Gal[p].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
     y_grid = Gal[p].Pos[1]*GridSize/BoxSize;
     z_grid = Gal[p].Pos[2]*GridSize/BoxSize; 

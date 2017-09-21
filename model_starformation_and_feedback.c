@@ -50,8 +50,7 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   Gal[centralgal].EjectedMass += ejected_mass;
   Gal[centralgal].MetalsEjectedMass += ejected_mass * metallicity;
 
-  Gal[p].GridOutflowRate[Gal[p].SnapNum] += ejected_mass / dt; 
-  XASSERT(Gal[p].GridOutflowRate[Gal[p].SnapNum] == Gal[p].GridOutflowRate[Gal[p].SnapNum], "For galaxy %d at snapshot %d we had a GridOutflowRate value of %.4e\n", p, Gal[p].SnapNum, Gal[p].GridOutflowRate[Gal[p].SnapNum]);
+  Gal[p].GridOutflowRate[Halo[Gal[centralgal].HaloNr].SnapNum] += ejected_mass / dt; 
 
   Gal[p].GrandSum -= mass_stars_recycled;
 
