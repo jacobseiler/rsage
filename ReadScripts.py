@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
 
@@ -35,7 +36,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
     rank = comm.Get_rank()
     size = comm.Get_size()
 
-    print "Determining array storage requirements."
+    print("Determining array storage requirements.")
     
     # Read each file and determine the total number of galaxies to be read in
     goodfiles = 0
@@ -46,11 +47,11 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
         fname = Model_Name+'_'+str(fnr)  # Complete filename
 
     if not os.path.isfile(fname):
-        print "File\t%s  \tdoes not exist!  Skipping..." % (fname)
+        print("File\t%s  \tdoes not exist!  Skipping..." % (fname))
         quit() 
         
     if getFileSize(fname) == 0:
-        print "File\t%s  \tis empty!  Skipping..." % (fname)
+        print("File\t%s  \tis empty!  Skipping..." % (fname))
         quit() 
         
     fin = open(fname, 'rb')  # Open the file
@@ -59,14 +60,14 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
         TotNTrees = TotNTrees + Ntrees  # Update total sim trees number
     NtotHalos = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of gals in file.
     TotNHalos = TotNHalos + NtotHalos  # Update total sim gals number
-    print "Rank %d is reading File %s and contains %d total galaxies" %(rank, fname, NtotHalos)
+    print("Rank %d is reading File %s and contains %d total galaxies" %(rank, fname, NtotHalos))
 	
     goodfiles = goodfiles + 1  # Update number of files read for volume calculation
     fin.close()
     
-    print
-    print "Input files contain:\t%d trees ;\t%d Halos/Galaxies." % (TotNTrees, TotNHalos)
-    print
+    print("")
+    print("Input files contain:\t%d trees ;\t%d Halos/Galaxies." % (TotNTrees, TotNHalos))
+    print("")
 
     # Initialize the storage array
     G = np.empty(TotNHalos, dtype=Object_Desc)
@@ -74,18 +75,18 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
     offset = 0  # Offset index for storage array
     
     # Open each file in turn and read in the preamble variables and structure.
-    print "Reading in files."
+    print("Reading in files.")
     if (Dot == 1):
         fname = Model_Name+'.'+str(fnr)  # Complete filename
     else:
         fname = Model_Name+'_'+str(fnr)  # Complete filename
         
     if not os.path.isfile(fname):
-        print "Couldn't find file %s" %(fname)
+        print("Couldn't find file %s" %(fname))
         exit()
         
     if getFileSize(fname) == 0:
-        print "File %s is empty!" %(fname)
+        print("File %s is empty!" %(fname))
         exit()
     
     fin = open(fname, 'rb')  # Open the file
@@ -95,7 +96,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
     if (Contain_TreeInfo == 1):
         GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
 
-    print ":Rank %d is Reading N= %d Objects from %s: " %(rank, NtotHalos, fname)
+    print(":Rank %d is Reading N= %d Objects from %s: " %(rank, NtotHalos, fname))
  
 	
 
@@ -130,8 +131,8 @@ def ReadHalos(DirName, First_File, Last_File):
     ('SubHalfMass',         np.float32)
                      ]
 
-    print "First_File = %d" %(First_File)
-    print "Last_File = %d" %(Last_File)
+    print("First_File = %d" %(First_File))
+    print("Last_File = %d" %(Last_File))
 
     names = [Halo_Desc_full[i][0] for i in xrange(len(Halo_Desc_full))]
     formats = [Halo_Desc_full[i][1] for i in xrange(len(Halo_Desc_full))]
@@ -159,7 +160,7 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
          ]
     
                             
-    print "Reading in SAGE files (Post STARBURST)."
+    print("Reading in SAGE files (Post STARBURST).")
 
     names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
     formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))] 
@@ -169,7 +170,7 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
 
 def Join_Arrays(Array1, Array2, Desc):
     
-    print "Joining arrays."
+    print("Joining arrays.")
 
     G = np.empty(len(Array1) + len(Array2), Desc) # Create an empty array with enough space to hold both arrays.
 
@@ -182,7 +183,7 @@ def Join_Arrays(Array1, Array2, Desc):
 
 def Create_Snap_Arrays(G, NumSnaps, SnapList):
 
-    print "Creating separate arrays for Snapshots", SnapList
+    print("Creating separate arrays for Snapshots", SnapList)
 
     SnapCount = np.zeros((NumSnaps))
 
@@ -214,28 +215,28 @@ def read_binary_grid(filepath, GridSize, precision):
     grid : `np.darray'
 	The read in grid as a numpy object.  Shape will be N*N*N.
     '''
-    print "Reading binary grid %s with precision option %d" %(filepath, precision) 
+    print("Reading binary grid %s with precision option %d" %(filepath, precision)) 
 
     ## Set the format the input file is in. ##
     readformat = 'None'
     if precision == 0:
-	readformat = np.int32
-	byte_size = 4
+        readformat = np.int32
+        byte_size = 4
     elif precision == 1:
-	readformat = np.float32
-	byte_size = 4
+        readformat = np.float32
+        byte_size = 4
     elif precision == 2: 
-	readformat = np.float64
-	byte_size = 8
+        readformat = np.float64
+        byte_size = 8
     else:
-	print "You specified a read format of %d" %(precision)
-	raise ValueError("Only 0, 1, 2 (corresponding to integers, float or doubles respectively) are currently supported.")
+        print("You specified a read format of %d" %(precision))
+        raise ValueError("Only 0, 1, 2 (corresponding to integers, float or doubles respectively) are currently supported.")
 
     ## Check that the file is the correct size. ##
     filesize = os.stat(filepath).st_size
     if(GridSize*GridSize*GridSize * byte_size != filesize):
-	print "The size of the file is %d bytes whereas we expected it to be %d bytes" %(filesize, GridSize*GridSize*GridSize * byte_size)
-	raise ValueError("Mismatch between size of file and expected size.")
+        print("The size of the file is %d bytes whereas we expected it to be %d bytes" %(filesize, GridSize*GridSize*GridSize * byte_size))
+        raise ValueError("Mismatch between size of file and expected size.")
 
     fd = open(filepath, 'rb')
     grid = np.fromfile(fd, count = GridSize**3, dtype = readformat) 
@@ -249,6 +250,6 @@ def read_meraxes_hdf5():
     dataset = '/home/msinha/scratch/tao/data_products/output/meraxes/tiamat/meraxes_0.hdf5'
 
     container = h5py.File(hdf5_file_name, 'r')
-    print "Keys: %s" %(container.keys())
+    print("Keys: %s" %(container.keys()))
     
 

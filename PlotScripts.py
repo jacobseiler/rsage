@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
 
@@ -60,7 +61,7 @@ def Set_Params_Plot():
 	colors = ['r', 'b', 'g', 'm', 'c', 'k']
 	markers = ['x', 'o', '^', 's', 'D']
 	linestyles = ['-', '--', '-.', ':']
-	z_plot = np.arange(6, 14, 1)  #Range of redshift we wish to plot.
+	z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
 	time_xlim = [290, 1000]
 	time_tickinterval = 25
 
@@ -90,7 +91,7 @@ def plot_xy(ax, x_data, y_data, y_std, snapshot_labels, model_labels):
 
 
 	if((len(x_data) != len(y_data)) or (len(x_data) != len(y_std)) or (len(y_data) != len(y_std))):
-		print "The length of x_data is %d, the length of y_data is %d and the length of y_std is %d." %(len(x_data), len(y_data), len(y_std))
+		print("The length of x_data is %d, the length of y_data is %d and the length of y_std is %d." %(len(x_data), len(y_data), len(y_std)))
 		raise ValueError("Each of these need to be equal to each other.")
 
 	
@@ -107,7 +108,7 @@ def plot_xy(ax, x_data, y_data, y_std, snapshot_labels, model_labels):
 	## Data is of the form [[snap0_point0, snap0_point1, ... , snap0_pointN] , ... , [snapN_point0, snapN_point1, ..., snapN_pointN]]. ##
 	if dimension == 1:	
 		if(len(snapshot_labels) != len(x_data)):
-			print "The length of the snapshot_labels array is %d but the number of snapshots you're trying to plot is %d" %(len(snapshot_labels), len(x_data))
+			print("The length of the snapshot_labels array is %d but the number of snapshots you're trying to plot is %d" %(len(snapshot_labels), len(x_data)))
 			raise ValueError("These should have the same length.")
 
 		for snapshot_idx in xrange(0, len(x_data)):
@@ -118,11 +119,11 @@ def plot_xy(ax, x_data, y_data, y_std, snapshot_labels, model_labels):
 	if dimension == 2: 
 		
 		if(len(model_labels) != len(x_data)):
-			print "The length of the model_labels array is %d but the number of models you're trying to plot is %d." %(len(model_labels), len(x_data))
+			print("The length of the model_labels array is %d but the number of models you're trying to plot is %d." %(len(model_labels), len(x_data)))
 			raise ValueError("These should have the same length.")
 
 		if(len(snapshot_labels) != len(x_data[0])):
-			print "The length of the snapshot_labels array is %d but the number of snapshots you're trying to plot is %d" %(len(snapshot_labels), len(x_data[0]))
+			print("The length of the snapshot_labels array is %d but the number of snapshots you're trying to plot is %d" %(len(snapshot_labels), len(x_data[0])))
 			raise ValueError("These should have the same length.")
 
 		for model_number in xrange(0, len(x_data)):

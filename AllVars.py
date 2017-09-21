@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import numpy as np
 from astropy import units as u
 from astropy import cosmology
@@ -13,7 +14,7 @@ def set_cosmology(Hubble_h, Omega_m):
 
 def Set_Params_MiniMill():
     
-    print "Setting parameters to Mini Millennium."
+    print("Setting parameters to Mini Millennium.")
     
     global Hubble_h
     global Omega_m
@@ -66,18 +67,18 @@ def Set_Params_MiniMill():
 
     cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
 
-    print "######################"
-    print "BoxSize = %.3f (Mpc/h)" %(BoxSize)
-    print "Hubble_h = %.3f" %(Hubble_h)
-    print "Omega_m = %.3f" %(Omega_m)
-    print "Omega_L = %.3f" %(Omega_L)
-    print "BaryonFrac = %.3f" %(BaryonFrac)
-    print "t_BigBang = %.3f Gyr" %(t_BigBang)
-    print "######################"
+    print("######################")
+    print("BoxSize = %.3f (Mpc/h)" %(BoxSize))
+    print("Hubble_h = %.3f" %(Hubble_h))
+    print("Omega_m = %.3f" %(Omega_m))
+    print("Omega_L = %.3f" %(Omega_L))
+    print("BaryonFrac = %.3f" %(BaryonFrac))
+    print("t_BigBang = %.3f Gyr" %(t_BigBang))
+    print("######################")
 
 def Set_Params_Mysim():
 
-    print "Setting parameters to my simulation."
+    print("Setting parameters to my simulation.")
     
     global Hubble_h
     global Omega_m
@@ -140,20 +141,20 @@ def Set_Params_Mysim():
 
     cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
 
-    print "######################"
-    print "BoxSize = %.3f (Mpc/h)" %(BoxSize)
-    print "Hubble_h = %.3f" %(Hubble_h)
-    print "Omega_m = %.3f" %(Omega_m)
-    print "Omega_L = %.3f" %(Omega_L)
-    print "BaryonFrac = %.3f" %(BaryonFrac)
-    print "t_BigBang = %.3f Gyr" %(t_BigBang)
-    print "######################"
+    print("######################")
+    print("BoxSize = %.3f (Mpc/h)" %(BoxSize))
+    print("Hubble_h = %.3f" %(Hubble_h))
+    print("Omega_m = %.3f" %(Omega_m))
+    print("Omega_L = %.3f" %(Omega_L))
+    print("BaryonFrac = %.3f" %(BaryonFrac))
+    print("t_BigBang = %.3f Gyr" %(t_BigBang))
+    print("######################")
 
     return cosmo
 
 def Set_Constants():
 
-    print "Setting constants (in cgs units)."
+    print("Setting constants (in cgs units).")
 
     global Proton_Mass
     global Solar_Mass
@@ -254,7 +255,7 @@ def Luminosity_to_ABMag(Luminosity, Wavelength):
 
 def Set_Params_Tiamat():
 
-    print "Setting parameters to Tiamat" 
+    print("Setting parameters to Tiamat")
     
     global Hubble_h
     global Omega_m
@@ -316,21 +317,21 @@ def Set_Params_Tiamat():
 
     cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
 
-    print "######################"
-    print "BoxSize = %.3f (Mpc/h)" %(BoxSize)
-    print "Hubble_h = %.3f" %(Hubble_h)
-    print "Omega_m = %.3f" %(Omega_m)
-    print "Omega_L = %.3f" %(Omega_L)
-    print "BaryonFrac = %.3f" %(BaryonFrac)
-    print "t_BigBang = %.3f Gyr" %(t_BigBang)
-    print "######################"
+    print("######################")
+    print("BoxSize = %.3f (Mpc/h)" %(BoxSize))
+    print("Hubble_h = %.3f" %(Hubble_h))
+    print("Omega_m = %.3f" %(Omega_m))
+    print("Omega_L = %.3f" %(Omega_L))
+    print("BaryonFrac = %.3f" %(BaryonFrac))
+    print("t_BigBang = %.3f Gyr" %(t_BigBang))
+    print("######################")
 
     return cosmo
 
 
 def Set_Params_Tiamat_extended():
 
-    print "Setting parameters to the extended Tiamat simulation (that ran down to z = 1.8ish)." 
+    print("Setting parameters to the extended Tiamat simulation (that ran down to z = 1.8ish).") 
     
     global Hubble_h
     global Omega_m
@@ -385,22 +386,22 @@ def Set_Params_Tiamat_extended():
     cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
 
     Lookback_Time = cosmo.lookback_time(SnapZ).value # In Gyr 
-                                 
-    print "######################"
-    print "BoxSize = %.3f (Mpc/h)" %(BoxSize)
-    print "Hubble_h = %.3f" %(Hubble_h)
-    print "Omega_m = %.3f" %(Omega_m)
-    print "Omega_L = %.3f" %(Omega_L)
-    print "BaryonFrac = %.3f" %(BaryonFrac)
-    print "t_BigBang = %.3f Gyr" %(t_BigBang)
-    print "######################"
+                             
+    print("######################")
+    print("BoxSize = %.3f (Mpc/h)" %(BoxSize))
+    print("Hubble_h = %.3f" %(Hubble_h))
+    print("Omega_m = %.3f" %(Omega_m))
+    print("Omega_L = %.3f" %(Omega_L))
+    print("BaryonFrac = %.3f" %(BaryonFrac))
+    print("t_BigBang = %.3f Gyr" %(t_BigBang))
+    print("######################")
 
     return cosmo
 
 
 def Set_Params_Simfast21():
 
-    print "Setting parameters to what I use for Simfast()" 
+    print("Setting parameters to what I use for Simfast()") 
     
     global Hubble_h
     global Omega_m
@@ -431,16 +432,17 @@ def Set_Params_Simfast21():
     cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
 
     Lookback_Time = cosmo.lookback_time(SnapZ).value # In Gyr 
-                                 
-    print "######################"
-    print "BoxSize = %.3f (Mpc/h)" %(BoxSize)
-    print "Hubble_h = %.3f" %(Hubble_h)
-    print "Omega_m = %.3f" %(Omega_m)
-    print "Omega_L = %.3f" %(Omega_L)
-    print "BaryonFrac = %.3f" %(BaryonFrac)
-    print "t_BigBang = %.3f Gyr" %(t_BigBang)
-    print "######################"
 
+
+    print("######################")
+    print("BoxSize = %.3f (Mpc/h)" %(BoxSize))
+    print("Hubble_h = %.3f" %(Hubble_h))
+    print("Omega_m = %.3f" %(Omega_m))
+    print("Omega_L = %.3f" %(Omega_L))
+    print("BaryonFrac = %.3f" %(BaryonFrac))
+    print("t_BigBang = %.3f Gyr" %(t_BigBang))
+    print("######################")
+                                 
     return cosmo
 
 def depth(l):
@@ -510,15 +512,15 @@ def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
         raise ValueError("The high range should be finite (it's not).")
 
     if range_high <= range_low:
-        print "Upper bin range = %.4f, lower bing range = %.4f" %(range_high, range_low) 
+        print("Upper bin range = %.4f, lower bing range = %.4f" %(range_high, range_low)) 
         raise ValueError("The upper bin range should be less than the lower bin range")
  
-    NB = round((range_high - range_low) / bin_width) 
+    NB = int((range_high - range_low) / bin_width) 
 
     if NB < 1:
-        print "Number of bins = %d" %(NB)
+        print("Number of bins = %d" %(NB))
         raise ValueError("The number of bins should be greater than one.")
-
+    
     if (weights == 0): # Running in frequency mode.
         (counts, bin_edges) = np.histogram(data, range=(range_low, range_high), bins=NB)
     else: # Running in probability mode.
