@@ -445,6 +445,53 @@ def Set_Params_Simfast21():
                                  
     return cosmo
 
+def Set_Params_Britton():
+
+    print("Setting parameters to Britton's Simulation") 
+    
+    global Hubble_h
+    global Omega_m
+    global Omega_L
+    global Omega_b
+    global BoxSize
+    global Volume
+    global SnapZ
+    global BaryonFrac
+    global Y
+
+    global SnapZ
+    global Lookback_Time
+
+    global cosmo
+    global t_BigBang
+    
+    Hubble_h = 0.695
+    Omega_m = 0.285
+    Omega_L = 0.715
+    Omega_b = 0.0
+    BoxSize = 51 # Mpc/h
+    Volume = BoxSize**3
+    BaryonFrac = 0.17
+    Y = 0.24   
+
+    a = np.loadtxt("/lustre/projects/p004_swin/bsmith/1.6Gpc/means/halo_1721673/dm_gadget/outputs.dat")      
+    SnapZ = 1.0/a - 1
+       
+    cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
+
+    Lookback_Time = cosmo.lookback_time(SnapZ).value # In Gyr 
+
+
+    print("######################")
+    print("BoxSize = %.3f (Mpc/h)" %(BoxSize))
+    print("Hubble_h = %.3f" %(Hubble_h))
+    print("Omega_m = %.3f" %(Omega_m))
+    print("Omega_L = %.3f" %(Omega_L))
+    print("BaryonFrac = %.3f" %(BaryonFrac))
+    print("t_BigBang = %.3f Gyr" %(t_BigBang))
+    print("######################")
+                                 
+    return cosmo
 def depth(l):
     '''
     Determines the nested level of a list.
@@ -530,3 +577,89 @@ def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
     bin_middle = bin_edges[:-1] + 0.5 * bin_width
 
     return (counts, bin_edges, bin_middle)
+
+##
+
+def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x = None):     
+
+    '''
+    Calculates the mean of the y-data that lies within binned x-data.   
+
+    Parameters
+    ----------
+    data_x : `numpy.darray'
+    Data that will be binned and provide the bins for the y-mean.
+    data_y : `numpy.darray'
+    Data that will be averaged in each of the bins defined by the x-data.
+    bin_width : float
+    Width of each x-bin.
+    min_hist_x, max_hist_x: float (optional)
+    Defines the x-bounds that we will be binning over.
+    If no values defined, range will be the minimum/maximum data point +/- 10 times the bin_width.
+
+    Returns
+    -------
+    mean_data_y, std_data_y : `numpy.darray'    
+    Arrays that contain the mean and standard deviation for the y-data as binned by the x-data.
+    N_data_y : `numpy.darray'
+    Array that contains the number of data points in each x-bin.    
+    bins_mid : `numpy.darray'
+    The mid-point coordinate for the x-bins. 
+
+    Units
+    -----
+    All units are kept the same as the inputs.
+    '''
+
+    if not np.isfinite(min_hist_x):
+        raise ValueError("xmin should be finite")
+
+    if not np.isfinite(max_hist_x):
+        raise ValueError("xmax should be finite")
+
+    if (min_hist_x == None): 
+        range_low = np.floor(min(data_x)) - 10*bin_width
+        range_high = np.floor(max(data_x)) + 10*bin_width
+    else:
+        range_low = min_hist_x 
+        range_high = max_hist_x 
+
+    if range_high <= range_low: 
+        raise ValueError("The upper bin range should be less than the lower bin range")
+ 
+    NB = round((range_high - range_low) / bin_width) 
+
+    bins = np.arange(range_low, range_high + bin_width, bin_width)
+    bins_mid = bins + bin_width/2.0
+    bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.   
+
+    bins_x = np.digitize(data_x, bins) # Provides the indices for which bin each x-data point belongs to.
+    N_data_y = np.zeros((len(bins)))  
+ 
+    data_y_binned = []
+    for i in range(0, len(bins)): 
+        data_y_binned.append([])
+    for i in range(0, len(data_x)):
+        idx = bins_x[i]
+        if idx == len(data_y_binned): # Fixes up binning index edge case.
+            idx -= 1
+
+        data_y_binned[idx].append(data_y[i])
+        N_data_y[idx] += 1 
+
+    mean_data_y = np.zeros((len(bins))) 
+    std_data_y = np.zeros((len(bins))) 
+
+    for i in range(0, len(bins)):
+        if len(data_y_binned[i]) != 0: # If there was any y-data placed into this bin. 
+            mean_data_y[i] = np.mean(data_y_binned[i])
+            std_data_y[i] = np.std(data_y_binned[i])
+            
+        else: # Otherwise if there were no data points, simply fill it with a nan.
+            mean_data_y[i] = 0.0 
+            std_data_y[i] = 0.0
+
+    return mean_data_y[:-1], std_data_y[:-1], N_data_y[:-1], bins_mid
+
+##
+

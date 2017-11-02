@@ -52,7 +52,7 @@ kink_low = 10.3
 kink_high = 10.30000001
 
 m_low = 8.5 # We only sum the photons coming from halos within the mass range m_low < Halo Mass < m_high
-m_high = 14
+m_high = 15.0
 
 m_gal_low = 4
 m_gal_high = 14
@@ -143,89 +143,6 @@ def multiply(array):
     for i in xrange(0, len(array)):
         total *= array[i]
     return total
-
-##
-
-def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x = None):     
-
-    '''
-    Calculates the mean of the y-data that lies within binned x-data.   
-
-    Parameters
-    ----------
-    data_x : `numpy.darray'
-    Data that will be binned and provide the bins for the y-mean.
-    data_y : `numpy.darray'
-    Data that will be averaged in each of the bins defined by the x-data.
-    bin_width : float
-    Width of each x-bin.
-    min_hist_x, max_hist_x: float (optional)
-    Defines the x-bounds that we will be binning over.
-    If no values defined, range will be the minimum/maximum data point +/- 10 times the bin_width.
-
-    Returns
-    -------
-    mean_data_y, std_data_y : `numpy.darray'    
-    Arrays that contain the mean and standard deviation for the y-data as binned by the x-data.
-    N_data_y : `numpy.darray'
-    Array that contains the number of data points in each x-bin.    
-    bins_mid : `numpy.darray'
-    The mid-point coordinate for the x-bins. 
-
-    Units
-    -----
-    All units are kept the same as the inputs.
-    '''
-
-    if not np.isfinite(min_hist_x):
-        raise ValueError("xmin should be finite")
-
-    if not np.isfinite(max_hist_x):
-        raise ValueError("xmax should be finite")
-
-    if (min_hist_x == None): 
-        range_low = np.floor(min(data_x)) - 10*bin_width
-        range_high = np.floor(max(data_x)) + 10*bin_width
-    else:
-        range_low = min_hist_x 
-        range_high = max_hist_x 
-
-    if range_high <= range_low: 
-        raise ValueError("The upper bin range should be less than the lower bin range")
- 
-    NB = round((range_high - range_low) / bin_width) 
-
-    bins = np.arange(range_low, range_high + bin_width, bin_width)
-    bins_mid = bins + bin_width/2.0
-    bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.   
-
-    bins_x = np.digitize(data_x, bins) # Provides the indices for which bin each x-data point belongs to.
-    N_data_y = np.zeros((len(bins)))  
- 
-    data_y_binned = []
-    for i in xrange(0, len(bins)): 
-        data_y_binned.append([])
-    for i in xrange(0, len(data_x)):
-        idx = bins_x[i]
-        if idx == len(data_y_binned): # Fixes up binning index edge case.
-            idx -= 1
-
-        data_y_binned[idx].append(data_y[i])
-        N_data_y[idx] += 1 
-
-    mean_data_y = np.zeros((len(bins))) 
-    std_data_y = np.zeros((len(bins))) 
-
-    for i in xrange(0, len(bins)):
-        if len(data_y_binned[i]) != 0: # If there was any y-data placed into this bin. 
-            mean_data_y[i] = np.mean(data_y_binned[i])
-            std_data_y[i] = np.std(data_y_binned[i])
-            
-        else: # Otherwise if there were no data points, simply fill it with a nan.
-            mean_data_y[i] = 0.0 
-            std_data_y[i] = 0.0
-
-    return mean_data_y[:-1], std_data_y[:-1], N_data_y[:-1], bins_mid
 
 ##
 
@@ -703,7 +620,7 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
             t.set_fontsize(PlotScripts.global_legendsize)
 
         plt.tight_layout()
-        outputFile = './%s%s' %(output_tag, output_format)
+        outputFile = './Halo%.2f_%s%s' %(m_low, output_tag, output_format)
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -913,7 +830,7 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
     Accepts 3D arrays to plot ngamma for multiple models. 
 
     Parameters
-    ---------
+    ----------
     SnapList : Nested `array-like', SnapList[model_number0] = [snapshot0_model0, ..., snapshotN_model0], with length equal to the number of models.
     Snapshots for each model. 
     mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma : Nested 2-dimensional `array-like', mean_mvir_Ngamma[model_number0][snapshot0]  = [bin0_meanNgamma, ..., binN_meanNgamma], with length equal to the number of bins. 
@@ -1275,7 +1192,7 @@ def plot_photoncount(SnapList, sum_nion, FirstFile, LastFile, NumFiles, model_ta
         ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
 
         plt.tight_layout()
-        outputFile = './' + output_tag + output_format
+        outputFile = './mlow%.2f_%s%s' %(m_low, output_tag, output_format)
         plt.savefig(outputFile)  # Save the figure
         print 'Saved file to', outputFile
         plt.close()
@@ -1298,15 +1215,15 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
 
     N_random = 1
 
-    ax1 = plt.subplot(121)
-    ax3 = plt.subplot(122)
+    ax1 = plt.subplot(111)
+#    ax3 = plt.subplot(122)
     #ax5 = plt.subplot(133)
 
     look_for_alive = 1
     #idx_array = [20004, 20005, 20016]
     #halonr_array = [7381]
-    #halonr_array = [389106]
-    halonr_array = [36885]
+    halonr_array = [389106]
+    #halonr_array = [36885]
     for model_number in xrange(0, len(model_tags)):
         if(simulation_norm[model_number] == 0):
             AllVars.Set_Params_Mysim()
@@ -1346,43 +1263,55 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
  
        
         for snapshot_idx in xrange(0, number_snapshots[model_number]): 
-            SFR_ensemble[model_number].append(np.mean(G.GridSFR[:,snapshot_idx]))
-            ejected_ensemble[model_number].append(np.mean(G.GridOutflowRate[:, snapshot_idx]))
-            infall_ensemble[model_number].append(np.mean(G.GridInfallRate[:, snapshot_idx]))
-            ejectedmass_ensemble[model_number].append(np.mean(G.GridEjectedMass[:, snapshot_idx]) * 1.0e10 / AllVars.Hubble_h)
+            w = np.where((G.GridHistory[:, snapshot_idx] != -1) & (G.GridStellarMass[:, snapshot_idx] > 0.0) & (G.GridStellarMass[:, snapshot_idx] < 1e5) & (G.GridCentralGalaxyMass[:, snapshot_idx] >= m_low_SAGE) & (G.GridCentralGalaxyMass[:, snapshot_idx] <=  m_high_SAGE))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
             
-            t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[snapshot_idx]).value) * 1.0e3      
-    
+            SFR_ensemble[model_number].append(np.mean(G.GridSFR[w,snapshot_idx]))
+            ejected_ensemble[model_number].append(np.mean(G.GridOutflowRate[w, snapshot_idx]))
+            infall_ensemble[model_number].append(np.mean(G.GridInfallRate[w, snapshot_idx]))
+
+            t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[snapshot_idx]).value) * 1.0e3 
             
         for p in xrange(0, N_random):
             random_idx = (np.where((G.HaloNr == halonr_array[p]))[0])[0] 
             SFR_gal[model_number].append(G.GridSFR[random_idx]) # Remember the star formation rate history of the galaxy.
             ejected_gal[model_number].append(G.GridOutflowRate[random_idx])
             infall_gal[model_number].append(G.GridInfallRate[random_idx])
-            ejectedmass_gal[model_number].append(G.GridEjectedMass[random_idx] * 1.0e10 / AllVars.Hubble_h)
+            ejectedmass_gal[model_number].append(G.GridEjectedMass[random_idx])
+        
+            #SFR_gal[model_number][p][SFR_gal[model_number][p] < 1.0e-15] = 1 
             for snapshot_idx in xrange(0, number_snapshots[model_number]):  
                 if snapshot_idx == 0:
                     pass 
                 elif(G.GridHistory[random_idx, snapshot_idx] == -1):
                     SFR_gal[model_number][p][snapshot_idx] = SFR_gal[model_number][p][snapshot_idx - 1]
-        
+
+#        SFR_ensemble[model_number] = np.nan_to_num(SFR_ensemble[model_number])        
+#        SFR_ensemble[model_number][SFR_ensemble[model_number] < 1.0e-15] = 1    
+
+         
+#        ejected_ensemble[model_number][ejected_ensemble[model_number] < 1.0e-15] = 1     
        
         
-
-
         ax1.plot(t, SFR_ensemble[model_number], color = PlotScripts.colors[0], linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)
-        ax3.plot(t, ejected_ensemble[model_number], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], linewidth = PlotScripts.global_linewidth, alpha = 1.0)
+        ax1.plot(t, ejected_ensemble[model_number], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], linewidth = PlotScripts.global_linewidth, alpha = 1.0)
         #ax5.plot(t, infall_ensemble[model_number], color = PlotScripts.colors[2], linestyle = PlotScripts.linestyles[model_number], linewidth = PlotScripts.global_linewidth, alpha = 1.0)
         #ax5.plot(t, ejectedmass_ensemble[model_number], color = PlotScripts.colors[2], linestyle = PlotScripts.linestyles[model_number], linewidth = PlotScripts.global_linewidth, alpha = 1.0)
-    
+        print SFR_ensemble[model_number]   
+        print SFR_gal[model_number][0]
+
+        
         for p in xrange(0, N_random):
             ax1.plot(t, SFR_gal[model_number][p], color = PlotScripts.colors[0], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
-            ax3.plot(t, ejected_gal[model_number][p], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
+            ax1.plot(t, ejected_gal[model_number][p], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
             #ax5.plot(t, infall_gal[model_number][p], color = PlotScripts.colors[2], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
             #ax5.plot(t, ejectedmass_gal[model_number][p], color = PlotScripts.colors[2], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
 
             #ax1.plot(t, SFR_gal[model_number][p], color = PlotScripts.colors[0], linestyle = PlotScripts.linestyles[model_number], alpha = 1.0, linewidth = 1, label = model_tags[model_number])
             #ax1.plot(t, ejected_gal[model_number][p], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], alpha = 1.0, linewidth = 1, label = model_tags[model_number])
+
+    ax1.plot(np.nan, np.nan, color = 'r', linestyle = '-', label = "SFR")
+    ax1.plot(np.nan, np.nan, color = 'b', linestyle = '-', label = "Outflow")
+
 
     #print abs(ejected_ensemble[1] - ejected_ensemble[0])/ejected_ensembles[0]
 #    exit() 
@@ -1390,19 +1319,18 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
     #ax1.plot(np.nan, np.nan, color = PlotScripts.colors[1], label = 'Outflow')
 
     ax1.set_yscale('log', nonposy='clip')
-    ax1.set_ylabel(r"$\mathrm{SFR} \: [\mathrm{M}_\odot \mathrm{yr}^{-1}]$")
+    ax1.set_ylabel(r"$\mathrm{Mass \: Flow} \: [\mathrm{M}_\odot \mathrm{yr}^{-1}]$")
     ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_fontsize)
     ax1.set_xlim(PlotScripts.time_xlim)
-    ax1.set_ylim([1e-8, 1e3])
+    ax1.set_ylim([1e-6, 1e3])
 
-    
+    '''
     ax3.set_yscale('log', nonposy='clip')
     ax3.set_ylabel(r"$\mathrm{Outflow \: Rate} \: [\mathrm{M}_\odot \mathrm{yr}^{-1}]$")
     ax3.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_fontsize)
     ax3.set_xlim(PlotScripts.time_xlim)
     ax3.set_ylim([1e-8, 1e3])
 
-    '''
     ax5.set_yscale('log', nonposy='clip')
     #ax5.set_ylabel(r"$\mathrm{Infall \: Rate} \: [\mathrm{M}_\odot \mathrm{yr}^{-1}]$")
     ax5.set_ylabel(r"$\mathrm{Ejected Mass} [\mathrm{M}_\odot]$")
@@ -1412,7 +1340,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
     ax5.set_ylim([1e6, 1e10])
     '''
     ax2 = ax1.twiny()
-    ax4 = ax3.twiny()
+    #ax4 = ax3.twiny()
     #ax6 = ax5.twiny()
 
     t_plot = (t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
@@ -1423,12 +1351,12 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
     ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
     ax2.set_xticklabels(z_labels) # But label them as redshifts.
 
+    '''
     ax4.set_xlabel(r"$z$", size = PlotScripts.global_labelsize)
     ax4.set_xlim(PlotScripts.time_xlim)
     ax4.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
     ax4.set_xticklabels(z_labels) # But label them as redshifts.
 
-    '''
     ax6.set_xlabel(r"$z$", size = PlotScripts.global_labelsize)
     ax6.set_xlim(PlotScripts.time_xlim)
     ax6.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
@@ -1436,13 +1364,13 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
     '''
 
     plt.tight_layout()
-    leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+    leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(PlotScripts.global_legendsize)
 
 
-    outputFile = './Halo%d_%s%s' %(halonr_array[0], output_tag, output_format) 
+    outputFile = './Halo%d_mlow%.2f_%s%s' %(halonr_array[0], m_low_SAGE, output_tag, output_format) 
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print 'Saved file to', outputFile
     plt.close()
@@ -1719,8 +1647,9 @@ calculate_observed_LF = 0
 
 number_models = 2
 
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_IRA_10step_z1.827'
-galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_NewDelayed10Myr_10Step_z1.827'
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/late_september/galaxies/tiamat_Delayed10Myr_z1.827'
+galaxies_model2 = '/lustre/projects/p004_swin/jseiler/late_september/galaxies/tiamat_IRA_z1.827'
+
 #galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
 #galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
 #galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_z1.827'
@@ -1732,8 +1661,9 @@ galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_
 #merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_IRA_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_Delayed5Myr_MergedGalaxies'
 
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_IRA_10step_MergedGalaxies'
-merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_NewDelayed10Myr_10Step_MergedGalaxies'
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/late_september/galaxies/tiamat_Delayed10Myr_MergedGalaxies'
+merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/late_september/galaxies/tiamat_IRA_MergedGalaxies'
+
 #merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
 #merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_MergedGalaxies'
@@ -1752,7 +1682,7 @@ NumFile = [27, 27] # The number of files for this simulation (plotting a subset 
 #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 #model_tags = [r"No SN", r"Delayed - 5Myr", r"Delayed - 10 Myr"]
 #model_tags = [r"IRA", r"Delayed - 5Myr", r"Delayed - 10Myr"]
-model_tags = [r"IRA", r"Delayed"]
+model_tags = [r"Delayed", r"IRA"]
 #model_tags = [r"IRA - 1 Step", r"IRA - 10 Step"]
 #model_tags = [r"Delayed - 1 Step", r"Delayed - 10 Step"]
 #model_tags =  [r"Delayed5Myr - $\alpha = 0.0075$", r"Delayed5Myr - $\alpha = 0.01$"]
@@ -1769,19 +1699,19 @@ halo_cut = [50, 50, 50, 100] # Only calculate galaxy properties whose host halo 
 source_efficiency = [1, 1, 1, 1] # Used for the halo based prescription for ionizing emissivity.
 
 fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3] # Escape fraction of Lyman Alpha photons.
-fesc_prescription = [0, 0] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction.
+fesc_prescription = [2, 2] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction.
 
 ## Normalizations for the escape fractions. ##
 # For prescription 0, requires a number that defines the constant fesc.
 # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
 # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
-fesc_normalization = [0.40, 0.40] 
-#fesc_normalization = [[0.5, 0.00], [0.5, 0.00], [0.5, 0.00]]
+#fesc_normalization = [0.40, 0.40] 
+fesc_normalization = [[0.5, 0.00], [0.5, 0.00], [0.5, 0.00]]
 #fesc_normalization = [0.50, [1000.0, -0.4], [1.0, 0.0]] 
 ##
 
-#SnapList = [np.arange(20, 100, 1), np.arange(20, 100, 1)]
-SnapList =  [[78, 64, 51], [78, 64, 51]]
+SnapList = [np.arange(20, 100, 1), np.arange(20, 100, 1)]
+#SnapList =  [[78, 64, 51], [78, 64, 51]]
 #SnapList =  [[163], [163], [163]]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
 simulation_norm = [3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish).
@@ -1829,8 +1759,8 @@ AllVars.Set_Params_Tiamat_extended()
 #for i in xrange(0, len(AllVars.SnapZ)-1):
 #    print "Snapshot ", i, "and Snapshot", i + 1, "have a time difference of", (AllVars.Lookback_Time[i] - AllVars.Lookback_Time[i+1]) * 1.0e3, "Myr"
 
-#plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, simulation_norm, model_tags, "singleSFR_NewDelayedIRAComp")
-#exit()
+plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, simulation_norm, model_tags, "singleSFR_Croatia")
+exit()
 for model_number in xrange(0, number_models):
 
     if(simulation_norm[model_number] == 0):
@@ -1931,7 +1861,7 @@ for model_number in xrange(0, number_models):
         
             current_snap = SnapList[model_number][snapshot_idx]
 
-            w_gal = np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridStellarMass[:, current_snap] < 1e5) & (G.GridCentralGalaxyMass[:, current_snap] >= m_low_SAGE) & (G.GridCentralGalaxyMass[:, current_snap] <=  m_high_SAGE) & (G.GridSFR[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut) & (G.GridSFR[:, current_snap] > 0.0))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
+            w_gal = np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridStellarMass[:, current_snap] < 1e5) & (G.GridCentralGalaxyMass[:, current_snap] >= m_low_SAGE) & (G.GridCentralGalaxyMass[:, current_snap] <=  m_high_SAGE) & (G.LenHistory[:, current_snap] > current_halo_cut) & (G.GridSFR[:, current_snap] >= 0.0))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
         
 #            print "There were %d galaxies for snapshot %d (Redshift %.4f) model %d." %(len(w_gal), current_snap, AllVars.SnapZ[current_snap], model_number)
 
@@ -1963,6 +1893,10 @@ for model_number in xrange(0, number_models):
 
             ## We have now calculated all the base properties for galaxies within this snapshot.  Calculate the relevant statistics and put them into their arrays. ##
 
+           # print m_gal_low
+           # print m_gal_high
+           # print mass_gal
+            
             (counts_local, bin_edges, bin_middle) = AllVars.Calculate_Histogram(mass_gal, bin_width, 0, m_gal_low, m_gal_high) # Bin the Stellar Mass 
             SMF[model_number][snapshot_idx] += counts_local 
 
@@ -1989,9 +1923,9 @@ for model_number in xrange(0, number_models):
 
 
 
-StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, model_tags, 0, "tiamat_newDelayedComp_SMF") ## PARALLEL COMPATIBLE
+#StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, model_tags, 0, "tiamat_newDelayedComp_SMF") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
-#plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "tiamat_newDelayedComp_fesc2") ## PARALELL COMPATIBLE 
-#plot_photoncount(SnapList, sum_Ngamma_z_array, FirstFile, LastFile, NumFile, model_tags, "tiamat_newDelayedComp_Ngamma_constfesc2") ## PARALELL COMPATIBLE
+plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "DelayedComp_fejfesc") ## PARALELL COMPATIBLE 
+plot_photoncount(SnapList, sum_Ngamma_z_array, FirstFile, LastFile, NumFile, model_tags, "DelayedComp_Ngamma_fejfesc") ## PARALELL COMPATIBLE
 #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 
