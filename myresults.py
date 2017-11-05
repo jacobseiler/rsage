@@ -140,7 +140,7 @@ def multiply(array):
     '''
 
     total = 1
-    for i in xrange(0, len(array)):
+    for i in range(0, len(array)):
         total *= array[i]
     return total
 
@@ -165,7 +165,7 @@ def Sum_Log(array):
     '''
 
     sum_total = 0.0
-    for i in xrange(0, len(array)):
+    for i in range(0, len(array)):
         sum_total += 10**array[i]
 
     return sum_total
@@ -193,7 +193,7 @@ def Std_Log(array, mean):
     '''
 
     sum_total = 0.0
-    for i in xrange(0, len(array)):
+    for i in range(0, len(array)):
         sum_total += (10**array[i] - mean)**2
 
     sum_total *= 1.0/len(array)
@@ -270,7 +270,7 @@ def calculate_pooled_stats(mean_pool, std_pool, mean_local, std_local, N_local):
         mean_pool_function = np.zeros((len(N_pool)))
         std_pool_function = np.zeros((len(N_pool)))
 
-        for i in xrange(0, len(N_pool)):
+        for i in range(0, len(N_pool)):
             if N_pool[i] == 0:
                 mean_pool_function[i] = 0.0
             else:
@@ -294,7 +294,7 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
     '''
     Calculates the stellar mass function for given galaxies with the option to overplot observations by Song et al. (2013) at z = 6, 7, 8 and/or Baldry et al. (2008) at z = 0.1. 
     Parallel compatible.
-    NOTE: The plotting assumes the redshifts we are plotting at are the same for each model. 
+    NOTE: The plotting assumes the redshifts we are plotting at are (roughly) the same for each model. 
 
     Parameters
     ---------
@@ -338,13 +338,13 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
     counts_array = []
     bin_middle_array = []
 
-    for model_number in xrange(0, len(SnapList)):
+    for model_number in range(0, len(SnapList)):
         counts_array.append([])
         bin_middle_array.append([])
         redshift_labels.append([])
 
     ####
-    for model_number in xrange(0, len(SnapList)): # Does this for each of the models. 
+    for model_number in range(0, len(SnapList)): # Does this for each of the models. 
 
         ## Normalization for each model. ##
         if (simulation_norm[model_number] == 0):
@@ -355,7 +355,6 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
             AllVars.Set_Params_Tiamat()
         elif (simulation_norm[model_number] == 3):
             AllVars.Set_Params_Tiamat_extended()
-
         
         box_factor = (LastFile[model_number] - FirstFile[model_number] + 1.0)/(NumFile[model_number]) # This factor allows us to take a sub-volume of the box and scale the results to represent the entire box.
         print "We are creating the stellar mass function using %.4f of the box's volume." %(box_factor)
@@ -364,7 +363,7 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
         print "norm = %.4f" %(norm)
         ####
     
-        for snapshot_idx in xrange(0, len(SnapList[model_number])): # Loops for each snapshot in each model.
+        for snapshot_idx in range(0, len(SnapList[model_number])): # Loops for each snapshot in each model.
 
             tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]) # Assigns a redshift label.
             redshift_labels[model_number].append(tmp)
@@ -390,9 +389,9 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
         f = plt.figure()  
         ax = plt.subplot(111)  
 
-        for model_number in xrange(0, len(SnapList)):
+        for model_number in range(0, len(SnapList)):
             print model_tags[model_number]
-            for snapshot_idx in xrange(0, len(SnapList[model_number])):
+            for snapshot_idx in range(0, len(SnapList[model_number])):
                 if model_number == 0: # We assume the redshifts for each model are the same, we only want to put a legend label for each redshift once.
                     title = redshift_labels[model_number][snapshot_idx]
                 else:
@@ -401,7 +400,7 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
 
                 #print counts_array[model_number][snapshot_idx] / normalization_array[model_number]
  
-        for model_number in xrange(0, len(SnapList)): # Place legend labels for each of the models. NOTE: Placed after previous loop for proper formatting of labels. 
+        for model_number in range(0, len(SnapList)): # Place legend labels for each of the models. NOTE: Placed after previous loop for proper formatting of labels. 
             plt.plot(1e100, 1e100, color = 'k', linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], rasterized=True, linewidth = PlotScripts.global_linewidth)
     
         ## Adjusting axis labels/limits. ##
@@ -574,18 +573,18 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
     pooled_mean_fesc = []
     pooled_std_fesc = []
 
-    for model_number in xrange(0, len(SnapList)): # Loop for each model. 
+    for model_number in range(0, len(SnapList)): # Loop for each model. 
 
         pooled_mean_fesc, pooled_std_fesc = calculate_pooled_stats(pooled_mean_fesc, pooled_std_fesc, mean_z_fesc[model_number], std_z_fesc[model_number], N_fesc[model_number]) # Calculates the pooled mean/standard deviation for this snapshot.  Only rank 0 receives a proper value here; the other ranks don't need this information. 
     
     if (rank == 0):
         ax1 = plt.subplot(111)
 
-        for model_number in xrange(0, len(SnapList)):
+        for model_number in range(0, len(SnapList)):
     
             ## Calculate lookback time for each snapshot ##
             t = np.empty(len(SnapList[model_number]))
-            for snapshot_idx in xrange(0, len(SnapList[model_number])):  
+            for snapshot_idx in range(0, len(SnapList[model_number])):  
                 t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3   
                     
             mean = pooled_mean_fesc[model_number]
@@ -668,7 +667,7 @@ def plot_ejectedfraction(SnapList, mean_mvir_ejected, std_mvir_ejected, N_ejecte
 
     bin_middle_array = []
 
-    for model_number in xrange(0, len(SnapList)):
+    for model_number in range(0, len(SnapList)):
         redshift_labels.append([])
 
         mean_ejected_array.append([])
@@ -681,8 +680,8 @@ def plot_ejectedfraction(SnapList, mean_mvir_ejected, std_mvir_ejected, N_ejecte
     
     bin_width = 0.1
  
-    for model_number in xrange(0, len(SnapList)): 
-        for snapshot_idx in xrange(0, len(SnapList[model_number])):
+    for model_number in range(0, len(SnapList)): 
+        for snapshot_idx in range(0, len(SnapList[model_number])):
             print "Doing Snapshot %d" %(SnapList[model_number][snapshot_idx])
             tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
             redshift_labels[model_number].append(tmp)
@@ -695,12 +694,12 @@ def plot_ejectedfraction(SnapList, mean_mvir_ejected, std_mvir_ejected, N_ejecte
         f = plt.figure()  
         ax1 = plt.subplot(111)  
 
-        for model_number in xrange(0, len(SnapList)):
-            for snapshot_idx in xrange(0, len(SnapList[model_number])): 
+        for model_number in range(0, len(SnapList)):
+            for snapshot_idx in range(0, len(SnapList[model_number])): 
                 ax1.plot(bin_middle_array[model_number][snapshot_idx], mean_ejected_array[model_number][snapshot_idx], color = PlotScripts.colors[snapshot_idx], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = redshift_labels[model_number][snapshot_idx], linewidth = PlotScripts.global_linewidth) 
                 
 
-        for model_number in xrange(0, len(SnapList)): # Just plot some garbage to get the legend labels correct.
+        for model_number in range(0, len(SnapList)): # Just plot some garbage to get the legend labels correct.
             ax1.plot(np.nan, np.nan, color = 'k', linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)
 
         ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
@@ -737,7 +736,7 @@ def plot_mvir_fesc(SnapList, mass_central, fesc, model_tags, output_tag):
 
     bin_middle_array = []
 
-    for model_number in xrange(0, len(SnapList)):
+    for model_number in range(0, len(SnapList)):
         redshift_labels.append([])
 
     mean_fesc_array.append([])
@@ -752,8 +751,8 @@ def plot_mvir_fesc(SnapList, mass_central, fesc, model_tags, output_tag):
     binwidth = 0.1
     Frequency = 1  
  
-    for model_number in xrange(0, len(SnapList)): 
-        for snapshot_idx in xrange(0, len(SnapList[model_number])):
+    for model_number in range(0, len(SnapList)): 
+        for snapshot_idx in range(0, len(SnapList[model_number])):
             print "Doing Snapshot %d" %(SnapList[model_number][snapshot_idx])
             tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
             redshift_labels[model_number].append(tmp)
@@ -782,8 +781,8 @@ def plot_mvir_fesc(SnapList, mass_central, fesc, model_tags, output_tag):
         f = plt.figure()  
         ax1 = plt.subplot(111)  
 
-        for model_number in xrange(0, len(SnapList)):
-            for snapshot_idx in xrange(0, len(SnapList[model_number])):
+        for model_number in range(0, len(SnapList)):
+            for snapshot_idx in range(0, len(SnapList[model_number])):
                 if model_number == 0:
                     title = redshift_labels[model_number][snapshot_idx]
                 else:
@@ -807,7 +806,7 @@ def plot_mvir_fesc(SnapList, mass_central, fesc, model_tags, output_tag):
 #       ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
     
 #       ax1.set_yscale('log', nonposy='clip')
-#       for model_number in xrange(0, len(SnapList)):
+#       for model_number in range(0, len(SnapList)):
 #       ax1.plot(1e100, 1e100, color = 'k', ls = linestyles[model_number], label = model_tags[model_number], rasterized=True)
     
     
@@ -879,7 +878,7 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
 
     bin_middle_array = []
 
-    for model_number in xrange(0, len(SnapList)):
+    for model_number in range(0, len(SnapList)):
         redshift_labels.append([])
 
     mean_ngammafesc_array.append([])
@@ -890,8 +889,8 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
 
     bin_middle_array.append([])
     
-    for model_number in xrange(0, len(SnapList)): 
-        for snapshot_idx in xrange(0, len(SnapList[model_number])):
+    for model_number in range(0, len(SnapList)): 
+        for snapshot_idx in range(0, len(SnapList[model_number])):
             print "Doing Snapshot %d" %(SnapList[model_number][snapshot_idx])
             tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
             redshift_labels[model_number].append(tmp)
@@ -905,9 +904,9 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
         f = plt.figure()  
         ax1 = plt.subplot(111)  
 
-        for model_number in xrange(0, len(SnapList)):
+        for model_number in range(0, len(SnapList)):
             count = 0
-            for snapshot_idx in xrange(0, len(SnapList[model_number])):
+            for snapshot_idx in range(0, len(SnapList[model_number])):
                 if model_number == 0:
                     title = redshift_labels[model_number][snapshot_idx]
                 else:
@@ -916,7 +915,7 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
                 mean = np.zeros((len(mean_ngammafesc_array[model_number][snapshot_idx])), dtype = np.float32)
                 std = np.zeros((len(mean_ngammafesc_array[model_number][snapshot_idx])), dtype=np.float32)
 
-                for i in xrange(0, len(mean)):
+                for i in range(0, len(mean)):
                     if(mean_ngammafesc_array[model_number][snapshot_idx][i] < 1e-10):
                         mean[i] = np.nan
                         std[i] = np.nan
@@ -943,13 +942,13 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
                     print "The filename is %s" %(fname)
                     raise ValueError("Can't write to this file.")
         
-                for i in xrange(0, len(bin_middle)):
+                for i in range(0, len(bin_middle)):
                     f.write("%.4f %.4f %.4f %d\n" %(bin_middle[i], mean[i], std[i], N_Ngamma[model_number][snapshot_idx][i]))
                 f.close() 
                 print "Wrote successfully to file %s" %(fname)
             ##
 
-        for model_number in xrange(0, len(SnapList)): # Just plot some garbage to get the legend labels correct.
+        for model_number in range(0, len(SnapList)): # Just plot some garbage to get the legend labels correct.
             ax1.plot(np.nan, np.nan, color = 'k', linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)
     
         ax1.set_xlabel(r'$\log_{10}\ M_{\mathrm{vir}}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
@@ -972,8 +971,8 @@ def plot_mvir_Ngamma(SnapList, mean_mvir_Ngamma, std_mvir_Ngamma, N_Ngamma, mode
 
 def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, fesc_prescription, fesc_normalization, GridSize, output_tag):
    
-    for model_number in xrange(0, len(fesc_prescription)):
-        for halo_z_idx in xrange(0, len(RedshiftList)):
+    for model_number in range(0, len(fesc_prescription)):
+        for halo_z_idx in range(0, len(RedshiftList)):
             snapshot_idx = min(range(len(SnapList)), key=lambda i: abs(SnapList[i]-RedshiftList[halo_z_idx])) # This finds the index of the simulation redshift that most closely matches the Halo redshift.
             print "Binning Halo redshift %.4f" %(RedshiftList[halo_z_idx])
             print "For the Halo redshift %.3f the nearest simulation redshift is %.3f" %(RedshiftList[halo_z_idx], SnapList[snapshot_idx])  
@@ -1003,8 +1002,8 @@ def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, fesc_prescripti
                  ('Halo_z', np.float32)
                 ]
 
-            names = [Halodesc_full[i][0] for i in xrange(len(Halodesc_full))]
-            formats = [Halodesc_full[i][1] for i in xrange(len(Halodesc_full))]
+            names = [Halodesc_full[i][0] for i in range(len(Halodesc_full))]
+            formats = [Halodesc_full[i][1] for i in range(len(Halodesc_full))]
             Halo_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
 
             fname = "%s/halonl_z%.3f_N%d_L100.0.dat.catalog" %(halopath, RedshiftList[halo_z_idx], GridSize)
@@ -1020,7 +1019,7 @@ def bin_Simfast_halos(RedshiftList, SnapList, halopath, fitpath, fesc_prescripti
             # This flux is determined by drawing a random number from a normal distribution with mean and standard deviation given by the Mvir-Ngamma results.
             # NOTE: Remember the Mvir-Ngamma results are in units of log10(s^-1).
             fit_nan = 0
-            for i in xrange(0, N_Halos):
+            for i in range(0, N_Halos):
                 if(np.isnan(fit_mean[binned_Halo_Mass[i]]) == True or np.isnan(fit_std[binned_Halo_Mass[i]]) == True): # This halo had mass that was not covered by the Mvir-Ngamma fits.
                     fit_nan += 1
                     continue
@@ -1128,9 +1127,9 @@ def plot_photoncount(SnapList, sum_nion, FirstFile, LastFile, NumFiles, model_ta
 
     sum_array = []
 
-    for model_number in xrange(0, len(SnapList)): 
+    for model_number in range(0, len(SnapList)): 
         sum_array.append([])
-        for snapshot_idx in xrange(0, len(SnapList[model_number])):
+        for snapshot_idx in range(0, len(SnapList[model_number])):
        
             nion_sum_snapshot = comm.reduce(sum_nion[model_number][snapshot_idx], op = MPI.SUM, root = 0)
             if rank == 0:
@@ -1139,9 +1138,9 @@ def plot_photoncount(SnapList, sum_nion, FirstFile, LastFile, NumFiles, model_ta
     if (rank == 0):
         ax1 = plt.subplot(111)
 
-        for model_number in xrange(0, len(SnapList)):
+        for model_number in range(0, len(SnapList)):
             t = np.empty(len(SnapList[model_number]))
-            for snapshot_idx in xrange(0, len(SnapList[model_number])):
+            for snapshot_idx in range(0, len(SnapList[model_number])):
                 t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3      
     
             ax1.plot(t, np.log10(sum_array[model_number]), color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)  
@@ -1224,7 +1223,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
     #halonr_array = [7381]
     halonr_array = [389106]
     #halonr_array = [36885]
-    for model_number in xrange(0, len(model_tags)):
+    for model_number in range(0, len(model_tags)):
         if(simulation_norm[model_number] == 0):
             AllVars.Set_Params_Mysim()
         elif(simulation_norm[model_number] == 3):
@@ -1262,7 +1261,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
         t = np.empty((number_snapshots[model_number])) 
  
        
-        for snapshot_idx in xrange(0, number_snapshots[model_number]): 
+        for snapshot_idx in range(0, number_snapshots[model_number]): 
             w = np.where((G.GridHistory[:, snapshot_idx] != -1) & (G.GridStellarMass[:, snapshot_idx] > 0.0) & (G.GridStellarMass[:, snapshot_idx] < 1e5) & (G.GridCentralGalaxyMass[:, snapshot_idx] >= m_low_SAGE) & (G.GridCentralGalaxyMass[:, snapshot_idx] <=  m_high_SAGE))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
             
             SFR_ensemble[model_number].append(np.mean(G.GridSFR[w,snapshot_idx]))
@@ -1271,7 +1270,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
 
             t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[snapshot_idx]).value) * 1.0e3 
             
-        for p in xrange(0, N_random):
+        for p in range(0, N_random):
             random_idx = (np.where((G.HaloNr == halonr_array[p]))[0])[0] 
             SFR_gal[model_number].append(G.GridSFR[random_idx]) # Remember the star formation rate history of the galaxy.
             ejected_gal[model_number].append(G.GridOutflowRate[random_idx])
@@ -1279,7 +1278,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
             ejectedmass_gal[model_number].append(G.GridEjectedMass[random_idx])
         
             #SFR_gal[model_number][p][SFR_gal[model_number][p] < 1.0e-15] = 1 
-            for snapshot_idx in xrange(0, number_snapshots[model_number]):  
+            for snapshot_idx in range(0, number_snapshots[model_number]):  
                 if snapshot_idx == 0:
                     pass 
                 elif(G.GridHistory[random_idx, snapshot_idx] == -1):
@@ -1300,7 +1299,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
         print SFR_gal[model_number][0]
 
         
-        for p in xrange(0, N_random):
+        for p in range(0, N_random):
             ax1.plot(t, SFR_gal[model_number][p], color = PlotScripts.colors[0], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
             ax1.plot(t, ejected_gal[model_number][p], color = PlotScripts.colors[1], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
             #ax5.plot(t, infall_gal[model_number][p], color = PlotScripts.colors[2], linestyle = PlotScripts.linestyles[model_number], alpha = 0.5, linewidth = 1)
@@ -1528,7 +1527,7 @@ def calculate_photons(SFR, Z):
         print SFR
         raise ValueError("When trying to calculate the number of photons I encountered a galaxy with SFR = 0.0.  This should've been taken care of in the np.where() condition.") 
 
-    for i in xrange(0, len(SFR)):
+    for i in range(0, len(SFR)):
         ngamma_HI_tmp = 0.0
         if (Z[i] < 0.0025):
             ngamma_HI_tmp = SFR[i] + 53.354
@@ -1570,7 +1569,7 @@ def calculate_UV_extinction(z, L, M):
     M_UV_bins = np.arange(-24, -16, 0.1)
     A_mean = np.zeros((len(MUV_bins))) # A_mean is the average UV extinction for a given UV bin.    
 
-    for j in xrange(0, len(M_UV_bins)):
+    for j in range(0, len(M_UV_bins)):
         beta = calculate_beta(M_UV_bins[j], AllVars.SnapZ[current_snap]) # Fits the beta parameter for the current redshift/UV bin. 
         dist = np.random.normal(beta, 0.34, 10000) # Generates a normal distribution with mean beta and standard deviation of 0.34.
         A = 4.43 + 1.99*dist 
@@ -1621,7 +1620,7 @@ def update_cumulative_stats(mean_pool, std_pool, N_pool, mean_local, std_local, 
     N_times_var_pool = np.add(N_times_var_local, np.multiply(N_pool - 1, np.multiply(std_pool, std_pool)))
     N_pool = np.add(N_local, N_pool)
  
-    for i in xrange(0, len(N_pool)):
+    for i in range(0, len(N_pool)):
         if(N_pool[i] == 0): # This case is when we have no data points in the bin. 
             mean_pool[i] = 0.0
         else:
@@ -1687,7 +1686,7 @@ model_tags = [r"Delayed", r"IRA"]
 #model_tags = [r"Delayed - 1 Step", r"Delayed - 10 Step"]
 #model_tags =  [r"Delayed5Myr - $\alpha = 0.0075$", r"Delayed5Myr - $\alpha = 0.01$"]
 
-for model_number in xrange(0,number_models):
+for model_number in range(0,number_models):
     assert(LastFile[model_number] - FirstFile[model_number] + 1 >= size)
 
 ## Constants used for each model. ##
@@ -1756,12 +1755,12 @@ std_fesc_z_array = []
 N_z = []
 
 AllVars.Set_Params_Tiamat_extended()
-#for i in xrange(0, len(AllVars.SnapZ)-1):
+#for i in range(0, len(AllVars.SnapZ)-1):
 #    print "Snapshot ", i, "and Snapshot", i + 1, "have a time difference of", (AllVars.Lookback_Time[i] - AllVars.Lookback_Time[i+1]) * 1.0e3, "Myr"
 
 plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, simulation_norm, model_tags, "singleSFR_Croatia")
 exit()
-for model_number in xrange(0, number_models):
+for model_number in range(number_models):
 
     if(simulation_norm[model_number] == 0):
         AllVars.Set_Params_Mysim()
@@ -1794,7 +1793,7 @@ for model_number in xrange(0, number_models):
     std_fesc_z_array.append([])
     N_z.append([])
 
-    for snapshot_idx in xrange(0, len(SnapList[model_number])): # These arrays are used for cumulative values across all files.
+    for snapshot_idx in range(len(SnapList[model_number])): # These arrays are used for cumulative values across all files.
         SMF[model_number].append(np.zeros((NB_gal), dtype = np.int32)) # Stellar Mass Function for each snapshot.
 
         ## Function of halo mass arrays. ##
@@ -1811,7 +1810,7 @@ for model_number in xrange(0, number_models):
         std_fesc_z_array[model_number].append(0.0)
         N_z[model_number].append(0.0)
     
-    for fnr in xrange(FirstFile[model_number] + rank, LastFile[model_number]+1, size): # Divide up the input files across the processors.
+    for fnr in range(FirstFile[model_number] + rank, LastFile[model_number]+1, size): # Divide up the input files across the processors.
 
         ## These are instantaneous values for a single file. ##
         w_gal = []
@@ -1857,7 +1856,7 @@ for model_number in xrange(0, number_models):
         current_source_efficiency = source_efficiency[model_number]
         current_halo_cut = halo_cut[model_number]
 
-        for snapshot_idx in xrange(0, len(SnapList[model_number])):
+        for snapshot_idx in range(0, len(SnapList[model_number])):
         
             current_snap = SnapList[model_number][snapshot_idx]
 
