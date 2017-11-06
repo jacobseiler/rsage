@@ -67,7 +67,6 @@ time_xlim = [315, 930]
 
 time_subplot_label = 350 # Location (in 'Time Since Big Bang [Myr^-1]) of subplot identifier (a), (b), (c) etc.
 
-
 colors = ['r', 'b', 'g', 'c', 'm', 'k']
 markers = ['x', 'o', '^', 's', 'D']
 linestyles = ['-', '--', '-.', ':']
@@ -103,7 +102,7 @@ def stromgren_sphere(Q, T, z, Y):
 	R /= Mpc_m # Stromgren radius in units of Mpc.
 	R *= Hubble_h
 
-	print "Stromgren Radius for a flux of %.3e photons per second at a redshift %.3f and an electron temperature of %.3e is %.3e Mpc/h" %(Q, z, T_e, R)
+	print("Stromgren Radius for a flux of %.3e photons per second at a redshift %.3f and an electron temperature of %.3e is %.3e Mpc/h" %(Q, z, T_e, R))
 	return R
 
 
@@ -133,7 +132,7 @@ def plot_single(z, ionized_cells, Ncells, simulation_norm, OutputDir, output_tag
 # The output file will be of the form '*OutputDir*/*output_tag*_*z*.*output_format*'
 
 
-	print "Plotting ionized bubbles."
+	print("Plotting ionized bubbles.")
 	
 	ionized_cells = np.log10(1 - ionized_cells)
 	#ionized_cells = (1 - ionized_cells)
@@ -157,7 +156,7 @@ def plot_single(z, ionized_cells, Ncells, simulation_norm, OutputDir, output_tag
 	#outputFile = OutputDir + output_tag + '_z' + str(z) + output_format 
 	outputFile = OutputDir + output_tag + output_format 
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))
 			
 	plt.close()
 	
@@ -174,8 +173,8 @@ def plot_comparison(z, ionized_cells_model1, ionized_cells_model2, nion_model1, 
 ## Output ##
 # The output file will be of the form '*OutputDir*/*output_tag*_*z*.*output_format*'
 
-	print
-	print "Plotting a comparison between the ionized bubbles." 	
+	print("")
+	print("Plotting a comparison between the ionized bubbles.")	
 
 	master_cells = np.empty((GridSize,GridSize,GridSize))
 
@@ -215,7 +214,7 @@ def plot_comparison(z, ionized_cells_model1, ionized_cells_model2, nion_model1, 
 
 	outputFile = OutputDir + output_tag + output_format 	
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))
 			
 	plt.close()
 '''
@@ -230,8 +229,8 @@ def plot_sources(z, filepath, nion_tmp, OutputDir, output_tag):
 ## Output ##
 # The output file will be of the form '*OutputDir*/*output_tag*_*z*.*output_format*'
 
-	print
-	print "Plotting ionizing sources for file %s" %(filepath)
+	print("")
+	print("Plotting ionizing sources for file {0}".format(filepath))
 	#nion_tmp[nion_tmp > 0] = 1 # Simply set to measure if a cell contains a photon source, not its strength.
 
 	ax = plt.subplot(111)
@@ -249,7 +248,7 @@ def plot_sources(z, filepath, nion_tmp, OutputDir, output_tag):
 	
 	outputFile = OutputDir + output_tag + '_z' + str(z) + output_format 		
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))	
 			
 	plt.close()
 		
@@ -266,8 +265,8 @@ def difference_map(z, ionized_cells_model1, ionized_cells_model2, OutputDir, mod
 ## Output ##
 # The output file will be of the form '*OutputDir*/*output_tag*_*z*.*output_format*'
 
-	print
-	print "Plotting a difference map between the models."
+	print("")
+	print("Plotting a difference map between the models.")
 
 	ax = plt.subplot(111)
 
@@ -286,8 +285,8 @@ def difference_map(z, ionized_cells_model1, ionized_cells_model2, OutputDir, mod
 
 	outputFile = OutputDir + output_tag + output_format 		
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
-			
+	print('Saved file to {0}'.format(outputFile))	
+				
 	plt.close()	
 
 ###########
@@ -310,7 +309,7 @@ def calculate_volume_frac(ionized_cells, Ncell):
 
 	#HII = np.log10(sum(ionized_cells) / float(Ncell**3))
 	HII = sum(ionized_cells) / float(Ncell**3)
-        print "There is %.4f fraction of HII." %(HII)
+        print("There is {0:.4f} fraction of HII.".format(HII))
 
 	return HII
 
@@ -330,8 +329,8 @@ def calculate_mass_frac(ionized_cells, density):
 
 	HI = 1 - sum(ionized_cells * density/float(sum(density)))  
 
-        print 
-        print "Mass averaged HII fraction is %.4f" %(HI)
+        print("")
+        print("Mass averaged HII fraction is {0:.4f}".format(HI))
 
 	return HI
 
@@ -349,8 +348,8 @@ def calculate_total_nion(model_name, nion):
 
 	nion_total = sum(nion)
 
-	print
-	print "The total number of ionizing photons (per second) for the %s Model is %.4e (%.4e Mpc^-3)." %(model_name, nion_total, nion_total / pow(AllVars.BoxSize/AllVars.Hubble_h, 3))
+	print("")
+	print("The total number of ionizing photons (per second) for the {0} Model is {1:.4e} ({2:.4e} Mpc^-3).".format(model_name, nion_total, nion_total / pow(AllVars.BoxSize/AllVars.Hubble_h, 3)))
 
 	return nion_total
 
@@ -379,8 +378,8 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, plot_time, labels, Outpu
 # The output file will be of the form '*OutputDir*/*output_tag*_*z*.*output_format*'
 
 
-	print 
-	print "Plotting the global fraction of HI."
+	print("")
+	print("Plotting the global fraction of HI.")
 
 	legend_labels = []
 
@@ -391,10 +390,10 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, plot_time, labels, Outpu
 
 	t = np.empty(len(volume_frac[0]))
 	
-	for i in xrange(0, len(volume_frac[0])):
+	for i in range(0, len(volume_frac[0])):
 		t[i] = (AllVars.t_BigBang - cosmo.lookback_time(ZZ[i]).value) * 1.0e3 	
 
-	for i in xrange(0, len(volume_frac)):
+	for i in range(0, len(volume_frac)):
 
 		dt = (cosmo.lookback_time(MC_ZZ[i][0]).value - cosmo.lookback_time(MC_ZZ[i][-1]).value) * 1.0e3
 		if (i != 1):
@@ -402,7 +401,7 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, plot_time, labels, Outpu
 		else:
 			tmp = r"%s, $\Delta t = %.2f \: \mathrm{Myr}$" %(labels[i], dt)
 			#tmp = r"%s, $\Delta t = \: ?$" %(labels[i]) 
-		print volume_frac[i]
+		print(volume_frac[i])
 		if plot_time == 1:
 			ax1.plot(t, volume_frac[i], color = colors[i], label = tmp, ls = linestyles[i], lw = 3)
 		else:
@@ -444,7 +443,7 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, plot_time, labels, Outpu
 
 	outputFile = OutputDir + output_tag + output_format 			
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))	
 			
 	plt.close()	
 
@@ -455,7 +454,7 @@ def plot_photo_mean(ZZ, Photo_Mean, Photo_Std, labels, OutputDir, output_tag):
 	ax1 = plt.subplot2grid((3,1), (0,0), rowspan =2)
 	ax2 = plt.subplot2grid((3,1), (2,0))
 
-	for p in xrange(0, len(Photo_Mean)):
+	for p in range(0, len(Photo_Mean)):
 		ax1.plot(ZZ[1:len(Photo_Mean[p])], np.log10(Photo_Mean[p][1:len(Photo_Mean[p])]), color = colors[p], label = labels[p])
 		ax2.plot(ZZ[1:len(Photo_Mean[p])], np.log10(Photo_Mean[p][1:len(Photo_Mean[p])])/np.log10(Photo_Mean[1][1:len(Photo_Mean[1])]), color = colors[p])
 	
@@ -477,7 +476,7 @@ def plot_photo_mean(ZZ, Photo_Mean, Photo_Std, labels, OutputDir, output_tag):
 
 	outputFile = OutputDir + output_tag + output_format 			
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))		
 			
 	plt.close()	
 
@@ -498,24 +497,24 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
 ## Output ##
 # The output file will be of the form '*OutputDir*/*output_tag*_*z*.*output_format*'
 
-	print 
-	print "Plotting the total number of ionizing photons" 
+	print("")
+	print("Plotting the total number of ionizing photons") 
 
 	ax1 = plt.subplot2grid((3,1), (0,0), rowspan =3)
 #	ax3 = plt.subplot2grid((3,1), (2,0))
 
 	nion = np.empty((len(total_nion), len(total_nion[0])))
 
-	for model_number in xrange(0, len(total_nion)):
+	for model_number in range(0, len(total_nion)):
 		if simulation_norm[model_number] == 0:
     			cosmo = AllVars.Set_Params_Mysim()
 		elif simulation_norm[model_number] == 2:
 			cosmo = AllVars.Set_Params_Tiamat()
-		for snapshot_idx in xrange(0, len(total_nion[model_number])):
+		for snapshot_idx in range(0, len(total_nion[model_number])):
 			nion[model_number][snapshot_idx] = np.log10(total_nion[model_number][snapshot_idx] / ((AllVars.BoxSize / AllVars.Hubble_h)**3))	
 
-		print "z", ZZ 
-		print "nion", nion[model_number]	
+		print("z = {0:.4f}".format(ZZ)) 
+		print("nion = {0:.4f}".format(nion[model_number]))	
 		if plot_time == 1:
 			ax1.plot((AllVars.t_BigBang- cosmo.lookback_time(ZZ).value) * 1.0e3, nion[model_number], color = colors[model_number], label = labels[model_number], ls = linestyles[model_number], lw = 3)
 		else:	
@@ -590,8 +589,8 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
 	plt.tight_layout()
 
 	outputFile = OutputDir + output_tag + output_format 			
-	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	plt.savefig(outputFile)  # Save the figure	
+	print('Saved file to {0}'.format(outputFile))		
 			
 	plt.close()	
 
@@ -608,15 +607,13 @@ def plot_density(z, density, OutputDir, output_tag):
 ## Output ##
 # The output file will be of the form '*OutputDir*/*output_tag*_*z*.*output_format*'
 
-	print
-	print "Plotting density slice."
-	print "The minimum density for redshift %.3f was %.3f." %(z, np.amin(density)) 
-	print "The maximum density for redshift %.3f was %.3f." %(z, np.amax(density)) 
+	print("")
+	print("Plotting density slice.")
+	print("The minimum density for redshift {0:.3f} was {1:.3f}.".format(z, np.amin(density))) 
+	print("The maximum density for redshift {0:.3f} was {1:.3f}.".format(z, np.amax(density)))
 
-	print "The minimum density index for redshift %.3f was %.3f." %(z, np.argmin(np.ravel(density), axis = 0))
-	print "The maximum density index for redshift %.3f was %.3f." %(z, np.argmax(np.ravel(density), axis = 0))
-
-	print len(density[density == 0])
+	print("The minimum density index for redshift {0:.3f} was {1}.".format(z, np.argmin(np.ravel(density), axis = 0)))
+	print "The maximum density index for redshift {0:.3f} was {1}." %(z, np.argmax(np.ravel(density), axis = 0))
 
 	ax = plt.subplot(111)
 	
@@ -638,7 +635,7 @@ def plot_density(z, density, OutputDir, output_tag):
 
 	outputFile = OutputDir + output_tag + output_format 		
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))			
 			
 	plt.close()	
 
@@ -657,13 +654,13 @@ def plot_photofield(z, photofield, OutputDir, output_tag):
 	photo_min = np.amin(np.log10(photofield))
 	photo_max = np.amax(np.log10(photofield))
 
-	print
-	print "Plotting photoionization slice."
-	print "The minimum photoionization rate for redshift %.3f was %.3f." %(z, photo_min)
-	print "The maximum photoionization rate for redshift %.3f was %.3f." %(z, photo_max) 
+	print("")
+	print("Plotting photoionization slice.")
+	print("The minimum photoionization rate for redshift {0:.3f} was {1:.3f}.".format(z, photo_min))
+	print("The maximum photoionization rate for redshift {0:.3f} was {1:.3f}.".format(z, photo_max)) 
 
-	print "The minimum photoionization rate index for redshift %.3f was %.3f." %(z, np.argmin(np.ravel(photofield), axis = 0))
-	print "The maximum photoionization rate index for redshift %.3f was %.3f." %(z, np.argmax(np.ravel(photofield), axis = 0))
+	print("The minimum photoionization rate index for redshift {0:.3f} was {1:.3f}.".format(z, np.argmin(np.ravel(photofield), axis = 0)))
+	print("The maximum photoionization rate index for redshift {0:.3f} was {1:.3f}.".format(z, np.argmax(np.ravel(photofield), axis = 0)))
 
 	photo_slice = photofield[:,:,cut_slice:cut_slice+1].mean(axis = -1)
 
@@ -686,7 +683,7 @@ def plot_photofield(z, photofield, OutputDir, output_tag):
 
 	outputFile = OutputDir + output_tag + output_format 		
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))				
 			
 	plt.close()	
 
@@ -704,20 +701,20 @@ def plot_nionfield(z, nion, OutputDir, output_tag):
 
 	if (np.mean(nion) == 0):
 		return
-	print nion.shape
+	print(nion.shape)
 	#nion_slice = nion[:,:,cut_slice:cut_slice+1].mean(axis = -1)
 	nion_slice = nion[:,:,40:41].mean(axis = -1)
 
 	nion_min = np.amin(np.log10(nion[nion > 0]))
 	nion_max = np.amax(np.log10(nion[nion > 0]))
 
-	print
-	print "Plotting photoionization slice."
-	print "The minimum ionizing photons rate for redshift %.3f was %.3f." %(z, nion_min)
-	print "The maximum ionizing photons rate for redshift %.3f was %.3f." %(z, nion_max) 
+	print("")
+	print("Plotting photoionization slice.")
+	print("The minimum ionizing photons rate for redshift {0:.3f} was {1:.3f}.".format(z, nion_min))
+	print("The maximum ionizing photons rate for redshift {0:.3f} was {1:.3f}.".format(z, nion_max)) 
 
-	print "The minimum ionizing photons rate index for redshift %.3f was %.3f." %(z, np.argmin(np.ravel(nion), axis = 0))
-	print "The maximum ionizing photons rate index for redshift %.3f was %.3f." %(z, np.argmax(np.ravel(nion), axis = 0))
+	print("The minimum ionizing photons rate index for redshift {0:.3f} was {1:.3f}.".format(z, np.argmin(np.ravel(nion), axis = 0)))
+	print("The maximum ionizing photons rate index for redshift {0:.3f} was {1:.3f}.".format(z, np.argmax(np.ravel(nion), axis = 0)))
 
 	ax = plt.subplot(111)
 	
@@ -738,8 +735,8 @@ def plot_nionfield(z, nion, OutputDir, output_tag):
 	#ax.text(52.5, 60, r'z = %.1f' %ZZ[i], color = 'black', fontsize = 15)
 
 	outputFile = OutputDir + output_tag + output_format 		
-	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	plt.savefig(outputFile)  # Save the figure	
+	print('Saved file to {0}'.format(outputFile))				
 			
 	plt.close()	
 
@@ -778,9 +775,7 @@ def plot_density_numbers(z, density, Ncells, OutputDir, output_tag):
 	step = 1 # The interval we want to plot the values at.
 	density_cut = density[:,:,cut_slice:cut_slice+1].mean(axis = -1)
 	density_cut = density_cut[lower_x:upper_x:step,lower_y:upper_y:step]
-
-        print np.amax(density_cut) 
-
+        
 	locations_x = np.arange(lower_x,upper_x,step) # Cell locations for each number.
 	locations_y = np.arange(lower_y,upper_y,step)
 
@@ -805,7 +800,7 @@ def plot_density_numbers(z, density, Ncells, OutputDir, output_tag):
 
 	outputFile = OutputDir + output_tag + output_format 
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))				
 
 	plt.close()
 ##########
@@ -834,10 +829,10 @@ def calculate_bubble_MC(z, ionized_cells, Ncell, OutputDir, output_tag):
 
 		radii = []
 
-		for j in xrange(0,int(N)):
+		for j in range(0,int(N)):
                         
                         if (j%20000 == 0):
-                            print "On walk number %d" %(j)
+                            print("On walk number {0}".format(j))
     
 			## Select a random direction to walk through ##
 			direction = random.randint(1,6)
@@ -890,10 +885,10 @@ def calculate_bubble_MC(z, ionized_cells, Ncell, OutputDir, output_tag):
 			radii.append(R)
 			
 		np.savetxt(outfile, radii, delimiter = ',')
-		print "MC file saved as", outfile
+		print("MC file saved as {0}".format(outfile))
 
-	print
-	print "Calculating bubble size using MC walk."	
+	print("")
+	print("Calculating bubble size using MC walk.")	
 
 	N = 1e5
 
@@ -908,7 +903,7 @@ def calculate_bubble_MC(z, ionized_cells, Ncell, OutputDir, output_tag):
 	outfile = MCDir + output_tag + '_z_%.3f.dat' %(z)
 	MC_walk(ionized_cells, ionized_indices, 1, N, Ncell, outfile)
 
-	print("MC took %s seconds." % (time.time() - start_time))
+	print("MC took {0} seconds.".format(time.time() - start_time))
 
 
 ##########
@@ -925,13 +920,13 @@ def plot_bubble_MC(ZZ, fractions_HI, simulation_norm, model_tags, file_tags, Nce
 ## Output ##
 # The output file will be of the form '*OutputDir*/*output_tag*.*output_format*'
 
-	print "Plotting results from MC walk."
+	print("Plotting results from MC walk.")
 
 	MCDir = OutputDir + 'MC/'
 	
 	ax1 = plt.subplot(111)
-	for p in xrange(0, len(fractions_HI)):	
-		for q in xrange(0, len(file_tags)): 
+	for p in range(0, len(fractions_HI)):	
+		for q in range(0, len(file_tags)): 
 		
 			if simulation_norm[q] == 0:
 				cosmo = AllVars.Set_Params_Mysim()
@@ -939,16 +934,16 @@ def plot_bubble_MC(ZZ, fractions_HI, simulation_norm, model_tags, file_tags, Nce
 				cosmo = AllVars.Set_Params_Tiamat()	
 			infile = MCDir + file_tags[q] + '_z_%.3f.dat' %(ZZ[q][p]) 
 			if (os.path.exists(infile) == False):
-				print "Could not find file %s.  Skipping and moving on" %(infile)
+				print("Could not find file {0}.  Skipping and moving on".format(infile))
 				continue
 			fd = open(infile, 'rb')
 
-			print("Plotting Bubble size of file %s") %(infile)
+			print("Plotting Bubble size of file {0}".format(infile))
 			R = np.loadtxt(fd)
-			print("Maximum radius before scaling is %d cells.") %(max(R))
-			print "The ratio is: BoxSize = %.3f Mpc/h, Ncell = %d => 1cell = %.3f Mpc/h" %(AllVars.BoxSize, Ncell[q], AllVars.BoxSize/float(Ncell[q]))		
+			print("Maximum radius before scaling is {0} cells.".format(max(R)))
+			print("The ratio is: BoxSize = {0:.3f} Mpc/h, Ncell = {1} => 1cell = {2:.3f} Mpc/h".format(AllVars.BoxSize, Ncell[q], AllVars.BoxSize/float(Ncell[q])))		
 			R *= AllVars.BoxSize/float(Ncell[q])
-			print("Maximum radius after scaling is %.4f Mpc/h.") %(max(R))	
+			print("Maximum radius after scaling is {0:.4f} Mpc/h.".format(max(R)))
 
 			binwidth = 2*AllVars.BoxSize/float(Ncell[q])
 
@@ -959,15 +954,13 @@ def plot_bubble_MC(ZZ, fractions_HI, simulation_norm, model_tags, file_tags, Nce
 		                R_high = max(R) + binwidth/2 
 		        R_high = max(R) + binwidth/2 
 			NB = np.ceil((R_high - R_low) / binwidth)
-               
-			print np.ceil(NB) 
+              
 			(counts, binedges) = np.histogram(R, range=(R_low, R_high), bins=NB, density = True)
 
 			# Set the x-axis values to be the centre of the bins
 			xaxeshisto = binedges[:-1] + 0.5 * binwidth
             		counts *= xaxeshisto
             
-                        print max(counts)
 			if q == 0:
 				#label = "z = %.3f" %(ZZ[q][p])
 				label = r"$\langle x_\mathrm{HI}\rangle = %.2f$" %(fractions_HI[p])
@@ -977,7 +970,7 @@ def plot_bubble_MC(ZZ, fractions_HI, simulation_norm, model_tags, file_tags, Nce
 			#ax1.scatter(xaxeshisto, counts, label = label, color = colors[p%len(colors)], marker = markers[q%len(markers)])
 			ax1.plot(xaxeshisto, counts, label = label, color = colors[p%len(colors)], ls = ls) 
 
-	for q in xrange(0, len(model_tags)):
+	for q in range(0, len(model_tags)):
 		ax1.plot(nan, nan, ls = linestyles[q], label = model_tags[q], color = 'k', lw = 2)
 
         ax1.set_xscale('log', nonposy='clip')
@@ -998,23 +991,14 @@ def plot_bubble_MC(ZZ, fractions_HI, simulation_norm, model_tags, file_tags, Nce
 
 	outputFile = OutputDir + output_tag + output_format 
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))				
 	plt.close()
 
 
 ##########
 
 def find_max_bubble(MC_ZZ, fractions_HI, MC_mode, model_HI_fractions, model_tags, file_tags, Ncell, OutputDir, output_tag):
-# Plot the results from the MC walk.  Note that input_tag and labels are arrays that contains the input file tag and label for different realizations.
-
-## Input ##
-# ZZ is the redshift range we are plotting the results over.
-# upperZ is the upper bound we are plotting to.
-# input_tag is an array with the file tags for the input MC file for different realizations #### NOTE: This should be the same as *output_tag* in calculate_bubble_MC
-# labels is an array that contains the graph labels for different realizations.
-
-## Output ##
-# The output file will be of the form '*OutputDir*/*output_tag*.*output_format*'
+#TODO: Update this function header string.
 
 
 	def acceptance_probability(old_amplitude, new_amplitude, temperature):
@@ -1023,7 +1007,7 @@ def find_max_bubble(MC_ZZ, fractions_HI, MC_mode, model_HI_fractions, model_tags
 		return exp((new_amplitude - old_amplitude) / temperature)
 
 
-	print "Finding the maximum and amplitude of the MC bubble distribution."
+	print("Finding the maximum and amplitude of the MC bubble distribution.")
 
 	MCDir = OutputDir + 'MC/'
 	
@@ -1031,29 +1015,29 @@ def find_max_bubble(MC_ZZ, fractions_HI, MC_mode, model_HI_fractions, model_tags
 	ax2 = plt.subplot(222)
 	ax3 = plt.subplot(223)
 
-	for q in xrange(0, len(file_tags)):
+	for q in range(0, len(file_tags)):
 
 
 		peak = []
 		amplitude = []
 
 
-		for p in xrange(0, len(MC_ZZ)):
+		for p in range(0, len(MC_ZZ)):
 			if (MC_mode == 1):
 				infile = MCDir + file_tags[q] + '_z_%.3f.dat' %(MC_ZZ[q][p])
 			elif (MC_mode == 2): 
 				infile = MCDir + file_tags[q] + '_z_%.3f.dat' %(MC_ZZ[p]) 
 			if (os.path.exists(infile) == False):
-				print "Could not find file %s.  Skipping and moving on" %(infile)
+				print("Could not find file {0}.  Skipping and moving on".format(infile))
 				continue
 			fd = open(infile, 'rb')
 
-			print("Reading in file %s") %(infile)
+			print("Reading in file {0}".format(infile))
 			R = np.loadtxt(fd)
-			print("Maximum radius before scaling is %d cells.") %(max(R))
+			print("Maximum radius before scaling is {0} cells.".format(max(R)))
 		
 			R *= BoxSize/Ncell[q] 
-			print("Maximum radius after scaling is %.4f Mpc/h.") %(max(R))	
+			print("Maximum radius after scaling is {1} Mpc/h.".format(max(R)))	
 
 			binwidth = 2*BoxSize/Ncell[q]
 
@@ -1079,8 +1063,6 @@ def find_max_bubble(MC_ZZ, fractions_HI, MC_mode, model_HI_fractions, model_tags
 
 			old_peak = NB/2
 			old_amplitude = 0.2 
-
-			print counts
 			
 			while(temperature > temperature_min):
 				i = 0
@@ -1101,7 +1083,7 @@ def find_max_bubble(MC_ZZ, fractions_HI, MC_mode, model_HI_fractions, model_tags
 				temperature *= cooling_rate
 				#print "Temperature = %.4f and peak = %.4f Mpc/h" %(temperature, xaxeshisto[new_peak])
 					
-			print "For fraction %.2f the peak is at %.4f Mpc/h with a probability of %.4f" %(MC_ZZ[p], xaxeshisto[old_peak], old_amplitude)
+			print("For fraction {0:.4f} the peak is at {1:.4f} Mpc/h with a probability of {2:.4f}".format(MC_ZZ[p], xaxeshisto[old_peak], old_amplitude))
 			peak.append(xaxeshisto[old_peak])
 			amplitude.append(old_amplitude)
 		if(MC_mode == 1):
@@ -1149,8 +1131,8 @@ def find_max_bubble(MC_ZZ, fractions_HI, MC_mode, model_HI_fractions, model_tags
 	plt.tight_layout()
 
 	outputFile = OutputDir + output_tag + output_format 
-	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	plt.savefig(outputFile)  # Save the figure	
+	print('Saved file to {0}'.format(outputFile))				
 	plt.close()
 
 
@@ -1214,28 +1196,32 @@ def Power_Spectrum(ionized_cells, Ncell):
 
 ##########
 
-def plot_power(fractions_HI, k, Power, Error, fraction_idx_array, model_tags, OutputDir, output_tag):
+def plot_power(fractions_HI, k, Power, Error, fraction_idx_array, model_tags, OutputDir, output_tag, full_debug = 0):
+    ## TODO: Update this function header string.
 
 	ax1 = plt.subplot(111)
 
-	print "len(k)", len(k)
-	print "len(k[0])", len(k[0])
+    if full_debug == 1:
+        print("len(k) = {0}".format(len(k)))
+        print("len(k[0]) = {0}".format(len(k[0])))
 
-	for p in xrange(0, len(k)):
-		for q in xrange(0, len(k[0])):
+	for p in range(0, len(k)):
+		for q in range(0, len(k[0])):
 			if p == 0:	
 				label = r"$\langle x_\mathrm{HI}\rangle = %.2f$" %(fractions_HI[q])
 			else:
 				label = ""	
-			print "p = ", p
-			print "len(k[p])", len(k[p])
-			print "q = ", q
-			print 
+    
+            if full_debug == 1:
+                print("p = {0}".format(p))
+                print("len(k[p]) = {0}".format(len(k[p]))
+                print("q = {0}".format(q))
+                print("")
 			ax1.plot(k[p][q], Power[p][q], color = colors[q], ls = linestyles[p], label = label, lw = 2) 
 			if (p == 0):
 				error = Error[p][q] * Power[p][q] 
 				ax1.fill_between(k[p][q], Power[p][q] - error, Power[p][q] + error, color = colors[q], alpha = 0.3)	
-	for p in xrange(0, len(model_tags)):
+	for p in range(0, len(model_tags)):
 		ax1.plot(-1, -5, ls = linestyles[p], label = model_tags[p], color = 'k', lw = 2)
 
 	ax1.set_xlabel(r'$k \: \left[\mathrm{Mpc}^{-1}h\right]$', size = label_size + extra_size)
@@ -1259,7 +1245,7 @@ def plot_power(fractions_HI, k, Power, Error, fraction_idx_array, model_tags, Ou
 
 	outputFile = OutputDir + output_tag + output_format 			
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))					
 			
 	plt.close()	
 
@@ -1268,25 +1254,25 @@ def plot_power(fractions_HI, k, Power, Error, fraction_idx_array, model_tags, Ou
 
 def calculate_reionization_redshift(ionized_cells, density, redshift_array, z, Ncell):
 
-    print
-    print "Checking to see what cells were reionized at redshift %.2f." %(z)
+    print("")
+    print("Checking to see what cells were reionized at redshift {0:.2f}.".format(z))
 
     tot_density = 0.0
     tot_density_std = 0.0
     count = 0.0
 
-    for i in xrange(0, Ncell): 
-        for j in xrange(0, Ncell):
-            for k in xrange(0, Ncell):
+    for i in range(0, Ncell): 
+        for j in range(0, Ncell):
+            for k in range(0, Ncell):
                 if (ionized_cells[i,j,k] > 0.9 and redshift_array[i,j,k] == 0):
 		    tot_density += density[i,j,k]
 		    count += 1.0
 
     if (count > 0.0):
 	density_z_mean = tot_density/count
-    	for i in xrange(0, Ncell):
-            for j in xrange(0, Ncell):
-            	for k in xrange(0, Ncell):
+    	for i in range(0, Ncell):
+            for j in range(0, Ncell):
+            	for k in range(0, Ncell):
                     if (ionized_cells[i,j,k] > 0.9 and redshift_array[i,j,k] == 0):
                     	redshift_array[i,j,k] = z
                         tot_density_std += (density[i,j,k] - density_z_mean)**2 	
@@ -1305,19 +1291,17 @@ def photon_baryon(lowerZ, upperZ, ZZ, total_nion, Hubble_h, OB, Y, labels, Outpu
 
 
     Baryons = density_baryons * (Mpc_m * 1e2)**3 # Number density of baryons (in cm^-3) to Mpc^-3 
-    print Baryons
     Baryons *= (BoxSize/Hubble_h)**3 # Total number of baryons in our box
-    print Baryons
 
     total_photons = np.zeros((upperZ-lowerZ)*len(total_nion))
 
     count = 0 
 
 
-    for p in xrange(0, len(tota_nion)):
+    for p in range(0, len(tota_nion)):
         total_photons[count] = (AllVars.Lookback_Time[0]-AllVars.Lookback_Time[lowerZ]) * total_nion[p][0] * AllVars.Sec_Per_Megayear*1e3
         count += 1
-        for i in xrange(lowerZ+1, upperZ): 
+        for i in range(lowerZ+1, upperZ): 
 #        total_photons[count] = total_photons[count-1] + (AllVars.Lookback_Time[i-1] - AllVars.Lookback_Time[i]) * total_nion[0][count] * AllVars.Sec_Per_Megayear*1e3
 #        print AllVars.Lookback_Time[i-1] - AllVars.Lookback_Time[i]
             total_photons[count] = total_photons[count-1] + (AllVars.Lookback_Time[0] - AllVars.Lookback_Time[i])*total_nion[p][count] * AllVars.Sec_Per_Megayear*1e3
@@ -1325,7 +1309,7 @@ def photon_baryon(lowerZ, upperZ, ZZ, total_nion, Hubble_h, OB, Y, labels, Outpu
 
     plt.figure()
 
-    for p in xrange(0, len(total_nion)):
+    for p in range(0, len(total_nion)):
 
         if (p == 0):
             lower_idx = 0
@@ -1346,7 +1330,7 @@ def photon_baryon(lowerZ, upperZ, ZZ, total_nion, Hubble_h, OB, Y, labels, Outpu
 
     outputFile = OutputDir + output_tag + output_format 			
     plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))					    
 			
     plt.close()	
     
@@ -1354,7 +1338,7 @@ def photon_baryon(lowerZ, upperZ, ZZ, total_nion, Hubble_h, OB, Y, labels, Outpu
 ##########
 
 
-def analytic_HII(total_nion, redshift, upperZ, snaplist, OutputDir, output_tag):
+def analytic_HII(total_nion, redshift, upperZ, snaplist, OutputDir, output_tag, full_debug = 0):
 
 
     Q_array = np.empty(upperZ)
@@ -1362,43 +1346,36 @@ def analytic_HII(total_nion, redshift, upperZ, snaplist, OutputDir, output_tag):
     Q_array[0] = 0
     Q = 0
 
-    for i in xrange(0, upperZ-1):
+    print("Doing an analytic calculation for ionized hydrogen using the prescription by Lapi 2016.")
+    for i in range(0, upperZ-1):
 
-        print "=============================="
-        print "REDSHIFT %.3f" %(ZZ[i])	
-        print "=============================="
-
-
-	## Using the prescription given by Lapi 2016 ## 
-	
-	hydrogen = n_HI(redshift[i], Hubble_h, OB, Y) * 1e-6 * AlVars.cubic_cm_cubic_mpc 
-	#hydrogen = 2e-7 * (OB*(Hubble_h**2)/0.022) * AllVars.cubic_cm_cubic_mpc # Number density of Hydrogen in Mpc^-3 
-	print "Hydrogen per Mpc^-3", hydrogen
-	Nion = total_nion[i] * 1e1 / ((BoxSize/Hubble_h)**3) # Number of ionizing photons in s^-1 Mpc^-3
-	print "Nion = %.4e s^-1 Mpc^-3" %(Nion)
-
-	one_plus_z = (1 + redshift[i])/float(7)
-	print "one_plus_z", one_plus_z
-
-	t_rec = 3.2 * AllVars.sec_per_Myr * 1e3 * (one_plus_z**(-3)) * (3**(-1)) # Recombination time in seconds. 
-	print "t_rec", t_rec
-
-	Q_dot = Nion/hydrogen - Q/t_rec
-
-	print "Q_dot",Q_dot
-
-	dt = (AllVars.Lookback_Time[snaplist[i]] - AllVars.Lookback_Time[snaplist[i+1]]) * AllVars.sec_per_Myr * 1e3
-	print len(AllVars.Lookback_Time)
-	print "dt", dt
-
-	Q = Q + Q_dot*dt
-
-	Q_array[i+1] = Q
-	print "Q", Q
+        print("==============================")
+        print("REDSHIFT {0:.2f}".format(ZZ[i]))	
+        print("==============================")
 
 
-    print 
-    print "Plotting the analytic Q" 
+        ## Using the prescription given by Lapi 2016 ## 
+        
+        hydrogen = n_HI(redshift[i], Hubble_h, OB, Y) * 1e-6 * AlVars.cubic_cm_cubic_mpc 
+        Nion = total_nion[i] * 1e1 / ((BoxSize/Hubble_h)**3) # Number of ionizing photons in s^-1 Mpc^-3
+        one_plus_z = (1 + redshift[i])/float(7)
+        t_rec = 3.2 * AllVars.sec_per_Myr * 1e3 * (one_plus_z**(-3)) * (3**(-1)) # Recombination time in seconds. 
+        Q_dot = Nion/hydrogen - Q/t_rec
+        dt = (AllVars.Lookback_Time[snaplist[i]] - AllVars.Lookback_Time[snaplist[i+1]]) * AllVars.sec_per_Myr * 1e3
+
+        Q = Q + Q_dot*dt
+        Q_array[i+1] = Q
+
+        if full_debug == 1:
+            print("Hydrogen per Mpc^-3 = {0:.4f}".format(hydrogen))
+            print("Nion = {0:.4e} s^-1 Mpc^-3".format(Nion))
+            print("one_plus_z {0:.4f}".format(one_plus_z))
+            print("t_rec = {0:.4f}".format(t_rec))
+            print("Q_dot = {0:.4f}".format(Q_dot))
+            print("dt = {0:.4f}".format(dt))
+            print("Q = {0:.4f}".format(Q))
+    
+
 
     plt.figure()
 
@@ -1409,7 +1386,7 @@ def analytic_HII(total_nion, redshift, upperZ, snaplist, OutputDir, output_tag):
 
     outputFile = OutputDir + output_tag + output_format 			
     plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))					        
            
     plt.close()	
 
@@ -1433,7 +1410,7 @@ def plot_redshifts(redshift, ZZ, lowerZ, upperZ, OutputDir, output_tag):
 
 	outputFile = OutputDir + output_tag + output_format 		
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))					        
 			
 	plt.close()	
 
@@ -1445,8 +1422,7 @@ def save_redshifts(redshift, OutputDir, output_tag):
 	outputFile = OutputDir + output_tag
 	redshift.tofile(outputFile)
 
-	print 'Saved redshift to file', outputFile 
-
+	print('Saved file to {0}'.format(outputFile))					        	
 
 ##########
 
@@ -1454,7 +1430,7 @@ def plot_density_redshift(ZZ, density_mean, density_std, labels, OutputDir, outp
 
 	ax = plt.subplot(111)
 
-	for i in xrange(0, len(density_mean)):
+	for i in range(0, len(density_mean)):
 		ax.errorbar(density_mean[i], ZZ, fmt = 'o', xerr = density_std[i], yerr = 0, label = labels[i], color = colours[i])
 
 	ax.set_xlim([0.1, 1.6])
@@ -1471,7 +1447,7 @@ def plot_density_redshift(ZZ, density_mean, density_std, labels, OutputDir, outp
 
 	outputFile = OutputDir + output_tag + output_format 		
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))
 			
 	plt.close()
 	
@@ -1481,7 +1457,7 @@ def plot_density_photons(ZZ, nion, density, count, labels, OutputDir, output_tag
 
 	ax = plt.subplot(111)
 
-	for i in xrange(0, len(nion)):
+	for i in range(0, len(nion)):
 		w = np.where((nion[i].ravel() > 0.0))
 		
 		ax.scatter((density[i].ravel())[w], np.log10(((nion[i].ravel())[w])/((count[i].ravel())[w])), label = labels[i], color = colours[i], alpha = 0.5)
@@ -1501,7 +1477,7 @@ def plot_density_photons(ZZ, nion, density, count, labels, OutputDir, output_tag
 
 	outputFile = OutputDir + output_tag + output_format 		
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))	
 			
 	plt.close()
 
@@ -1530,7 +1506,7 @@ def plot_twentyone(ZZ, ionized_cells, density, OutputDir, output_tag):
 
 	outputFile = OutputDir + output_tag + output_format 		
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))
 			
 	plt.close()	
 
@@ -1543,7 +1519,7 @@ def twentyone_slice(ZZ, z_index, ionized_cells, density, Ncells, brightness_slic
 	
 	brightness = T * density * ionized_cells
 
-	for i in xrange(0, Ncells):
+	for i in range(0, Ncells):
 		brightness_slice[z_index, i] = np.mean(brightness[i,i,:])	
 
 
@@ -1554,11 +1530,6 @@ def twentyone_slice(ZZ, z_index, ionized_cells, density, Ncells, brightness_slic
 def plot_twentyone_slice(ZZ, brightness_slice, Ncells, OutputDir, output_tag):
 
 	ax = plt.subplot(111)
-
-	print brightness_slice
-	print len(brightness_slice)
-	print ZZ[-1]
-	print ZZ[0]
 	im = ax.imshow(brightness_slice.T, interpolation='none', extent =[ZZ[-1], ZZ[0],0,BoxSize], cmap = 'winter', origin='low', aspect='auto')
 
 	cbar = plt.colorbar(im, ax = ax)
@@ -1572,7 +1543,7 @@ def plot_twentyone_slice(ZZ, brightness_slice, Ncells, OutputDir, output_tag):
 
 	outputFile = OutputDir + output_tag + output_format 		
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))	
 			
     	plt.tight_layout()
 
@@ -1583,8 +1554,8 @@ def plot_twentyone_slice(ZZ, brightness_slice, Ncells, OutputDir, output_tag):
 
 def plot_deltat_deltax(ZZ, volume_frac, labels, OutputDir, output_tag):
 
-	print 
-	print "Plotting the speed of reionization"
+	print("") 
+	print("Plotting the speed of reionization")
 
 	ax = plt.subplot(111)
 
@@ -1599,7 +1570,7 @@ def plot_deltat_deltax(ZZ, volume_frac, labels, OutputDir, output_tag):
 	plot_frac_model2 = np.zeros((len(ZZ)-1))
 	plot_frac_model3 = np.zeros((len(ZZ)-1))
 
-	for i in xrange(0, len(ZZ) - 1):
+	for i in range(0, len(ZZ) - 1):
 		plot_frac_model1[i] = volume_frac[0][i]
 		plot_frac_model2[i] = volume_frac[1][i]	
 		plot_frac_model3[i] = volume_frac[1][i]	
@@ -1647,7 +1618,7 @@ def plot_deltat_deltax(ZZ, volume_frac, labels, OutputDir, output_tag):
 
 	outputFile = OutputDir + output_tag + output_format 			
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))	
 			
 	plt.close()	
 
@@ -1660,7 +1631,7 @@ def plot_deltat_deltax(ZZ, volume_frac, labels, OutputDir, output_tag):
 	deltax_deltat_squared_model2 = np.zeros((len(ZZ) - 2))
 	deltax_deltat_squared_model3 = np.zeros((len(ZZ) - 2))
 
-	for i in xrange(0, len(ZZ) - 2):
+	for i in range(0, len(ZZ) - 2):
 				
 		deltax_deltat_squared_model1[i] = deltax_model1[i+1] - deltax_model1[i]
 		deltax_deltat_squared_model2[i] = deltax_model2[i+1] - deltax_model2[i]
@@ -1718,8 +1689,8 @@ def plot_deltat_deltax(ZZ, volume_frac, labels, OutputDir, output_tag):
 
 def plot_deltat_deltaN(ZZ, Nion, labels, OutputDir, output_tag):
 
-	print 
-	print "Plotting the speed of ionizing photons (with time)."
+	print("") 
+	print("Plotting the speed of ionizing photons (with time).")
 
 	ax = plt.subplot(111)
 
@@ -1731,7 +1702,7 @@ def plot_deltat_deltaN(ZZ, Nion, labels, OutputDir, output_tag):
 
 	t = np.zeros((len(ZZ)-1))
 
-	for i in xrange(0, len(ZZ) - 1):
+	for i in range(0, len(ZZ) - 1):
 	#	print "Nion[0][i+1] = %.4e \t Nion[0][i] = %.4e \t np.log10(Nion[0][i+1]/Nion[0][i]) = %.4e \t lookback(ZZ[i]) = %.4e \t lookback(ZZ[i+1]) = %.4e"  %(Nion[0][i+1], Nion[0][i], np.log10(Nion[0][i+1]/Nion[0][i]), cosmo.lookback_time(ZZ[i]).value * 1.0e3, cosmo.lookback_time(ZZ[i+1]).value * 1.0e3)
 		deltaN_model1[i] = np.log10(Nion[0][i+1]/Nion[0][i]/(AllVars.BoxSize / AllVars.Hubble_h)**3)
 		deltaN_model2[i] = np.log10(Nion[1][i+1]/Nion[1][i]/(AllVars.BoxSize / AllVars.Hubble_h)**3)
@@ -1773,18 +1744,16 @@ def plot_deltat_deltaN(ZZ, Nion, labels, OutputDir, output_tag):
 
 	outputFile = OutputDir + output_tag + output_format 			
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))
 	
-        LinearFit = np.polyfit(ZZ, np.log10(Nion[0]), 1)
-        print "The linear fit y = a*z + b had coefficients a = %.4e and b = %.4e for %s model" %(LinearFit[0], LinearFit[1], labels[0])
+    LinearFit = np.polyfit(ZZ, np.log10(Nion[0]), 1)
+    print("The linear fit y = a*z + b had coefficients a = {0:.4e} and b = {1:.4e} for {2} model" %(LinearFit[0], LinearFit[1], labels[0])
 
-        LinearFit = np.polyfit(ZZ, np.log10(Nion[1]), 1)
-        print "The linear fit y = a*z + b had coefficients a = %.4e and b = %.4e for %s model" %(LinearFit[0], LinearFit[1], labels[1])
-        
+    LinearFit = np.polyfit(ZZ, np.log10(Nion[1]), 1)
+    print("The linear fit y = a*z + b had coefficients a = {0:.4e} and b = {1:.4e} for {2} model" %(LinearFit[0], LinearFit[1], labels[1])
+            
 	LinearFit = np.polyfit(ZZ, np.log10(Nion[2]), 1)
-        print "The linear fit y = a*z + b had coefficients a = %.4e and b = %.4e for %s model" %(LinearFit[0], LinearFit[1], labels[2])
-
-
+    print "The linear fit y = a*z + b had coefficients a = %.4e and b = %.4e for %s model" %(LinearFit[0], LinearFit[1], labels[2])
 		
 	plt.close()	
 ##########
@@ -1792,14 +1761,14 @@ def plot_deltat_deltaN(ZZ, Nion, labels, OutputDir, output_tag):
 
 def plot_combined_global_nion(ZZ, total_nion, volume_frac, labels, OutputDir, output_tag):
 
-	print 
-	print "A four panel plot containg the global fraction and Nion data."
+	print("") 
+	print("A four panel plot containg the global fraction and Nion data.")
 
 	ax1 = plt.subplot(221)
 
-	for p in xrange(0, len(total_nion)):
+	for p in range(0, len(total_nion)):
 		nion = np.empty(len(total_nion[p]))
-		for i in xrange(0, len(total_nion[p])):
+		for i in range(0, len(total_nion[p])):
 			nion[i] = np.log10(total_nion[p][i] / ((AllVars.BoxSize / AllVars.Hubble_h)**3))	
 	
 		ax1.plot((t_BigBang- cosmo.lookback_time(ZZ[0:len(total_nion[p])]).value) * 1.0e3, nion, color = colors[p], label = labels[p], ls = linestyles[p])
@@ -1828,7 +1797,7 @@ def plot_combined_global_nion(ZZ, total_nion, volume_frac, labels, OutputDir, ou
 	deltax_model2 = np.zeros((len(ZZ)-1))
 	deltax_model3 = np.zeros((len(ZZ)-1))
 
-	for i in xrange(0, len(ZZ) - 1):
+	for i in range(0, len(ZZ) - 1):
 		deltat[i] = abs(cosmo.lookback_time(ZZ[i+1]).value  - cosmo.lookback_time(ZZ[i]).value) * 1.0e3
 		
 		deltax_model1[i] = volume_frac[0][i+1] - volume_frac[0][i]
@@ -1867,10 +1836,10 @@ def plot_combined_global_nion(ZZ, total_nion, volume_frac, labels, OutputDir, ou
 
 	t = np.empty(len(volume_frac[0]))
 	
-	for i in xrange(0, len(volume_frac[0])):
+	for i in range(0, len(volume_frac[0])):
 		t[i] = (t_BigBang - cosmo.lookback_time(ZZ[i]).value) * 1.0e3 	
 
-	for i in xrange(0, len(volume_frac)):
+	for i in range(0, len(volume_frac)):
 
 		dt = (cosmo.lookback_time(MC_ZZ[i][0]).value - cosmo.lookback_time(MC_ZZ[i][-1]).value) * 1.0e3
 		tmp = r"%s, $\Delta t = %.2f \: \mathrm{Myr}^{-1}$" %(labels[i], dt)
@@ -1912,7 +1881,7 @@ def plot_combined_global_nion(ZZ, total_nion, volume_frac, labels, OutputDir, ou
 	plot_frac_model2 = np.zeros((len(ZZ)-1))
 	plot_frac_model3 = np.zeros((len(ZZ)-1))
 
-	for i in xrange(0, len(ZZ) - 1):
+	for i in range(0, len(ZZ) - 1):
 		plot_frac_model1[i] = volume_frac[0][i]
 		plot_frac_model2[i] = volume_frac[1][i]	
 		plot_frac_model3[i] = volume_frac[1][i]	
@@ -1954,8 +1923,8 @@ def plot_combined_global_nion(ZZ, total_nion, volume_frac, labels, OutputDir, ou
 
 	plt.tight_layout()
 	outputFile = OutputDir + output_tag + output_format 			
-	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	plt.savefig(outputFile)  # Save the figure	
+	print('Saved file to {0}'.format(outputFile))
 
 
 ##########
@@ -1967,7 +1936,7 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
 	fig = plt.figure(figsize = (16, 12))
 	gs1 = gridspec.GridSpec(3,len(filepaths))
 	gs1.update(wspace=0.00, hspace=0.0) # set the spacing between axes. 
-	for i in xrange(1, 3*len(filepaths) + 1):
+	for i in range(1, 3*len(filepaths) + 1):
         	ax = plt.subplot(gs1[i-1]) 
 
 		model_index = int((i-1) % len(filepaths)) # Every 3rd step it flips back to the first model.
@@ -1993,10 +1962,9 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
 			ionized_cells = np.zeros((GridSizes[model_index], GridSizes[model_index], GridSizes[model_index]))
 			redshift = 0.00
 		else:
-			print "Model index = %d \t count_index = %d \t Snapshot_index = %d \t Redshift = %.2f \t HI_fraction = %.2f" %(model_index, count_index, snapshot_index, ZZ[snapshot_index], fractions_HI[count_index])
 			fname = filepaths[model_index] + number_tag_anne 
-			print
-			print "Loading in data for %s Model from file %s" %(model_tags[model_index], fname)
+			print("")
+			print("Loading in data for {0} Model from file {1}".format(model_tags[model_index], fname))
 			fd = open(fname, 'rb')
 			ionized_cells = np.fromfile(fd, count = GridSizes[model_index]*GridSizes[model_index]*GridSizes[model_index], dtype = np.float64)	
 			ionized_cells.shape = (GridSizes[model_index], GridSizes[model_index], GridSizes[model_index])
@@ -2013,7 +1981,7 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
 		index_cut = int(cut_slice * (AllVars.BoxSize/100.0)*(GridSizes[model_index]/GridSizes[0])) # Wish to cut the box at the same spatial point for all models.  So normalize the index that this corresponds to to model1.
 		thickness_cut = np.ceil(1 * (AllVars.BoxSize/100.0)*(GridSizes[model_index]/GridSizes[0])) # We will take a thickness of 1 cell for model1 and then normalize the number of cells we need to get the same thickness for the other models.
 
-		print "For model %d we begin our cut at index %d (corresponding to physical position of %.4f) and cut with a thickness of %d cells." %(model_index, index_cut, index_cut * AllVars.BoxSize/float(GridSizes[model_index]), thickness_cut)
+		print("For model {0} we begin our cut at index {1} (corresponding to physical position of {2:.4f}) and cut with a thickness of {3} cells.".format(model_index, index_cut, index_cut * AllVars.BoxSize/float(GridSizes[model_index]), thickness_cut))
 
 		im = ax.imshow(ionized_cells[:,:,index_cut:index_cut+thickness_cut].mean(axis = -1), interpolation='none', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], vmin = -8, vmax = 0, cmap = 'afmhot_r')
 				    
@@ -2045,7 +2013,7 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
 	
 	outputFile = OutputDir + output_tag + output_format 
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))	
 			
 	plt.close()
 
@@ -2057,7 +2025,7 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 	fig = plt.figure(figsize = (16,12))
 	gs1 = gridspec.GridSpec(3,3)
 	gs1.update(wspace=0.00, hspace=0.0) # set the spacing between axes. 
-	for i in xrange(1, 9 + 1):
+	for i in range(1, 9 + 1):
         	ax = plt.subplot(gs1[i-1]) 
 
 		model_index = int((i-1) % 3) # Every 3rd step it flips back to the first model.
@@ -2078,8 +2046,8 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 			ionized_cells = np.zeros((GridSizes[model_index], GridSizes[model_index], GridSizes[model_index]))
 		else:
 			fname = filepaths[model_index] + number_tag_anne 
-			print
-			print "Loading in data for %s Model from file %s" %(model_tags[model_index], fname)
+			print("")
+			print("Loading in data for {0} Model from file {1}".format(model_tags[model_index], fname))
 			fd = open(fname, 'rb')
 			ionized_cells = np.fromfile(fd, count = GridSizes[model_index]*GridSizes[model_index]*GridSizes[model_index], dtype = np.float64)	
 			ionized_cells.shape = (GridSizes[model_index], GridSizes[model_index], GridSizes[model_index])
@@ -2088,10 +2056,10 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 		index_cut = int(cut_slice * (GridSizes[model_index]/GridSizes[0])) # Wish to cut the box at the same spatial point for all models.  So normalize the index that this corresponds to to model1.
 		thickness_cut = int(1 * (GridSizes[model_index]/GridSizes[0])) # We will take a thickness of 1 cell for model1 and then normalize the number of cells we need to get the same thickness for the other models.
 
-		print "For model %d we begin our cut at index %d (corresponding to physical position of %.4f) and cut with a thickness of %d cells." %(model_index, index_cut, index_cut * BoxSize/float(GridSizes[model_index]), thickness_cut)
+		print("For model {0} we begin our cut at index {1} (corresponding to physical position of {2:.4f}) and cut with a thickness of {3} cells.".format(model_index, index_cut, index_cut * BoxSize/float(GridSizes[model_index]), thickness_cut))
 
 		photo_cut = ionized_cells[:,:,index_cut:index_cut+thickness_cut].mean(axis = -1)
-		print "For model %s At Redshift %.4f the log-mean photoionization rate is %.4f" %(model_tags[model_index], ZZ[snapshot_index], np.log10(np.mean(photo_cut)))
+		print("For model {0} At Redshift {1:.2f} the log-mean photoionization rate is {2:.4f}".format(model_tags[model_index], ZZ[snapshot_index], np.log10(np.mean(photo_cut))))
 		im = ax.imshow(np.log10(photo_cut), interpolation='none', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = -15, vmax = -8, cmap = 'Purples')
 				    
 		ax.set_xlim([0.0, BoxSize]) 
@@ -2117,8 +2085,8 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 	cbar.ax.tick_params(labelsize = legend_size - 2)
 
 	outputFile = OutputDir + output_tag + output_format 
-	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	plt.savefig(outputFile)  # Save the figure	
+	print('Saved file to {0}'.format(outputFile))	
 			
 	plt.close()
 
@@ -2128,7 +2096,7 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 
 def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
 
-	print "Plotting the optical depth"	
+	print("Plotting the optical depth")	
 	def integrand(z):
 		H = Hubble_Param(z, AllVars.Hubble_h, AllVars.Omega_m) / (AllVars.pc_to_m * 1.0e6 / 1.0e3) # Hubble Parameter in Mpc / s / Mpc. 
 		return (((1 + z)**2) / H) 
@@ -2151,10 +2119,10 @@ def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
 
 	ax.text(12, 0.055, r"$\mathrm{Planck \: 2016}$")
 
-	for p in xrange(0, len(volume_frac)):
+	for p in range(0, len(volume_frac)):
 
 		tau = np.empty((len(ZZ)))
-		for i in xrange(len(ZZ)-1, -1, -1):
+		for i in range(len(ZZ)-1, -1, -1):
 
 			if p < len(volume_frac):
 				XHII = 1 - volume_frac[p][i]
@@ -2199,8 +2167,8 @@ def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
             t.set_fontsize(legend_size)
 
 	outputFile = OutputDir + output_tag + output_format 
-	plt.savefig(outputFile)
-	print 'Saved file to', outputFile
+	plt.savefig(outputFile)	
+	print('Saved file to {0}'.format(outputFile))	
 			
 	plt.close()
 
@@ -2213,7 +2181,7 @@ def hoshen_kopelman(ionized_cells):
 	## If the input value (a) is != 0 it returns 1 otherwise it returns 0.
 
 
-	print "Running the Hosen-Kopelman Algorithm"
+	print("Running the Hosen-Kopelman Algorithm")
 
 	def double_not(a):  
 		if(a != 0):
@@ -2230,9 +2198,9 @@ def hoshen_kopelman(ionized_cells):
 	labels = np.zeros((max_labels), dtype = np.int)
 
 	test = np.zeros((l, m, n), dtype = np.int32)
-	for i in xrange(0, l):
-		for j in xrange(0, m):
-			for k in xrange(0, n):
+	for i in range(0, l):
+		for j in range(0, m):
+			for k in range(0, n):
 				if (ionized_cells[i][j][k] > 0.8):
 					test[i][j][k] = 1
 				else:
@@ -2267,9 +2235,9 @@ def hoshen_kopelman(ionized_cells):
 
 	current_label = 0
 
-	for i in xrange(0, l):
-		for j in xrange(0, m):
-			for k in xrange(0, l):
+	for i in range(0, l):
+		for j in range(0, m):
+			for k in range(0, l):
 
 				if(test[i][j][k] == 1):
 
@@ -2312,11 +2280,11 @@ def hoshen_kopelman(ionized_cells):
 	size_bubbles = np.zeros((max_labels), dtype = np.int32)
 	new_labels_len = 0
 
-	print "Finished labelling all the cells. Starting the relabelling."
+	print("Finished labelling all the cells. Starting the relabelling.")
 
-	for i in xrange(0, l):
-		for j in xrange(0, m):
-			for k in xrange(0, n):
+	for i in range(0, l):
+		for j in range(0, m):
+			for k in range(0, n):
 				if(test[i][j][k] > 0):
 					x = find(test[i][j][k])
 					if(new_labels[x] == 0):
@@ -2328,13 +2296,13 @@ def hoshen_kopelman(ionized_cells):
 
 	total_clusters = new_labels_len		
 
-	print "There was %d clusters found" %(total_clusters)
+	print("There was {0} clusters found".format(total_clusters))
 
 	largest_bubble = max(size_bubbles)
 	ionization_fraction = 1 - calculate_volume_frac(ionized_cells, 128)
 	num_cells_ionized = 128**3 * ionization_fraction 
 
-	print "The largest bubble contains %d cells. This is %.4f of the entire box.  Ionization Fraction = %.4f. The number of cells ionized is %d. Num Cells Inside Bubble/Num Cells Ionized = %.4f" %(largest_bubble, float(largest_bubble)/float(l*m*n), ionization_fraction, num_cells_ionized, float(largest_bubble)/float(num_cells_ionized)) 
+	print("The largest bubble contains {0} cells. This is {1:.4f} of the entire box.  Ionization Fraction = {2:.4f}. The number of cells ionized is {3}. Num Cells Inside Bubble/Num Cells Ionized = {4:.4f}".format(largest_bubble, float(largest_bubble)/float(l*m*n), ionization_fraction, num_cells_ionized, float(largest_bubble)/float(num_cells_ionized))) 
 
 	return float(largest_bubble)/float(num_cells_ionized)
 
@@ -2345,9 +2313,9 @@ def plot_hoshen(order_parameter, HI_frac_model, model_tags, OutputDir, output_ta
 
 	ax1 = plt.subplot(111)
 
-	print "Plotting the Hoshen-Koppelman results."
+	print("Plotting the Hoshen-Koppelman results.")
 	
-	for p in xrange(0, len(HI_frac_model)):
+	for p in range(0, len(HI_frac_model)):
 		#ax1.plot(np.subtract(1, HI_frac_model[p]), np.divide(order_parameter[p], np.subtract(1.0, HI_frac_model[p])), lw = 3, color = colors[p], label = model_tags)
 		ax1.plot(np.subtract(1, HI_frac_model[p]), order_parameter[p], lw = 3, color = colors[p], label = model_tags)
 
@@ -2364,7 +2332,7 @@ def plot_hoshen(order_parameter, HI_frac_model, model_tags, OutputDir, output_ta
 
 	outputFile = OutputDir + output_tag + output_format 
 	plt.savefig(outputFile)  # Save the figure
-	print 'Saved file to', outputFile
+	print('Saved file to {0}'.format(outputFile))		
 	plt.close()
 
 
@@ -2374,261 +2342,47 @@ def plot_hoshen(order_parameter, HI_frac_model, model_tags, OutputDir, output_ta
 
 if __name__ == '__main__':
 
-    ##### Grid Comparisons ####
+    ###########################   
 
-    ''' 
+    ## Britton's Simulations ##
 
-    output_tags = ["grid128_2", "grid128", "grid256"]
-    model_tags = [r"$N = 128^3$", r"$N = 128^3$", r"$N = 256^3$"]
-
-    number_models = 3
-
-    model = 'GridCompClean'
-    GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 256
- 
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_IRA_fesc0.25_photHImodel1"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_IRA_fesc0.25"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/XHII_SN5Myr_fesc0.25"
- 
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
-    filepath_nion_model2 = "/home/jseiler/grid_tools/test"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid256/grid_files/Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
-
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
-
-    '''
-
-    ###########################
-
-    ##### Processors Comparisons ####
-     
-    output_tags = [r"1 Processors", "2 Processors", "8 Processors"] 
-    model_tags = [r"1 Processors", "4 Processors", "8 Processors"] 
- 
-    number_models = 3
-
-    model = 'processors'
-
-    GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 128 
-
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_1processor1node"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_4processor1node" 
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_processor_output/XHII_IRA_fesc0.25_8processor1node"
+    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$"]
     
-    
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI" 
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/Galaxies_NewDelayed_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"  
-
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25_photHImodel1"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_IRA_fesc0.25"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/clean/DelayedSN/grid/anne_output/photHI_SNMyr_fesc0.25"
-
-    GridSize_array = [GridSize_model1, GridSize_model2, GridSize_model3]
-    ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3]
-    nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3]
-    density_filepath_array = [filepath_density_model1, filepath_density_model2, filepath_density_model3]
-    photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3]
-
-
-    ###########################
-    ### Different Prescriptions ###
-
-    '''
-    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"] 
-    output_tags = [r"Constant", "HaloMass", "PosHaloMass", "Ejected"]
+    output_tags = [r"Constant"]
  
-    number_models = 4
-
-    simulation_model1 = 0
-    simulation_model2 = 0
-    simulation_model3 = 0
-    simulation_model4 = 0
-
-    model = 'differentprescription_asa'
-
-    GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 128
-    GridSize_model4 = 128
-
-    precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
-    precision_model2 = 2 # 0 for int reading, 1 for float, 2 for double.
-    precision_model3 = 2 # 0 for int reading, 1 for float, 2 for double.
-    precision_model4 = 2 # 0 for int reading, 1 for float, 2 for double.
-
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc0.25" 
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc_HaloMass" 
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc_PosHaloMass"
-    filepath_model4 = "/lustre/projects/p004_swin/jseiler/anne_output_june/XHII_fesc_Ejected"
-   
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/tmp//Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
-    #filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_MH_alpha4.52beta-0.54_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_MH_alpha-7.02beta0.54_nionHI"
-    filepath_nion_model4 = "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/May/grid128/grid_files/Galaxies_IRA_z5.000_Ejected_alpha1.000beta-0.997_nionHI" 
-
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-    filepath_density_model4 = "/lustre/projects/p004_swin/jseiler/SAGE_output/512/grid/January_input/dens"
-
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
-    filepath_photofield_model4 = "/lustre/projects/p004_swin/jseiler/anne_output_clean/PhotHI_noreion_fesc0.20"
-
-    simulation_norm = [simulation_model1, simulation_model2, simulation_model3, simulation_model4] 
-    precision_array = [precision_model1, precision_model2, precision_model3, precision_model4]
-    GridSize_array = [GridSize_model1, GridSize_model2, GridSize_model3, GridSize_model4]
-    ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3, filepath_model4]
-    nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3, filepath_nion_model4]
-    density_filepath_array = [filepath_density_model1, filepath_density_model2, filepath_density_model3, filepath_density_model4]
-    photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3, filepath_photofield_model4]
-    '''
-    
-    '''
-    ###########################
-    ### SAGE vs MERAXES ###
- 
-    model_tags = [r"$\texttt{SAGE}$", r"$\texttt{MERAXES}$"]
-    output_tags = [r"SAGE", r"MERAXES"]
- 
-    number_models = 2
-
-    model = 'sage_meraxes'
-
-    cosmo = AllVars.Set_Params_Mysim()
-
-    ## Sets the properties of the simulation.  0 for Manodeep's Simulation, 1 for Mini-millennium, 2 for Tiamat.
-    simulation_model1 = 0
-    simulation_model2 = 2 
-
-    GridSize_model1 = 256 
-    GridSize_model2 = 256 
-
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/grid_model_data_files/manodeep_sim/grid256_output/fesc_0.25/XHII"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/grid_model_data_files/tiamat/grid256_output/fesc_0.25/XHII"
-   
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/grid_model_data_files/manodeep_sim/grid256_nion/sage_Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/grid_model_data_files/tiamat/grid256_nion/meraxes_Galaxies_IRA_z5.000_fesc0.25_HaloPartCut0_nionHI"
-
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/grid_model_data_files/manodeep_sim/grid256_density/dens_grid256"
-    filepath_density_model2 = "/lustre/projects/p004_swin/ahutter/21cm_grid_model/create_inputfiles/data_files/density/dens64.in"
-
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/grid_model_data_files/manodeep_sim/grid256_output/fesc_0.25/photHI"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/grid_model_data_files/tiamat/grid256_output/fesc_0.25/photHI"
-
-    simulation_norm = [simulation_model1, simulation_model2]
-    GridSize_array = [GridSize_model1, GridSize_model2]
-    ionized_cells_filepath_array = [filepath_model1, filepath_model2]
-    nion_filepath_array = [filepath_nion_model1, filepath_nion_model2]
-    density_filepath_array = [filepath_density_model1, filepath_density_model2]
-    photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2]
-    '''
-
-    ###########################
-
-    '''
-    ##### SimFast Prescription ##### 
-    
-    output_tags = [r"Simfast"]
-    model_tags = [r"Simfast"]
     number_models = 1
-    model = 'Simfast3'
 
-    cosmo = AllVars.Set_Params_Mysim()
+    simulation_model1 = 5 # Which simulation are we using?
+    # 0 : Mysim (Manodeep's original simulation run).
+    # 2 : Tiamat (down to z = 5).
+    # 4 : Simfast21 (deprecated).
+    # 5 : Britton's. 
 
-    ## Sets the properties of the simulation.  0 for Manodeep's Simulation, 1 for Mini-millennium, 2 for Tiamat. 3, for extended Tiamat, 4 for Simfast21
-    simulation_model1 = 4
+    model = 'Britton'
 
-    GridSize_model1 = 512
-
+    GridSize_model1 = 64
+    
     precision_model1 = 1 # 0 for int reading, 1 for float, 2 for double.
 
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/Ionization/anne_tag_nosubgrid"
+    #filepath_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_constantfesc"
+   
+    #filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/sage_Galaxies_IRA_z5.000_fesc0.50_HaloPartCut100_nionHI"
+
+    filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/densfield_test/snapshot_020_full"
      
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid512/nion/nion"
+    #filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_constantfesc"
 
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_input/grid512/density/density"
-
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/Simfast21/anne_output/grid512/photHI"
-  
-    simulation_norm = [simulation_model1] 
+    simulation_norm = [simulation_model1]
     precision_array = [precision_model1]
     GridSize_array = [GridSize_model1]
     ionized_cells_filepath_array = [filepath_model1]
-    nion_filepath_array = [filepath_nion_model1]
-    density_filepath_array = [filepath_density_model1]
-    photofield_filepath_array = [filepath_photofield_model1]
-
-    '''
-
-    #############################
-
-	
-    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"] 
-    
-    output_tags = [r"Constant", "MHNeg", "fej"]
- 
-    number_models = 3
-
-    simulation_model1 = 0
-    simulation_model2 = 0
-    simulation_model3 = 0
-
-    model = '18month'
-
-    GridSize_model1 = 128
-    GridSize_model2 = 128
-    GridSize_model3 = 128
-
-    
-    precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
-    precision_model2 = 2 # 0 for int reading, 1 for float, 2 for double.
-    precision_model3 = 2 # 0 for int reading, 1 for float, 2 for double.
-
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_constantfesc"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_haloneg"
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_fej"
-
-   
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/sage_Galaxies_IRA_z5.000_fesc0.50_HaloPartCut100_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/Galaxies_IRA_z5.000_MH_alpha6000.00beta-0.40_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/Galaxies_IRA_z5.000_Ejected_alpha1.000beta0.000_nionHI"
-
-    filepath_density_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/density/dens_grid128"
-    filepath_density_model2 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/density/dens_grid128"
-    filepath_density_model3 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/density/dens_grid128"
-     
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_constantfesc"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_haloneg"
-    filepath_photofield_model3 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_fej"  
-
-    simulation_norm = [simulation_model1, simulation_model2, simulation_model3]
-    precision_array = [precision_model1, precision_model2, precision_model3]
-    GridSize_array = [GridSize_model1, GridSize_model2, GridSize_model3]
-    ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3]
     nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3]
     density_filepath_array = [filepath_density_model1, filepath_density_model2, filepath_density_model3]
     photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3]
     
 
     ###########################   
+
 
     #cosmo = AllVars.Set_Params_Simfast21()
     #cosmo = AllVars.Set_Params_Tiamat()
@@ -2644,7 +2398,7 @@ if __name__ == '__main__':
 
     ZZ = np.empty(len(snaplist))
     
-    for i in xrange(0, len(snaplist)):
+    for i in range(0, len(snaplist)):
 	ZZ[i] = AllVars.SnapZ[snaplist[i]]  
     z_index = 0 
 
@@ -2663,7 +2417,7 @@ if __name__ == '__main__':
     powerspectra_error_array = [] 
     fraction_idx_array = []
 
-    for model_number in xrange(0, number_models):
+    for model_number in range(0, number_models):
 	wavenumber_array.append([])
 	powerspectra_array.append([])
 	powerspectra_error_array.append([])
@@ -2698,7 +2452,7 @@ if __name__ == '__main__':
     do_hoshen = 0
     
 
-    for snapshot_idx in xrange(lowerZ+rank, upperZ, size):
+    for snapshot_idx in range(lowerZ+rank, upperZ, size):
 
 	do_power_array = np.zeros((number_models))	
     	ionized_cells_array = []
@@ -2706,9 +2460,9 @@ if __name__ == '__main__':
     	nion_array = [] 
     	photofield_array = [] 
 
-        print "=============================="
-        print "REDSHIFT %.3f" %(ZZ[snapshot_idx])	
-        print "=============================="
+        print("==============================")
+        print("REDSHIFT {0:.2f".format(ZZ[snapshot_idx]))	
+        print("==============================")
 
         if (snapshot_idx < 10):
             number_tag_anne = '_0%d' %(snapshot_idx)
@@ -2734,7 +2488,7 @@ if __name__ == '__main__':
         ##########################################################################
 
 	def check_fractions(ionized_fraction, HI_fraction_high, HI_fraction_low):
-		for i in xrange(0, len(HI_fraction_high)):
+		for i in range(0, len(HI_fraction_high)):
 			if (ionized_fraction >= HI_fraction_low[i] and ionized_fraction <= HI_fraction_high[i]):
 				return i
 
@@ -2742,7 +2496,7 @@ if __name__ == '__main__':
 
         ##########################################################################
 
-	for model_number in xrange(0, number_models): 
+	for model_number in range(0, number_models): 
 
 
 		if (simulation_norm[model_number] == 0):
@@ -2750,9 +2504,13 @@ if __name__ == '__main__':
 		elif (simulation_norm[model_number] == 2):
 			cosmo = AllVars.Set_Params_Tiamat()
 		elif (simulation_norm[model_number] == 4):
+            print("Attempted to set the parameters to Simfast21.  This is so old.")
+            exit()
 			cosmo = AllVars.Set_Params_Simfast21()
+        elif (simulation_norm[model_number] == 5):
+            cosmo = AllVars.Set_Params_Britton()
 		else:
-			print "The current value for simulation norm (%d) is not implmented yet." %(simulation_norm[model_number])
+			print("The current value for simulation norm ({0}) is not implmented yet.".format(simulation_norm[model_number]))
 			exit()
 		GridSize_model = GridSize_array[model_number]
 		precision_model = precision_array[model_number]
@@ -2762,11 +2520,11 @@ if __name__ == '__main__':
 	        #######################################
 
 
-		ionized_cells_path = ionized_cells_filepath_array[model_number] + "_%02d" %(snapshot_idx) 
-		ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, precision_model)) 
+		#ionized_cells_path = ionized_cells_filepath_array[model_number] + "_%02d" %(snapshot_idx) 
+		#ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, precision_model)) 
 
-		nion_path = nion_filepath_array[model_number] + number_tag_mine 
-		nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))		
+		#nion_path = nion_filepath_array[model_number] + number_tag_mine 
+		#nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))		
 
 		density_path = density_filepath_array[model_number] + number_tag_mine
 		density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))		
@@ -2778,19 +2536,19 @@ if __name__ == '__main__':
 
 		#plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
 		
-		volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
-		nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
-		volume_frac_model = volume_frac_array[model_number][snapshot_idx]	
+		#volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
+		#nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
+		#volume_frac_model = volume_frac_array[model_number][snapshot_idx]	
 
 		if(do_hoshen == 1):
 			hoshen_array[model_number][snapshot_idx] = hoshen_kopelman(ionized_cells_array[model_number])	
 	
 		#plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snapshot_idx))
 		#density_array[model_number] = density_array[model_number] + 1
-		#plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
+		plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
 		#plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
-		fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
+		#fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
 		
 		if(fraction_idx != -1): 
 
@@ -2798,7 +2556,7 @@ if __name__ == '__main__':
 				MC_ZZ[model_number, fraction_idx] = ZZ[snapshot_idx]
 				MC_Snaps[model_number, fraction_idx] = snapshot_idx
 
-				print "Model %d reached x_HI = %.3f at z = %.3f" %(model_number, fractions_HI[fraction_idx], ZZ[snapshot_idx])
+				print("Model {0} reached x_HI = {1:.3f} at z = {2:.2f}".format(model_number, fractions_HI[fraction_idx], ZZ[snapshot_idx]))
 				
 				do_MC = 1
 				do_power_array[model_number] = 1
@@ -2833,7 +2591,8 @@ if __name__ == '__main__':
  
 	#print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
 
-    for model_number in xrange(0, number_models):
+    '''
+    for model_number in range(0, number_models):
     	if (MC_ZZ[model_number][-1] < 5 or MC_ZZ[model_number][-1] > 1000):
 		MC_ZZ[model_number][-1] = ZZ[-1]
 
@@ -2908,4 +2667,4 @@ if __name__ == '__main__':
 
 
     #plot_nine_panel_photHI(ZZ, [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3], [GridSize_model1, GridSize_model2, GridSize_model3], MC_Snaps, fractions_HI, model_tags, OutputDir, "9PanelSlices_PhotHI")
- 
+    ''' 
