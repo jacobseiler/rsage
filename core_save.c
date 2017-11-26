@@ -82,7 +82,7 @@ void save_galaxies(int filenr, int tree)
         //prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
         //myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
         write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
-    	TotGalaxies[n]++;
+       	TotGalaxies[n]++;
         TreeNgals[n][tree]++;
 
       }
@@ -286,6 +286,15 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   XASSERT( nwritten == MAXSNAPS, "Error: While writing EjectedFraction, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
 
+  for (j = 0; j < MAXSNAPS; ++j)
+  {
+    if (j == 80 && g->LenHistory[j] < 1 && g->LenHistory[j] != -1 )
+    {
+      fprintf(stderr, "%d\n", g->LenHistory[j]);  
+      exit(EXIT_FAILURE);
+    }
+  }
+
   XASSERT(g->LenHistory != NULL, "LenHistory has a NULL pointer.\n"); 
   nwritten = fwrite(g->LenHistory, sizeof(*(g->LenHistory)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing LenHistory, expected to write %d times but wrote %zu times instead\n",
@@ -326,7 +335,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 
 void finalize_galaxy_file(int filenr)
 {
-  int n;
+  int n, i;
 
   for(n = 0; n < NOUT; n++)
   {
@@ -337,7 +346,8 @@ void finalize_galaxy_file(int filenr)
     fseek( save_fd[n], 0, SEEK_SET );
 
     fprintf(stderr, "Ntrees = %d \t TotGalaxies[n] = %d\n", Ntrees, TotGalaxies[n]);
-
+    printf("n = %d\n", n);
+    
     myfwrite(&Ntrees, sizeof(int), 1, save_fd[n]); 
     myfwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
     myfwrite(TreeNgals[n], sizeof(int), Ntrees, save_fd[n]);
