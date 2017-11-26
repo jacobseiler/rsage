@@ -469,12 +469,14 @@ def Set_Params_Britton():
     Omega_m = 0.285
     Omega_L = 0.715
     Omega_b = 0.0
-    BoxSize = 51 # Mpc/h
+    BoxSize = 52.0 # Mpc/h
     Volume = BoxSize**3
     BaryonFrac = 0.17
     Y = 0.24   
+    PartMass = 1.151e6 
 
-    a = np.loadtxt("/lustre/projects/p004_swin/bsmith/1.6Gpc/means/halo_1721673/dm_gadget/outputs.dat")      
+    #a = np.loadtxt("/lustre/projects/p004_swin/bsmith/1.6Gpc/means/halo_1721673/dm_gadget/outputs.dat")      
+    a = np.loadtxt("/lustre/projects/p134_swin/jseiler/subfind_britton/trees/britton/a_list.txt")
     SnapZ = 1.0/a - 1
        
     cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)

@@ -37,6 +37,7 @@ from astropy import units as u
 from astropy import cosmology
 import matplotlib.ticker as mtick
 import itertools
+from matplotlib import patches
 
 from mpi4py import MPI
 
@@ -86,7 +87,7 @@ cut_slice = 44
 
 #cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 #t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
-output_format = ".pdf"
+output_format = ".png"
 
 def linear_growth(z, OM, OL):
         D = (OM*((1+z)**3) / (OM*(1+z) - (OM + OL - 1)*((1+z)**2) + OM))**(4/7)
@@ -611,22 +612,33 @@ def plot_density(z, density, OutputDir, output_tag):
 
     print("")
     print("Plotting density slice.")
-    print("The minimum density for redshift {0:.3f} was {1:.3f}.".format(z, np.amin(density))) 
-    print("The maximum density for redshift {0:.3f} was {1:.3f}.".format(z, np.amax(density)))
 
-    print("The minimum density index for redshift {0:.3f} was {1}.".format(z, np.argmin(np.ravel(density), axis = 0)))
-    print("The maximum density index for redshift {0:.3f} was {1}.".format(z, np.argmax(np.ravel(density), axis = 0)))
+    rho_min = np.amin(density)
+    rho_max = np.amax(density)
+
+    idx_rho_min = np.argmin(np.ravel(density), axis = 0)
+    idx_rho_max = np.argmax(np.ravel(density), axis = 0)
+
+    print("The minimum density for redshift {0:.3f} was {1:.3f}.".format(z, rho_min)) 
+    print("The maximum density for redshift {0:.3f} was {1:.3f}.".format(z, rho_max)) 
+
+    print("The minimum density index for redshift {0:.3f} was {1}.".format(z, idx_rho_min))
+    print("The maximum density index for redshift {0:.3f} was {1}.".format(z, idx_rho_max)) 
 
     ax = plt.subplot(111)
 
-    #im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,BoxSize,0,BoxSize], cmap = 'Purples', norm = colors.LogNorm(vmin = 0.12, vmax = 50)) 
-    im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], cmap = 'Purples', vmin = 0.12, vmax = 10) 
+    cut_slice = 0
+    thickness_cut = 127
+    im = ax.imshow(density[:,:,cut_slice:cut_slice+thickness_cut].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], cmap = 'Purples', vmin = rho_min + 0.01, vmax = 5) 
+
+    ax.add_patch(patches.Rectangle((45.0, 45.0), 5.0, 5.0, fill=False))
+    ax.add_patch(patches.Rectangle((45.0, 0.0), 5.0, 10.0, fill=False))
 
     cbar = plt.colorbar(im, ax = ax)
     cbar.set_label(r'$\rho/\langle \rho \rangle$')
         
-    ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
-    ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
+    ax.set_xlabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
+    ax.set_ylabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
 
     ax.set_xlim([0.0, AllVars.BoxSize]) 
     ax.set_ylim([0.0, AllVars.BoxSize])
@@ -2259,12 +2271,15 @@ if __name__ == '__main__':
     ## Britton's Simulations ##
 
     model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$"]
-    
-    output_tags = [r"Constant"]
+
+    output_tags = [r"Summing_Test_Full", r"Densfield_Full"]    
+#    output_tags = [r"Densfield_full_Snap20"]
+#    output_tags = [r"densgrid_snapshot020_full"]
  
-    number_models = 1
+    number_models = 2
 
     simulation_model1 = 5 # Which simulation are we using?
+    simulation_model2 = 5 # Which simulation are we using?
     # 0 : Mysim (Manodeep's original simulation run).
     # 2 : Tiamat (down to z = 5).
     # 4 : Simfast21 (deprecated).
@@ -2272,24 +2287,27 @@ if __name__ == '__main__':
 
     model = 'Britton'
 
-    GridSize_model1 = 64
+    GridSize_model1 = 256
+    GridSize_model2 = 256
     
-    precision_model1 = 1 # 0 for int reading, 1 for float, 2 for double.
+    precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
+    precision_model2 = 2 # 0 for int reading, 1 for float, 2 for double.
 
     #filepath_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_constantfesc"
    
     #filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/sage_Galaxies_IRA_z5.000_fesc0.50_HaloPartCut100_nionHI"
 
-    filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/densfield_test/snapshot_020_full"
+    filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/densfield_test/chunks/summing_test"
+    filepath_density_model2 = "/lustre/projects/p134_swin/jseiler/densfield_test/newtest_snap020_full"
      
     #filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_constantfesc"
 
-    simulation_norm = [simulation_model1]
-    precision_array = [precision_model1]
-    GridSize_array = [GridSize_model1]
+    simulation_norm = [simulation_model1, simulation_model2]
+    precision_array = [precision_model1, precision_model2,]
+    GridSize_array = [GridSize_model1, GridSize_model2]
 #    ionized_cells_filepath_array = [filepath_model1]
 #    nion_filepath_array = [filepath_nion_model1]
-    density_filepath_array = [filepath_density_model1]
+    density_filepath_array = [filepath_density_model1, filepath_density_model2]
 #    photofield_filepath_array = [filepath_photofield_model1]
     
 
@@ -2415,9 +2433,7 @@ if __name__ == '__main__':
 
         #		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
         #		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
-
-        #
-
+              
         #plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
 
         #volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
@@ -2429,11 +2445,12 @@ if __name__ == '__main__':
 	
         #plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snapshot_idx))
         #density_array[model_number] = density_array[model_number] + 1
-        plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
+        #plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
         #plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
         #fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
 
+        '''
         if(fraction_idx != -1): 
             if(MC_ZZ[model_number, fraction_idx] == -1):	
                 MC_ZZ[model_number, fraction_idx] = ZZ[snapshot_idx]
@@ -2443,7 +2460,7 @@ if __name__ == '__main__':
 
                 do_MC = 1
                 do_power_array[model_number] = 1
-	
+	    '''
         if((do_MC == 1 and calculate_MC == 1) or (calculate_MC == 2 and snapshot_idx == calculate_MC_snaps[snapshot_idx])):
             '''
             print "snapshot_idx", snapshot_idx
@@ -2471,6 +2488,11 @@ if __name__ == '__main__':
         #photo_std_array[model_number][snapshot_idx] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
  
     #print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
+
+    diff = np.abs(density_array[0] - density_array[1])
+
+    w = np.where((diff > 1e-14))[0]
+    print(len(w)) 
 
     '''
     for model_number in range(0, number_models):
