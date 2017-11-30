@@ -110,9 +110,13 @@ def get_tree_offsets(treedir, file_idx):
 
     return HalosPerTree 
 
-def read_trees_smallarray(treedir, file_idx):
- 
-    fname = "{0}/subgroup_trees_{1:03d}.dat".format(treedir, file_idx)
+def read_trees_smallarray(treedir, file_idx, simulation):
+
+    if (simulation == 0 or simulation == 1):
+        fname = "{0}/subgroup_trees_{1:03d}.dat".format(treedir, file_idx)
+    else:
+        fname = "{0}/lhalotree.bin.{1}".format(treedir, file_idx)
+
     print("Reading for file {0}".format(fname)) 
     fin = open(fname, 'rb')  # Open the file
 
@@ -172,18 +176,115 @@ def read_trees_onearray(treedir):
     fin.close() # Close the file  
 
     return Halos 
+   
+
+def plot_hmf_comparison(snaplow, snaphigh, treesdir):
+
+    m_low = 6
+    m_high = 12
+
+    num_files = 27
+    use_PartMass = 0 
     
-def plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation):
+    NB = int((m_high - m_low)/bin_width) 
+    tree_count_Britton = np.zeros((snaphigh - snaplow + 1, NB), dtype = np.int64)
+    tree_count_Tiamat = np.zeros((snaphigh - snaplow + 1, NB), dtype = np.int64)
+
+    for file_idx in range(num_files):
+       
+        Halos_Britton, dummy = read_trees_smallarray(treesdir[0], file_idx, 0)
+        Halos_Tiamat, dummy = read_trees_smallarray(treesdir[1], file_idx, 1)
+
+        print("File {0}".format(file_idx))
+        count = 0
+        for snapshot_idx in range(snaplow, snaphigh + 1):
+      
+            print("Snapshot {0}".format(snapshot_idx)) 
+            # First do Britton's Sim #
+
+            cosmol = AllVars.Set_Params_Britton()
+            w = np.where((Halos_Britton['SnapNum'] == snapshot_idx))[0]
+            if (use_PartMass == 0):
+                halo_mass = np.log10(Halos_Britton['Mvir'][w] * 1.0e10 / AllVars.Hubble_h)
+            else:
+                halo_mass = np.log10(Halos_Britton['Len'][w] * AllVars.PartMass / AllVars.Hubble_h)
+
+            (halo_counts_trees, bin_edges, bin_middle) = AllVars.Calculate_Histogram(halo_mass, bin_width, 0, m_low, m_high)
+            tree_count_Britton[count] += halo_counts_trees   
+ 
+            cosmol = AllVars.Set_Params_Tiamat_extended()
+            w = np.where((Halos_Tiamat['SnapNum'] == snapshot_idx))[0]
+            if (use_PartMass == 0):
+                halo_mass = np.log10(Halos_Tiamat['Mvir'][w] * 1.0e10 / AllVars.Hubble_h)
+            else:
+                halo_mass = np.log10(Halos_Tiamat['Len'][w] * AllVars.PartMass / AllVars.Hubble_h)
+
+            (halo_counts_trees, bin_edges, bin_middle) = AllVars.Calculate_Histogram(halo_mass, bin_width, 0, m_low, m_high)
+            tree_count_Tiamat[count] += halo_counts_trees
+            count += 1
+   
+    count = 0
+    for snapshot_idx in range(snaplow, snaphigh + 1): 
+        ax1 = plt.subplot(111) 
+        # First Britton "
+
+        cosmol = AllVars.Set_Params_Britton()
+        label = "Britton z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
+        ax1.plot(bin_middle, np.multiply(tree_count_Britton[count] / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label, color = 'r')
+        ax1.axvline(np.log10(AllVars.PartMass * 32 / AllVars.Hubble_h), ymin = -1, ymax = 1e5, color = 'r', linewidth = PlotScripts.global_linewidth, linestyle = '--') 
+
+
+        # Then Tiamat # 
+
+        cosmol = AllVars.Set_Params_Tiamat_extended()
+        label = "Tiamat z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
+        ax1.plot(bin_middle, np.multiply(tree_count_Tiamat[count] / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label, color = 'b')
+        ax1.axvline(np.log10(AllVars.PartMass * 32 / AllVars.Hubble_h), ymin = -1, ymax = 1e5, color = 'b', linewidth = PlotScripts.global_linewidth, linestyle = '--') 
+
+        ## 
+        count += 1
+        ax1.set_xlabel(r'$\log_{10}\ M_{H} \:[M_{\odot}]$', fontsize = PlotScripts.global_fontsize)
+        ax1.set_ylabel(r'$\left(\frac{dn}{d\log{M}}\right) \ [\mathrm{Mpc}^{-3}]$', fontsize = PlotScripts.global_fontsize)
+        ax1.set_ylim([1e-4, 1e2])
+        ax1.set_yscale('log', nonposy='clip')
+
+        simulation_tag = "Comparison"
+
+        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(PlotScripts.global_legendsize)
+
+        if (use_PartMass == 0):
+            outputFile = "./HMF_Trees/{1}_DivideLittleh_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
+        else:
+            outputFile = "./HMF_Trees/{1}_DivideLittleh_npart_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
+        plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile))
+        plt.close()
+def plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation, compare_values=0, use_PartMass=0):
 
     m_low = 6
     m_high = 12
 
     total_halos = 0
     total_trees = 0   
+
+    if (use_PartMass == 0):
+        print("USING MVIR")
+    else:
+        print("USING NPART * PARTMASS")
+
+    if (simulation == 0 or simulation == 1):
+        num_files = 27
+    else:
+        num_files = 125
  
     for file_idx in range(num_files):
-        fname = "{0}/subgroup_trees_{1:03d}.dat".format(treedir, file_idx)
-
+        if (simulation == 0 or simulation == 1):
+            fname = "{0}/subgroup_trees_{1:03d}.dat".format(treedir, file_idx)
+        else:
+            fname = "{0}/lhalotree.bin.{1}".format(treedir, file_idx)
         fin = open(fname, 'rb')  # Open the file
 
         trees_thisfile = np.fromfile(fin,np.dtype(np.int32),1)  # Read number of trees in file        
@@ -201,7 +302,11 @@ def plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation):
        
     for file_idx in range(num_files):
 
-        fname = "{0}/subgroup_trees_{1:03d}.dat".format(treedir, file_idx)
+        if (simulation == 0 or simulation == 1):
+            fname = "{0}/subgroup_trees_{1:03d}.dat".format(treedir, file_idx)
+        else:
+            fname = "{0}/lhalotree.bin.{1}".format(treedir, file_idx)
+        
         print("Reading for file {0}".format(fname)) 
         fin = open(fname, 'rb')  # Open the file
 
@@ -220,31 +325,37 @@ def plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation):
             # HMF from the trees ##
 
             w = np.where((Halos['SnapNum'] == snapshot_idx))[0]
-            halo_mass = np.log10(Halos['Mvir'][w] * 1.0e10) 
+            if (use_PartMass == 0):
+                halo_mass = np.log10(Halos['Mvir'][w] * 1.0e10 / AllVars.Hubble_h) 
+            else:
+                halo_mass = np.log10(Halos['Len'][w] * AllVars.PartMass / AllVars.Hubble_h) 
 
             (halo_counts_trees, bin_edges, bin_middle) = AllVars.Calculate_Histogram(halo_mass, bin_width, 0, m_low, m_high)
             halo_counts_trees_total[count] += halo_counts_trees
             count += 1
 
-            ## Theoretical HMF from hmf ## 
-            redshift = AllVars.SnapZ[snapshot_idx]
-            my_cosmo = cosmo.Cosmology(cosmo_model = cosmol) # Update the hmf cosmology.
-            britton_cosmo = FlatLambdaCDM(H0 = AllVars.Hubble_h * 100.0, Om0 = AllVars.Omega_m, Ob0 = 0.06) # Ob0 is a dummy variable so just hard code it. 
-            hmf = MassFunction()
-            hmf.update(cosmo_params = {"H0" : AllVars.Hubble_h * 100.0, "Om0" : AllVars.Omega_m}, Mmax = m_high, Mmin = m_low, z = redshift)
-
     count = 0
-    for snapshot_idx in range(snaplow, snaphigh+ 1):        
+    if (simulation == 0):
+        print("BRITTON SIM")
+    elif (simulation == 1):
+        print("TIAMAT")
+    else:
+        print("MANODEEP SIM")
 
+    for snapshot_idx in range(snaplow, snaphigh+ 1):       
+        if (compare_values == 1): 
+            print("==================================================")
+            print("===========SNAPSHOT {0}========================".format(snapshot_idx))
+            print("Mass Range \t Trees Value \t HMF Value \t HMF Value / Trees Value")
         ## Theoretical HMF from hmf ## 
         redshift = AllVars.SnapZ[snapshot_idx]
         my_cosmo = cosmo.Cosmology(cosmo_model = cosmol) # Update the hmf cosmology.
         britton_cosmo = FlatLambdaCDM(H0 = AllVars.Hubble_h * 100.0, Om0 = AllVars.Omega_m, Ob0 = 0.06) # Ob0 is a dummy variable so just hard code it. 
         hmf = MassFunction()
-        hmf.update(cosmo_params = {"H0" : AllVars.Hubble_h * 100.0, "Om0" : AllVars.Omega_m}, Mmax = m_high, Mmin = m_low, z = redshift)
+        hmf.update(cosmo_params = {"H0" : AllVars.Hubble_h * 100.0, "Om0" : AllVars.Omega_m}, Mmax = m_high, Mmin = m_low, z = redshift, dlog10m = bin_width)
        
         massfunc = hmf.dndlog10m
-        hmf_bins = np.linspace(m_low, m_high, num = (m_high - m_low) / 0.01) # 0.01 because hmf uses bin widths of 0.01.
+        hmf_bins = np.linspace(m_low, m_high, num = (m_high - m_low) / bin_width) 
 
         # Reading the FoF Tab #
 
@@ -256,18 +367,30 @@ def plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation):
 
                 with h5py.File(fname_fof_tab_ids, "r") as file_fof_tab:
                     try:
-                        Ngroups_foftab = file_fof_tab['Group']['GroupMass'].shape[0]
+                        Ngroups_foftab = file_fof_tab['Group']['GroupLen'].shape[0]
                     except KeyError:
                         pass
                     else:
                         for group_idx in range(Ngroups_foftab):
-                            mass_fof_tab.append(np.log10(file_fof_tab['Group']['GroupMass'][group_idx] * 1.0e10))
+                            if (use_PartMass == 0):
+                                mass_fof_tab.append(np.log10(file_fof_tab['Group']['GroupMass'][group_idx] * 1.0e10 / AllVars.Hubble_h))
+                            else:
+                                mass_fof_tab.append(np.log10(file_fof_tab['Group']['GroupLen'][group_idx] * AllVars.PartMass / AllVars.Hubble_h))
             
 
             (counts_fof_tab, bin_edges, bin_middle) = AllVars.Calculate_Histogram(mass_fof_tab, bin_width, 0, 6, 12)
 
         # Reading the SUBFIND files # 
-            for i_file in range(N_sub_files):
+            fname_subfind_groups = "{0}catalogs/subfind_{1:03d}.catalog_groups_properties/subfind_{1:03d}.catalog_groups_properties.0".format(subfind_dir, snapshot_idx)
+
+            with open(fname_subfind_groups, 'rb') as file_subfind_groups:
+                file_number = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)
+                n_files = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]
+                N_groups_thisfile = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]
+                N_groups_allfile = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)
+
+            print("Snapshot {0} has the SUBFIND results split across {1} files".format(snapshot_idx, n_files))
+            for i_file in range(n_files):
                 fname_subfind_groups = "{0}catalogs/subfind_{1:03d}.catalog_groups_properties/subfind_{1:03d}.catalog_groups_properties.{2}".format(subfind_dir, snapshot_idx, i_file)
 
 #                print("Reading from file {0}".format(fname_subfind_groups))
@@ -277,18 +400,21 @@ def plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation):
                     N_groups_thisfile = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]
                     N_groups_allfile = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)
 
-                    print("This file contains {0} groups".format(N_groups_thisfile))                    
+                    #print("This file contains {0} groups".format(N_groups_thisfile))                    
                     SUBFIND_Halos = np.fromfile(file_subfind_groups, SUBFIND_Halo_Desc, N_groups_thisfile)  # Read in the galaxy structures
 
-                    halo_mass_subfind = np.log10(SUBFIND_Halos['M_vir'])
+                    if (use_PartMass == 0):
+                        halo_mass_subfind = np.log10(SUBFIND_Halos['M_vir'] / AllVars.Hubble_h)
+                    else:
+                        halo_mass_subfind = np.log10(SUBFIND_Halos['n_particles'] * AllVars.PartMass / AllVars.Hubble_h)
 
                     if (i_file == 0):
                         (halo_counts_subfind, bin_edges, bin_middle) = AllVars.Calculate_Histogram(halo_mass_subfind, bin_width, 0, m_low, m_high)
                     else:
                         (halo_counts_subfind_tmp, bin_edges, bin_middle) = AllVars.Calculate_Histogram(halo_mass_subfind, bin_width, 0, m_low, m_high)
                         halo_counts_subfind += halo_counts_subfind_tmp
-        print("The total number of SUBFIND groups for Snapshot {0} is {1}".format(snapshot_idx, N_groups_allfile))
-        print("The total number of Groups from the trees for snapshot {0} is {1}".format(snapshot_idx, np.sum(halo_counts_trees_total[count]))) 
+            print("The total number of SUBFIND groups for Snapshot {0} is {1}".format(snapshot_idx, N_groups_allfile))
+            print("The total number of Groups from the trees for snapshot {0} is {1}".format(snapshot_idx, np.sum(halo_counts_trees_total[count]))) 
         # Plotting #
         ax1 = plt.subplot(111)
 
@@ -300,6 +426,12 @@ def plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation):
 
         label = "HMF"
         ax1.plot(hmf_bins, massfunc * pow(AllVars.Hubble_h,3), label = label)
+        
+        if (compare_values == 1): 
+            for bin_idx in range(len(bin_middle)):
+                mine = halo_counts_trees_total[count][bin_idx] / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width * bin_middle[bin_idx]
+                theory = massfunc[bin_idx] * pow(AllVars.Hubble_h,3)
+                print("{0:7.4f} - {1:7.4f} \t {2:7.4e} \t {3:7.4e} \t {4:7.4e}".format(bin_middle[bin_idx] - bin_width / 2.0, bin_middle[bin_idx] + bin_width / 2.0, mine, theory, theory / mine)) 
 
         if (simulation == 0):
             label = "FoF Tab"
@@ -308,7 +440,7 @@ def plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation):
             label = "Subfind"
             ax1.plot(bin_middle, np.multiply(halo_counts_subfind / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label)
 
-        
+        ax1.axvline(np.log10(AllVars.PartMass * 32 / AllVars.Hubble_h), ymin = -1, ymax = 1e5, color = 'k', linewidth = PlotScripts.global_linewidth, linestyle = '--') 
         ax1.set_xlabel(r'$\log_{10}\ M_{H} \:[M_{\odot}]$', fontsize = PlotScripts.global_fontsize)
         ax1.set_ylabel(r'$\left(\frac{dn}{d\log{M}}\right) \ [\mathrm{Mpc}^{-3}]$', fontsize = PlotScripts.global_fontsize)
         ax1.set_yscale('log', nonposy='clip')
@@ -316,52 +448,62 @@ def plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation):
 
         if (simulation == 0):
             simulation_tag = "Britton_Shift"
-        else:   
+        elif (simulation == 1):   
             simulation_tag = "Tiamat"
+        else:
+            simulation_tag = "Manodeep"
 
-
-        outputFile = "./HMF_Trees/{1}_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
-        plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
-        print('Saved file to {0}'.format(outputFile))
-        plt.close()
-
-        ax2 = plt.subplot(111)
-        ax2.set_title(title)
-        ax2.plot(bin_middle, np.divide(halo_counts_trees_total[count], halo_counts_subfind))
-
-        ax2.set_xlabel(r'$\log_{10}\ M_{H} \:[M_{\odot}]$', fontsize = PlotScripts.global_fontsize)
-        ax2.set_ylabel(r'$N_{Trees} / N_{SUBFIND}$', fontsize = PlotScripts.global_fontsize)
-   
-        ax2.set_ylim([0, 1])
-
-        ax3 = ax2.twinx()
-        ax3.plot(bin_middle, np.subtract(halo_counts_subfind, halo_counts_trees_total[count]), color = 'r')
-        ax3.set_ylabel(r"$\log_{10} N_{SUBFIND} - N_{Trees}$", fontsize = PlotScripts.global_fontsize)
-        ax3.tick_params('y', colors='r')
-
-        ax3.set_yscale('log', nonposy='clip')
         leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize(PlotScripts.global_legendsize)
 
-
-        plt.tight_layout() 
-        outputFile = "./HMF_Trees/{1}_Ratio_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
+        if (use_PartMass == 0):
+            outputFile = "./HMF_Trees/{1}_DivideLittleh_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
+        else:
+            outputFile = "./HMF_Trees/{1}_DivideLittleh_npart_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
         plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
         plt.close()
+
+        if (simulation == 0):
+            ax2 = plt.subplot(111)
+            ax2.set_title(title)
+            ax2.plot(bin_middle, np.divide(halo_counts_trees_total[count], halo_counts_subfind))
+
+            ax2.set_xlabel(r'$\log_{10}\ M_{H} \:[M_{\odot}]$', fontsize = PlotScripts.global_fontsize)
+            ax2.set_ylabel(r'$N_{Trees} / N_{SUBFIND}$', fontsize = PlotScripts.global_fontsize)
+       
+            ax2.set_ylim([0, 1])
+
+            ax3 = ax2.twinx()
+            ax3.plot(bin_middle, np.subtract(halo_counts_subfind, halo_counts_trees_total[count]), color = 'r')
+            ax3.set_ylabel(r"$\log_{10} N_{SUBFIND} - N_{Trees}$", fontsize = PlotScripts.global_fontsize)
+            ax3.tick_params('y', colors='r')
+
+            ax3.set_yscale('log', nonposy='clip')
+
+
+            plt.tight_layout() 
+            if (use_PartMass == 0):
+                outputFile = "./HMF_Trees/{1}_DivideLittleh_Ratio_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
+            else:
+                outputFile = "./HMF_Trees/{1}_DivideLittleh_npart_Ratio_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
+            plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+            print('Saved file to {0}'.format(outputFile))
+            plt.close()
         
         count += 1
  
 
-def plot_spin(Halos, simulation, treedir=None):
+def plot_progline(Halos, simulation, treedir=None):
 
     ## First I want to find a progenitor line that has an appreciable length. ##
 
     max_progline_global_trees = []
 
     max_snap = len(AllVars.SnapZ) - 1 
+    max_snap = 91
 
     file_range_low = [0, 6, 12, 18, 23] 
     file_range_high = [5, 11, 17, 22, num_files -1] 
@@ -369,7 +511,7 @@ def plot_spin(Halos, simulation, treedir=None):
     #for file_idx in range(num_files):
     for meta_file_idx in range(len(file_range_low)):
         for file_idx in range(file_range_low[meta_file_idx], file_range_high[meta_file_idx] + 1): 
-            Halos_ThisFile, HalosPerTree = read_trees_smallarray(treedir, file_idx) 
+            Halos_ThisFile, HalosPerTree = read_trees_smallarray(treedir, file_idx, simulation) 
             ## I now have all the halos from this file, along with the number of halos for each tree for this file. ##
 
             print("This file has {0} Halos spread across {1} trees.".format(len(Halos_ThisFile), len(HalosPerTree)))
@@ -425,7 +567,7 @@ def plot_spin(Halos, simulation, treedir=None):
             z_ProgLine = []
             current_halo = w[np.argmax(count_thistree)] # This will be the index of w that had the longest progenitor line.
             while (Halos_ProgLine['FirstProgenitor'][current_halo] != -1): # Keep climbing the tree until we reach the top.
-                Mvir_ProgLine.append(np.log10(Halos_ProgLine['Mvir'][current_halo] * 1.0e10))
+                Mvir_ProgLine.append(np.log10(Halos_ProgLine['Mvir'][current_halo] * 1.0e10 / AllVars.Hubble_h))
                 Spin_Mag = pow(pow(Halos_ProgLine['Spin'][current_halo][0], 2) + pow(Halos_ProgLine['Spin'][current_halo][1], 2) + pow(Halos_ProgLine['Spin'][current_halo][2], 2), 0.5)
                 Spin_ProgLine.append(Spin_Mag)
                 z_ProgLine.append(AllVars.SnapZ[Halos_ProgLine['SnapNum'][current_halo]])
@@ -457,7 +599,14 @@ def plot_spin(Halos, simulation, treedir=None):
             '''
         plt.tight_layout()
 
-        outputFile = "./MainProgLine_files_{0}_{1}.png".format(file_range_low[meta_file_idx], file_range_high[meta_file_idx])
+        if (simulation == 0):
+            simulation_tag = "Britton_Shift"
+        elif (simulation == 1):   
+            simulation_tag = "Tiamat"
+        else:
+            simulation_tag = "Manodeep"
+
+        outputFile = "./MainProgLine_{2}_DivideLittleh_files_{0}_{1}.png".format(file_range_low[meta_file_idx], file_range_high[meta_file_idx], simulation_tag)
         plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
         plt.close()
@@ -498,7 +647,7 @@ def compare_halo_numbers(Halos):
 def check_pointers(Halos, simulation, treedir=None):
 
     if (simulation == 1):
-        Halos = read_trees_smallarray(treedir, 14) 
+        Halos = read_trees_smallarray(treedir, 14, simulation) 
 
     w_firstprog = np.where((Halos['FirstProgenitor'] != -1))[0]
     w_nextprog = np.where((Halos['NextProgenitor'] != -1))[0]
@@ -512,28 +661,29 @@ def check_pointers(Halos, simulation, treedir=None):
     print("========SUBSETTING========")
     print("==========================")
 
-#    print("Snapshot \t NHalos above Snapshot \t Ratio of TotalHalos above Snapshot \t NHalos With Non -1 NextProg Above Snapshot \t Ratio of Halos with Non -1 NextProg above Snapshot") 
-    '''
-    for snapshot_idx in range(0, 91):
+    print("Snapshot \t NHalos above Snapshot \t Ratio of TotalHalos above Snapshot \t NHalos With Non -1 NextProg Above Snapshot \t Ratio of Halos with Non -1 NextProg above Snapshot") 
+    
+    for snapshot_idx in range(0, 92):
 
-        w_nextprog = np.where((Halos['NextProgenitor'] != -1) & (Halos['SnapNum'] > snapshot_idx))[0]
-        w_nextprog_thissnap = np.where((Halos['NextProgenitor'] != -1) & (Halos['SnapNum'] == snapshot_idx))[0]
+        w_firstprog = np.where((Halos['FirstProgenitor'] != -1) & (Halos['SnapNum'] > snapshot_idx))[0]
+        w_firstprog_thissnap = np.where((Halos['FirstProgenitor'] != -1) & (Halos['SnapNum'] == snapshot_idx))[0]
         w_snaphigh = np.where((Halos['SnapNum'] > snapshot_idx))[0]  
         w_thissnap = np.where((Halos['SnapNum'] == snapshot_idx))[0]  
         
 
-        print("{0:7d} \t {1:7d} \t {2:7.4f} \t {3:7d} \t {4:7.4f}".format(snapshot_idx, len(w_snaphigh), len(w_snaphigh) / Nhalos, len(w_nextprog), len(w_nextprog) / len(w_snaphigh)))
-    '''
-    print("Snapshot \t Halos at this Snapshot \t NHalos With Non -1 NextProg at this Snapshot \t Ratio of Halos with non -1 NextProg at this Snapshot")
+        print("{0:7d} \t {1:7d} \t {2:7.4f} \t {3:7d} \t {4:7.4f}".format(snapshot_idx, len(w_snaphigh), len(w_snaphigh) / Nhalos, len(w_firstprog), len(w_firstprog) / len(w_snaphigh)))
+  
+    exit() 
+    print("Snapshot \t Halos at this Snapshot \t NHalos With Non -1 FirstProg at this Snapshot \t Ratio of Halos with non -1 FirstProg at this Snapshot")
     for snapshot_idx in range(20, 91):
 
-        w_nextprog = np.where((Halos['NextProgenitor'] != -1) & (Halos['SnapNum'] > snapshot_idx))[0]
-        w_nextprog_thissnap = np.where((Halos['NextProgenitor'] != -1) & (Halos['SnapNum'] == snapshot_idx))[0]
+        w_firstprog = np.where((Halos['FirstProgenitor'] != -1) & (Halos['SnapNum'] > snapshot_idx))[0]
+        w_firstprog_thissnap = np.where((Halos['FirstProgenitor'] != -1) & (Halos['SnapNum'] == snapshot_idx))[0]
         w_snaphigh = np.where((Halos['SnapNum'] > snapshot_idx))[0]  
         w_thissnap = np.where((Halos['SnapNum'] == snapshot_idx))[0]  
 
         if len(w_thissnap != 0):
-            print("{0:7d} \t {1:7d} \t {2:7d} \t {3:7.4f}".format(snapshot_idx, len(w_thissnap), len(w_nextprog_thissnap), len(w_nextprog_thissnap) / len(w_thissnap))) 
+            print("{0:7d} \t {1:7d} \t {2:7d} \t {3:7.4f}".format(snapshot_idx, len(w_thissnap), len(w_firstprog_thissnap), len(w_firstprog_thissnap) / len(w_thissnap))) 
 if __name__ == '__main__':
 
     if (len(sys.argv) != 4):
@@ -552,8 +702,11 @@ if __name__ == '__main__':
     elif (simulation == 1):
         treedir = "/lustre/projects/p070_astro/gpoole/Simulations/Tiamat/trees/version_nominal_res/vertical/"
         cosmol = AllVars.Set_Params_Tiamat_extended()
+    elif (simulation == 2):
+        treedir = "/lustre/projects/p004_swin/jseiler/Rockstar_output/1024_Halos_noLL/Ltrees/"
+        cosmol = AllVars.Set_Params_Mysim() 
     else:
-        print("Only simulation 0 (Britton Sim) and 1 (Tiamat extended) are supported.")
+        print("Only simulation 0 (Britton Sim), 1 (Tiamat extended) and 2 (Mandeep's Simulation) are supported.")
         exit()
 
     PlotScripts.Set_Params_Plot()
@@ -563,16 +716,20 @@ if __name__ == '__main__':
 
     #compare_halo_numbers(Halos)
 
-    '''
+   
+    ''' 
     if (simulation == 0):
         check_pointers(Halos, simulation) 
     else:
         check_pointers(0, simulation, treedir)
-
+    
     if (simulation == 0):
-        plot_spin(0, simulation, treedir)
+        plot_progline(0, simulation, treedir)
     else:
-        plot_spin(0, simulation, treedir)
-    '''    
-    plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation)    
+        plot_progline(0, simulation, treedir)
+    '''
+    
+    plot_hmf_comparison(snaplow, snaphigh, ["/lustre/projects/p134_swin/jseiler/subfind_britton/trees/britton_shifted/vertical", "/lustre/projects/p070_astro/gpoole/Simulations/Tiamat/trees/version_nominal_res/vertical/"]) 
+
+#    plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation)    
 
