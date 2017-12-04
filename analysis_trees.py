@@ -39,6 +39,10 @@ from astropy.cosmology import FlatLambdaCDM
 
 import h5py 
 
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+
 groupdir = '/lustre/projects/p004_swin/bsmith/1.6Gpc/means/halo_1721673/dm_gadget/data/'
 subfind_dir = '/lustre/projects/p134_swin/jseiler/subfind_britton/'
 snapdir = '/lustre/projects/p134_swin/jseiler/simulations/1.6Gpc/means/halo_1721673/dm_gadget/data/'
@@ -178,7 +182,7 @@ def read_trees_onearray(treedir):
     return Halos 
    
 
-def plot_hmf_comparison(snaplow, snaphigh, treesdir):
+def plot_hmf_comparison(snaplow, snaphigh, treesdir, ax1):
 
     m_low = 6
     m_high = 12
@@ -225,11 +229,11 @@ def plot_hmf_comparison(snaplow, snaphigh, treesdir):
    
     count = 0
     for snapshot_idx in range(snaplow, snaphigh + 1): 
-        ax1 = plt.subplot(111) 
+
         # First Britton "
 
         cosmol = AllVars.Set_Params_Britton()
-        label = "Britton z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
+        label = "Subfind z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
         ax1.plot(bin_middle, np.multiply(tree_count_Britton[count] / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label, color = 'r')
         ax1.axvline(np.log10(AllVars.PartMass * 32 / AllVars.Hubble_h), ymin = -1, ymax = 1e5, color = 'r', linewidth = PlotScripts.global_linewidth, linestyle = '--') 
 
@@ -255,10 +259,14 @@ def plot_hmf_comparison(snaplow, snaphigh, treesdir):
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize(PlotScripts.global_legendsize)
 
+        outputFile = "./Linking0.20_BrittonFinal_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx])
+
+        '''
         if (use_PartMass == 0):
             outputFile = "./HMF_Trees/{1}_DivideLittleh_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
         else:
             outputFile = "./HMF_Trees/{1}_DivideLittleh_npart_TreeHMF_z{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx], simulation_tag)
+        '''
         plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
         plt.close()
@@ -612,29 +620,48 @@ def plot_progline(Halos, simulation, treedir=None):
         plt.close()
 
 
-def compare_halo_numbers(Halos):
-
-    print("Snapshot \t SUBFIND \t Trees \t Difference \t Ratio")
+def compare_halo_numbers(snaplow, snaphigh, rockstar_dir, Tiamat_dir):
 
     subfind_total = 0
-    tree_total = 0
+    Rockstar_total = 0
+    Tiamat_total = 0
 
-    for snapshot_idx in range(0, 92):
+    print("Note that Tiamat and Britton's simulation do not align perfectly with redshift values and we are looking at the SNAPSHOT numbers.")
+    for snapshot_idx in range(snaplow, snaphigh + 1):
         fname_subfind_groups = "{0}catalogs/subfind_{1:03d}.catalog_groups_properties/subfind_{1:03d}.catalog_groups_properties.0".format(subfind_dir, snapshot_idx)
 
+        ## SUBFIND ##
         with open(fname_subfind_groups, 'rb') as file_subfind_groups:
             file_number = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)
             n_files = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)
             N_groups_thisfile = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]
             N_groups_allfile = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)
 
-        w = np.where((Halos['SnapNum'] == snapshot_idx))[0]
-
         subfind_total += N_groups_allfile
-        tree_total += len(w)
 
-        print("{0:6d} \t {1:6d} \t {2:6d} \t {3:6d} \t {4:6.4f}".format(snapshot_idx, N_groups_allfile[0], len(w), N_groups_allfile[0] - len(w), len(w) / N_groups_allfile[0])) 
+        ## Rockstar ##
 
+        num_cores = 64
+        for core_idx in range(num_cores):
+            fname = "{0}halos_{2}.{1}.ascii".format(rockstar_dir, core_idx, snapshot_idx)
+            print("Reading from file {0}".format(fname))
+
+            ID, num_p, mvir, mbound_vir, rvir, vmax, rvmax, vrms, x, y, z, vx, vy, vz, Jx, Jy, Jz, E, Spin, PosUncertainty, VelUncertainty, bulk_vx, bulk_vy, bulk_vz, BulkVelUnc, n_core, m200b, m200c, m500c, m2500c, Xoff, Voff, spin_bullock, b_to_a, c_to_a, A_x, A_y, A_z, b_to_a_500c, c_to_a_500c, A_x_500c, A_y_500c, A_z_500c, Rs, Rs_Klypin, T_on_U, M_pe_Behroozi, M_pe_Diemer, idx, i_so, i_ph, num_cp, mmetric = np.loadtxt(fname, skiprows=20, unpack = True)
+
+            Rockstar_total += len(mvir) 
+       
+        ## Tiamat ##
+
+        for file_idx in range(27): 
+            Halos_Tiamat, dummy = read_trees_smallarray(Tiamat_dir, file_idx, 1)
+            w = np.where((Halos_Tiamat['SnapNum'] == snapshot_idx))[0]  
+            Tiamat_total += len(w)
+            print(len(w))
+        
+        print("Snapshot \t SUBFIND \t Rockstar \t Tiamat") 
+        print("{0:6d} \t {1:6d} \t {2:6d} \t {3:6d}".format(snapshot_idx, int(subfind_total), int(Rockstar_total), int(Tiamat_total))) 
+
+    '''
     subfind_total = int(subfind_total)
     tree_total = int(tree_total)
     print("======================")
@@ -642,7 +669,8 @@ def compare_halo_numbers(Halos):
     print("======================")
     print("SUBFIND \t Trees \t Difference \t Ratio")
     print("{0:6d} \t {1:6d} \t {2:6d} \t {3:6.4f}".format(subfind_total, tree_total, subfind_total - tree_total, tree_total / subfind_total)) 
-
+    '''
+    print("Done")
 
 def check_pointers(Halos, simulation, treedir=None):
 
@@ -684,6 +712,73 @@ def check_pointers(Halos, simulation, treedir=None):
 
         if len(w_thissnap != 0):
             print("{0:7d} \t {1:7d} \t {2:7d} \t {3:7.4f}".format(snapshot_idx, len(w_thissnap), len(w_firstprog_thissnap), len(w_firstprog_thissnap) / len(w_thissnap))) 
+
+def plot_rockstar_hmf(snaplow, snaphigh, base_dir, ax1, plot_comparison):
+
+    print("Plotting the HMF from Rockstar")
+    num_cores = 64
+    m_low = 6
+    m_high = 12 
+    NB = int((m_high - m_low)/bin_width)
+    
+    
+    m200b_count_total = np.zeros((NB), dtype = np.int64)
+    m500c_count_total = np.zeros((NB), dtype = np.int64)
+    halo_counts_trees_total = np.zeros((NB), dtype = np.int64)
+
+    cosmol = AllVars.Set_Params_Britton()
+
+    for snapshot_idx in range(snaplow + rank, snaphigh + 1, size): # Split up the snapshots over each processor.
+        redshift = AllVars.SnapZ[snapshot_idx]
+        for core_idx in range(num_cores):
+            fname = "{0}halos_{2}.{1}.ascii".format(base_dir, core_idx, snapshot_idx)
+            print("Reading from file {0}".format(fname))
+
+            ID, num_p, mvir, mbound_vir, rvir, vmax, rvmax, vrms, x, y, z, vx, vy, vz, Jx, Jy, Jz, E, Spin, PosUncertainty, VelUncertainty, bulk_vx, bulk_vy, bulk_vz, BulkVelUnc, n_core, m200b, m200c, m500c, m2500c, Xoff, Voff, spin_bullock, b_to_a, c_to_a, A_x, A_y, A_z, b_to_a_500c, c_to_a_500c, A_x_500c, A_y_500c, A_z_500c, Rs, Rs_Klypin, T_on_U, M_pe_Behroozi, M_pe_Diemer, idx, i_so, i_ph, num_cp, mmetric = np.loadtxt(fname, skiprows=20, unpack = True)
+            
+            Mvir = np.log10(mvir / AllVars.Hubble_h)
+            M200b = np.log10(m200b / AllVars.Hubble_h)
+            M500c = np.log10(m500c / AllVars.Hubble_h)
+
+            (m200b_count, bin_edges, bin_middle) = AllVars.Calculate_Histogram(M200b, bin_width, 0, m_low, m_high)
+            (m500c_count, bin_edges, bin_middle) = AllVars.Calculate_Histogram(M500c, bin_width, 0, m_low, m_high)
+            (halo_counts, bin_edges, bin_middle) = AllVars.Calculate_Histogram(Mvir, bin_width, 0, m_low, m_high)
+
+            m200b_count_total += m200b_count 
+            m500c_count_total += m500c_count 
+            halo_counts_trees_total += halo_counts 
+
+        title = "z = {0:.3f}".format(redshift)
+        ax1.set_title(title)
+
+        label = "Rockstar z = {0:.3f}".format(redshift)
+        ax1.plot(bin_middle, np.multiply(halo_counts_trees_total / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label)
+
+        #label = "m200b z = {0:.3f}".format(redshift)
+        #ax1.plot(bin_middle, np.multiply(m200b_count_total/ pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label)
+
+        #label = "m500c z = {0:.3f}".format(redshift)
+        #ax1.plot(bin_middle, np.multiply(m500c_count_total/ pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label)
+        ax1.axvline(np.log10(AllVars.PartMass * 32 / AllVars.Hubble_h), ymin = -1, ymax = 1e5, color = 'r', linewidth = PlotScripts.global_linewidth, linestyle = '--') 
+     
+        ax1.set_xlabel(r'$\log_{10}\ M_{H} \:[M_{\odot}]$', fontsize = PlotScripts.global_fontsize)
+        ax1.set_ylabel(r'$\left(\frac{dn}{d\log{M}}\right) \ [\mathrm{Mpc}^{-3}]$', fontsize = PlotScripts.global_fontsize)
+        ax1.set_ylim([1e-4, 1e3])
+        ax1.set_yscale('log', nonposy='clip')
+
+        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(PlotScripts.global_legendsize)
+
+
+        if (plot_comparison == 0):
+            outputFile = "./Rockstar_linking0.20_M200bc_z{0:.3f}.png".format(redshift)
+            plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+            print('Saved file to {0}'.format(outputFile))
+            plt.close()
+
+
 if __name__ == '__main__':
 
     if (len(sys.argv) != 4):
@@ -694,6 +789,8 @@ if __name__ == '__main__':
     snaphigh = int(sys.argv[2])
     simulation = int(sys.argv[3])
 
+    rockstar_dir = "/lustre/projects/p004_swin/jseiler/Rockstar_output/Britton_Halos_final_noLL/"
+    Tiamat_dir = "/lustre/projects/p070_astro/gpoole/Simulations/Tiamat/trees/version_nominal_res/vertical/"
     print("Running with snaplow = {0}, snaphigh = {1}, Simulation = {2}".format(snaplow, snaphigh, simulation))
 
     if (simulation == 0):
@@ -714,9 +811,10 @@ if __name__ == '__main__':
 #    if (simulation == 0):
 #        Halos = read_trees_onearray(treedir)
 
-    #compare_halo_numbers(Halos)
 
-   
+
+    #compare_halo_numbers(snaplow, snaphigh, rockstar_dir, Tiamat_dir)
+
     ''' 
     if (simulation == 0):
         check_pointers(Halos, simulation) 
@@ -728,8 +826,13 @@ if __name__ == '__main__':
     else:
         plot_progline(0, simulation, treedir)
     '''
-    
-    plot_hmf_comparison(snaplow, snaphigh, ["/lustre/projects/p134_swin/jseiler/subfind_britton/trees/britton_shifted/vertical", "/lustre/projects/p070_astro/gpoole/Simulations/Tiamat/trees/version_nominal_res/vertical/"]) 
+
+    ax1 = plt.subplot(111)
+
+    plot_comparison = 1 # 0 if we are plotting individual HMFs, 1 if we are plotting Rockstar, Tiamat and SUBFIND all on the same graph.
+
+    plot_rockstar_hmf(snaplow, snaphigh, rockstar_dir, ax1, plot_comparison)    
+    plot_hmf_comparison(snaplow, snaphigh, ["/lustre/projects/p134_swin/jseiler/subfind_britton/trees/britton_shifted/vertical", "/lustre/projects/p070_astro/gpoole/Simulations/Tiamat/trees/version_nominal_res/vertical/"], ax1) 
 
 #    plot_tree_hmf(snaplow, snaphigh, cosmol, treedir, simulation)    
 
