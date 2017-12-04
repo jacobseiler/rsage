@@ -32,7 +32,7 @@ import AllVars
 from mpi4py import MPI
 from tqdm import tqdm
 
-comm= MPI.COMM_WORLD
+comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
@@ -599,7 +599,7 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
             std = pooled_std_fesc[model_number]   
 
             ax1.plot(t, mean, color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)  
-            #ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = PlotScripts.colors[model_number], alpha = 0.25)
+            ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = PlotScripts.colors[model_number], alpha = 0.25)
 
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(PlotScripts.time_tickinterval))
         ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
@@ -1420,24 +1420,27 @@ def Calculate_HaloPartStellarMass(halo_part, stellar_mass, bound_low, bound_high
 ##
 
 
-def calculate_fesc(fesc_prescription, halo_mass, ejected_fraction, fesc_normalization):
+def calculate_fesc(fesc_prescription, fesc_normalization, halo_mass, ejected_fraction, quasar_activity_toggle):
     '''
     Calculate the escape fraction for a given prescription.
 
     Parameters
     ----------
     fesc_prescription : int
-    Number that controls what escape fraction prescription we are using.
-    0 : Constant, fesc = Constant.
-    1 : Scaling with Halo Mass, fesc = A*Mh^B.
-    2 : Scaling with ejected fraction, fesc = fej*A + B.
-    halo_mass : `numpy.darray'
-    Array that contains the halo masses for this snapshot. Units are log10(Msun).
-    ejected_fraction : `numpy.darray'
-    Array that contains the ejected fraction of the galaxies for this snapshot.
+        Number that controls what escape fraction prescription we are using.
+        0 : Constant, fesc = Constant.
+        1 : Scaling with Halo Mass, fesc = A*Mh^B.
+        2 : Scaling with ejected fraction, fesc = fej*A + B.
+        3 : Depending on quasar activity, fesc = A (if no quasar within 1 dynamical time) or fesc = B (if quasar event within 1 dynamical time).
     fesc_normalization : float (if fesc_prescription == 0) or `numpy.darray' with length 2 (if fesc_prescription == 1 or == 2).
-    If fesc_prescription == 0, gives the constant value for the escape fraction.
-    If fesc_prescription == 1 or == 2, gives A and B with the form [A, B].
+        If fesc_prescription == 0, gives the constant value for the escape fraction.
+        If fesc_prescription == 1 or == 2 or ==3, gives A and B with the form [A, B].
+    halo_mass : `numpy.darray'
+        Array that contains the halo masses for this snapshot. Units are log10(Msun).
+    ejected_fraction : `numpy.darray'
+        Array that contains the ejected fraction of the galaxies for this snapshot.
+    quasar_acitivity_toggle : `numpy.darray'
+        Array that contains whether there has been a quasar event within 1 dynamical time for each galaxy.
 
     Returns
     -------
@@ -1453,9 +1456,9 @@ def calculate_fesc(fesc_prescription, halo_mass, ejected_fraction, fesc_normaliz
         print "The length of the halo_mass array is %d and the length of the ejected_fraction array is %d" %(len(halo_mass), len(ejected_fraction))
         raise ValueError("These two should be equal.")
 
-    if(fesc_prescription > 2):
+    if(fesc_prescription > 3):
         print "The prescription value you've chosen is %d" %(fesc_prescription)
-        raise ValueError("Currently we only have prescriptions 0 (constant), 1 (scaling with halo mass) and 2 (scaling with ejected fraction).")
+        raise ValueError("Currently we only have prescriptions 0 (constant), 1 (scaling with halo mass), 2 (scaling with ejected fraction) and 3 (boosted by  quasar activity).")
 
     if((fesc_prescription == 0 and isinstance(fesc_normalization, list) == True)):
         print "The escape fraction prescription is 0 but fesc_normalization was a list with value of ", fesc_normalization
@@ -1471,6 +1474,9 @@ def calculate_fesc(fesc_prescription, halo_mass, ejected_fraction, fesc_normaliz
         fesc = fesc_normalization[0]*pow(10,halo_mass*fesc_normalization[1])
     elif (fesc_prescription == 2):
         fesc = fesc_normalization[0]*ejected_fraction + fesc_normalization[1]
+    elif (fesc_prescription == 3):
+        fesc = np.full((len(halo_mass)), fesc_normalization[0]) # Initialize to the base value.
+        fesc[quasar_activity_toggle == 1] = fesc_normalization[1] # Set the recent quasar galaxies to the boosted value.
 
     if len(fesc) != 0:
     ## Adjust bad values, provided there isn't a riduculous amount of them. ##  
@@ -1652,7 +1658,7 @@ calculate_observed_LF = 0
 
 number_models = 1
 
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/britton_gals/fiducial_SF0.05_z5.603'
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_IRA_z1.827'
 
 #galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
 #galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
@@ -1665,7 +1671,7 @@ galaxies_model1 = '/lustre/projects/p004_swin/jseiler/britton_gals/fiducial_SF0.
 #merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_IRA_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_Delayed5Myr_MergedGalaxies'
 
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/britton_gals/fiducial_SF0.05_MergedGalaxies'
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_IRA_MergedGalaxies'
 
 #merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
 #merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
@@ -1676,16 +1682,16 @@ merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/britton_gals/fiduci
 galaxies_filepath_array = [galaxies_model1]
 merged_galaxies_filepath_array = [merged_galaxies_model1]
 
-number_snapshots = [92] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
+number_snapshots = [164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 # Tiamat extended has 164 snapshots.
-FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
-LastFile = [124] # The last file number THAT WE ARE PLOTTING.
-NumFile = [125] # The number of files for this simulation (plotting a subset of these files is allowed). 
+FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
+LastFile = [1] # The last file number THAT WE ARE PLOTTING.
+NumFile = [27] # The number of files for this simulation (plotting a subset of these files is allowed). 
 
 #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
 #model_tags = [r"No SN", r"Delayed - 5Myr", r"Delayed - 10 Myr"]
 #model_tags = [r"IRA", r"Delayed - 5Myr", r"Delayed - 10Myr"]
-model_tags = [r"Britton"]
+model_tags = [r"Tiamat"]
 #model_tags = [r"IRA - 1 Step", r"IRA - 10 Step"]
 #model_tags = [r"Delayed - 1 Step", r"Delayed - 10 Step"]
 #model_tags =  [r"Delayed5Myr - $\alpha = 0.0075$", r"Delayed5Myr - $\alpha = 0.01$"]
@@ -1702,22 +1708,25 @@ halo_cut = [1, 1, 1, 1] # Only calculate galaxy properties whose host halo has p
 source_efficiency = [1, 1, 1, 1] # Used for the halo based prescription for ionizing emissivity.
 
 fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3] # Escape fraction of Lyman Alpha photons.
-fesc_prescription = [0] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction.
+fesc_prescription = [3] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity.
 
 ## Normalizations for the escape fractions. ##
 # For prescription 0, requires a number that defines the constant fesc.
 # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
 # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
+# For prescription 3, fesc = A (if no quasar within 1 dynamical time) or fesc = B (if quasar event within 1 dynamical time). Requires an array with 2 numbers the first being A and the second B.
+
 #fesc_normalization = [0.40, 0.40] 
-fesc_normalization = [0.5]
+fesc_normalization = [[0.5, 1.0]]
 #fesc_normalization = [0.50, [1000.0, -0.4], [1.0, 0.0]] 
 ##
 
-SnapList =  [[78, 64, 51]]
-#SnapList =  [[78, 64, 51], [78, 64, 51]]
+#SnapList =  [[78, 64, 51]]
+#SnapList =  [[78, 64, 51]]
+SnapList = [np.arange(0, 164)]
 #SnapList =  [[163], [163], [163]]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
-simulation_norm = [4] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish), 4 for Britton's Sim.
+simulation_norm = [3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish), 4 for Britton's Sim.
 
 stellar_mass_halolen_lower = [32, 95, 95, 95] # These limits are for the number of particles in a halo.  
 stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
@@ -1758,6 +1767,7 @@ mean_fesc_z_array = []
 std_fesc_z_array = []
 N_z = []
 galaxy_halo_mass_mean = []
+number_galaxies = []
 
 AllVars.Set_Params_Tiamat_extended()
 #for i in range(0, len(AllVars.SnapZ)-1):
@@ -1800,6 +1810,7 @@ for model_number in range(number_models):
     std_fesc_z_array.append([])
     N_z.append([])
     galaxy_halo_mass_mean.append([])
+    number_galaxies.append([])
 
     for snapshot_idx in range(len(SnapList[model_number])): # These arrays are used for cumulative values across all files.
         SMF[model_number].append(np.zeros((NB_gal), dtype = np.int32)) # Stellar Mass Function for each snapshot.
@@ -1819,7 +1830,8 @@ for model_number in range(number_models):
         std_fesc_z_array[model_number].append(0.0)
         N_z[model_number].append(0.0)
         galaxy_halo_mass_mean[model_number].append(0.0)
-    
+        number_galaxies[model_number].append(0.0)   
+ 
     for fnr in range(FirstFile[model_number] + rank, LastFile[model_number]+1, size): # Divide up the input files across the processors.
 
         ## These are instantaneous values for a single file. ##
@@ -1857,9 +1869,6 @@ for model_number in range(number_models):
 
         GG, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(galaxies_filepath_array[model_number], fnr, number_snapshots[model_number], comm) # Read in the correct galaxy file. 
 
-        print len(GG.HaloNr)
-       
-        
         G_Merged, Merged_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(merged_galaxies_filepath_array[model_number], fnr, number_snapshots[model_number], comm) # Also need the merged galaxies.
         G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc) # Then join them together for all galaxies that existed at this Redshift. 
 
@@ -1867,25 +1876,35 @@ for model_number in range(number_models):
         current_source_efficiency = source_efficiency[model_number]
         current_halo_cut = halo_cut[model_number]
 
+        ## These three arrays are used to control the escape fraction that depends upon quasar activity. ##
+        ## A galaaxy has the base escape fraction (specified by fesc_normalization[model_number][0]) but after a quasar event the escape fraction changes to fesc_normalization[model_number][1]. ##
+        ## This boosted escape fraction lasts a dynamical time. ##
+ 
+        QuasarActivityToggle = np.zeros((len(G))) # Array to specify whether the galaxy should have the base or boosted escape fraction.
+        QuasarSnapshot = np.full((len(G)), -1) # Array to keep track of when the quasar went off. Initialize to -1. 
+        TargetQuasarTime = np.zeros((len(G))) # Array to keep track of the amount of time we want to keep the boosted escape fraction for. This will be the dynamical time WHEN THE QUASAR GOES OFF. 
+
         for snapshot_idx in range(0, len(SnapList[model_number])):
         
             current_snap = SnapList[model_number][snapshot_idx]
 
             w_gal = np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridStellarMass[:, current_snap] < 1e5) & (G.GridCentralGalaxyMass[:, current_snap] >= m_low_SAGE) & (G.GridCentralGalaxyMass[:, current_snap] <=  m_high_SAGE) & (G.LenHistory[:, current_snap] > current_halo_cut) & (G.GridSFR[:, current_snap] >= 0.0))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
-            #w_gal = np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.GridStellarMass[:, current_snap] < 1e5) & (G.GridSFR[:, current_snap] >= 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut))[0]
-            #w_gal = np.where((G.GridHistory[:, current_snap] != -1))[0] 
       
             #print("There were {0} galaxies for snapshot {1} (Redshift {2}) model {3}.".format(len(w_gal), current_snap, AllVars.SnapZ[current_snap], model_number))
             print "There were %d galaxies for snapshot %d (Redshift %.4f) model %d." %(len(w_gal), current_snap, AllVars.SnapZ[current_snap], model_number)
-            
+           
+            if (len(w_gal) == 0): # If there aren't any galaxies for this snapshot, continue to the next one.
+                continue
+
+            number_galaxies[model_number][snapshot_idx] += len(w_gal)
             halo_count = G.LenHistory[w_gal, current_snap]
             mass_gal = np.log10(G.GridStellarMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h)
             SFR_gal = np.log10(G.GridSFR[w_gal, current_snap]) # Msun yr^-1.  Log Units.        
-        
+       
             halo_part_count = G.LenHistory[w_gal, current_snap]
             metallicity_gal = G.GridZ[w_gal, current_snap]  
             metallicity_tremonti_gal = np.log10(G.GridZ[w_gal, current_snap] / 0.02) + 9.0
-            mass_central = np.log10(G.GridCentralGalaxyMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h)   
+            mass_central = np.log10(G.GridCentralGalaxyMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h)  
             Mfilt_gnedin = G.MfiltGnedin[w_gal, current_snap]
             Mfilt_sobacchi = G.MfiltSobacchi[w_gal, current_snap]
             ejected_fraction = G.EjectedFraction[w_gal, current_snap]
@@ -1893,10 +1912,30 @@ for model_number in range(number_models):
             L_UV = SFR_gal + 39.927 # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
             M_UV = AllVars.Luminosity_to_ABMag(L_UV, 1600)
 
+            ## Here we do calculations involving the quasars temporarily boosting the escape fraction. ##
+            if (fesc_prescription[model_number] == 3): # Only do it if this model is using this escape fraction prescription.
+                for gal_idx in w_gal:
+                    ## Check to see if it's been a dynamical time since the quasar went off. ##
+                    if (QuasarActivityToggle[gal_idx] == 1): # Note, this block CANNOT execute on the first snapshot_idx.
+                        quasar_snap = QuasarSnapshot[gal_idx]
+                        assert(quasar_snap != -1)  
+                        dt = (float(AllVars.Lookback_Time[SnapList[model_number][quasar_snap]]) - float(AllVars.Lookback_Time[SnapList[model_number][snapshot_idx]])) # Time since the last quasar went off.
+                        assert(dt > 0.0) # Just make sure we're doing the lookback time difference correctly.
+                        if (dt >= TargetQuasarTime[gal_idx]): # If it has been longer than a dynamical time, turn the boosted escape fraction off.
+                            QuasarActivityToggle[gal_idx] = 0
+                            QuasarSnapshot[gal_idx] = -1
+                            TargetQuasarTime[gal_idx] = 0.0
+                    
+                    ## Check to see if any quasars went off during this snapshot. ##       
+                    if (G.QuasarActivity[gal_idx, current_snap] == 1): # If a quasar went off...
+                        QuasarActivityToggle[gal_idx] = 1 # Turn on the boosted escape fraction.
+                        QuasarSnapshot[gal_idx] = current_snap # Remember the snapshot that this quasar went off.
+                        TargetQuasarTime[gal_idx] = G.DynamicalTime[gal_idx, current_snap] # Keep track of how long we want the boosted escape fraction to last for.
+
             if (calculate_observed_LF == 1): # Calculate the UV extinction if requested. 
                 M_UV_obs = calculate_UV_extinction(AllVars.SnapZ[current_snap], L_UV, M_UV[snap_idx])
         
-            fesc_local = calculate_fesc(fesc_prescription[model_number], mass_central, ejected_fraction, fesc_normalization[model_number]) 
+            fesc_local = calculate_fesc(fesc_prescription[model_number], fesc_normalization[model_number], mass_central, ejected_fraction, QuasarActivityToggle[w_gal]) 
             
             galaxy_halo_mass_mean_local, galaxy_halo_mass_std_local = Calculate_HaloPartStellarMass(halo_part_count, mass_gal, stellar_mass_halolen_lower[model_number], stellar_mass_halolen_upper[model_number])
             galaxy_halo_mass_mean[model_number][snapshot_idx] += pow(10, galaxy_halo_mass_mean_local) / LastFile[model_number] + 1 
@@ -1918,6 +1957,7 @@ for model_number in range(number_models):
 
             mean_fesc_z_array[model_number][snapshot_idx] = np.mean(fesc_local)
             std_fesc_z_array[model_number][snapshot_idx] = np.std(fesc_local)
+            print "Mean fesc = %.4f, std fesc = %.4f" %(np.mean(fesc_local), np.std(fesc_local))
 
             (mean_Ngamma_halo_local, std_Ngamma_halo_local, N_local, bin_middle) = AllVars.Calculate_2D_Mean(mass_central, ionizing_photons, bin_width, m_low, m_high) # Do the same for the escape fraction as a function of halo mass.
 
@@ -1931,10 +1971,12 @@ for model_number in range(number_models):
             N_z[model_number][snapshot_idx] += len(w_gal)
             N_array[model_number][snapshot_idx] += N_local 
 
+
+print "The number of galaxies for each snapshot is", number_galaxies
     
-StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, "Britton_reion_SMF_SF0.05") ## PARALLEL COMPATIBLE
+#StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, "Britton_reion_SMFTEST") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
-#plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "DelayedComp_fejfesc") ## PARALELL COMPATIBLE 
+plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "DelayedComp_fejfesc") ## PARALELL COMPATIBLE 
 #plot_photoncount(SnapList, sum_Ngamma_z_array, FirstFile, LastFile, NumFile, model_tags, "DelayedComp_Ngamma_fejfesc") ## PARALELL COMPATIBLE
 #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 

@@ -322,7 +322,7 @@ def Set_Params_Tiamat():
     print("Hubble_h = %.3f" %(Hubble_h))
     print("Omega_m = %.3f" %(Omega_m))
     print("Omega_L = %.3f" %(Omega_L))
-    print("BaryonFrac = %.3f" %(BaryonFrac))
+    print("BaronFrac = %.3f" %(BaryonFrac))
     print("t_BigBang = %.3f Gyr" %(t_BigBang))
     print("######################")
 
@@ -342,6 +342,7 @@ def Set_Params_Tiamat_extended():
     global SnapZ
     global BaryonFrac
     global Y
+    global PartMass
 
     global SnapZ
     global Lookback_Time
@@ -358,6 +359,7 @@ def Set_Params_Tiamat_extended():
     BaryonFrac = 0.17
     Y = 0.24   
  
+    PartMass = 2.6438e6 # Msun/h 
     SnapZ = [49.000000,     35.000001,      32.025452,      29.597752,      27.571988,      25.851283,      24.368212,
              23.074276,     21.933618,      20.919111,      20.009818,      19.189299,      18.444455,      17.764701,
              17.141388,     16.567374,      16.036700,      15.544359,      15.086102,      14.658304,      14.257849,
@@ -394,6 +396,7 @@ def Set_Params_Tiamat_extended():
     print("Omega_L = %.3f" %(Omega_L))
     print("BaryonFrac = %.3f" %(BaryonFrac))
     print("t_BigBang = %.3f Gyr" %(t_BigBang))
+    print("PartMass = %.3f Msun/h" %(PartMass))
     print("######################")
 
     return cosmo
@@ -458,6 +461,7 @@ def Set_Params_Britton():
     global SnapZ
     global BaryonFrac
     global Y
+    global PartMass
 
     global SnapZ
     global Lookback_Time
@@ -469,14 +473,13 @@ def Set_Params_Britton():
     Omega_m = 0.285
     Omega_L = 0.715
     Omega_b = 0.0
-    BoxSize = 52.0 # Mpc/h
+    BoxSize = 50.0 # Mpc/h
     Volume = BoxSize**3
     BaryonFrac = 0.17
     Y = 0.24   
-    PartMass = 1.151e6 
+    PartMass = 1.151e6 # Msun/h 
 
-    #a = np.loadtxt("/lustre/projects/p004_swin/bsmith/1.6Gpc/means/halo_1721673/dm_gadget/outputs.dat")      
-    a = np.loadtxt("/lustre/projects/p134_swin/jseiler/subfind_britton/trees/britton/a_list.txt")
+    a = np.loadtxt("/lustre/projects/p134_swin/jseiler/subfind_britton/trees/britton_shifted/a_list.txt")
     SnapZ = 1.0/a - 1
        
     cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
@@ -491,6 +494,7 @@ def Set_Params_Britton():
     print("Omega_L = %.3f" %(Omega_L))
     print("BaryonFrac = %.3f" %(BaryonFrac))
     print("t_BigBang = %.3f Gyr" %(t_BigBang))
+    print("PartMass = %.3f Msun/h" %(PartMass))
     print("######################")
                                  
     return cosmo
