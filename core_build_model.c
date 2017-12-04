@@ -308,6 +308,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
     // Loop over all galaxies in the halo 
     for(p = 0; p < ngal; p++)
     {
+      //printf("Dynamical time for galaxy %d is %.4f\n", Gal[p].SnapNum, Gal[p].Rvir / Gal[p].Vvir * UnitTime_in_Megayears);
       // Don't treat galaxies that have already merged 
       if(Gal[p].mergeType > 0)
         continue;

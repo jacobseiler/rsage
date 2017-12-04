@@ -134,12 +134,18 @@ void load_tree(int filenr, int nr)
       Max_Halo = Halo[i].Mvir;
     if(Halo[i].Mvir < Min_Halo)
       Min_Halo = Halo[i].Mvir;
+   
     //if(Halo[i].NextHaloInFOFgroup != -1)
      // fprintf(stderr, "%d\n", nr);
   
-   // fprintf(stderr, "Halo: %d. FirstProg = %d, NextProg = %d, FirstHaloInFOFgroup = %d, NextHaloInFOFgroup = %d SnapNum = %d, Mvir = %.4e\n", i, Halo[i].FirstProgenitor, Halo[i].NextProgenitor, Halo[i].FirstHaloInFOFgroup, Halo[i].NextHaloInFOFgroup, Halo[i].SnapNum, Halo[i].Mvir);
     //if(Halo[i].FirstProgenitor != -1)
     //XASSERT(Halo[i].SnapNum != Halo[Halo[i].FirstProgenitor].SnapNum, "Halo[%d].SnapNum = %d, Halo[%d].FirstProgenitor = %d, Halo[Halo[%d].FirstProgenitor].SnapNum = %d\n", i, Halo[i].SnapNum, i, Halo[i].FirstProgenitor, i, Halo[Halo[i].FirstProgenitor].SnapNum);
+  /* 
+    if (Halo[i].FirstProgenitor== -1)
+    {
+      fprintf(stderr, "Halo: %d. FirstProg = %d, NextProg = %d, FirstHaloInFOFgroup = %d, NextHaloInFOFgroup = %d SnapNum = %d, Mvir = %.4e\n", i, Halo[i].FirstProgenitor, Halo[i].NextProgenitor, Halo[i].FirstHaloInFOFgroup, Halo[i].NextHaloInFOFgroup, Halo[i].SnapNum, Halo[i].Mvir);
+    }
+    */
     HaloAux[i].DoneFlag = 0;
     HaloAux[i].HaloFlag = 0;
     HaloAux[i].NGalaxies = 0;
@@ -168,7 +174,6 @@ void free_galaxies_and_tree(void)
     {
 
       //XPRINT(HaloGal[i].GridHistory[j] != 0, "Had a GridHistory index of 0 for HaloGal %d at Snapshot %d \t GridHistory = %d\n", i, j, HaloGal[i].GridHistory[j]);
-      double tmp = HaloGal[i].LenHistory[j];
       if(HaloGal[i].GridHistory[j] != -1)
       {
 	//fprintf(stderr, "For HaloGal[%d], SnapHistory[%d] is not -1\n", i, j);
@@ -230,6 +235,8 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->GridOutflowRate);
   free(g->GridInfallRate);
   free(g->GridEjectedMass);
+  free(g->QuasarActivity);
+  free(g->DynamicalTime);
 
   g->IsMalloced = 0;
 }
@@ -327,6 +334,19 @@ void malloc_grid_arrays(struct GALAXY *g)
     exit(EXIT_FAILURE);
   }
 
+  g->QuasarActivity = malloc(sizeof(*(g->QuasarActivity)) * (MAXSNAPS));
+  if (g->QuasarActivity == NULL)
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate QuasarActivity.\n", sizeof(*(g->QuasarActivity)) * MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  g->DynamicalTime = malloc(sizeof(*(g->DynamicalTime)) * (MAXSNAPS));
+  if (g->DynamicalTime == NULL)
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate DynamicalTime.\n", sizeof(*(g->DynamicalTime)) * MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
 
   g->IsMalloced = 1;
 }

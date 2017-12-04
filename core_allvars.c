@@ -167,3 +167,9 @@ int *gal_to_free;
 int small_steps;
 int large_steps;
 int times_written;
+
+int outside_box;
+int inside_box;
+
+int count_Mvir;
+int count_Len;

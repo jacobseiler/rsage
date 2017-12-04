@@ -109,6 +109,8 @@ void init_galaxy(int p, int halonr)
     Gal[p].GridOutflowRate[j] = 0.0;
     Gal[p].GridInfallRate[j] = 0.0;
     Gal[p].GridEjectedMass[j] = 0.0;
+    Gal[p].QuasarActivity[j] = 0;
+    Gal[p].DynamicalTime[j] = 0.0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -185,12 +187,12 @@ double get_virial_mass(int halonr)
 {
   if(halonr == Halo[halonr].FirstHaloInFOFgroup && Halo[halonr].Mvir >= 0.0)
   {
-
+    ++count_Mvir;
     return Halo[halonr].Mvir;   /* take spherical overdensity mass estimate */
   } 
   else
-  {
-
+  {    
+    ++count_Len;
     return Halo[halonr].Len * PartMass;
   }
 }
@@ -249,8 +251,12 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 
     if(grid_position > CUBE(GridSize) || grid_position < 0) // Sanity check to ensure that no Grid Positions are outside the box.
     {
-	fprintf(stderr, "Found a Grid Position outside the bounds of the box or negative; grid_position = %d, Galaxy Index = %d, halonr = %d\n", grid_position, p, halonr);
-	exit(0);
+	  //  fprintf(stderr, "Found a Grid Position outside the bounds of the box or negative; grid_position = %d, Galaxy Index = %d, halonr = %d\n", grid_position, p, halonr);
+      ++outside_box;
+    }
+    else 
+    {
+      ++inside_box;
     }
 
     Gal[p].GridPos = grid_position; 
@@ -295,7 +301,10 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
       exit(EXIT_FAILURE);
     }
     if (Gal[p].EjectedMass > 0.0)
+    {
         Gal[p].GridEjectedMass[SnapCurr] += Gal[p].EjectedMass; 
+    }
 
+    Gal[p].DynamicalTime[SnapCurr] = Gal[p].Rvir / Gal[p].Vvir; 
 }
 

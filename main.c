@@ -205,7 +205,10 @@ int main(int argc, char **argv)
   printf("There was %d firstSF and %d notfirstSF\n", count_firstSF, count_notfirstSF);
   fprintf(stderr, "There was %d Star formation steps less than 50Myr and %d steps above 50Myr giving a ratio of %.4e \n", small_steps, large_steps, (float) large_steps/(float) small_steps); 
   fprintf(stderr, "Write grid array was called %d times.\n", times_written);
+  fprintf(stderr, "There were %d galaxies outside box compared to %d inside\n", outside_box, inside_box);
   gsl_rng_free(random_generator); 
+
+  fprintf(stderr, "Returned Mvir %d times compared to Len %d times\n", count_Mvir, count_Len);
   return 0;
 }
 

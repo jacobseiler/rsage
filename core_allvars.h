@@ -217,6 +217,8 @@ struct GALAXY
   float *GridOutflowRate;
   float *GridInfallRate;
   float *GridEjectedMass;
+  int *QuasarActivity;
+  float *DynamicalTime; 
 
   double StellarAge_Numerator;
   double StellarAge_Denominator;
@@ -432,8 +434,13 @@ extern int ismerged_frees;
 
 extern int *gal_to_free;
 
-
 extern int small_steps;
 extern int large_steps;
 extern int times_written;
+
+extern int outside_box;
+extern int inside_box;
+
+extern int count_Mvir;
+extern int count_Len;
 #endif  // #ifndef ALLVARS_H

@@ -48,6 +48,11 @@ void init(void)
 
   count = 0;
 
+  outside_box = 0;
+  inside_box = 0;
+
+  count_Mvir = 0;
+  count_Len = 0;
   if (IMF == 1)
   {
     // Salpeter IMF //

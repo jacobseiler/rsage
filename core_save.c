@@ -313,6 +313,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   free(outflow_tmp);  
 
   float *infall_tmp= malloc(sizeof(*(g->GridInfallRate)) * MAXSNAPS);
+  XASSERT(g->GridInfallRate != NULL, "GridInfallRate has a NULL pointer.\n");
   for (j = 0; j < MAXSNAPS; ++j)
   {
     infall_tmp[j] = g->GridInfallRate[j] * SFR_conversion; 
@@ -328,6 +329,23 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   nwritten = fwrite(g->GridEjectedMass, sizeof(*(g->GridEjectedMass)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing GridEjectedMass, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
+
+  XASSERT(g->QuasarActivity != NULL, "QuasarActivity has a NULL pointer.\n"); 
+  nwritten = fwrite(g->QuasarActivity, sizeof(*(g->QuasarActivity)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing QuasarActivity, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
+
+  float *dynamical_tmp = malloc(sizeof(*(g->DynamicalTime)) * MAXSNAPS);
+  XASSERT(g->DynamicalTime != NULL, "DynamicalTime has a NULL pointer.\n"); 
+  for (j = 0; j < MAXSNAPS; ++j)
+  {
+    dynamical_tmp[j] = g->DynamicalTime[j] * UnitTime_in_Megayears;
+  }
+  
+  nwritten = fwrite(dynamical_tmp, sizeof(*(g->DynamicalTime)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing DynamicalTime, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
+  free(dynamical_tmp);
  
   ++times_written;
 
@@ -335,7 +353,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 
 void finalize_galaxy_file(int filenr)
 {
-  int n, i;
+  int n;
 
   for(n = 0; n < NOUT; n++)
   {

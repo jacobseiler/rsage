@@ -136,6 +136,8 @@ void quasar_mode_wind(int gal, float BHaccrete)
 
     Gal[gal].ColdGas = 0.0;
     Gal[gal].MetalsColdGas = 0.0;
+
+    Gal[gal].QuasarActivity[Gal[gal].SnapNum] = 1; // Record that there was enough energy to eject cold gas.
   }
   
   // compare quasar wind and cold+hot gas energies and eject hot
@@ -326,6 +328,8 @@ void add_galaxy_to_merger_list(int p)
       MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j];
       MergedGal[MergedNr].GridInfallRate[j] = Gal[p].GridInfallRate[j];
       MergedGal[MergedNr].GridEjectedMass[j] = Gal[p].GridEjectedMass[j];
+      MergedGal[MergedNr].QuasarActivity[j] = Gal[p].QuasarActivity[j];
+      MergedGal[MergedNr].DynamicalTime[j] = Gal[p].DynamicalTime[j];
     }
  
     for (j = 0; j < SN_Array_Len; ++j)
