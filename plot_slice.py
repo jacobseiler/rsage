@@ -2272,14 +2272,13 @@ if __name__ == '__main__':
 
     model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$"]
 
-    output_tags = [r"Summing_Test_Full", r"Densfield_Full"]    
+    output_tags = [r"Summing_Test_Full"]
 #    output_tags = [r"Densfield_full_Snap20"]
 #    output_tags = [r"densgrid_snapshot020_full"]
  
-    number_models = 2
+    number_models = 1
 
     simulation_model1 = 5 # Which simulation are we using?
-    simulation_model2 = 5 # Which simulation are we using?
     # 0 : Mysim (Manodeep's original simulation run).
     # 2 : Tiamat (down to z = 5).
     # 4 : Simfast21 (deprecated).
@@ -2288,26 +2287,23 @@ if __name__ == '__main__':
     model = 'Britton'
 
     GridSize_model1 = 256
-    GridSize_model2 = 256
     
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
-    precision_model2 = 2 # 0 for int reading, 1 for float, 2 for double.
 
     #filepath_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_constantfesc"
    
     #filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/sage_Galaxies_IRA_z5.000_fesc0.50_HaloPartCut100_nionHI"
 
-    filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/densfield_test/chunks/summing_test"
-    filepath_density_model2 = "/lustre/projects/p134_swin/jseiler/densfield_test/newtest_snap020_full"
+    filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/densfield_test/chunks/summing_snap000.dens.dat"
      
     #filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_constantfesc"
 
-    simulation_norm = [simulation_model1, simulation_model2]
-    precision_array = [precision_model1, precision_model2,]
-    GridSize_array = [GridSize_model1, GridSize_model2]
+    simulation_norm = [simulation_model1]
+    precision_array = [precision_model1]
+    GridSize_array = [GridSize_model1]
 #    ionized_cells_filepath_array = [filepath_model1]
 #    nion_filepath_array = [filepath_nion_model1]
-    density_filepath_array = [filepath_density_model1, filepath_density_model2]
+    density_filepath_array = [filepath_density_model1]
 #    photofield_filepath_array = [filepath_photofield_model1]
     
 
@@ -2320,7 +2316,7 @@ if __name__ == '__main__':
         os.makedirs(OutputDir)
 
     #snaplist = np.arange(0, len(AllVars.SnapZ)) 
-    snaplist = [20] 
+    snaplist = [0] 
     #snaplist = np.arange(20, 50)
 
     ZZ = np.empty(len(snaplist))
@@ -2428,7 +2424,7 @@ if __name__ == '__main__':
         #nion_path = nion_filepath_array[model_number] + number_tag_mine 
         #nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))		
 
-        density_path = density_filepath_array[model_number] + number_tag_mine
+        density_path = density_filepath_array[model_number] #+ number_tag_mine
         density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))		
 
         #		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
@@ -2445,7 +2441,7 @@ if __name__ == '__main__':
 	
         #plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snapshot_idx))
         #density_array[model_number] = density_array[model_number] + 1
-        #plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
+        plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
         #plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
         #fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
@@ -2488,11 +2484,6 @@ if __name__ == '__main__':
         #photo_std_array[model_number][snapshot_idx] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
  
     #print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
-
-    diff = np.abs(density_array[0] - density_array[1])
-
-    w = np.where((diff > 1e-14))[0]
-    print(len(w)) 
 
     '''
     for model_number in range(0, number_models):

@@ -254,8 +254,6 @@ def calculate_pooled_stats(mean_pool, std_pool, mean_local, std_local, N_local):
             N_pool = None
             N_times_var_pool = None
 
-        print("I am rank {0} and my standard deviation is {1}".format(rank, std_local))
-
         comm.Barrier()
         comm.Reduce([N_times_mean_local, MPI.FLOAT], [N_times_mean_pool, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum the arrays across processors.
         comm.Reduce([N_local, MPI.FLOAT],[N_pool, MPI.FLOAT], op = MPI.SUM, root = 0)   
@@ -285,7 +283,6 @@ def calculate_pooled_stats(mean_pool, std_pool, mean_local, std_local, N_local):
             else:
                 std_pool_function[i] = np.sqrt(np.divide(N_times_var_pool[i], N_pool[i]))
        
-        print("I am rank {0} and my final std is {1}".format(rank, std_pool_function))
         mean_pool.append(mean_pool_function)
         std_pool.append(std_pool_function)
 
@@ -637,7 +634,7 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
 
 ##
 
-def plot_fesc_galaxy(SnapList, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, model_tags, output_tag):
+def plot_fesc_galaxy(SnapList, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, ResolutionLimit_mean, model_tags, output_tag):
     '''
     Plots the escape fraction as a function of stellar mass.
     Parallel compatible.
@@ -649,6 +646,8 @@ def plot_fesc_galaxy(SnapList, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc,
         Snapshots for each model. 
     mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc : Nested 3-dimensional array, mean_galaxy_fesc[model_number0][snapshot0]  = [bin0_meanfesc, ..., binN_meanfesc], with length equal to the number of models. 
         Mean/Standard deviation for fesc in each stellar mass bin, for each [model_number] and [snapshot_number]. N_galaxy_fesc is the number of galaxies placed into each mass bibn. 
+    ResolutionLimit_mean : array of floats with the same shape as mean_galaxy_fesc.
+        This is the mean stellar mass for a halo with len (number of N-body simulation particles) between 'stellar_mass_halolen_lower' and 'stellar_mass_halolen_upper'. 
     model_tags : array of strings with length equal to the number of models.
         Strings that contain the tag for each model.  Will be placed on the plot.
     output_tag : string
@@ -687,18 +686,25 @@ def plot_fesc_galaxy(SnapList, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc,
             mean_fesc_array[model_number], std_fesc_array[model_number] = calculate_pooled_stats(mean_fesc_array[model_number], std_fesc_array[model_number], mean_galaxy_fesc[model_number][snapshot_idx], std_galaxy_fesc[model_number][snapshot_idx], N_galaxy_fesc[model_number][snapshot_idx]) 
 
             bin_middle_array[model_number].append(np.arange(m_gal_low, m_gal_high+bin_width, bin_width)[:-1] + bin_width * 0.5)
+            print("For snapshot {0} the fesc is {1}".format(SnapList[model_number][snapshot_idx], mean_fesc_array[model_number]))
             print("For snapshot {0} the total number of galaxies per bin is {1}".format(SnapList[model_number][snapshot_idx], N_galaxy_fesc[model_number][snapshot_idx])) 
  
     if rank == 0:
         f = plt.figure()  
         ax1 = plt.subplot(111)  
-
+        ax2 = ax1.twinx()
+        
         for model_number in range(0, len(SnapList)):
             for snapshot_idx in range(0, len(SnapList[model_number])): 
                 ax1.plot(bin_middle_array[model_number][snapshot_idx], mean_fesc_array[model_number][snapshot_idx], color = PlotScripts.colors[snapshot_idx], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = redshift_labels[model_number][snapshot_idx], linewidth = PlotScripts.global_linewidth) 
+                ax2.plot(bin_middle_array[model_number][snapshot_idx], N_galaxy_fesc[model_number][snapshot_idx], color = PlotScripts.colors[snapshot_idx], linestyle = '-.', rasterized = True, linewidth = PlotScripts.global_linewidth)
 
         for model_number in range(0, len(SnapList)): # Just plot some garbage to get the legend labels correct.
             ax1.plot(np.nan, np.nan, color = 'k', linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)
+
+        ax1.axvline(np.min(np.log10(ResolutionLimit_mean)), color = 'k', linewidth = PlotScripts.global_linewidth, linestyle = '--')    
+        ax1.text(np.min(np.log10(ResolutionLimit_mean)) + 0.1, 0.4, "Resolution Limit", color = 'k')
+        ax1.axhline(0.5, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '--')
 
         ax1.set_xlabel(r'$\log_{10}\ M_*\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
         ax1.set_ylabel(r'$\mathrm{Ejected \: Fraction}$', size = PlotScripts.global_fontsize)
@@ -708,6 +714,8 @@ def plot_fesc_galaxy(SnapList, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc,
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.1))
         ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
         
+        ax2.set_yscale('log', nonposy='clip')
+
         leg = ax1.legend(loc=1, numpoints=1, labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
@@ -1729,35 +1737,11 @@ def update_cumulative_stats(mean_pool, std_pool, N_pool, mean_local, std_local, 
 #################################
 ### Here starts the main body of the code. ###
 
-HaloPart_Low = 50 # Bounds for where we define the cutoff for a 'Dark Matter Halo'. Below this we can't be sure of the results.
-HaloPart_High = 52
-
-calculate_observed_LF = 0
-
-### The arrays in this block control constants for each model ##
-
 number_models = 1
 
 galaxies_model1 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_IRA_z1.827'
 
-#galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
-#galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_z1.827'
-#galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_z1.827'
-#galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/galaxies/tiamat_test_z1.827'
-#galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.01_z1.827'
-#galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_IRA_z5.000'
-#galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_Delayed5Myr_z5.000'
-
-#merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_IRA_MergedGalaxies'
-#merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/mysim_Delayed5Myr_MergedGalaxies'
-
 merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_IRA_MergedGalaxies'
-
-#merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
-#merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed10Myr_10step_MergedGalaxies'
-#merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.0075_MergedGalaxies'
-#merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/18month/galaxies/tiamat_test_MergedGalaxies'
-#merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/september/galaxies/tiamat_Delayed5Myr_SF0.01_MergedGalaxies'
 
 galaxies_filepath_array = [galaxies_model1]
 merged_galaxies_filepath_array = [merged_galaxies_model1]
@@ -1765,16 +1749,10 @@ merged_galaxies_filepath_array = [merged_galaxies_model1]
 number_snapshots = [164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 # Tiamat extended has 164 snapshots.
 FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
-LastFile = [1] # The last file number THAT WE ARE PLOTTING.
+LastFile = [26] # The last file number THAT WE ARE PLOTTING.
 NumFile = [27] # The number of files for this simulation (plotting a subset of these files is allowed). 
 
-#model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
-#model_tags = [r"No SN", r"Delayed - 5Myr", r"Delayed - 10 Myr"]
-#model_tags = [r"IRA", r"Delayed - 5Myr", r"Delayed - 10Myr"]
 model_tags = [r"Tiamat"]
-#model_tags = [r"IRA - 1 Step", r"IRA - 10 Step"]
-#model_tags = [r"Delayed - 1 Step", r"Delayed - 10 Step"]
-#model_tags =  [r"Delayed5Myr - $\alpha = 0.0075$", r"Delayed5Myr - $\alpha = 0.01$"]
 
 for model_number in range(0,number_models):
     assert(LastFile[model_number] - FirstFile[model_number] + 1 >= size)
@@ -1796,20 +1774,18 @@ fesc_prescription = [3] # 0 is constant, 1 is scaling with halo mass, 2 is scali
 # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
 # For prescription 3, fesc = A (if no quasar within 1 dynamical time) or fesc = B (if quasar event within 1 dynamical time). Requires an array with 2 numbers the first being A and the second B.
 
-#fesc_normalization = [0.40, 0.40] 
 fesc_normalization = [[0.5, 1.0]]
-#fesc_normalization = [0.50, [1000.0, -0.4], [1.0, 0.0]] 
+
 ##
 
-#SnapList =  [[51, 64, 78]]
-SnapList = [np.arange(0, 164)]
-#SnapList =  [[163], [163], [163]]
+SnapList =  [[51, 64, 78]]
+#SnapList = [np.arange(0, 164)]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
 simulation_norm = [3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish), 4 for Britton's Sim.
 
 stellar_mass_halolen_lower = [32, 95, 95, 95] # These limits are for the number of particles in a halo.  
 stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
-
+calculate_observed_LF = 0
 ##############################################################################################################
 
 files = [galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, model_tags, SnapList]
@@ -2071,10 +2047,10 @@ for model_number in range(number_models):
             std_fesc_z_array[model_number][snapshot_idx] = np.std(fesc_local)
             N_z[model_number][snapshot_idx] += len(w_gal)
                 
-#StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, "Britton_reion_SMFTEST") ## PARALLEL COMPATIBLE
+#StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, "Tiamat") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
-plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "DelayedComp_fejfesc") ## PARALELL COMPATIBLE 
-#plot_fesc_galaxy(SnapList, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, model_tags, "QuasarTest") 
+#plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "DelayedComp_fejfesc") ## PARALELL COMPATIBLE 
+plot_fesc_galaxy(SnapList, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, galaxy_halo_mass_mean, model_tags, "QuasarTest") 
 #plot_photoncount(SnapList, sum_Ngamma_z_array, FirstFile, LastFile, NumFile, model_tags, "DelayedComp_Ngamma_fejfesc") ## PARALELL COMPATIBLE
 #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 
