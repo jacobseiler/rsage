@@ -590,7 +590,10 @@ def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
 def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x = None):     
 
     '''
-    Calculates the mean of the y-data that lies within binned x-data.   
+    Calculates the mean of the y-data that lies within binned x-data.  
+ 
+    Note: Scipy.binned_statistic returns NaN when there are no data points within the bin.  
+    I have adjusted this so it returns 0.0 instead so I can collate the data properly.    
 
     Parameters
     ----------
@@ -644,7 +647,10 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
     N_data_y, bin_edges, bin_number = stats.binned_statistic(data_x, data_y, statistic='count', bins = bins)
     std_data_y, bin_edges, bin_number = stats.binned_statistic(data_x, data_y, statistic=np.std, bins = bins)
     
-    return mean_y, std_y, N, bins_mid
+    mean_data_y[N_data_y == 0] = 0.0
+    std_data_y[N_data_y == 0] = 0.0   
+ 
+    return mean_data_y, std_data_y, N_data_y, bins_mid
  
 ##
 
