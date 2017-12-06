@@ -4,6 +4,7 @@ from __future__ import print_function
 import numpy as np
 from astropy import units as u
 from astropy import cosmology
+from scipy import stats
 
 def set_cosmology(Hubble_h, Omega_m):
 	
@@ -593,24 +594,24 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
 
     Parameters
     ----------
-    data_x : `numpy.darray'
-    Data that will be binned and provide the bins for the y-mean.
-    data_y : `numpy.darray'
-    Data that will be averaged in each of the bins defined by the x-data.
+    data_x : array-like 
+        Data that will be binned and provide the bins for the y-mean.
+    data_y : array-like 
+        Data that will be averaged in each of the bins defined by the x-data.
     bin_width : float
-    Width of each x-bin.
+        Width of each x-bin.
     min_hist_x, max_hist_x: float (optional)
-    Defines the x-bounds that we will be binning over.
-    If no values defined, range will be the minimum/maximum data point +/- 10 times the bin_width.
+        Defines the x-bounds that we will be binning over.
+        If no values defined, range will be the minimum/maximum data point +/- 10 times the bin_width.
 
     Returns
     -------
-    mean_data_y, std_data_y : `numpy.darray'    
-    Arrays that contain the mean and standard deviation for the y-data as binned by the x-data.
-    N_data_y : `numpy.darray'
-    Array that contains the number of data points in each x-bin.    
-    bins_mid : `numpy.darray'
-    The mid-point coordinate for the x-bins. 
+    mean_data_y, std_data_y : array-like 
+        Arrays that contain the mean and standard deviation for the y-data as binned by the x-data.
+    N_data_y : array-like 
+        Array that contains the number of data points in each x-bin.    
+    bins_mid : array-like 
+        The mid-point coordinate for the x-bins. 
 
     Units
     -----
@@ -639,33 +640,11 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
     bins_mid = bins + bin_width/2.0
     bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.   
 
-    bins_x = np.digitize(data_x, bins) # Provides the indices for which bin each x-data point belongs to.
-    N_data_y = np.zeros((len(bins)))  
+    mean_data_y, bin_edges, bin_number = stats.binned_statistic(data_x, data_y, statistic='mean', bins = bins)
+    N_data_y, bin_edges, bin_number = stats.binned_statistic(data_x, data_y, statistic='count', bins = bins)
+    std_data_y, bin_edges, bin_number = stats.binned_statistic(data_x, data_y, statistic=np.std, bins = bins)
+    
+    return mean_y, std_y, N, bins_mid
  
-    data_y_binned = []
-    for i in range(0, len(bins)): 
-        data_y_binned.append([])
-    for i in range(0, len(data_x)):
-        idx = bins_x[i]
-        if idx == len(data_y_binned): # Fixes up binning index edge case.
-            idx -= 1
-
-        data_y_binned[idx].append(data_y[i])
-        N_data_y[idx] += 1 
-
-    mean_data_y = np.zeros((len(bins))) 
-    std_data_y = np.zeros((len(bins))) 
-
-    for i in range(0, len(bins)):
-        if len(data_y_binned[i]) != 0: # If there was any y-data placed into this bin. 
-            mean_data_y[i] = np.mean(data_y_binned[i])
-            std_data_y[i] = np.std(data_y_binned[i])
-            
-        else: # Otherwise if there were no data points, simply fill it with a nan.
-            mean_data_y[i] = 0.0 
-            std_data_y[i] = 0.0
-
-    return mean_data_y[:-1], std_data_y[:-1], N_data_y[:-1], bins_mid
-
 ##
 
