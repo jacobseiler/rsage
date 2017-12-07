@@ -43,7 +43,7 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
 {
   double mi, ma, mass_ratio;
 
-  XASSERT(Gal[merger_centralgal].IsMerged == -1, "We are trying to merge a galaxy into another galaxy that has already merged.\np = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d \t Gal[merger_centralgal].mergeType = %d \t Gal[merger_centralgal].IsMerged = %d \t GalaxyNr = %d \t halonr = %d\n", p, merger_centralgal, Gal[merger_centralgal].Type, Gal[merger_centralgal].mergeType, Gal[merger_centralgal].IsMerged, Gal[merger_centralgal].GalaxyNr, halonr);
+  XASSERT(Gal[merger_centralgal].IsMerged != 1, "We are trying to merge a galaxy into another galaxy that has already merged.\np = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d \t Gal[merger_centralgal].mergeType = %d \t Gal[merger_centralgal].IsMerged = %d \t GalaxyNr = %d \t halonr = %d\n", p, merger_centralgal, Gal[merger_centralgal].Type, Gal[merger_centralgal].mergeType, Gal[merger_centralgal].IsMerged, Gal[merger_centralgal].GalaxyNr, halonr);
 
   // calculate mass ratio of merging galaxies 
   if(Gal[p].StellarMass + Gal[p].ColdGas <

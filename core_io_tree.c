@@ -162,50 +162,51 @@ void free_galaxies_and_tree(void)
 {
   int i, j, max_snap, count_frees = 0;
 
+  // This block is quite important (and took me a ridiculously long time to figure out) so I'll explain it. 
+  // The issue is that Greg's tree building code allows so-called 'stray' or 'dangling' halos.  These are halos which do NOT have descendants but are not at the root redshift.
+  // Because a progenitor line all points to the same block of memory for arrays such as GridHistory, we must only free this memory block once. 
+  // While normally we could just ask 'is this Halo at the root redshift?' and free it if the answer is yes, the stray halos are not caught by this if condition.
+  //
+  // To correctly account for the stray halos, we execute the following code for each galaxy:
+  // First we find out what snapshot is the last snapshot that this progenitor line is alive. Since the pointers all point to the same memory block, the galaxy at snapshot 20 knows if it will be alive at snapshot 50 and will hence know this maximum snapshot.
+  // Once we find the final snapshot of the progenitor line we ask 'is this galaxy THE galaxy that is alive at the final snapshot?'.  
+  // If this condition is fulfilled, we add the galaxy index to an array.  WE DO NOT FREE THE GALAXY IMMEDIATELY because we will still be checking the other galaxies in this progenitor line.
+  // Once we have checked through all galaxies and constructed the indices that should be freed, we then finally do the freeing.
+
   for(i = 0; i < NumGals; ++i)
   {
     max_snap = 0;
     XASSERT(HaloGal[i].IsMalloced == 1, "HaloGal %d doesn't have grids mallocced but we're trying to free it.\n", i);
-    XPRINT(HaloGal[i].GridHistory, "GridHistory has a NULL pointer for HaloGal %d\n", i);
 
     if(HaloGal[i].IsMerged != -1)
       continue;
     for(j = 1; j < MAXSNAPS; ++j)
     {
-
-      //XPRINT(HaloGal[i].GridHistory[j] != 0, "Had a GridHistory index of 0 for HaloGal %d at Snapshot %d \t GridHistory = %d\n", i, j, HaloGal[i].GridHistory[j]);
       if(HaloGal[i].GridHistory[j] != -1)
-      {
-	//fprintf(stderr, "For HaloGal[%d], SnapHistory[%d] is not -1\n", i, j);
+      {    
         max_snap = j;
-      }
+      } 
     }
+
     if(HaloGal[i].SnapNum == max_snap && Halo[HaloGal[i].HaloNr].Descendant == -1)
     {
       XPRINT(HaloGal[i].IsMalloced == 1, "HaloGal %d doesn't have grids mallocced but we're trying to free it.\n", i); 
       gal_to_free[count_frees] = i;
-
-   // fprintf(stderr, "HaloGal[%d] MaxSnap = %d, HaloGal[%d].SnapNum = %d\n", i, max_snap, i, HaloGal[i].SnapNum); 
-//      free_grid_arrays(&HaloGal[i]); 
       ++count_frees;
     } 
   }
 
   for(i = 0; i < count_frees; ++i)
   {
-    //fprintf(stderr, "Freeing HaloGal %d. HaloGal.SnapNum = %d\n", gal_to_free[i], HaloGal[gal_to_free[i]].SnapNum);
+
     free_grid_arrays(&HaloGal[gal_to_free[i]]);
     ++gal_frees; 
   }
-
-  for(i = 0; i < NumGals; ++i)
-  {
-    
-  
-  }
-
-
   free(gal_to_free);
+
+
+  // Now we just have to free the arrays for the galaxies that have merged.
+
   for(i = 0; i < MergedNr; ++i)
   {
       XPRINT(MergedGal[i].IsMalloced == 1, "MergedGal %d doesn't have grids mallocced but we're trying to free it.\n", i); 
@@ -213,6 +214,7 @@ void free_galaxies_and_tree(void)
     ++mergedgal_frees;
   } 
 
+  // All the inside pointers have now been freed, lets free the structs themselves now.
   myfree(MergedGal);
   myfree(Gal);
   myfree(HaloGal);

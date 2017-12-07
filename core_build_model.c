@@ -128,7 +128,8 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
       // they are copied to the end of the list of permanent galaxies HaloGal[xxx] 
 
       Gal[ngal] = HaloGal[HaloAux[prog].FirstGalaxy + i];
-      HaloGal[HaloAux[prog].FirstGalaxy + i].IsMerged = 0;
+      HaloGal[HaloAux[prog].FirstGalaxy + i].IsMerged = 0; // This is done because there is an if check within 'free_galaxies_and_tree' that checks for IsMerged != -1.
+                                                           // This galaxy exists at multiple redshifts so we need to be careful that we only free it once.
       Gal[ngal].HaloNr = halonr;
 
       Gal[ngal].dT = -1.0;
