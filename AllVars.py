@@ -499,6 +499,7 @@ def Set_Params_Britton():
     print("######################")
                                  
     return cosmo
+
 def depth(l):
     '''
     Determines the nested level of a list.
@@ -519,6 +520,43 @@ def depth(l):
         return 1 + max(depth(item) for item in l)
     else:
         return 0
+
+
+## What snapshot's in Britton's simulation most closely match the snapshot's in Tiamat.
+## Input should be two arrays
+## Output should be an array with length equal to Tiamat Snapshot where the array should be [BrittonSnapNum Nearest TiamatSnapshot0, BrittonSnapNum Nearest TiamatSnapshot1, ..., BrittonSnapNum Nearest TiamatSnapshotN]
+
+def find_nearest_redshifts(SnapZ_Sim1, SnapZ_Sim2):
+    '''
+    Given the redshift for each snapshot in two simulations, this function calculates the snapshot in simulation 2 that has the nearest redshift to that in simulation 1.
+
+    Parameters
+    ----------
+    SnapZ_Sim1, SnapZ_Sim2 : 'array-like' of floats.
+        The redshift at each snapshot for the two simulations.
+
+    Returns
+    -------
+
+    map_sim1_sim2 : 'array-like' of floats with same length as SnapZ_sim1.
+        The snapshots in simulation 2 that have the closest redshift to those in simulation 1. 
+
+    '''
+
+
+    map_sim1_sim2 = np.empty((len(SnapZ_Sim1)), dtype = np.int32) 
+
+    # Let's do it the stupid way first.
+    # For each redshift in Sim1 we will find the redshift difference for each Sim2 redshift. 
+    # Then will find the lowest difference and record it.
+
+    for snapshot_idx_sim1 in range(len(SnapZ_Sim1)):
+        difference = []
+        for snapshot_idx_sim2 in range(len(SnapZ_Sim2)):
+            difference.append(np.abs(SnapZ_Sim1[snapshot_idx_sim1] - SnapZ_Sim2[snapshot_idx_sim2]))
+        map_sim1_sim2[snapshot_idx_sim1] = np.argmin(difference)
+ 
+    return map_sim1_sim2
 
 def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
     '''
