@@ -23,7 +23,7 @@ INCL   =	./core_allvars.h  \
 			./core_simulation.h  \
 			./Makefile
 
-USE-MPI = yes  # set this if you want to run in parallel
+#USE-MPI = no # set this if you want to run in parallel
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
@@ -32,7 +32,7 @@ else
     CC = gcc  # sets the C-compiler
 endif
 
-
+OPT += -Werror
 
 GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
 GSL_LIBS = -L/usr/local/lib
