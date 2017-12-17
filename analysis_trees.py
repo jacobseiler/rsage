@@ -44,7 +44,6 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 
 group_dir = '/lustre/projects/p004_swin/bsmith/1.6Gpc/means/halo_1721673/dm_gadget/data/'
-subfind_dir = '/lustre/projects/p134_swin/jseiler/subfind_britton/'
 snapdir = '/lustre/projects/p134_swin/jseiler/simulations/1.6Gpc/means/halo_1721673/dm_gadget/data/'
 num_files = 27
 num_cores = 256
@@ -100,6 +99,73 @@ SUBFIND_Halo_Desc_full = [
 names = [SUBFIND_Halo_Desc_full[i][0] for i in range(len(SUBFIND_Halo_Desc_full))]
 formats = [SUBFIND_Halo_Desc_full[i][1] for i in range(len(SUBFIND_Halo_Desc_full))]
 SUBFIND_Halo_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
+
+Rockstar_Halo_Desc_full= [
+('ID',              np.int64),
+('pos',             (np.float32, 6)),
+('coreval',         (np.float32, 3)),
+('bulkvel',         (np.float32, 3)),
+('mass',               np.float32),
+('r',               np.float32),
+('child_r',         np.float32),
+('vmax_r',          np.float32),
+('mgrav',           np.float32),
+('vmax',            np.float32),
+('rvmax',           np.float32),
+('rs',              np.float32),
+('klypin_rs',       np.float32),
+('vrms',            np.float32),
+('J',               (np.float32, 3)),
+('energy',          np.float32),
+('spin',            np.float32),
+('alt_m',           (np.float32, 4)),
+('Xoff',            np.float32),
+('Voff',            np.float32),
+('b_to_a',          np.float32),
+('c_to_a',          np.float32),
+('A',               (np.float32, 3)),
+('b_to_a2',         np.float32),
+('c_to_a2',         np.float32),
+('A2',              (np.float32, 3)),
+('bullock_spin',    np.float32),
+('kin_to_pot',      np.float32),
+('m_pe_b',          np.float32),
+('NumPart',         np.int64),
+('NumChildPart',    np.int64),
+('p_start',         np.int64),
+('desc',            np.int64),
+('flags',           np.int64),
+('n_core',          np.int64),
+('min_pos_err',     np.float32),
+('min_vel_err',     np.float32),
+('min_bulkvel_err', np.float32)
+                 ] 
+
+names = [Rockstar_Halo_Desc_full[i][0] for i in range(len(Rockstar_Halo_Desc_full))]
+formats = [Rockstar_Halo_Desc_full[i][1] for i in range(len(Rockstar_Halo_Desc_full))]
+Rockstar_Halo_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
+
+Rockstar_header_full= [
+('magic',           np.int64),
+('SnapNum',         np.int64),
+('chunk',           np.int64),
+('scale',           np.float32),
+('Omega_m',         np.float32),
+('Omega_l',         np.float32),
+('Hubble_h',         np.float32),
+('bounds',          (np.float32, 6)),
+('NumHalos',        np.int64),
+('NumPart',         np.int64), 
+('BoxSize',         np.float32),
+('PartMass',        np.float32),
+('PartType',        np.int64),
+('format_revision', np.int32),
+('rockstar_version', (np.int8, 12)),
+('unused',          (np.int8, 144))
+                 ] 
+names = [Rockstar_header_full[i][0] for i in range(len(Rockstar_header_full))]
+formats = [Rockstar_header_full[i][1] for i in range(len(Rockstar_header_full))]
+Rockstar_header = np.dtype({'names':names, 'formats':formats}, align=True)
 
 def get_tree_offsets(treedir, file_idx, simulation):
     """
@@ -157,9 +223,10 @@ def read_trees_smallarray(treedir, file_idx, simulation):
         File number we are reeding in.   
     simulation : int
         Simulation we are reading for.  Determines the naming convention for the files.
-        0 : Pip (Britton's Simulation)
+        0 : Pip (Britton's Simulation) built using Greg's code
         1 : Tiamat
         2 : Manodeep's 1024 Simulation
+        3 : Pip built using Rockstar.
 
     Returns
     =======
@@ -172,7 +239,7 @@ def read_trees_smallarray(treedir, file_idx, simulation):
 
     if (simulation == 0 or simulation == 1):
         fname = "{0}/subgroup_trees_{1:03d}.dat".format(treedir, file_idx)
-    elif (simulation == 2):
+    elif (simulation == 2 or simulation == 3):
         fname = "{0}/lhalotree.bin.{1}".format(treedir, file_idx)
     else:
         raise ValueError("Invalid simulation option chosen.")
@@ -570,6 +637,34 @@ def check_pointers(Halos, simulation, treedir=None):
         if len(w_thissnap != 0):
             print("{0:7d} \t {1:7d} \t {2:7d} \t {3:7.4f}".format(snapshot_idx, len(w_thissnap), len(w_firstprog_thissnap), len(w_firstprog_thissnap) / len(w_thissnap))) 
 
+def load_rockstar_file(rockstar_dir, snapshot_idx):
+
+    fname = "{0}out_{1}.list".format(rockstar_dir, snapshot_idx)
+    print("Reading from file {0}".format(fname))
+
+    ID, Mvir, pos_x, pos_y, pos_z = np.loadtxt(fname, usecols = (0, 2, 8, 9, 10), comments = "#", skiprows = 16, unpack = True)
+
+    return ID, Mvir, pos_x, pos_y, pos_z
+
+def create_converted_subfind_hmf(subfind_dir, snapshot_idx, m_low, m_high):
+
+    fname_subfind_groups = "{0}_{1:03d}.catalog_groups".format(subfind_dir, snapshot_idx)
+    #fname_subfind_groups = "{0}catalogs/subfind_{1:03d}.catalog_groups_properties/subfind_{1:03d}.catalog_groups_properties.0".format(subfind_dir, snapshot_idx)
+
+    with open(fname_subfind_groups, 'rb') as file_subfind_groups:
+        N_groups = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]       
+        n_byte_group_offsets = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]
+        grouplen = np.fromfile(file_subfind_groups, np.dtype(np.int32), N_groups)
+        group_offsets = np.fromfile(file_subfind_groups, np.dtype(np.int32), N_groups)
+        group_sub = np.fromfile(file_subfind_groups, np.dtype(np.int32), N_groups)
+
+        halo_mass_subfind = np.log10(grouplen * AllVars.PartMass / AllVars.Hubble_h)
+                
+        (halo_counts_subfind, bin_edges, bin_middle) = AllVars.Calculate_Histogram(halo_mass_subfind, bin_width, 0, m_low, m_high)
+
+    print(halo_counts_subfind)
+    return halo_counts_subfind, bin_middle
+
 def create_rockstar_hmf(rockstar_dir, snapshot_idx, m_low, m_high):
     """
     Generates the halo mass function for ROCKSTAR files.
@@ -598,11 +693,7 @@ def create_rockstar_hmf(rockstar_dir, snapshot_idx, m_low, m_high):
     Units within the ROCKSTAR files are assumed to be Msun/h. 
     """ 
 
-
-    fname = "{0}out_{1}.list".format(rockstar_dir, snapshot_idx)
-    print("Reading from file {0}".format(fname))
-
-    ID, DescID, Mvir, Vmax, Vrms, Rvir, Rs, Np, X, Y, Z, VX, VY, VZ, JX, JY, JZ, Spin, rs_klypin, Mvir_all, M200b, M200c, M500c, M2500c, Xoff, Voff, spin_bullock, b_to_a, c_to_a, A_x, A_y, A_z, b_to_a_500c, c_to_a_500c, A_x_500c, A_y_500c, A_z_500c, T_U, M_pe_Behroozi, M_pe_Diemer = np.loadtxt(fname, comments = "#", skiprows = 16, unpack = True) 
+    ID, Mvir, pos_x, pos_y, pos_z = load_rockstar_file(rockstar_dir, snapshot_idx)
 
     mvir = np.log10(Mvir)
     (halo_counts, bin_edges, bin_middle) = AllVars.Calculate_Histogram(mvir, bin_width, 0, m_low, m_high)
@@ -641,45 +732,19 @@ def plot_rockstar_only(rockstar_dir, snapshot_idx, label, m_low, m_high, ax):
     halo_counts, bin_middle = create_rockstar_hmf(rockstar_dir, snapshot_idx, m_low, m_high)
     ax.plot(bin_middle, np.multiply(halo_counts / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label)
 
-def create_tiamat_hmf(tiamat_dir, snaplow, snaphigh, map_pip_to_tiamat, m_low, m_high, num_files, use_PartMass=0):
-    """
-    Generates the halo mass function from the Tiamat trees. 
-    Since we need to read in the entire set of Tiamat files regardless of the snapshot number we call this function once for the entire snapshot range. 
+def plot_converted_subfind_only(subfind_dir, snapshot_idx, label, m_low, m_high, ax):
 
-    Parameters
-    ==========
+    halo_counts, bin_middle = create_converted_subfind_hmf(subfind_dir, snapshot_idx, m_low, m_high)
+    ax.plot(bin_middle, np.multiply(halo_counts / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label)
 
-    tiamat_dir : int 
-        Base path for the location of the Tiamat trees. 
-    snaplow, snaphigh : int 
-        Bounds for the snapshots we are creating the HMF for.
-    map_pip_to_tiamat : array of ints
-        Since we often want to plot a comparison between Pip and Tiamat, this array provides the snapshots of Tiamat that most closely match the redshifts of Pip.
-        If we want to plot only Tiamat this array should be a range(number Tiamat Snapshots). 
-    m_low, m_high : floats
-        Lower and upper bounds for the halo mass binning.
-    use_partmass : int 
-        Toggles whether we want to use the virial mass of the group (use_PartMass = 0) or the number of particles in the group times the particle mass (use_PartMass = 1).
-        Default 0.
-
-    Returns
-    =======
-
-    halo_counts : array of ints 
-        Number count of halos within each mass bin. Bins defined by m_low, m_high with bin width given by 'bin_width'. 
-
-    Notes
-    =====
-
-    Units within the Tiamat trees are assumed to be 1e10 Msun/h. 
-    """ 
+def create_pip_tree_hmf(pip_dir, snaplow, snaphigh, m_low, m_high, num_files, use_PartMass=0):
 
     NB = int((m_high - m_low)/bin_width) 
     halo_counts = np.zeros((snaphigh - snaplow + 1, NB), dtype = np.int64)    
 
     for file_idx in range(num_files):
        
-        Halos_Tiamat, dummy = read_trees_smallarray(tiamat_dir, file_idx, 1)
+        Halos_Pip, dummy = read_trees_smallarray(tiamat_dir, file_idx, 1)
 
         print("File {0}".format(file_idx))
         count = 0
@@ -701,7 +766,80 @@ def create_tiamat_hmf(tiamat_dir, snaplow, snaphigh, map_pip_to_tiamat, m_low, m
 
     return halo_counts
 
-def plot_tiamat_only(halo_counts, snapshot_number, label, m_low, m_high, ax): 
+
+def create_horizontal_trees_hmf(tiamat_dir, snaplow, snaphigh, map_pip_to_tiamat, m_low, m_high, num_files, simulation, use_PartMass=0):
+    """
+    Generates the halo mass function from the Tiamat trees. 
+    Since we need to read in the entire set of Tiamat files regardless of the snapshot number we call this function once for the entire snapshot range. 
+
+    Parameters
+    ==========
+
+    tiamat_dir : int 
+        Base path for the location of the Tiamat trees. 
+    snaplow, snaphigh : int 
+        Bounds for the snapshots we are creating the HMF for.
+    map_pip_to_tiamat : array of ints
+        Since we often want to plot a comparison between Pip and Tiamat, this array provides the snapshots of Tiamat that most closely match the redshifts of Pip.
+        If we want to plot only Tiamat this array should be a range(number Tiamat Snapshots). 
+    m_low, m_high : floats
+        Lower and upper bounds for the halo mass binning.
+    num_files : int
+        The number of files in this simulation.
+    simulation : int
+        Simulation we are reading for.  Determines the naming convention for the files.
+        0 : Pip (Britton's Simulation) built using Greg's code
+        1 : Tiamat
+        2 : Manodeep's 1024 Simulation
+        3 : Pip built using Rockstar.
+
+    use_partmass : int 
+        Toggles whether we want to use the virial mass of the group (use_PartMass = 0) or the number of particles in the group times the particle mass (use_PartMass = 1).
+        Default 0.
+
+    Returns
+    =======
+
+    halo_counts : array of ints 
+        Number count of halos within each mass bin. Bins defined by m_low, m_high with bin width given by 'bin_width'. 
+
+    Notes
+    =====
+
+    Units within the Tiamat trees are assumed to be 1e10 Msun/h. 
+    """ 
+
+    NB = int((m_high - m_low)/bin_width) 
+    halo_counts = np.zeros((snaphigh - snaplow + 1, NB), dtype = np.int64)    
+
+    for file_idx in range(num_files):
+       
+        Halos_Tiamat, dummy = read_trees_smallarray(tiamat_dir, file_idx, simulation)
+
+        print("File {0}".format(file_idx))
+        count = 0
+        for snapshot_idx in range(snaplow, snaphigh + 1):
+      
+            print("Snapshot {0}".format(snapshot_idx)) 
+
+            if (simulation == 1):
+                cosmol = AllVars.Set_Params_Tiamat_extended()
+            elif (simulation == 3):
+                cosmol = AllVars.Set_Params_Britton()
+
+            w = np.where((Halos_Tiamat['SnapNum'] == map_pip_to_tiamat[snapshot_idx]))[0] # Find those halos whose redshift is closest to Pip's redshift at this snapshot. 
+            if (use_PartMass == 0):
+                halo_mass = np.log10(Halos_Tiamat['Mvir'][w] * 1.0e10 / AllVars.Hubble_h)
+            else:
+                halo_mass = np.log10(Halos_Tiamat['Len'][w] * AllVars.PartMass / AllVars.Hubble_h)
+            
+            (halo_counts_trees, bin_edges, bin_middle) = AllVars.Calculate_Histogram(halo_mass, bin_width, 0, m_low, m_high)
+            halo_counts[count] += halo_counts_trees
+            count += 1
+
+    return halo_counts
+
+def plot_horizontal_tree_hmf_only(halo_counts, snapshot_number, label, m_low, m_high, ax): 
     """
     Plots the halo mass function for Tiamat halos. 
 
@@ -733,7 +871,7 @@ def plot_tiamat_only(halo_counts, snapshot_number, label, m_low, m_high, ax):
     bin_edges = np.arange(m_low, m_high + bin_width, bin_width)  
     bin_middle = bin_edges[:-1] + 0.5 * bin_width
         
-    ax.plot(bin_middle, np.multiply(halo_counts[count] / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label)
+    ax.plot(bin_middle, np.multiply(halo_counts[snapshot_number] / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label)
 
 def plot_fof_tab_only(group_dir, snapshot_idx, label, m_low, m_high, ax):
     """
@@ -769,8 +907,26 @@ def plot_fof_tab_only(group_dir, snapshot_idx, label, m_low, m_high, ax):
     bin_middle = bin_edges[:-1] + 0.5 * bin_width
 
     ax.plot(bin_middle, np.multiply(fof_tab_count / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label, color = 'r')
-    
-def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, snaplow, snaphigh, SnapZ_Pip, SnapZ_Tiamat):
+  
+def create_hmf_nbodykit_fof(fof_dir, snapshot_idx, m_low, m_high):
+
+    fname = "{0}groups_{1:03d}/nbodykit_fof_tab_{1:03d}.hdf5".format(fof_dir, snapshot_idx)
+
+    with h5py.File(fname, "r") as f:
+        mass = f['Mass'][:]
+
+    Mvir = np.log10(mass * 1.0e10 / AllVars.Hubble_h)
+    (halo_counts, bin_edges, bin_middle) = AllVars.Calculate_Histogram(Mvir, bin_width, 0, m_low, m_high)
+
+    return halo_counts, bin_middle
+ 
+def plot_nbodykit_fof_only(fof_dir, snapshot_idx, label, m_low, m_high, ax):
+
+    fof_nbodykit_count, bin_middle = create_hmf_nbodykit_fof(fof_dir, snapshot_idx, m_low, m_high)
+
+    ax.plot(bin_middle, np.multiply(fof_nbodykit_count / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label, color = 'r')
+     
+def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind_dir, rockstar_tree_dir, nbodykit_fof_dir, snaplow, snaphigh, SnapZ_Pip, SnapZ_Tiamat):
     """
     Plots the halo mass function over a snapshot range (1 for each snapshot)  for the halos of Tiamat and Pip found by a) ROCKSTAR and b) the friends-of-friends HDF5 files on a single graph. 
     Since the redshifts of Pip and Tiamat are not identical, we plot the snapshots of the closest redshifts.
@@ -800,34 +956,38 @@ def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, snaplow
     m_high = 12
 
     map_pip_to_tiamat = AllVars.find_nearest_redshifts(SnapZ_Pip, SnapZ_Tiamat)        
-    tiamat_halo_counts, _ = create_tiamat_hmf(tiamat_dir, snaplow, snaphigh, map_pip_to_tiamat, m_low, m_high, 27)
+    #tiamat_halo_counts = create_horizontal_trees_hmf(tiamat_dir, snaplow, snaphigh, map_pip_to_tiamat, m_low, m_high, 27, 1)
+    #pip_halo_counts = create_horizontal_trees_hmf(pip_dir, snaplow, snaphigh, np.arange(0, 92), m_low, m_high, 64, 3)
 
     count = 0
     for snapshot_idx in range(snaplow, snaphigh + 1):
         
         ax1 = plt.subplot(111)
-
+           
         cosmol = AllVars.Set_Params_Britton()
         redshift = AllVars.SnapZ[snapshot_idx]
         label = "FoF Fraction = 0.7 z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
         plot_rockstar_only(rockstar_dir, snapshot_idx, label, m_low, m_high, ax1)
-
-        cosmol = AllVars.Set_Params_Britton()
-        redshift = AllVars.SnapZ[snapshot_idx]
-        label = "FoF Fraction = 0.6 z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])        
-        plot_rockstar_only("/lustre/projects/p004_swin/jseiler/Rockstar_output/Britton_fof_fraction0.6/", snapshot_idx, label, m_low, m_high, ax1)
-
-        cosmol = AllVars.Set_Params_Britton()
-        redshift = AllVars.SnapZ[snapshot_idx]
-        label = "FoF Fraction = 0.9 z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])        
-        plot_rockstar_only("/lustre/projects/p004_swin/jseiler/Rockstar_output/Britton_fof_fraction0.9/", snapshot_idx, label, m_low, m_high, ax1)
+        ax1.axvline(9, color = 'k', ls = '--')
 
         label = "FoF Tab z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
         plot_fof_tab_only(group_dir, snapshot_idx, label, m_low, m_high, ax1)
+      
+        label = "Nbodykit FoF z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
+        plot_nbodykit_fof_only(nbodykit_fof_dir, snapshot_idx, label, m_low, m_high, ax1)
+ 
+        #cosmol = AllVars.Set_Params_Britton()
+        #redshift = AllVars.SnapZ[snapshot_idx]
+        #label = "SUBFIND Britton z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
+        #plot_converted_subfind_only(subfind_dir, snapshot_idx, label, m_low, m_high, ax1)
+        #
+        #cosmol = AllVars.Set_Params_Tiamat_extended()
+        #label = "Tiamat z = {0:.3f}".format(AllVars.SnapZ[map_pip_to_tiamat[snapshot_idx]])        
+        #plot_horizontal_tree_hmf_only(tiamat_halo_counts, count, label, m_low, m_high, ax1)
 
-        cosmol = AllVars.Set_Params_Tiamat_extended()
-        label = "Tiamat z = {0:.3f}".format(AllVars.SnapZ[map_pip_to_tiamat[snapshot_idx]])        
-        plot_tiamat_only(tiamat_halo_counts, count, label, m_low, m_high, ax1)
+        #cosmol = AllVars.Set_Params_Britton()
+        #label = "Pip Trees z = {0:.3f}".format(AllVars.SnapZ[map_pip_to_tiamat[snapshot_idx]])        
+        #plot_horizontal_tree_hmf_only(pip_halo_counts, count, label, m_low, m_high, ax1)
 
         ax1.set_xlabel(r'$\log_{10}\ M_{H} \:[M_{\odot}]$', fontsize = PlotScripts.global_fontsize)
         ax1.set_ylabel(r'$\left(\frac{dn}{d\log{M}}\right) \ [\mathrm{Mpc}^{-3}]$', fontsize = PlotScripts.global_fontsize)
@@ -839,13 +999,77 @@ def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, snaplow
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize(PlotScripts.global_legendsize)
 
-     
-        outputFile = "./HMF_fofraction_Comparison_z{0:.3f}.png".format(redshift)
+        outputFile = "./HMF_nbodykit_z{0:.3f}.png".format(redshift)
         plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
         plt.close()
 
         count += 1
+
+def read_rockstar_halos_binary_small(rockstar_dir, snapshot_idx, core_idx):
+
+    fname = "{0}halos_{1}.{2}.bin".format(rockstar_dir, snapshot_idx, core_idx)
+    print("Reading file {0}".format(fname))
+    fin = open(fname, 'rb')
+    header = np.fromfile(fname, Rockstar_header, 1)
+    print(header)
+    
+    print("There is {0} halos for this file".format(header['NumHalos'][0]))
+   
+    Halos = np.fromfile(fname, Rockstar_Halo_Desc, header['NumHalos'][0])
+    
+    return Halos 
+
+   
+def load_rockstar_particles(rockstar_dir, snapshot_idx, core_idx):
+
+    fname = "{0}halos_{1}.{2}.particles".format(rockstar_dir, snapshot_idx, core_idx)
+    print("reading from file {0}".format(fname))
+    x, y, z, particle_id, halo_id = np.loadtxt(fname, comments = "#", usecols = (0, 1, 2, 6, 7), unpack = True)
+
+    return x, y, z, particle_id, halo_id
+ 
+def check_rockstar_halos(rockstar_dir, snaplow, snaphigh):
+       
+    for snapshot_idx in range(snaplow, snaphigh + 1): 
+
+        ID, Mvir, pos_x, pos_y, pos_z = load_rockstar_file(rockstar_dir, snapshot_idx) 
+
+        print(ID)
+        exit()
+        unique_halos, unique_halos_idx = np.unique(pos_x, return_index = True)
+        idx = np.arange(0, len(ID))
+        duplicate_halos_idx = [int(x) for x in idx if x not in unique_halos_idx]
+        
+        print(duplicate_halos_idx) 
+        for dup_idx in range(1, len(duplicate_halos_idx)):
+            if (math.isclose(pos_x[int(duplicate_halos_idx[0])], pos_x[int(duplicate_halos_idx[dup_idx])], abs_tol = 0.01) == True):
+                print(pos_x[duplicate_halos_idx[dup_idx]])
+                print(pos_x[duplicate_halos_idx[0]])
+
+        print("For snapshot {0} there are {1} (out of {2}) duplicate halos".format(snapshot_idx, len(duplicate_halos_idx), len(pos_x)))
+  
+        ax1 = plt.subplot(111)
+        w = np.where((np.log10(Mvir / AllVars.Hubble_h) > 8.2))[0]
+        print("There is {0} halos above Mass of 8.2^10 Msun".format(len(w)))
+
+        ax1.plot(pos_x[w], pos_y[w], alpha = 0.5) 
+
+        outputFile = "./halos_check_{0:.3f}.png".format(AllVars.SnapZ[snapshot_idx])
+        plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile))
+        plt.close()
+
+def check_rockstar_particles(rockstar_dir, snaplow, snaphigh):
+
+    for snapshot_idx in range(snaplow, snaphigh + 1): 
+
+        x, y, z, particle_id, halo_id = load_rockstar_particles(rockstar_dir, snapshot_idx, 0)
+        print("Read in {0} particles".format(len(x)))
+      
+        unique_part = np.unique(particle_id)
+ 
+        print("For snapshot{0} there are {1} repeat particles (out of {2})".format(snapshot_idx, len(particle_id) - len(unique_part), len(particle_id)))
 
 if __name__ == '__main__':
 
@@ -859,6 +1083,9 @@ if __name__ == '__main__':
 
     rockstar_dir = "/lustre/projects/p004_swin/jseiler/Rockstar_output/Britton_Halos_final_noLL/"
     tiamat_dir = "/lustre/projects/p070_astro/gpoole/Simulations/Tiamat/trees/version_nominal_res/vertical/"
+    subfind_dir = "/lustre/projects/p004_swin/jseiler/rockstar_to_subfind/rockstar"
+    pip_dir = "/lustre/projects/p004_swin/jseiler/Rockstar_output/Britton_Halos_final_noLL/Lhalos/"
+    nbodykit_fof_dir = "/lustre/projects/p134_swin/jseiler/nbodykit_fofs/"
 
     cosmol = AllVars.Set_Params_Britton()
     SnapZ_Pip = AllVars.SnapZ
@@ -881,5 +1108,7 @@ if __name__ == '__main__':
         plot_progline(0, simulation, treedir)
     '''
 
-    plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, snaplow, snaphigh, SnapZ_Pip, SnapZ_Tiamat)
-
+    plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind_dir, pip_dir, nbodykit_fof_dir, snaplow, snaphigh, SnapZ_Pip, SnapZ_Tiamat)
+    #check_rockstar_halos(rockstar_dir, snaplow, snaphigh)
+    #check_rockstar_particles("/lustre/projects/p004_swin/jseiler/Rockstar_output/Britton_checking_dup/", snaplow, snaphigh)
+    
