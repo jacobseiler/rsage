@@ -5,6 +5,7 @@ import numpy as np
 from astropy import units as u
 from astropy import cosmology
 from scipy import stats
+import os
 
 def set_cosmology(Hubble_h, Omega_m):
 	
@@ -361,6 +362,7 @@ def Set_Params_Tiamat_extended():
     Y = 0.24   
  
     PartMass = 2.6438e6 # Msun/h 
+
     SnapZ = [49.000000,     35.000001,      32.025452,      29.597752,      27.571988,      25.851283,      24.368212,
              23.074276,     21.933618,      20.919111,      20.009818,      19.189299,      18.444455,      17.764701,
              17.141388,     16.567374,      16.036700,      15.544359,      15.086102,      14.658304,      14.257849,
@@ -499,6 +501,58 @@ def Set_Params_Britton():
     print("######################")
                                  
     return cosmo
+
+def Set_Params_Kali():
+
+    print("Setting parameters to Kali") 
+    
+    global Hubble_h
+    global Omega_m
+    global Omega_L
+    global Omega_b
+    global BoxSize
+    global Volume
+    global SnapZ
+    global BaryonFrac
+    global Y
+    global PartMass
+
+    global SnapZ
+    global Lookback_Time
+
+    global cosmo
+    global t_BigBang
+    
+    Hubble_h = 0.681
+    Omega_m = 0.302
+    Omega_L = 0.698
+    Omega_b = 0.0
+    BoxSize = 108.96 # Mpc/h
+    Volume = BoxSize**3
+    BaryonFrac = 0.17
+    Y = 0.24   
+    PartMass = 1.151e6 # Msun/h 
+
+    a = np.loadtxt("/lustre/projects/p134_swin/jseiler/subfind_britton/trees/britton_shifted/a_list.txt")
+    SnapZ = 1.0/a - 1
+       
+    cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
+
+    Lookback_Time = cosmo.lookback_time(SnapZ).value # In Gyr 
+
+
+    print("######################")
+    print("BoxSize = %.3f (Mpc/h)" %(BoxSize))
+    print("Hubble_h = %.3f" %(Hubble_h))
+    print("Omega_m = %.3f" %(Omega_m))
+    print("Omega_L = %.3f" %(Omega_L))
+    print("BaryonFrac = %.3f" %(BaryonFrac))
+    print("t_BigBang = %.3f Gyr" %(t_BigBang))
+    print("PartMass = %.3f Msun/h" %(PartMass))
+    print("######################")
+                                 
+    return cosmo
+
 
 def depth(l):
     '''
@@ -692,3 +746,11 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
  
 ##
 
+def ensure_dir(file_path):
+    print("Checking to see if directory {0} exists".format(file_path))
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        print("It does not exist, creating.")
+        os.makedirs(directory)
+    else:
+        print("It does exist")
