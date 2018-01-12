@@ -97,8 +97,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
         GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
 
     print(":Rank %d is Reading N= %d Objects from %s: " %(rank, NtotHalos, fname))
- 
-	
+ 	
     GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
 
     FileIndexRanges.append((offset,offset+NtotHalos))

@@ -649,7 +649,6 @@ def load_rockstar_file(rockstar_dir, snapshot_idx):
 def create_converted_subfind_hmf(subfind_dir, snapshot_idx, m_low, m_high):
 
     fname_subfind_groups = "{0}_{1:03d}.catalog_groups".format(subfind_dir, snapshot_idx)
-    #fname_subfind_groups = "{0}catalogs/subfind_{1:03d}.catalog_groups_properties/subfind_{1:03d}.catalog_groups_properties.0".format(subfind_dir, snapshot_idx)
 
     with open(fname_subfind_groups, 'rb') as file_subfind_groups:
         N_groups = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]       
@@ -658,9 +657,11 @@ def create_converted_subfind_hmf(subfind_dir, snapshot_idx, m_low, m_high):
         group_offsets = np.fromfile(file_subfind_groups, np.dtype(np.int32), N_groups)
         group_sub = np.fromfile(file_subfind_groups, np.dtype(np.int32), N_groups)
 
-        halo_mass_subfind = np.log10(grouplen * AllVars.PartMass / AllVars.Hubble_h)
-                
-        (halo_counts_subfind, bin_edges, bin_middle) = AllVars.Calculate_Histogram(halo_mass_subfind, bin_width, 0, m_low, m_high)
+        print("N_groups = {0}\t grouplen = {1}".format(N_groups, grouplen))
+    
+    halo_mass_subfind = np.log10(grouplen * AllVars.PartMass / AllVars.Hubble_h)
+        
+    (halo_counts_subfind, bin_edges, bin_middle) = AllVars.Calculate_Histogram(halo_mass_subfind, bin_width, 0, m_low, m_high)
 
     print(halo_counts_subfind)
     return halo_counts_subfind, bin_middle
@@ -925,8 +926,52 @@ def plot_nbodykit_fof_only(fof_dir, snapshot_idx, label, m_low, m_high, ax):
     fof_nbodykit_count, bin_middle = create_hmf_nbodykit_fof(fof_dir, snapshot_idx, m_low, m_high)
 
     ax.plot(bin_middle, np.multiply(fof_nbodykit_count / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label, color = 'r')
+
+def plot_thibault_hmf(ax):
+
+    bin_middle, phi = np.loadtxt("/home/jseiler/hmf_z9.5.dat", unpack = True, skiprows = 2)  
+    ax.plot(bin_middle, phi, label = "Thibault z = 9.5")   
+   
+
+def create_subfind_hmf(subfind_dir, snapshot_idx, m_low, m_high):
+
+    fname_subfind_groups = "{0}/catalogs/subfind_{1:03d}.catalog_groups_properties/subfind_{1:03d}.catalog_groups_properties.0".format(subfind_dir, snapshot_idx)
+
+    with open(fname_subfind_groups, 'rb') as file_subfind_groups:
+        i_file = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]       
+        n_file= np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]
+        N_groups_thisfile= np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]
+        N_groups_total = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0] 
+
+    print("Subfind properties are split up over {0} files".format(n_file))
+    Mvir = []
+    for file_idx in range(n_file):
+        
+        fname = "{0}/catalogs/subfind_{1:03d}.catalog_groups_properties/subfind_{1:03d}.catalog_groups_properties.{2}".format(subfind_dir, snapshot_idx, file_idx)
+        with open(fname, 'rb') as file_subfind_groups:
+            i_file = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]       
+            n_file= np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]
+            N_groups_thisfile= np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0]
+            N_groups_total = np.fromfile(file_subfind_groups, np.dtype(np.int32), 1)[0] 
+
+            print("File {0} has {1} groups".format(file_idx, N_groups_thisfile))
+            Halo_thisfile = np.fromfile(file_subfind_groups, SUBFIND_Halo_Desc, N_groups_thisfile) 
+            
+            for i in range(N_groups_thisfile):
+                Mvir.append(np.log10(Halo_thisfile[i]['M_vir'] / AllVars.Hubble_h))     
+        
+    (halo_counts_subfind, bin_edges, bin_middle) = AllVars.Calculate_Histogram(Mvir, bin_width, 0, m_low, m_high)
+
+    print(halo_counts_subfind)
+    return halo_counts_subfind, bin_middle
+    
+ 
+def plot_kali_only(kali_subfind_dir, snapshot_idx, label, m_low, m_high, ax):
      
-def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind_dir, rockstar_tree_dir, nbodykit_fof_dir, snaplow, snaphigh, SnapZ_Pip, SnapZ_Tiamat):
+    halo_counts, bin_middle = create_subfind_hmf(kali_subfind_dir, snapshot_idx, m_low, m_high)
+    ax.plot(bin_middle, np.multiply(halo_counts / pow(AllVars.BoxSize,3) * pow(AllVars.Hubble_h, 3) / bin_width, bin_middle), label = label)
+      
+def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind_dir, rockstar_tree_dir, nbodykit_fof_dir, kali_subfind_dir, snaplow, snaphigh, SnapZ_Pip, SnapZ_Tiamat):
     """
     Plots the halo mass function over a snapshot range (1 for each snapshot)  for the halos of Tiamat and Pip found by a) ROCKSTAR and b) the friends-of-friends HDF5 files on a single graph. 
     Since the redshifts of Pip and Tiamat are not identical, we plot the snapshots of the closest redshifts.
@@ -955,7 +1000,8 @@ def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind
     m_low = 6
     m_high = 12
 
-    map_pip_to_tiamat = AllVars.find_nearest_redshifts(SnapZ_Pip, SnapZ_Tiamat)        
+    map_pip_to_tiamat = AllVars.find_nearest_redshifts(SnapZ_Pip, SnapZ_Tiamat)       
+    
     #tiamat_halo_counts = create_horizontal_trees_hmf(tiamat_dir, snaplow, snaphigh, map_pip_to_tiamat, m_low, m_high, 27, 1)
     #pip_halo_counts = create_horizontal_trees_hmf(pip_dir, snaplow, snaphigh, np.arange(0, 92), m_low, m_high, 64, 3)
 
@@ -963,18 +1009,26 @@ def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind
     for snapshot_idx in range(snaplow, snaphigh + 1):
         
         ax1 = plt.subplot(111)
-           
+        
+        cosmo = AllVars.Set_Params_Kali()
+        label = "SUBFIND Kali Tab z = 5.78"
+        plot_kali_only(kali_subfind_dir, snapshot_idx, label, m_low, m_high, ax1)
+
+   
         cosmol = AllVars.Set_Params_Britton()
-        redshift = AllVars.SnapZ[snapshot_idx]
-        label = "FoF Fraction = 0.7 z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
-        plot_rockstar_only(rockstar_dir, snapshot_idx, label, m_low, m_high, ax1)
+        #redshift = AllVars.SnapZ[snapshot_idx]
+        label = "FoF Fraction = 0.7 z = {0:.3f}".format(AllVars.SnapZ[-7])
+        plot_rockstar_only(rockstar_dir, len(SnapZ_Pip) - 7, label, m_low, m_high, ax1)
         ax1.axvline(9, color = 'k', ls = '--')
 
-        label = "FoF Tab z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
-        plot_fof_tab_only(group_dir, snapshot_idx, label, m_low, m_high, ax1)
-      
-        label = "Nbodykit FoF z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
-        plot_nbodykit_fof_only(nbodykit_fof_dir, snapshot_idx, label, m_low, m_high, ax1)
+        #label = "FoF Tab z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
+        #plot_fof_tab_only(group_dir, snapshot_idx, label, m_low, m_high, ax1)
+    
+        plot_thibault_hmf(ax1)
+
+         
+        #label = "Nbodykit FoF z = {0:.3f}".format(AllVars.SnapZ[snapshot_idx])
+        #plot_nbodykit_fof_only(nbodykit_fof_dir, snapshot_idx, label, m_low, m_high, ax1)
  
         #cosmol = AllVars.Set_Params_Britton()
         #redshift = AllVars.SnapZ[snapshot_idx]
@@ -999,7 +1053,8 @@ def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize(PlotScripts.global_legendsize)
 
-        outputFile = "./HMF_nbodykit_z{0:.3f}.png".format(redshift)
+        #outputFile = "./HMF_Thibault_z{0:.3f}.png".format(redshift)
+        outputFile = "./HMF_Kali_z5.78.png"
         plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
         plt.close()
@@ -1083,6 +1138,7 @@ if __name__ == '__main__':
 
     rockstar_dir = "/lustre/projects/p004_swin/jseiler/Rockstar_output/Britton_Halos_final_noLL/"
     tiamat_dir = "/lustre/projects/p070_astro/gpoole/Simulations/Tiamat/trees/version_nominal_res/vertical/"
+    kali_subfind_dir = "/lustre/projects/p134_swin/jseiler/kali/subfind_results"
     subfind_dir = "/lustre/projects/p004_swin/jseiler/rockstar_to_subfind/rockstar"
     pip_dir = "/lustre/projects/p004_swin/jseiler/Rockstar_output/Britton_Halos_final_noLL/Lhalos/"
     nbodykit_fof_dir = "/lustre/projects/p134_swin/jseiler/nbodykit_fofs/"
@@ -1092,6 +1148,8 @@ if __name__ == '__main__':
     cosmol = AllVars.Set_Params_Tiamat_extended()
     SnapZ_Tiamat = AllVars.SnapZ
 
+  
+   
     PlotScripts.Set_Params_Plot()
 
     #compare_halo_numbers(snaplow, snaphigh, rockstar_dir, tiamat_dir)
@@ -1108,7 +1166,7 @@ if __name__ == '__main__':
         plot_progline(0, simulation, treedir)
     '''
 
-    plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind_dir, pip_dir, nbodykit_fof_dir, snaplow, snaphigh, SnapZ_Pip, SnapZ_Tiamat)
+    plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind_dir, pip_dir, nbodykit_fof_dir, kali_subfind_dir, snaplow, snaphigh, SnapZ_Pip, SnapZ_Tiamat)
     #check_rockstar_halos(rockstar_dir, snaplow, snaphigh)
     #check_rockstar_particles("/lustre/projects/p004_swin/jseiler/Rockstar_output/Britton_checking_dup/", snaplow, snaphigh)
     
