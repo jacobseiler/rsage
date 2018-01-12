@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <gsl/gsl_rng.h>
 #include "core_simulation.h"
+#include <stdint.h>
 
 #define ABORT(sigterm)                                                  \
 do {                                                                \
@@ -249,37 +250,21 @@ struct halo_aux_data
 }
 *HaloAux;
 
-
-struct PHOTO_GRID
+// Grid for doing photoionization feedback.
+// This can be multiple grids (for each redshift) or one for a single redshift.
+struct GRID_STRUCT 
 {
-  double *PhotoRate;
-  double ReionRedshift;
-}
-*PhotoGrid;
 
-struct GRID
-{
-  double EjectedMass[64]; 
-  double MetalsEjectedMass[64];
-  double StellarMass[64];
-  double MetalsStellarMass[64]; 
-  double Diffuse[64];
-  int GalCount[64];
-  double StellarAge[64];
-  float Ionization_State[64];
-  int ID;
-}
-*Grid;
+  int32_t GridSize;   
+  uint64_t NumCellsTotal;
+  int32_t NumGrids;
 
-struct GRID_OUTPUT
-{
-  double EjectedMass;
-  double MetalsEjectedMass;
-  double StellarMass;
-  double Diffuse;
-  double MfiltGnedin;
-
-};
+  double *ReionRedshift; // This is the redshift the grid cell was ionized at.
+  struct PHOTO_GRID 
+  {     
+    double *PhotoRate; // Photoionization Rate (s^-1).
+  }*PhotoGrid;
+}*Grid;
 
 extern int    FirstFile;    // first and last file for processing 
 extern int    LastFile;
@@ -304,6 +289,7 @@ extern char   FileWithSnapList[512];
 extern char   PhotoionDir[512];
 extern char   PhotoionName[512];
 extern char   ReionRedshiftName[512];
+extern int    ReionSnap;
 
 extern int    TotHalos;
 extern int    TotGalaxies[ABSOLUTEMAXSNAPS];

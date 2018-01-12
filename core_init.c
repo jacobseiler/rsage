@@ -130,64 +130,93 @@ void init(void)
 }
 
 
-void init_grid()
+int32_t init_grid()
 {
 
-  int i,j;
-  FILE *load_fd;
-  char buf[1000];
+  // There are two modes of operation for accounting for the photoionization feedback. //
+  // In the first we read the photoionization rates and redshift of reionization for ALL redshifts. //
+  // Feedback is then applied to all of redshifts.  This has extensive memory requirements as assuming a 512^3 grid to float precision, then each grid will be ~0.5GB in size. //
 
-  PhotoGrid = mymalloc(sizeof(struct PHOTO_GRID)*CUBE(GridSize)); 
-  
-  printf("Reading the photoionization and redshift of reionization grids.\n");
-  for(i = 0; i < CUBE(GridSize); ++i)
+  // The second mode we read in only one sets of grids for one redshift and only apply the feedback for galaxies at this redshift. //
+  // This will be used to the super recursive mode where one redshift is updated at a time. //
+
+  int32_t i; 
+  FILE *photoion, *reionredshift;
+  char buf[MAXLEN];
+
+  Grid = mymalloc(sizeof(struct GRID_STRUCT));
+  if (Grid == NULL)
   {
-    if (NULL == (PhotoGrid[i].PhotoRate = malloc(sizeof(double)*MAXSNAPS)))  
-    {   
-      fprintf(stderr, "Out of memoery allocating %ld bytes, could not allocate PhotoGrid[i].PhotoRate.", sizeof(double)*MAXSNAPS);
-      exit(EXIT_FAILURE);
+    fprintf(stderr, "Cannot allocate memory for the high level grid struct.\n");
+    return EXIT_FAILURE;
+  }
+
+  Grid->GridSize = GridSize;
+  Grid->NumCellsTotal = CUBE(GridSize); 
+
+  Grid->ReionRedshift = malloc(sizeof(*(Grid->ReionRedshift)) * Grid->NumCellsTotal);
+  if (Grid->ReionRedshift == NULL)
+  {
+    fprintf(stderr, "Cannot allocate memory for the reionization redshift grid.\n");
+    return EXIT_FAILURE;
+  } 
+
+  snprintf(buf, MAXLEN, "%s/%s", PhotoionDir, ReionRedshiftName); 
+  if(!(reionredshift= fopen(buf, "rb")))
+  {
+    fprintf(stderr, "Cannot open file %s\n", buf);
+    return EXIT_FAILURE;
+  }
+
+  fread(Grid->ReionRedshift, sizeof(*(Grid->ReionRedshift)), Grid->NumCellsTotal, reionredshift);
+  fclose(reionredshift);
+   
+  if (ReionizationOn == 2) // This is the mode where we read everything in.
+  {
+    Grid->NumGrids = MAXSNAPS;
+  }
+  else 
+  {
+    Grid->NumGrids = 1;  
+  } 
+  
+  Grid->PhotoGrid = malloc(sizeof(struct PHOTO_GRID) * Grid->NumGrids); // Allocate enough memory to hold the photoionization grids.
+  if (Grid->PhotoGrid == NULL)
+  {
+    fprintf(stderr, "Cannot allocate memory for the photoionization grid struct\n");
+    return EXIT_FAILURE;
+  }
+
+  for (i = 0; i < Grid->NumGrids; ++i)
+  {
+    Grid->PhotoGrid[i].PhotoRate = malloc(sizeof(*(Grid->PhotoGrid[i].PhotoRate)) * Grid->NumCellsTotal); // Then allocate memory for each photoionization grid.
+    if (Grid->PhotoGrid[i].PhotoRate == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for the photoionization grid.\n");
+      return EXIT_FAILURE;
     }
+
+    if (ReionizationOn == 2)
+    {
+      snprintf(buf, MAXLEN, "%s/%s_%02d", PhotoionDir, PhotoionName, i);
+    }
+    else
+    {
+      snprintf(buf, MAXLEN, "%s/%s_%02d", PhotoionDir, PhotoionName, ReionSnap);
+    }
+ 
+    if(!(photoion = fopen(buf, "rb")))
+    {
+      fprintf(stderr, "Cannot open file %s\n", buf);
+      return EXIT_FAILURE;
+    }
+
+    fread(&Grid->PhotoGrid[i].PhotoRate, sizeof(*(Grid->PhotoGrid[i].PhotoRate)), Grid->NumCellsTotal, photoion);
+    fclose(photoion);
     
   }
 
-  printf("Maxsnaps = %d\n", MAXSNAPS); 
-  for(j = 0; j < MAXSNAPS; ++j)
-  {
-
-    if (j < 10)
-      sprintf(buf, "%s/%s_0%d", PhotoionDir, PhotoionName, j);
-    else
-      sprintf(buf, "%s/%s_%d", PhotoionDir, PhotoionName, j);
-
-    if(!(load_fd = fopen(buf, "r")))
-    {
-      printf("can't open file `%s'\n", buf);
-      ABORT(0);
-    }
-   
-    for(i = 0; i < CUBE(GridSize); ++i)
-    {
-      fread(&PhotoGrid[i].PhotoRate[j], sizeof(double), 1, load_fd);
-    } 
- 
-    fclose(load_fd);
-
-
-  }
-
-  sprintf(buf, "%s/%s", PhotoionDir, ReionRedshiftName);
-
-  if(!(load_fd = fopen(buf, "r")))
-  {
-    printf("can't open file `%s'\n", buf);
-    ABORT(0);
-  }
-
-  for(i = 0; i < CUBE(GridSize); ++i)
-  {   
-    fread(&PhotoGrid[i].ReionRedshift, sizeof(double), 1, load_fd);
-  }
- 
+  return EXIT_SUCCESS;   
 }
 
 void set_units(void)

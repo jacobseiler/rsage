@@ -7,7 +7,7 @@ struct GALAXY
 
 struct halo_data *Halo;
 
-struct GRID
+struct GRID_STRUCT
   *Grid;
 
 // auxiliary halo data 
@@ -34,6 +34,7 @@ char FileWithSnapList[512];
 char PhotoionDir[512];
 char PhotoionName[512];
 char ReionRedshiftName[512];
+int  ReionSnap;
 
 int TotHalos;
 int TotGalaxies[ABSOLUTEMAXSNAPS];

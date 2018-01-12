@@ -8,7 +8,7 @@ void construct_galaxies(int halonr, int tree, int filenr);
 void evolve_galaxies(int halonr, int ngal, int tree, int filenr);
 int  join_galaxies_of_progenitors(int halonr, int nstart);
 void init(void);
-void init_grid(void);
+int32_t init_grid(void);
 void set_units(void);
 
 void load_tree_table(int filenr);
@@ -48,7 +48,7 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
 void add_galaxy_to_merger_list(int p);
 double dmax(double x, double y);
 double do_reionization(int centralgal, double Zcurr, int ReturnMfilt);
-double do_myreionization(int centralgal, double Zcurr, int ReturnMfilt);
+double do_myreionization(int centralgal, double Zcurr, double *Mfilt);
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree, int ngal);
 void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal);

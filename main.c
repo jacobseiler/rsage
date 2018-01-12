@@ -73,6 +73,9 @@ int main(int argc, char **argv)
   struct stat filestatus;
   FILE *fd;
   char tag[MAXLEN];
+
+  int32_t status;
+
 #ifdef MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
@@ -104,8 +107,14 @@ int main(int argc, char **argv)
   read_parameter_file(argv[1]);
   init();
 
-  if(ReionizationOn == 2)
-    init_grid();
+  if(ReionizationOn == 2 || ReionizationOn == 3)
+  {
+    status = init_grid();
+    if (status == EXIT_FAILURE)
+    {
+      exit(EXIT_FAILURE);
+    }
+  }
 
   fprintf(stderr, "ListoutputSnaps[0] = %d\n", ListOutputSnaps[0]);
 

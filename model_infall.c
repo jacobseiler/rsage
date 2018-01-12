@@ -16,6 +16,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
 	double tot_hotMetals, tot_ejectedMetals, tot_ICSMetals;
 	double tot_satBaryons; 
   double infallingMass, reionization_modifier;
+  double dummy;
  
   // need to add up all the baryonic mass asociated with the full halo 
   tot_stellarMass = tot_coldMass = tot_hotMass = tot_hotMetals = tot_ejected = tot_BHMass = tot_ejectedMetals = tot_ICS = tot_ICSMetals = tot_satBaryons = 0.0;
@@ -51,10 +52,10 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
   {
     reionization_modifier = do_reionization(centralgal, Zcurr, 0);
   }
-  else if (ReionizationOn == 2) 
+  else if (ReionizationOn == 2 || ReionizationOn == 3) 
   {
      
-    reionization_modifier = do_myreionization(centralgal, Zcurr, 0);
+    reionization_modifier = do_myreionization(centralgal, Zcurr, &dummy);
   }
   else
   {
@@ -100,15 +101,15 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
 
 void strip_from_satellite(int halonr, int centralgal, int gal)
 {
-  double reionization_modifier, strippedGas, strippedGasMetals, metallicity;
+  double reionization_modifier, strippedGas, strippedGasMetals, metallicity, dummy;
   
   if(ReionizationOn == 1)
   {
     reionization_modifier = do_reionization(centralgal, ZZ[Halo[halonr].SnapNum], 0); 
   }
-  else if (ReionizationOn == 2) 
+  else if (ReionizationOn == 2 || ReionizationOn == 3) 
   {
-    reionization_modifier = do_myreionization(centralgal, ZZ[Halo[halonr].SnapNum], 0);
+    reionization_modifier = do_myreionization(centralgal, ZZ[Halo[halonr].SnapNum], &dummy);
   }
   else
   {
@@ -207,7 +208,7 @@ double do_reionization(int gal, double Zcurr, int ReturnMfilt)
 
 }
 
-double do_myreionization(int gal, double Zcurr, int ReturnMfilt)
+double do_myreionization(int gal, double Zcurr, double *Mfilt)
 {
   double z_reion;
 
@@ -216,45 +217,42 @@ double do_myreionization(int gal, double Zcurr, int ReturnMfilt)
   double b = -2.1;
   double c = 2.0;
   double d = 2.3;
-  double Mfilt, Mvir, PhotHI, reionization_modifier;
+  double my_Mfilt, Mvir, PhotHI, reionization_modifier;
 
-  int x_grid, y_grid, z_grid, grid_position;
+  int32_t x_grid, y_grid, z_grid, grid_position;
 
   x_grid = Gal[gal].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
   y_grid = Gal[gal].Pos[1]*GridSize/BoxSize;
   z_grid = Gal[gal].Pos[2]*GridSize/BoxSize; 
 
   grid_position = (x_grid*GridSize+y_grid)*GridSize+z_grid; // Convert the grid (x,y,z) to a 1D value.
+    
+  z_reion = Grid->ReionRedshift[grid_position]; // This is the redshift the cell was ionized at. For ReionizationOn == 3, we only have knowledge of a single snapshot so this will be = 0 if the cell has yet to be ionized. 
 
-  z_reion = PhotoGrid[grid_position].ReionRedshift;
-
-  if(Zcurr < z_reion) // Has the cell been reionized yet?
+  if((ReionizationOn == 2 && Zcurr < z_reion) || (ReionizationOn == 3 && Zcurr < z_reion && Gal[gal].SnapNum == ReionSnap)) // Has the cell been reionized yet? Note, for ReionizationOn == 3 we are only doing a single snapshot for feedback.
   {
-    PhotHI = PhotoGrid[grid_position].PhotoRate[Gal[gal].SnapNum]/1.0e-12; // Photoionization Rate (in units of 1e-12).
+    if (ReionizationOn == 2)
+    {
+      PhotHI = Grid->PhotoGrid[Gal[gal].SnapNum].PhotoRate[grid_position]/1.0e-12; // Photoionization Rate (in units of 1e-12).
+    }
+    else
+    {             
+      PhotHI = Grid->PhotoGrid[0].PhotoRate[grid_position]/1.0e-12; // If ReionizationOn == 3 we only have a single photoionization rate grid. 
+    }
 
-    Mfilt = M * pow(PhotHI,a) * pow((1.0 + Zcurr)/10.0,b) * pow(1.0 - pow((1.0 + Zcurr)/(1.0 + z_reion), c), d);
+    my_Mfilt = M * pow(PhotHI,a) * pow((1.0 + Zcurr)/10.0,b) * pow(1.0 - pow((1.0 + Zcurr)/(1.0 + z_reion), c), d);
     Mvir = Gal[gal].Mvir * 1.0e10 / Hubble_h;
  
-    reionization_modifier = pow(2.0, -Mfilt/Mvir);
+    reionization_modifier = pow(2.0, -my_Mfilt/Mvir);
+  }
+  else
+  {
+    reionization_modifier = 1.0;
+    my_Mfilt = 0.0; 
+  }
 
-      //printf("%.4f %.4e %.4e %.4e\n", Zcurr, Mfilt, Mvir, reionization_modifier);
-      //printf("PhotHI = %.4e \t z = %.4f \t z_reion = %.4f \t Mfilt = %.4e \t Mvir = %.4e \t Reionization_Modifier = %.4e\n", PhotHI, Zcurr, z_reion, Mfilt, Mvir, reionization_modifier);
-      //reionization_modifier = do_reionization(centralgal, Zcurr);
-      //printf("%.4e %.4e\n", reionization_modifier, do_reionization(gal, Zcurr, 0)); 
-  }
-  else
-  {
-    reionization_modifier = 1;
-    Mfilt = 0.0; 
-  }
- 
-  if (ReturnMfilt == 1)
-  {
-	
-	return Mfilt;
-  }
-  else
-  	return reionization_modifier;
+  *Mfilt = my_Mfilt;
+  return reionization_modifier;
   
 }
 

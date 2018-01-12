@@ -241,8 +241,10 @@ double get_virial_radius(int halonr)
 
 void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 {
-    int x_grid, y_grid, z_grid, grid_position, step;
-    int SnapCurr = Halo[halonr].SnapNum; 
+    int32_t x_grid, y_grid, z_grid, grid_position, step;
+    int32_t SnapCurr = Halo[halonr].SnapNum;
+    double MfiltSobacchi, reionization_modifier; 
+ 
     x_grid = Gal[p].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
     y_grid = Gal[p].Pos[1]*GridSize/BoxSize;
     z_grid = Gal[p].Pos[2]*GridSize/BoxSize; 
@@ -282,9 +284,10 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 //    Gal[p].GridPhotons_HeI[SnapCurr] = Ngamma_HeI; 
 //    Gal[p].GridPhotons_HeII[SnapCurr] = Ngamma_HeII; 
 //    Gal[p].MfiltGnedin[SnapCurr] = do_reionization(centralgal, ZZ[SnapCurr], 1);
-    if (ReionizationOn == 2)
+    if (ReionizationOn == 2 || ReionizationOn == 3)
     {  
-      Gal[p].MfiltSobacchi[SnapCurr] = do_myreionization(centralgal, ZZ[SnapCurr], 1); 
+      reionization_modifier = do_myreionization(centralgal, ZZ[SnapCurr], &MfiltSobacchi);
+      Gal[p].MfiltSobacchi[SnapCurr] = MfiltSobacchi; 
     }
  
     if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))

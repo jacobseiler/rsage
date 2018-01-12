@@ -15,8 +15,7 @@ OBJS   = 	./main.o \
 			./model_disk_instability.o \
 			./model_reincorporation.o \
 			./model_mergers.o \
-			./model_misc.o \
-			./grid_update.o
+			./model_misc.o 
 
 INCL   =	./core_allvars.h  \
 			./core_proto.h  \
@@ -32,7 +31,7 @@ else
     CC = gcc  # sets the C-compiler
 endif
 
-OPT += -Werror
+OPT += 
 
 GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
 GSL_LIBS = -L/usr/local/lib
