@@ -2109,7 +2109,9 @@ for model_number in range(number_models):
     else: 
         print("Simulation norm was set to {0}.".format(simulation_norm[model_number]))
         raise ValueError("This option has been implemented yet.  Get your head in the game Jacob!")
-
+    AllVars.Set_Params_Britton()
+    print(AllVars.SnapZ[10])
+    exit()
     if (number_snapshots[model_number] != len(AllVars.SnapZ)): # Here we do a check to ensure that the simulation we've defined correctly matches the number of snapshots we have also defined. 
         print("The number_snapshots array is {0}".format(number_snapshots))
         print("The simulation_norm array is {0}".format(simulation_norm))

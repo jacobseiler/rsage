@@ -627,13 +627,10 @@ def plot_density(z, density, OutputDir, output_tag):
 
     ax = plt.subplot(111)
 
-    cut_slice = 0
-    thickness_cut = 127
-    im = ax.imshow(density[:,:,cut_slice:cut_slice+thickness_cut].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], cmap = 'Purples', vmin = rho_min + 0.01, vmax = 5) 
-
-    ax.add_patch(patches.Rectangle((45.0, 45.0), 5.0, 5.0, fill=False))
-    ax.add_patch(patches.Rectangle((45.0, 0.0), 5.0, 10.0, fill=False))
-
+    cut_slice = 63
+    thickness_cut = 1
+    im = ax.imshow(density[:,:,cut_slice:cut_slice+thickness_cut].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], cmap = 'Purples', vmin = 0.12, vmax = 10) 
+    
     cbar = plt.colorbar(im, ax = ax)
     cbar.set_label(r'$\rho/\langle \rho \rangle$')
         
@@ -2272,7 +2269,7 @@ if __name__ == '__main__':
 
     model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$"]
 
-    output_tags = [r"Summing_Test_Full"]
+    output_tags = [r"Densfield_Summing_Test_Full"]
 #    output_tags = [r"Densfield_full_Snap20"]
 #    output_tags = [r"densgrid_snapshot020_full"]
  
@@ -2284,18 +2281,18 @@ if __name__ == '__main__':
     # 4 : Simfast21 (deprecated).
     # 5 : Britton's. 
 
-    model = 'Britton'
+    model = 'Britton_Density'
 
     GridSize_model1 = 256
-    
+        
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
 
     #filepath_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_constantfesc"
    
     #filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/sage_Galaxies_IRA_z5.000_fesc0.50_HaloPartCut100_nionHI"
 
-    filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/densfield_test/chunks/summing_snap000.dens.dat"
-     
+    filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/densfield_test/chunks/summing_final_snap"
+        
     #filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_constantfesc"
 
     simulation_norm = [simulation_model1]
@@ -2306,7 +2303,6 @@ if __name__ == '__main__':
     density_filepath_array = [filepath_density_model1]
 #    photofield_filepath_array = [filepath_photofield_model1]
     
-
     ###########################   
 
     cosmo = AllVars.Set_Params_Britton()
@@ -2316,7 +2312,8 @@ if __name__ == '__main__':
         os.makedirs(OutputDir)
 
     #snaplist = np.arange(0, len(AllVars.SnapZ)) 
-    snaplist = [0] 
+    snaplist = np.arange(0, 70)
+    #snaplist = [0] 
     #snaplist = np.arange(20, 50)
 
     ZZ = np.empty(len(snaplist))
@@ -2395,95 +2392,96 @@ if __name__ == '__main__':
 
         ##########################################################################
 
-    for model_number in range(0, number_models): 
+        for model_number in range(0, number_models): 
 
-        if (simulation_norm[model_number] == 0):
-            cosmo = AllVars.Set_Params_Mysim()
-        elif (simulation_norm[model_number] == 2):
-            cosmo = AllVars.Set_Params_Tiamat()
-        elif (simulation_norm[model_number] == 4):
-            print("Attempted to set the parameters to Simfast21.  This is so old.")
-            exit()
-            cosmo = AllVars.Set_Params_Simfast21()
-        elif (simulation_norm[model_number] == 5):
-            cosmo = AllVars.Set_Params_Britton()
-        else:
-            print("The current value for simulation norm ({0}) is not implmented yet.".format(simulation_norm[model_number]))
-            exit()
-        GridSize_model = GridSize_array[model_number]
-        precision_model = precision_array[model_number]
+            if (simulation_norm[model_number] == 0):
+                cosmo = AllVars.Set_Params_Mysim()
+            elif (simulation_norm[model_number] == 2):
+                cosmo = AllVars.Set_Params_Tiamat()
+            elif (simulation_norm[model_number] == 4):
+                print("Attempted to set the parameters to Simfast21.  This is so old.")
+                exit()
+                cosmo = AllVars.Set_Params_Simfast21()
+            elif (simulation_norm[model_number] == 5):
+                cosmo = AllVars.Set_Params_Britton()
+            else:
+                print("The current value for simulation norm ({0}) is not implmented yet.".format(simulation_norm[model_number]))
+                exit()
+            GridSize_model = GridSize_array[model_number]
+            precision_model = precision_array[model_number]
 
-        	#######################################
-	        ##### Reading in all the files. ####### 
-	        #######################################
+                #######################################
+                ##### Reading in all the files. ####### 
+                #######################################
 
 
-        #ionized_cells_path = ionized_cells_filepath_array[model_number] + "_%02d" %(snapshot_idx) 
-        #ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, precision_model)) 
+            #ionized_cells_path = ionized_cells_filepath_array[model_number] + "_%02d" %(snapshot_idx) 
+            #ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, precision_model)) 
 
-        #nion_path = nion_filepath_array[model_number] + number_tag_mine 
-        #nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))		
+            #nion_path = nion_filepath_array[model_number] + number_tag_mine 
+            #nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))		
 
-        density_path = density_filepath_array[model_number] #+ number_tag_mine
-        density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))		
+            density_path = "{0}{1:03d}.dens.dat".format(density_filepath_array[model_number], snapshot_idx)  
+            #density_path = "{0}.dens.dat".format(density_filepath_array[model_number])  
+            density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))		
 
-        #		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
-        #		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
-              
-        #plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
+            #		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
+            #		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
+                  
+            #plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
 
-        #volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
-        #nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
-        #volume_frac_model = volume_frac_array[model_number][snapshot_idx]	
+            #volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
+            #nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
+            #volume_frac_model = volume_frac_array[model_number][snapshot_idx]	
 
-        if(do_hoshen == 1):
-            hoshen_array[model_number][snapshot_idx] = hoshen_kopelman(ionized_cells_array[model_number])	
-	
-        #plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snapshot_idx))
-        #density_array[model_number] = density_array[model_number] + 1
-        plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
-        #plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
+            if(do_hoshen == 1):
+                hoshen_array[model_number][snapshot_idx] = hoshen_kopelman(ionized_cells_array[model_number])	
+        
+            #plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snapshot_idx))
+            #density_array[model_number] = density_array[model_number] + 1
+            plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
+            #plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
-        #fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
+            #fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
 
-        '''
-        if(fraction_idx != -1): 
-            if(MC_ZZ[model_number, fraction_idx] == -1):	
-                MC_ZZ[model_number, fraction_idx] = ZZ[snapshot_idx]
-                MC_Snaps[model_number, fraction_idx] = snapshot_idx
-
-                print("Model {0} reached x_HI = {1:.3f} at z = {2:.2f}".format(model_number, fractions_HI[fraction_idx], ZZ[snapshot_idx]))
-
-                do_MC = 1
-                do_power_array[model_number] = 1
-	    '''
-        if((do_MC == 1 and calculate_MC == 1) or (calculate_MC == 2 and snapshot_idx == calculate_MC_snaps[snapshot_idx])):
             '''
-            print "snapshot_idx", snapshot_idx
-            print "Model_number", model_number
-            print "ZZ[snapshot_idx", ZZ[snapshot_idx]
-            print "ionized_cells_array[model_number]", ionized_cells_array[model_number]
-            print "GridSIze_array[model_number]", GridSize_array[model_number]	
-            '''	
-            calculate_bubble_MC(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number])
-            do_MC = 0
+            if(fraction_idx != -1): 
+                if(MC_ZZ[model_number, fraction_idx] == -1):	
+                    MC_ZZ[model_number, fraction_idx] = ZZ[snapshot_idx]
+                    MC_Snaps[model_number, fraction_idx] = snapshot_idx
 
-        if(do_power_array[model_number] == 1 and calculate_power == 1):
-		
-            tmp_k, tmp_PowSpec, tmp_Error, Mean_Brightness = calculate_power_spectrum(ionized_cells_array[model_number], density_array[model_number], GridSize_array[model_number])
-            wavenumber_array[model_number].append(tmp_k)
-            powerspectra_array[model_number].append(Mean_Brightness**2 * tmp_PowSpec * tmp_k**3 * 2.0 * np.pi * np.pi)
-            powerspectra_error_array[model_number].append(tmp_Error)
-            fraction_idx_array[model_number].append(fraction_idx)
+                    print("Model {0} reached x_HI = {1:.3f} at z = {2:.2f}".format(model_number, fractions_HI[fraction_idx], ZZ[snapshot_idx]))
 
-            do_power_array[model_number] = 0
+                    do_MC = 1
+                    do_power_array[model_number] = 1
+            '''
+            if((do_MC == 1 and calculate_MC == 1) or (calculate_MC == 2 and snapshot_idx == calculate_MC_snaps[snapshot_idx])):
+                '''
+                print "snapshot_idx", snapshot_idx
+                print "Model_number", model_number
+                print "ZZ[snapshot_idx", ZZ[snapshot_idx]
+                print "ionized_cells_array[model_number]", ionized_cells_array[model_number]
+                print "GridSIze_array[model_number]", GridSize_array[model_number]	
+                '''	
+                calculate_bubble_MC(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number])
+                do_MC = 0
 
-        #plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
+            if(do_power_array[model_number] == 1 and calculate_power == 1):
+            
+                tmp_k, tmp_PowSpec, tmp_Error, Mean_Brightness = calculate_power_spectrum(ionized_cells_array[model_number], density_array[model_number], GridSize_array[model_number])
+                wavenumber_array[model_number].append(tmp_k)
+                powerspectra_array[model_number].append(Mean_Brightness**2 * tmp_PowSpec * tmp_k**3 * 2.0 * np.pi * np.pi)
+                powerspectra_error_array[model_number].append(tmp_Error)
+                fraction_idx_array[model_number].append(fraction_idx)
 
-        #photo_mean_array[model_number][snapshot_idx] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
-        #photo_std_array[model_number][snapshot_idx] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
- 
-    #print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
+                do_power_array[model_number] = 0
+
+            #plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
+
+            #photo_mean_array[model_number][snapshot_idx] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
+            #photo_std_array[model_number][snapshot_idx] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
+         
+        #print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
 
     '''
     for model_number in range(0, number_models):
