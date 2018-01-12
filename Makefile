@@ -55,3 +55,5 @@ tidy:
 	rm -f $(OBJS) ./$(EXEC)
 
 all: $(EXEC) 
+
+celan celna clena claen:clean

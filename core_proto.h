@@ -21,7 +21,7 @@ void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GA
 void free_galaxies_and_tree(void);
 void free_grid_arrays(struct GALAXY *g);
 void free_tree_table(void);
-void free_grid(void);
+int32_t free_grid(void);
 void malloc_grid_arrays(struct GALAXY *g);
 void print_allocated(void);
 

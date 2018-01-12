@@ -58,6 +58,10 @@ void read_parameter_file(char *fname)
   addr[nt] = ReionRedshiftName; 
   id[nt++] = STRING;
 
+  strcpy(tag[nt], "ReionSnap");
+  addr[nt] = &ReionSnap; 
+  id[nt++] = INT;
+
   strcpy(tag[nt], "FileWithSnapList");
   addr[nt] = FileWithSnapList;
   id[nt++] = STRING;

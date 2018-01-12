@@ -353,6 +353,23 @@ void malloc_grid_arrays(struct GALAXY *g)
   g->IsMalloced = 1;
 }
 
+int32_t free_grid()
+{
+
+  int32_t i;
+
+  for (i = 0; i < Grid->NumGrids; ++i)
+  {
+    free(Grid->PhotoGrid[i].PhotoRate);
+  }
+
+  free(Grid->PhotoGrid);
+  free(Grid->ReionRedshift);
+  free(Grid);
+
+  return EXIT_SUCCESS;
+
+} 
 
 size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
 {

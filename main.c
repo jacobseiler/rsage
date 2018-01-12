@@ -218,6 +218,11 @@ int main(int argc, char **argv)
   gsl_rng_free(random_generator); 
 
   fprintf(stderr, "Returned Mvir %d times compared to Len %d times\n", count_Mvir, count_Len);
+
+  if (ReionizationOn == 2 || ReionizationOn == 3)
+  {
+    status = free_grid();
+  }
   return 0;
 }
 
