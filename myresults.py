@@ -3,7 +3,6 @@ from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
 
-
 import os
 import heapq
 import numpy as np
@@ -1997,11 +1996,18 @@ number_snapshots = [164, 164] # Number of snapshots in the simulation (we don't 
 FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
 #FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
 #LastFile = [26, 26, 26, 26] # The last file number THAT WE ARE PLOTTING.
-LastFile = [0, 0] # The last file number THAT WE ARE PLOTTING.
+LastFile = [26, 26] # The last file number THAT WE ARE PLOTTING.
 #LastFile = [5, 1] # The last file number THAT WE ARE PLOTTING.
 #NumFile = [27, 27, 27, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
 NumFile = [27, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
 #NumFile = [64, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
+
+same_files = [1, -1] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
+# This array will tell us if we should keep the files for the next model or otherwise throw them away and keep them.
+# It is set up to be DAISY-CHAINED with the final model that uses the files set to have -1.
+# For example if we had 5 models we were plotting and model 1, 2, 3 shared the same files and models 4, 5 shared different files,
+# Then same_files = [1, 2, -1, 4, -1] would be the correct values.
+done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
 
 #model_tags = [r"$f_\mathrm{esc} = 0.2$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar} \: (\mathrm{Boost} = 1.0, N_\mathrm{Dynamical} = 0.1)$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar} \: (\mathrm{Boost} = 1.0, N_\mathrm{Dynamical} = 1)$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar} \: (\mathrm{Boost} = 1.0, N_\mathrm{Dynamical} = 3)$"]
 model_tags = [r"$f_\mathrm{esc} \: \propto \: \mathrm{quasar} (\mathrm{boost} = 1.0, N_\mathrm{dynamical} = 1)$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
@@ -2109,9 +2115,7 @@ for model_number in range(number_models):
     else: 
         print("Simulation norm was set to {0}.".format(simulation_norm[model_number]))
         raise ValueError("This option has been implemented yet.  Get your head in the game Jacob!")
-    AllVars.Set_Params_Britton()
-    print(AllVars.SnapZ[10])
-    exit()
+
     if (number_snapshots[model_number] != len(AllVars.SnapZ)): # Here we do a check to ensure that the simulation we've defined correctly matches the number of snapshots we have also defined. 
         print("The number_snapshots array is {0}".format(number_snapshots))
         print("The simulation_norm array is {0}".format(simulation_norm))
@@ -2179,6 +2183,9 @@ for model_number in range(number_models):
         dynamicaltime_all_std_z[model_number].append(0.0)
  
     for fnr in range(FirstFile[model_number] + rank, LastFile[model_number]+1, size): # Divide up the input files across the processors.
+
+        keep_files = 1 # Flips to 0 when we are done with this file.
+        current_model_number = model_number
 
         ## These are instantaneous values for a single file. ##
         w_gal = []
@@ -2341,7 +2348,7 @@ for model_number in range(number_models):
 #StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, "Britton_Tiamat_Delayed_SMF") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
 #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 
-plot_fesc_galaxy(SnapList, PlotSnapList, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fescStellarHaloMass")
-plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma") ## PARALELL COMPATIBLE
+plot_fesc_galaxy(SnapList, PlotSnapList, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_FullTiamat")
+plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_FullTiamat") ## PARALELL COMPATIBLE
 #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 #plot_quasars_count(SnapList, N_quasars_z, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Quasar_count_z")
