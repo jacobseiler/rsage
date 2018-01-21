@@ -132,8 +132,8 @@ def ReadHalos(DirName, First_File, Last_File):
     print("First_File = %d" %(First_File))
     print("Last_File = %d" %(Last_File))
 
-    names = [Halo_Desc_full[i][0] for i in xrange(len(Halo_Desc_full))]
-    formats = [Halo_Desc_full[i][1] for i in xrange(len(Halo_Desc_full))]
+    names = [Halo_Desc_full[i][0] for i in range(len(Halo_Desc_full))]
+    formats = [Halo_Desc_full[i][1] for i in range(len(Halo_Desc_full))]
     Halo_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
 
     return Read_SAGE_Objects(DirName, Halo_Desc, 1, 1, First_File, Last_File)
@@ -162,8 +162,8 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
                             
     print("Reading in SAGE files (Post STARBURST).")
 
-    names = [Galdesc_full[i][0] for i in xrange(len(Galdesc_full))]
-    formats = [Galdesc_full[i][1] for i in xrange(len(Galdesc_full))] 
+    names = [Galdesc_full[i][0] for i in range(len(Galdesc_full))]
+    formats = [Galdesc_full[i][1] for i in range(len(Galdesc_full))] 
     Gal_Desc = np.dtype({'names':names, 'formats':formats}, align=True)  
  
     return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, fnr, comm), Gal_Desc)
@@ -187,8 +187,8 @@ def Create_Snap_Arrays(G, NumSnaps, SnapList):
 
     SnapCount = np.zeros((NumSnaps))
 
-    for i in xrange(0, len(G)):
-        for j in xrange(0,NumSnaps):
+    for i in range(0, len(G)):
+        for j in range(0,NumSnaps):
             if (G.GridHistory[i,j] != -1):
                 SnapCount[j] += 1
 
@@ -252,4 +252,78 @@ def read_meraxes_hdf5():
     container = h5py.File(hdf5_file_name, 'r')
     print("Keys: %s" %(container.keys()))
     
+def read_trees_smallarray(treedir, file_idx, simulation):
+    """
+    Reads a single file of halos into an array.
+    Assumes the tree are named as '<tree_dir>/subgroup_trees_<file_idx>.dat' where file_idx is padded out to 3 digits or '<tree_dir>/lhalotree.bin.<file_idx>' depending on the simulation. 
 
+    Parameters
+    ==========
+
+    treedir : string
+        Base directory path for the trees.
+    file_idx : int
+        File number we are reeding in.   
+    simulation : int
+        Simulation we are reading for.  Determines the naming convention for the files.
+        0 : Pip (Britton's Simulation) built using Greg's code
+        1 : Tiamat
+        2 : Manodeep's 1024 Simulation
+        3 : Pip built using Rockstar.
+        4 : Kali built using Greg's code.
+
+    Returns
+    =======
+
+    Halos : array of halos with data-type specified by 'Halo_Desc_full'
+        The read in halos for this file. 
+    HalosPerTree : array of ints
+        Number of halos within each tree of the file.     
+    """ 
+
+    Halo_Desc_full = [
+    ('Descendant',          np.int32),
+    ('FirstProgenitor',     np.int32),
+    ('NextProgenitor',      np.int32),
+    ('FirstHaloInFOFgroup', np.int32),
+    ('NextHaloInFOFgroup',  np.int32),
+    ('Len',                 np.int32),
+    ('M_mean200',           np.float32),
+    ('Mvir',                np.float32),
+    ('M_TopHat',            np.float32),
+    ('Pos',                 (np.float32, 3)),
+    ('Vel',                 (np.float32, 3)),
+    ('VelDisp',             np.float32),
+    ('Vmax',                np.float32),
+    ('Spin',                (np.float32, 3)),
+    ('MostBoundID',         np.int64),
+    ('SnapNum',             np.int32),
+    ('Filenr',              np.int32),
+    ('SubHaloIndex',        np.int32),
+    ('SubHalfMass',         np.float32)
+                     ]
+
+    names = [Halo_Desc_full[i][0] for i in range(len(Halo_Desc_full))]
+    formats = [Halo_Desc_full[i][1] for i in range(len(Halo_Desc_full))]
+    Halo_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
+
+    if (simulation == 0 or simulation == 1 or simulation == 4):
+        fname = "{0}/subgroup_trees_{1:03d}.dat".format(treedir, file_idx)
+    elif (simulation == 2 or simulation == 3):
+        fname = "{0}/lhalotree.bin.{1}".format(treedir, file_idx)
+    else:
+        raise ValueError("Invalid simulation option chosen.")
+
+    print("Reading for file {0}".format(fname)) 
+    fin = open(fname, 'rb')  # Open the file
+
+    trees_thisfile = np.fromfile(fin,np.dtype(np.int32),1)  # Read number of trees in file.
+    halos_thisfile = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of halos in file.
+
+    HalosPerTree = np.fromfile(fin, np.dtype((np.int32, trees_thisfile)),1)[0] # Read the number of halos in each tree.
+
+    Halos = np.fromfile(fin, Halo_Desc, halos_thisfile)  # Read in the halos.
+
+    fin.close() # Close the file  
+
+    return Halos, HalosPerTree

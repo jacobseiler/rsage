@@ -531,15 +531,15 @@ def Set_Params_Kali():
     Volume = BoxSize**3
     BaryonFrac = 0.17
     Y = 0.24   
-    PartMass = 1.151e6 # Msun/h 
+    PartMass = 7.8436e6# Msun/h 
 
-    a = np.loadtxt("/lustre/projects/p134_swin/jseiler/subfind_britton/trees/britton_shifted/a_list.txt")
+    a = np.loadtxt("/lustre/projects/p134_swin/jseiler/kali/a_list.txt")
+    a = a[:99]
     SnapZ = 1.0/a - 1
        
     cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
 
     Lookback_Time = cosmo.lookback_time(SnapZ).value # In Gyr 
-
 
     print("######################")
     print("BoxSize = %.3f (Mpc/h)" %(BoxSize))
@@ -754,3 +754,10 @@ def ensure_dir(file_path):
         os.makedirs(directory)
     else:
         print("It does exist")
+
+## Function to find the value (and index of said value) that is nearest to a given value within an array.
+## Taken from https://stackoverflow.com/questions/2566412/find-nearest-value-in-numpy-array
+
+def find_nearest(array,value):
+    idx = (np.abs(array-value)).argmin()
+    return array[idx], idx
