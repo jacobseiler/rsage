@@ -784,6 +784,8 @@ def create_horizontal_trees_hmf(tiamat_dir, snaplow, snaphigh, map_pip_to_tiamat
                 exit()
 
             w = np.where((Halos_Tiamat['SnapNum'] == map_pip_to_tiamat[snapshot_idx]))[0] # Find those halos whose redshift is closest to Pip's redshift at this snapshot. 
+            print(Halos_Tiamat['Pos'][w])
+            exit()
             if (use_PartMass == 0):
                 halo_mass = np.log10(Halos_Tiamat['Mvir'][w] * 1.0e10 / AllVars.Hubble_h)
             else:
@@ -958,7 +960,7 @@ def plot_rockstar_tiamat_comparison(rockstar_dir, tiamat_dir, group_dir, subfind
     map_pip_to_tiamat = AllVars.find_nearest_redshifts(SnapZ_Pip, SnapZ_Tiamat)       
     map_kali_to_tiamat = AllVars.find_nearest_redshifts(SnapZ_Kali, SnapZ_Tiamat)   
  
-    tiamat_halo_counts = create_horizontal_trees_hmf(tiamat_dir, snaplow, snaphigh, map_kali_to_tiamat, m_low, m_high, 27, 1)
+    #tiamat_halo_counts = create_horizontal_trees_hmf(tiamat_dir, snaplow, snaphigh, map_kali_to_tiamat, m_low, m_high, 27, 1)
     #pip_halo_counts = create_horizontal_trees_hmf(pip_dir, snaplow, snaphigh, np.arange(0, 92), m_low, m_high, 64, 3)
     kali_halo_counts = create_horizontal_trees_hmf(kali_dir, snaplow, snaphigh, np.arange(0, 106), m_low, m_high, 64, 4)        
 
