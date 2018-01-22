@@ -18,11 +18,11 @@ void read_parameter_file(char *fname)
 {
   FILE *fd;
   char buf[400], buf1[400], buf2[400], buf3[400];
-  int i, j, nt = 0, done;
+  int i, j, nt = 0;
   int id[MAXTAGS];
   void *addr[MAXTAGS];
   char tag[MAXTAGS][50];
-  int errorFlag = 0;
+  int errorFlag = 0, galaxyFlag = 0;
 
 
 #ifdef MPI
@@ -30,20 +30,16 @@ void read_parameter_file(char *fname)
 #endif
     printf("\nreading parameter file:\n\n");
 
-  strcpy(tag[nt], "GridOutputDir");
-  addr[nt] = GridOutputDir;
+  strcpy(tag[nt], "GridOutputDir"); 
+  addr[nt] = GridOutputDir; 
   id[nt++] = STRING;
 
-  strcpy(tag[nt], "GalaxiesInputDir");
-  addr[nt] = GalaxiesInputDir;
+  strcpy(tag[nt], "OutputDir"); // This was the output directory for SAGE.
+  addr[nt] = GalaxiesInputDir; // So it will be input directory for our galaxies here.
   id[nt++] = STRING;
 
   strcpy(tag[nt], "FileNameGalaxies");
   addr[nt] = FileNameGalaxies;
-  id[nt++] = STRING;
-
-  strcpy(tag[nt], "FileNameMergedGalaxies");
-  addr[nt] = FileNameMergedGalaxies;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "TreeName");
@@ -52,10 +48,6 @@ void read_parameter_file(char *fname)
 
   strcpy(tag[nt], "SimulationDir");
   addr[nt] = SimulationDir;
-  id[nt++] = STRING;
-
-  strcpy(tag[nt], "DiffuseDir");
-  addr[nt] = DiffuseDir;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "FileWithSnapList");
@@ -114,24 +106,12 @@ void read_parameter_file(char *fname)
   addr[nt] = &GridSize;
   id[nt++] = INT;
 
-  strcpy(tag[nt], "NGrid");
-  addr[nt] = &NGrid; 
-  id[nt++] = INT;
-
-  strcpy(tag[nt], "LastOutputSnap");
-  addr[nt] = &LastOutputSnap; 
-  id[nt++] = INT;
-
   strcpy(tag[nt], "SourceEfficiency");
   addr[nt] = &SourceEfficiency;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "FeedbackReheatingEpsilon");
   addr[nt] = &QuasarModeEfficiency;
-
-  strcpy(tag[nt], "OutputMode");
-  addr[nt] = &OutputMode;
-  id[nt++] = INT;
 
   strcpy(tag[nt], "LowSnap");
   addr[nt] = &LowSnap;
@@ -214,9 +194,8 @@ void read_parameter_file(char *fname)
         }
       }
       else
-      {
-        printf("Error in file %s:   Tag '%s' not allowed or multiple defined.\n", fname, buf1);
-        errorFlag = 1;
+      {        
+        galaxyFlag = 1;
       }
     }
     fclose(fd);
@@ -225,13 +204,6 @@ void read_parameter_file(char *fname)
     if(i > 0)
       if(GridOutputDir[i - 1] != '/')
       strcat(GridOutputDir, "/");
-
-    i = strlen(GalaxiesInputDir);
-    if(i > 0)
-      if(GalaxiesInputDir[i - 1] != '/')
-      strcat(GalaxiesInputDir, "/");
-
-
   }
   else
   {
@@ -254,57 +226,14 @@ void read_parameter_file(char *fname)
 	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
 	MAXSNAPS = LastSnapShotNr + 1;
 
-	XASSERT(OutputMode == 0 || OutputMode == 1, "OutputMode must have a value of either 0 or 1.");
 	XASSERT(LowSnap < HighSnap, "LowSnap must be less than HighSnap.");
 	
 	// read in the output snapshot list
-	if(OutputMode == 1)
-        {
-	  printf("Selecting sequential snapshots from Snapshot %d to %d.\n", LowSnap, HighSnap);
-	  for (i = HighSnap; i > LowSnap - 1; --i)
-          {
-            ListOutputGrid[HighSnap - i] = i;
-          }
-          NGrid = HighSnap - LowSnap + 1;
-        }
-        else if(OutputMode == 0 && NGrid == -1)
-        {
-	  NGrid = MAXSNAPS;
-	  for (i = NGrid-1; i >= 0; --i)
-		  ListOutputGrid[i] = i;
-	  printf("All %d Snapshots selected for grid output: ", MAXSNAPS);
-	}
-	else 
-	{
-	  printf("%d Snapshots selected for grid output: ", NGrid);
-	  fd = fopen(fname, "r");
-
-	  done = 0;
-	  while(!feof(fd) && !done)
-	  {
-	    fscanf(fd, "%s", buf);
-	    if(strcmp(buf, "->") == 0)
-	    {
-	      for (i = 0; i < NGrid; ++i)
-              {
-		fscanf(fd, "%d", &ListOutputGrid[i]);
-		printf("%d ", ListOutputGrid[i]);
-
-		/*
-		if (i == 0)
-	          LastOutputSnap = ListOutputGrid[i];
-		else 
-	        {
-	          if (ListOutputGrid[i] > LastOutputSnap)
-			  LastOutputSnap = ListOutputGrid[i];
-		}
-		*/
-	      }
-		done = 1;
-	    }
-	  }
-
-	  fclose(fd); 
-	  printf("\n");
-	}
+  printf("Selecting sequential snapshots from Snapshot %d to %d.\n", LowSnap, HighSnap);
+  for (i = HighSnap; i > LowSnap - 1; --i)
+  {
+    ListOutputGrid[HighSnap - i] = i;
+  }
+  NGrid = HighSnap - LowSnap + 1;
+  
 }

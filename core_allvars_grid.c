@@ -4,8 +4,8 @@
 struct GRID
   *Grid;
 
-struct GALAXY_INPUT
-  *Gal;
+//struct GALAXY_INPUT
+//  *Gal;
 
 struct halo_data *Halo;
 
@@ -45,13 +45,11 @@ int MaxGals;     // Maximum number of galaxies allowed for current tree
 
 int LastSnapShotNr;
 
-char GalaxiesInputDir[512];
+char GalaxiesInputDir[MAXLEN];
 char GridOutputDir[512];
 char FileNameGalaxies[512];
-char FileNameMergedGalaxies[512];
 char TreeName[512];
 char SimulationDir[512];
-char DiffuseDir[512];
 char FileWithSnapList[512];
 
 int TotHalos;
@@ -76,7 +74,6 @@ double BoxSize;
 int GridSize;
 int GridSnap;
 int NGrid;
-int LastOutputSnap;
 
 double Hubble_h;
 double EnergySNcode, EnergySN;
@@ -107,7 +104,6 @@ double Reionization_zr;
 double ThresholdSatDisruption;
 
 int MAXSNAPS;
-int OutputMode;
 int LowSnap;
 int HighSnap;
 int ListOutputSnaps[ABSOLUTEMAXSNAPS];

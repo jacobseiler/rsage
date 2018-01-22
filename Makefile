@@ -26,6 +26,7 @@ else
 endif
 
 
+OPT += 
 
 GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
 GSL_LIBS = -L/usr/local/lib
@@ -48,4 +49,4 @@ clean:
 tidy:
 	rm -f $(OBJS) ./$(EXEC)
 
-all:  tidy $(EXEC) clean
+all:  $(EXEC) 

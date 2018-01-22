@@ -47,8 +47,6 @@ void bye()
 
   if(exitfail)
   {
-    unlink(buf);
-
 #ifdef MPI
     if(ThisTask == 0 && gotXCPU == 1)
       printf("Received XCPU, exiting. But we'll be back.\n");
@@ -87,9 +85,12 @@ int main(int argc, char **argv)
 
 
   int filenr, p, i, GridNr, ThisTask_GridNr = 0;
- 
+
+  
   read_parameter_file(argv[1]);
+
   init(); // Initialize all the parameters (set units, create scale factor/age arrays etc).
+
 #ifdef MPI
   for (GridNr = ThisTask; GridNr < NGrid; GridNr += NTask)
 #else
@@ -97,7 +98,9 @@ int main(int argc, char **argv)
 #endif
   {
     if (Verbose == 1)
-	fprintf(stderr, "Task %d is doing redshift %.3f\n", ThisTask, ZZ[ListOutputGrid[GridNr]]);
+    {
+	    fprintf(stderr, "Task %d is doing redshift %.3f\n", ThisTask, ZZ[ListOutputGrid[GridNr]]);
+    }
     init_grid(GridNr, ThisTask_GridNr); // Initialize the grid. 
 //    update_grid_diffuse(GridNr); // Read in all the diffuse gas.
 
@@ -105,7 +108,6 @@ int main(int argc, char **argv)
     {
       for (filenr = FirstFile; filenr < LastFile + 1; ++filenr)
       {
-        if(filenr % 30 == 0)
         printf("Doing file %d.\n", filenr);
 
       //  load_halos(filenr); // Load the halos.
@@ -115,16 +117,15 @@ int main(int argc, char **argv)
         for (i = 0; i < 2; ++i) // i = 0 does the normal galaxies, i = 1 does the merged galaxies.
         {
           if(i == 0)      
-            snprintf(buf, MAXLEN, "%s/%s_%d", GalaxiesInputDir, FileNameGalaxies, filenr);
+            snprintf(buf, MAXLEN, "%s/%s_z%1.3f_%d", GalaxiesInputDir, FileNameGalaxies, ZZ[LastSnapShotNr], filenr);
           else       
-            snprintf(buf, MAXLEN, "%s/%s_%d", GalaxiesInputDir, FileNameMergedGalaxies, filenr); 
+            snprintf(buf, MAXLEN, "%s/%s_MergedGalaxies_%d", GalaxiesInputDir, FileNameGalaxies, filenr);
 
           if ( access(buf, F_OK ) == -1) // Sanity check.
           {
             printf("-- input for file %s does not exist, exiting now.\n", buf);
             exit(0); 
           }
-
 //          if (Verbose == 1)
 //           printf("Loading galaxies for file %d, name '%s'\n", filenr, buf); 
           load_gals(buf);    

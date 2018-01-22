@@ -28,8 +28,10 @@ void update_grid_properties(int p, int merged, int GridNr, int filenr)
  
     if (grid_position == -1) continue; // If the galaxy hasn't formed yet, move on to next snapshot. 
     if (i > ListOutputGrid[GridNr]) break; // If the current snapshot redshift is lower than an output redshift, proceed to next one.
-    XASSERT(grid_position >= 0 && grid_position < CUBE(GridSize), "The grid index must be between 0 and the GridSize cubed (%d cubed = %d).  The index for Galaxy %d is %d.\n", GridSize, CUBE(GridSize), p, grid_position);
+    //XASSERT(grid_position >= 0 && grid_position < CUBE(GridSize), "The grid index must be between 0 and the GridSize cubed (%d cubed = %d).  The index for Galaxy %d is %d.\n", GridSize, CUBE(GridSize), p, grid_position);
 
+    if (grid_position < 0)
+      grid_position = 0; 
     //These are instantaneous properties measured at a specific redshift. //
     if((i == ListOutputGrid[GridNr]) && (GalGrid[p].StellarMass[i] > 0.0) & (GalGrid[p].SFR[i] > 0.0) & (GalGrid[p].CentralGalaxyMass[i] > 0.0) & (GalGrid[p].LenHistory[i] > HaloPartCut)) // Only want to take those galaxies with a non-zero stellar mass (they actually exist and are evolving).
     {
@@ -127,51 +129,23 @@ void update_grid_halo(int totNHalos, int GridNr)
   }
 }
 
-// 
-
-void update_grid_diffuse(int GridNr)
-{
- 
-  char bufz0[MAXLEN];
-  FILE* load_fd = NULL;
-
-
-  snprintf(bufz0, MAXLEN, "%s/%d_Unbound.dat", DiffuseDir, ListOutputGrid[GridNr]);
- 
-  if(!(load_fd = fopen(bufz0, "r")))
-  {
-    printf("Can't open file `%s'\n", bufz0);
-    exit(0);
-  }
-   
-  int i;
-  printf("Reading in diffuse particles for Snapshot %d.\n", ListOutputGrid[GridNr]); 
-  for (i = 0; i < CUBE(GridSize); ++i)
-    fread(&Grid[i].Diffuse, sizeof(int), 1, load_fd);
-
-//  fread(&GridDiffuse, sizeof(int), CUBE(GridSize), load_fd); 
-
-  fclose(load_fd);
-}
-
 void update_grid_density(int GridNr)
 { 
   int i, count = 0;
   double total_density = 0, max_density = 0;
-  double tot_StellarMass = 0, tot_DiffuseMass = 0, tot_HaloMass = 0;
+  double tot_StellarMass = 0, tot_HaloMass = 0;
 
   for(i = 0; i < CUBE(GridSize); ++i)
   {
     tot_StellarMass += Grid[i].StellarMass;
-    tot_DiffuseMass += Grid[i].Diffuse*PartMass;
     tot_HaloMass += Grid[i].HaloMass;
-    total_density += Grid[i].StellarMass + Grid[i].Diffuse*PartMass + Grid[i].HaloMass;  
+    total_density += Grid[i].StellarMass + Grid[i].HaloMass;  
   }
     
   printf("=======================================\n\n");
   printf("Calculating density for Snapshot %d (z = %.3f).\n", ListOutputGrid[GridNr], ZZ[ListOutputGrid[GridNr]]);
   printf("The total mass in the grid is %.4e (10^10 MSun/h)\n", total_density);
-  printf("With %.4e Stellar, %.4e Diffuse and %.4e Halo Mass\n", tot_StellarMass, tot_DiffuseMass, tot_HaloMass);
+  printf("With %.4e Stellar, %.4e Halo Mass\n", tot_StellarMass, tot_HaloMass);
 
   total_density /= CUBE(GridSize);
 
@@ -182,7 +156,7 @@ void update_grid_density(int GridNr)
   // Convert to overdensity. //
   for(i = 0; i < CUBE(GridSize); ++i)
   {
-    Grid[i].Density = (Grid[i].StellarMass + Grid[i].Diffuse*PartMass + Grid[i].HaloMass)/total_density;
+    Grid[i].Density = (Grid[i].StellarMass + Grid[i].HaloMass)/total_density;
     if (Grid[i].Density > max_density) // Tracks maximum overdensity.
 	    max_density = Grid[i].Density;
     if(Grid[i].Density == 0.0) // We don't want a grid cell to have zero density so if it does, just populate it with a single dark matter particle.
@@ -225,7 +199,7 @@ void count_grid_properties(int GridNr) // Count number of galaxies/halos in the 
 {
   int i;
 
-  int GalCount = 0, HaloCount = 0, DiffuseCount = 0, SourcesCount = 0;
+  int GalCount = 0, HaloCount = 0, SourcesCount = 0;
   double totPhotons_HI = 0, totPhotons_HeI = 0, totPhotons_HeII = 0, HaloMass = 0;
   for (i = 0; i < CUBE(GridSize); ++i)
   {
@@ -235,12 +209,11 @@ void count_grid_properties(int GridNr) // Count number of galaxies/halos in the 
     totPhotons_HeI += Grid[i].Nion_HeI;
     totPhotons_HeII += Grid[i].Nion_HeII;
     HaloMass += Grid[i].HaloMass;
-    DiffuseCount += Grid[i].Diffuse;
     if(Grid[i].Nion_HI > 0.0)
 	SourcesCount++;
   }
 
-  printf("At redshift %.3f (Snapshot %d) there was %d galaxies, %d halos and %d diffuse particles with [%.4e, %.4e, %.4e] {HI, HeI, HeII}  ionizing Photons emitted per second ([%.4e %.4e %.4e] s^-1 Mpc^-3), spread across %d cells (%.4f of the total cells) and %.4e (Msun) halo mass.\n", ZZ[ListOutputGrid[GridNr]], ListOutputGrid[GridNr], GalCount, HaloCount, DiffuseCount, totPhotons_HI, totPhotons_HeI, totPhotons_HeII, totPhotons_HI / pow(BoxSize/Hubble_h,3), totPhotons_HeI / pow(BoxSize/Hubble_h, 3), totPhotons_HeII / pow(BoxSize/Hubble_h,3), SourcesCount, (double)SourcesCount / (CUBE(GridSize)), HaloMass*1e10/Hubble_h);
+  printf("At redshift %.3f (Snapshot %d) there was %d galaxies, %d halos and [%.4e, %.4e, %.4e] {HI, HeI, HeII}  ionizing Photons emitted per second ([%.4e %.4e %.4e] s^-1 Mpc^-3), spread across %d cells (%.4f of the total cells) and %.4e (Msun) halo mass.\n", ZZ[ListOutputGrid[GridNr]], ListOutputGrid[GridNr], GalCount, HaloCount, totPhotons_HI, totPhotons_HeI, totPhotons_HeII, totPhotons_HI / pow(BoxSize/Hubble_h,3), totPhotons_HeI / pow(BoxSize/Hubble_h, 3), totPhotons_HeII / pow(BoxSize/Hubble_h,3), SourcesCount, (double)SourcesCount / (CUBE(GridSize)), HaloMass*1e10/Hubble_h);
 
 }
 

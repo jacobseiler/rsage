@@ -67,7 +67,6 @@ void init_grid(int GridNr, int ThisTask_GridNr)
     Grid[i].Nion_HeI = 0.0;
     Grid[i].Nion_HeII = 0.0;
 
-    Grid[i].Diffuse = 0;
     Grid[i].Count = 0;
 
     Grid[i].HaloMass = 0.0;
@@ -179,3 +178,4 @@ void estimate_gal_memory(int NtotGals)
   printf("Approximate memory occupied for this file of galaxies ===== %lu mb\n", (sizeof(struct GALAXY_INPUT)*NtotGals + sizeof(struct GALAXY_GRID)*NtotGals*LastSnapShotNr)/1024/1024);
 
 }
+
