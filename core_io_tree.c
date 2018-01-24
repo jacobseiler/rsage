@@ -134,7 +134,13 @@ void load_tree(int filenr, int nr)
       Max_Halo = Halo[i].Mvir;
     if(Halo[i].Mvir < Min_Halo)
       Min_Halo = Halo[i].Mvir;
-   
+  
+    Halo[i].Pos[0] = Halo[i].Pos[0] - 775.0;
+    Halo[i].Pos[1] = Halo[i].Pos[1] - 775.0;
+    Halo[i].Pos[2] = Halo[i].Pos[2] - 775.0;
+ 
+    if (Halo[i].Pos[0] > 53.0)
+      printf("%.4f\n", Halo[i].Pos[0]);   
     //if(Halo[i].NextHaloInFOFgroup != -1)
      // fprintf(stderr, "%d\n", nr);
   
@@ -239,6 +245,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->GridEjectedMass);
   free(g->QuasarActivity);
   free(g->DynamicalTime);
+  free(g->QuasarSubstep);
 
   g->IsMalloced = 0;
 }
@@ -347,6 +354,13 @@ void malloc_grid_arrays(struct GALAXY *g)
   if (g->DynamicalTime == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate DynamicalTime.\n", sizeof(*(g->DynamicalTime)) * MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  g->QuasarSubstep = malloc(sizeof(*(g->QuasarSubstep)) * (MAXSNAPS));
+  if (g->QuasarSubstep == NULL)
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate QuasarSubstep.\n", sizeof(*(g->QuasarSubstep)) * MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 

@@ -54,8 +54,6 @@ void bye()
 
   if(exitfail)
   {
-    unlink(bufz0);
-
 #ifdef MPI
     if(ThisTask == 0 && gotXCPU == 1)
       printf("Received XCPU, exiting. But we'll be back.\n");

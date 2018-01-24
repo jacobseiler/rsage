@@ -67,7 +67,7 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   // grow black hole through accretion from cold disk during mergers, a la Kauffmann & Haehnelt (2000) 
   if(AGNrecipeOn)
   {
-    grow_black_hole(merger_centralgal, mass_ratio);
+    grow_black_hole(merger_centralgal, mass_ratio, step);
   }
   // starburst recipe similar to Somerville et al. 2001
 
@@ -93,7 +93,7 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
 
 
 
-void grow_black_hole(int merger_centralgal, double mass_ratio)
+void grow_black_hole(int merger_centralgal, double mass_ratio, int32_t step)
 {
   double BHaccrete, metallicity;
 
@@ -113,13 +113,13 @@ void grow_black_hole(int merger_centralgal, double mass_ratio)
 
     Gal[merger_centralgal].QuasarModeBHaccretionMass += BHaccrete;
 
-    quasar_mode_wind(merger_centralgal, BHaccrete);
+    quasar_mode_wind(merger_centralgal, BHaccrete, step);
   }
 }
 
 
 
-void quasar_mode_wind(int gal, float BHaccrete)
+void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
 {
   float quasar_energy, cold_gas_energy, hot_gas_energy;
 
@@ -138,6 +138,7 @@ void quasar_mode_wind(int gal, float BHaccrete)
     Gal[gal].MetalsColdGas = 0.0;
 
     Gal[gal].QuasarActivity[Gal[gal].SnapNum] = 1; // Record that there was enough energy to eject cold gas.
+    Gal[gal].QuasarSubstep[Gal[gal].SnapNum] = step; // Record at which substep the activity happened. 
   }
   
   // compare quasar wind and cold+hot gas energies and eject hot
@@ -330,6 +331,8 @@ void add_galaxy_to_merger_list(int p)
       MergedGal[MergedNr].GridEjectedMass[j] = Gal[p].GridEjectedMass[j];
       MergedGal[MergedNr].QuasarActivity[j] = Gal[p].QuasarActivity[j];
       MergedGal[MergedNr].DynamicalTime[j] = Gal[p].DynamicalTime[j];
+      MergedGal[MergedNr].QuasarSubstep[j] = Gal[p].QuasarSubstep[j];
+  
     }
  
     for (j = 0; j < SN_Array_Len; ++j)

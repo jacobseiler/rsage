@@ -22,7 +22,7 @@ void read_parameter_file(char *fname)
   int id[MAXTAGS];
   void *addr[MAXTAGS];
   char tag[MAXTAGS][50];
-  int errorFlag = 0;
+  int errorFlag = 0, gridFlag = 0;
 
 
 #ifdef MPI
@@ -268,8 +268,8 @@ void read_parameter_file(char *fname)
       }
       else
       {
-        printf("Error in file %s:   Tag '%s' not allowed or multiple defined.\n", fname, buf1);
-        errorFlag = 1;
+        //printf("Error in file %s:   Tag '%s' not allowed or multiple defined.\n", fname, buf1);
+        gridFlag = 1;
       }
     }
     fclose(fd);

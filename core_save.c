@@ -346,6 +346,11 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   XASSERT( nwritten == MAXSNAPS, "Error: While writing DynamicalTime, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
   free(dynamical_tmp);
+
+  XASSERT(g->QuasarSubstep != NULL, "QuasarSubstep has a NULL pointer.\n"); 
+  nwritten = fwrite(g->QuasarSubstep, sizeof(*(g->QuasarSubstep)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing QuasarSubstep, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
  
   ++times_written;
 
