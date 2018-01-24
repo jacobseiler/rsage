@@ -26,7 +26,7 @@ else
 endif
 
 
-OPT += 
+OPT += -DDEBUG_GALS 
 
 GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
 GSL_LIBS = -L/usr/local/lib

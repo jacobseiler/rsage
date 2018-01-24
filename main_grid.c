@@ -129,16 +129,15 @@ int main(int argc, char **argv)
             printf("-- input for file %s does not exist, exiting now.\n", buf);
             exit(0); 
           }
-//          if (Verbose == 1)
-//           printf("Loading galaxies for file %d, name '%s'\n", filenr, buf); 
+          if (Verbose == 1)
+          {
+            printf("Loading galaxies for file %d, name '%s'\n", filenr, buf); 
+          }
           status = load_gals(buf);    
           if (status == EXIT_FAILURE)
           {
             exit(EXIT_FAILURE);
           }
-
-//          if (Verbose == 1)
-//            printf("Gridding properties.\n");
 
           for(p = 0; p < NtotGals; ++p)
           {    	
@@ -149,7 +148,7 @@ int main(int argc, char **argv)
 
         }
 
-//        printf("Done File %d.\n\n", filenr);
+        printf("Done File %d.\n\n", filenr);
       }
   
 //      update_grid_density(GridNr); // Go through the grid and convert to overdensity.
