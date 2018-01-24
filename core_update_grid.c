@@ -53,6 +53,11 @@ int32_t update_grid_properties(int32_t filenr)
         }
 
         Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] += pow(10, Ngamma_HI - 50.0)*fesc_local; // We keep these in units of 10^50 photons/s.
+        if (pow(10, Ngamma_HI - 50.0) * fesc_local < 0.0)
+        {
+          fprintf(stderr, "For galaxy %ld, the number of HI ionizing photons is %.4f\n", (long)gal_idx, pow(10, Ngamma_HI - 50.0) * fesc_local); 
+          return EXIT_FAILURE;
+        }
         if (Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] < 0.0 || Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] > 1e100)
         {
           fprintf(stderr, "For galaxy %ld, cell %ld now has an error number of photons. This number is %.4f e50 photons/s\n", (long)gal_idx, (long)grid_position, Grid->GridProperties[grid_num_idx].Nion_HI[grid_position]);
@@ -329,14 +334,22 @@ struct GRID_STRUCT *MPI_sum_grids(void)
   
   master_grid = malloc(sizeof(struct GRID_STRUCT));
 
-  status = init_grid(master_grid);
-  if (status == EXIT_FAILURE)
-  { 
-    return NULL;
+  if (ThisTask == 0)
+  {
+    printf("Trying to initialize the master grid\n");
+    status = init_grid(master_grid);
+    if (status == EXIT_FAILURE)
+    { 
+      return NULL;
+    }
   }
 
   for (grid_num_idx = 0; grid_num_idx < master_grid->NumGrids; ++grid_num_idx)
   {
+    if (ThisTask == 0)
+    {
+      printf("Reducing grid %d\n", grid_num_idx);
+    }
     MPI_Reduce(Grid->GridProperties[grid_num_idx].SFR, master_grid->GridProperties[grid_num_idx].SFR, master_grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
     MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HI, master_grid->GridProperties[grid_num_idx].Nion_HI, master_grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
     MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeI, master_grid->GridProperties[grid_num_idx].Nion_HeI, master_grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 

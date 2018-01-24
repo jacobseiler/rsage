@@ -90,7 +90,7 @@ int32_t init_grid(struct GRID_STRUCT *grid)
 
   for (i = 0; i < grid->NumGrids; ++i)
   {
-
+    printf("Allocating grid %d\n", i);
     grid->GridProperties[i].SFR = malloc(sizeof(*(grid->GridProperties[i].SFR)) * grid->NumCellsTotal);
     if (grid->GridProperties[i].SFR == NULL)
     {
