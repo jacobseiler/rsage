@@ -87,7 +87,7 @@ cut_slice = 44
 
 #cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 #t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
-output_format = ".eps"
+output_format = ".png"
 
 def linear_growth(z, OM, OL):
         D = (OM*((1+z)**3) / (OM*(1+z) - (OM + OL - 1)*((1+z)**2) + OM))**(4/7)
@@ -712,9 +712,9 @@ def plot_nionfield(z, nion, OutputDir, output_tag):
 
     if (np.mean(nion) == 0):
         return
-    print(nion.shape)
+
     #nion_slice = nion[:,:,cut_slice:cut_slice+1].mean(axis = -1)
-    nion_slice = nion[:,:,40:41].mean(axis = -1)
+    nion_slice = nion[:,:,0:-1].mean(axis = -1)
 
     nion_min = np.amin(np.log10(nion[nion > 0]))
     nion_max = np.amax(np.log10(nion[nion > 0]))
@@ -2264,46 +2264,7 @@ def check_fractions(ionized_fraction, HI_fraction_high, HI_fraction_low):
 if __name__ == '__main__':
 
     ###########################   
-
-    ## Britton's Simulations ##
-
-    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$"]
-
-    output_tags = [r"Densfield_Summing_Test_Full"]
-#    output_tags = [r"Densfield_full_Snap20"]
-#    output_tags = [r"densgrid_snapshot020_full"]
- 
-    number_models = 1
-
-    simulation_model1 = 5 # Which simulation are we using?
-    # 0 : Mysim (Manodeep's original simulation run).
-    # 2 : Tiamat (down to z = 5).
-    # 4 : Simfast21 (deprecated).
-    # 5 : Britton's. 
-
-    model = 'Britton_Density'
-
-    GridSize_model1 = 256
-        
-    precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
-
-    #filepath_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_constantfesc"
-   
-    #filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/sage_Galaxies_IRA_z5.000_fesc0.50_HaloPartCut100_nionHI"
-
-    filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/densfield_test/chunks/summing_final_snap"
-        
-    #filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_constantfesc"
-
-    simulation_norm = [simulation_model1]
-    precision_array = [precision_model1]
-    GridSize_array = [GridSize_model1]
-#    ionized_cells_filepath_array = [filepath_model1]
-#    nion_filepath_array = [filepath_nion_model1]
-    density_filepath_array = [filepath_density_model1]
-#    photofield_filepath_array = [filepath_photofield_model1]
     
-    ###########################       
 
     ## Kali ## 
 
@@ -2330,7 +2291,7 @@ if __name__ == '__main__':
 
     #filepath_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_constantfesc"
    
-    #filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/nion/sage_Galaxies_IRA_z5.000_fesc0.50_HaloPartCut100_nionHI"
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_fesc0.10_HaloPartCut100_nionHI"
 
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
         
@@ -2340,13 +2301,12 @@ if __name__ == '__main__':
     precision_array = [precision_model1]
     GridSize_array = [GridSize_model1]
 #    ionized_cells_filepath_array = [filepath_model1]
-#    nion_filepath_array = [filepath_nion_model1]
+    nion_filepath_array = [filepath_nion_model1]
     density_filepath_array = [filepath_density_model1]
 #    photofield_filepath_array = [filepath_photofield_model1]
     
-    ###########################   
-
-
+    ###########################      
+    
     cosmo = AllVars.Set_Params_Kali()
 
     OutputDir = "./ionization_plots/" + model + '/'
@@ -2355,7 +2315,7 @@ if __name__ == '__main__':
 
     #snaplist = np.arange(0, len(AllVars.SnapZ)) 
     #snaplist = np.arange(0, 70)
-    snaplist = np.arange(6, 99) 
+    snaplist = np.arange(20, 99) 
     #snaplist = np.arange(20, 50)
 
     ZZ = np.empty(len(snaplist))
@@ -2462,8 +2422,8 @@ if __name__ == '__main__':
             #ionized_cells_path = ionized_cells_filepath_array[model_number] + "_%02d" %(snapshot_idx) 
             #ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, precision_model)) 
 
-            #nion_path = nion_filepath_array[model_number] + number_tag_mine 
-            #nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, precision_array[model_number]))		
+            nion_path = "{0}_{1:03d}".format(nion_filepath_array[model_number], snaplist[snapshot_idx])
+            nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, 1) * 1.0e50) 
 
             density_path = "{0}snap{1:03d}.dens.dat".format(density_filepath_array[model_number], snaplist[snapshot_idx])  
             #density_path = "{0}.dens.dat".format(density_filepath_array[model_number])  
@@ -2481,9 +2441,9 @@ if __name__ == '__main__':
             if(do_hoshen == 1):
                 hoshen_array[model_number][snapshot_idx] = hoshen_kopelman(ionized_cells_array[model_number])	
         
-            #plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snapshot_idx))
+            plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snaplist[snapshot_idx]))
             #density_array[model_number] = density_array[model_number] + 1
-            plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snaplist[snapshot_idx]))
+            #plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snaplist[snapshot_idx]))
             #plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
             #fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
