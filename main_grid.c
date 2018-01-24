@@ -60,7 +60,6 @@ int main(int argc, char **argv)
 {
 
   struct sigaction current_XCPU;
-  int NmeraxesHalos;
 
   int32_t status;
 
@@ -87,100 +86,87 @@ int main(int argc, char **argv)
   sigaction(SIGXCPU, &current_XCPU, NULL);
 
 
-  int filenr, p, i, GridNr, ThisTask_GridNr = 0;
+  int filenr, i;
 
   
   read_parameter_file(argv[1]);
 
-  init(); // Initialize all the parameters (set units, create scale factor/age arrays etc).
-
-#ifdef MPI
-  for (GridNr = ThisTask; GridNr < NGrid; GridNr += NTask)
-#else
-  for (GridNr = 0; GridNr < NGrid; ++GridNr)
-#endif
+  status = init(); // Initialize all the parameters (set units, create scale factor/age arrays etc).  
+  if (status == EXIT_FAILURE)
   {
-    if (Verbose == 1)
-    {
-	    fprintf(stderr, "Task %d is doing redshift %.3f\n", ThisTask, ZZ[ListOutputGrid[GridNr]]);
-    }
-    init_grid(GridNr, ThisTask_GridNr); // Initialize the grid. 
-//    update_grid_diffuse(GridNr); // Read in all the diffuse gas.
+    exit(EXIT_FAILURE);
+  } 
+ 
+#ifdef MPI
+  for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
+#else
+  for(filenr = FirstFile; filenr <= LastFile; filenr++)
+#endif
+  { 
+#ifdef MPI     
+    printf("I am Task %d and I'm doing file %d.\n", ThisTask, filenr);
+#endif     
 
-    if(use_sage == 1)
+    for (i = 0; i < 2; ++i) // i = 0 does the normal galaxies, i = 1 does the merged galaxies.
     {
-      for (filenr = FirstFile; filenr < LastFile + 1; ++filenr)
+      if(i == 0)      
+        snprintf(buf, MAXLEN, "%s/%s_z%1.3f_%d", GalaxiesInputDir, FileNameGalaxies, ZZ[LastSnapShotNr], filenr);
+      else       
+        snprintf(buf, MAXLEN, "%s/%s_MergedGalaxies_%d", GalaxiesInputDir, FileNameGalaxies, filenr);
+
+      if ( access(buf, F_OK ) == -1) // Sanity check.
       {
-        printf("Doing file %d.\n", filenr);
+        printf("-- input for file %s does not exist, exiting now.\n", buf);
+        exit(EXIT_FAILURE); 
+      }
+      if (Verbose == 1)
+      {
+        printf("Loading galaxies for file %d, name '%s'\n", filenr, buf); 
+      }
+      status = load_gals(buf);    
+      if (status == EXIT_FAILURE)
+      {
+        exit(EXIT_FAILURE);
+      }
 
-      //  load_halos(filenr); // Load the halos.
-      //  update_grid_halo(totNHalos, GridNr); // Update the properties associated with halos
-      //  myfree(Halo); // Don't need halos anymore.
+      status = update_grid_properties(filenr); // Go through each galaxy and read it's grid history and grid the properties.
+      if (status == EXIT_FAILURE)
+      {
+        exit(EXIT_FAILURE);
+      }
+     
+      free_gals();	
 
-        for (i = 0; i < 2; ++i) // i = 0 does the normal galaxies, i = 1 does the merged galaxies.
-        {
-          if(i == 0)      
-            snprintf(buf, MAXLEN, "%s/%s_z%1.3f_%d", GalaxiesInputDir, FileNameGalaxies, ZZ[LastSnapShotNr], filenr);
-          else       
-            snprintf(buf, MAXLEN, "%s/%s_MergedGalaxies_%d", GalaxiesInputDir, FileNameGalaxies, filenr);
-
-          if ( access(buf, F_OK ) == -1) // Sanity check.
-          {
-            printf("-- input for file %s does not exist, exiting now.\n", buf);
-            exit(0); 
-          }
-          if (Verbose == 1)
-          {
-            printf("Loading galaxies for file %d, name '%s'\n", filenr, buf); 
-          }
-          status = load_gals(buf);    
-          if (status == EXIT_FAILURE)
-          {
-            exit(EXIT_FAILURE);
-          }
-
-          for(p = 0; p < NtotGals; ++p)
-          {    	
-            update_grid_properties(p, i, GridNr, filenr); // Go through each galaxy and read it's grid history and grid the properties.
-          }
-
-          free_gals();	
-
-        }
+    } // Galaxy/Merger loop.
 
         printf("Done File %d.\n\n", filenr);
-      }
+  } // File Loop.
   
-//      update_grid_density(GridNr); // Go through the grid and convert to overdensity.
- 
-    }
+#ifdef MPI
+  
+  struct GRID_STRUCT *master_grid;
 
-    else 
-    {
-
-      NmeraxesHalos = load_meraxes_halos(ListOutputGrid[GridNr]);
-
-      for(p = 0; p < NmeraxesHalos; ++p)
-      {
-        update_meraxes_grid_properties(p, GridNr);
-      }
-      
-      free_meraxes_halos();
-   
-    }
- 
-    count_grid_properties(GridNr); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
-    save_grid(GridNr); // Saves grid.
-
-    ++ThisTask_GridNr; 
-
- 
+  master_grid = MPI_sum_grids();
+  if (master_grid == NULL)
+  {
+    exit(EXIT_FAILURE);
   }
+
   if (ThisTask == 0)
-  {  
-      save_redshift();
-  }  
-  myfree(Grid);
+  {
+    count_grid_properties(master_grid); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
+    status = save_grid(master_grid); // Saves grid.
+  }
+#else 
+  count_grid_properties(Grid); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
+  status = save_grid(Grid); // Saves grid.
+#endif
+  if (status == EXIT_FAILURE)
+  {
+    exit(EXIT_FAILURE);
+  }
+ 
+  free_grid();
 
   exitfail = 0;
   gsl_rng_free(random_generator); 

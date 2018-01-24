@@ -1,7 +1,7 @@
 #include "core_allvars_grid.h"
 
 // galaxy data 
-struct GRID
+struct GRID_STRUCT
   *Grid;
 
 //struct GALAXY_INPUT
@@ -28,7 +28,7 @@ double UnitLength_in_cm = 3.08578e+24,
 gsl_rng *random_generator;
 
 int Ntrees;
-int NtotGals; // Number of galaxies per file.
+int64_t NtotGals; // Number of galaxies per file.
 int *GalsForTree;
 
 double ZZ[ABSOLUTEMAXSNAPS];
@@ -121,5 +121,3 @@ double tot_Halomass;
 double alpha;
 double beta;
 int HaloPartCut;
-
-int use_sage;

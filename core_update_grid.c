@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,165 +15,67 @@
 #include "core_allvars_grid.h"
 #include "core_proto_grid.h"
 
-// Takes index of a galaxy (p) and maps the properties (SFR, StellarMass etc) onto the grid.
-
-void update_grid_properties(int p, int merged, int GridNr, int filenr)
+int32_t update_grid_properties(int32_t filenr)
 {
 
-  int i, grid_position;
-  double fesc_local;
-  float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; // Number of ionizing photons (in s^-1). 
-  for(i = 0; i < MAXSNAPS; ++i)
-  {
-    grid_position = GalGrid[p].History[i];
- 
-    if (grid_position == -1) continue; // If the galaxy hasn't formed yet, move on to next snapshot. 
-    if (i > ListOutputGrid[GridNr]) break; // If the current snapshot redshift is lower than an output redshift, proceed to next one.
-    //XASSERT(grid_position >= 0 && grid_position < CUBE(GridSize), "The grid index must be between 0 and the GridSize cubed (%d cubed = %d).  The index for Galaxy %d is %d.\n", GridSize, CUBE(GridSize), p, grid_position);
+  int32_t snapshot_idx, grid_num_idx;
+  int64_t grid_position, gal_idx, good_gals = 0, bad_gals = 0;
+  float fesc_local, Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
 
-    if (grid_position < 0)
-      grid_position = 0; 
-    //These are instantaneous properties measured at a specific redshift. //
-    if((i == ListOutputGrid[GridNr]) && (GalGrid[p].StellarMass[i] > 0.0) & (GalGrid[p].SFR[i] > 0.0) & (GalGrid[p].CentralGalaxyMass[i] > 0.0) & (GalGrid[p].LenHistory[i] > HaloPartCut)) // Only want to take those galaxies with a non-zero stellar mass (they actually exist and are evolving).
+  for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
+  { 
+    grid_num_idx = snapshot_idx - LowSnap; // The grid indexing goes from 0 to NumGrids.
+    for (gal_idx = 0; gal_idx < NtotGals; ++gal_idx)
     {
-	
-      Grid[grid_position].Sfr += GalGrid[p].SFR[i];
-      Grid[grid_position].Count += 1;
-      Grid[grid_position].StellarMass += GalGrid[p].StellarMass[i];
-
-      if (PhotonPrescription == 0)
-      { 
-        update_grid_nion_halo(GridNr); // If we are using a halo-based photon prescription, calculate the number of photons based on halo mass.
-      } else if (PhotonPrescription == 1)  // If our photon prescription is using the galaxy photon calculated from the STARBURST spectra.
+      grid_position = GalGrid[gal_idx].History[snapshot_idx];
+      if (grid_position == -1)
       {
-	calculate_photons(GalGrid[p].SFR[i], GalGrid[p].Z[i], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
-	
-        fesc_local = calculate_fesc(p, i, filenr);
-
-        Grid[grid_position].Nion_HI += pow(10, Ngamma_HI)*fesc_local;
-	
-	XASSERT(Grid[grid_position].Nion_HI >= 0.0 && Grid[grid_position].Nion_HI < 1e100, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid cell = %d, Galaxy Number = %d, Snapshot = %d, Ngamma_HI = %.4e, fesc_local = %.4e\n", grid_position, p, i, Ngamma_HI, fesc_local);
-     
-      
-        Grid[grid_position].Nion_HeI += pow(10, Ngamma_HeI)*fesc_local; 
-        Grid[grid_position].Nion_HeII += pow(10, Ngamma_HeII)*fesc_local;
- 
+        continue;
       }
-    }
+
+      if (grid_position < 0 || grid_position > Grid->NumCellsTotal)
+      {
+        fprintf(stderr, "The grid index must be between 0 and the GridSize cubed %d cubed = %ld.  The grid index for Galaxy %ld is %ld.\n", GridSize, (long)Grid->NumCellsTotal, (long)gal_idx, (long)grid_position);
+        return EXIT_FAILURE;
+      }
+
+      if ((GalGrid[gal_idx].StellarMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].SFR[snapshot_idx] > 0.0) & (GalGrid[gal_idx].CentralGalaxyMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].LenHistory[snapshot_idx] > HaloPartCut)) // Apply some requirements for the galaxy to be included.
+      {
+        ++good_gals;
+
+        Grid->GridProperties[grid_num_idx].SFR[grid_position] += GalGrid[gal_idx].SFR[snapshot_idx];
+        Grid->GridProperties[grid_num_idx].StellarMass[grid_position] += GalGrid[gal_idx].StellarMass[snapshot_idx];  
+
+        if (PhotonPrescription == 1)
+        {
+          calculate_photons(GalGrid[gal_idx].SFR[snapshot_idx], GalGrid[gal_idx].Z[snapshot_idx], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII); // Base number of ionizing photons
+          fesc_local = calculate_fesc(gal_idx, snapshot_idx, filenr);
+        }
+
+        Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] += pow(10, Ngamma_HI - 50.0)*fesc_local; // We keep these in units of 10^50 photons/s.
+        if (Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] < 0.0 || Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] > 1e100)
+        {
+          fprintf(stderr, "For galaxy %ld, cell %ld now has an error number of photons. This number is %.4f e50 photons/s\n", (long)gal_idx, (long)grid_position, Grid->GridProperties[grid_num_idx].Nion_HI[grid_position]);
+          return EXIT_FAILURE;
+        }
+        Grid->GridProperties[grid_num_idx].Nion_HeI[grid_position] += pow(10, Ngamma_HeI - 50.0)*fesc_local;
+        Grid->GridProperties[grid_num_idx].Nion_HeII[grid_position] += pow(10, Ngamma_HeII - 50.0)*fesc_local;
       
-    // Tracking the Merging Types. //
-  }
+        ++Grid->GridProperties[snapshot_idx].GalCount[grid_position]; 
+        
+      }
+      else
+      {
+        ++bad_gals;
+      }
+    } // Galaxy loop.
+  } // Snapshot loop.
+  
+  return EXIT_SUCCESS;
 }
-
-void update_meraxes_grid_properties(int p, int GridNr)
-{
-  if (meraxes_Halo[p].SFR > 1e-10)
-  {
-    int grid_position;
-    double fesc_local;
-    float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; // Number of ionizing photons (in s^-1). 
-  
-    int x_grid, y_grid, z_grid;
-    
-    x_grid = meraxes_Halo[p].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
-    y_grid = meraxes_Halo[p].Pos[1]*GridSize/BoxSize;
-    z_grid = meraxes_Halo[p].Pos[2]*GridSize/BoxSize; 
- 
-    XPRINT(meraxes_Halo[p].Pos[0] < 80, "Halo %d has an x position of %.4f Mpc/h", p, meraxes_Halo[p].Pos[0]); 
-    grid_position = (x_grid*GridSize+y_grid)*GridSize+z_grid; // Convert the grid (x,y,z) to a 1D value.
-   
-    XASSERT(grid_position >= 0 && grid_position < CUBE(GridSize), "The grid index must be between 0 and the GridSize cubed (%d cubed = %d).  The index for Halo %d is %d.\n", GridSize, CUBE(GridSize), p, grid_position);
-  
-    Grid[grid_position].Sfr += meraxes_Halo[p].SFR; 
-    Grid[grid_position].Count += 1;
-    Grid[grid_position].StellarMass += meraxes_Halo[p].StellarMass;
-  
-    XASSERT(PhotonPrescription == 1, "We're using the MERAXES galaxies so we have to be using a galaxy based photon prescription. The current variable (PhotonPrescription) is set to a Halo based model.\n");
-  
-    double Z = get_metallicity(meraxes_Halo[p].ColdGas, meraxes_Halo[p].MetalsColdGas); 
-    
-    calculate_photons(meraxes_Halo[p].SFR, Z, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
-    fesc_local = calculate_fesc(p, 999, 999);
-
-    Grid[grid_position].Nion_HI += pow(10, Ngamma_HI)*fesc_local;
-
-    XASSERT(Grid[grid_position].Nion_HI >= 0.0 && Grid[grid_position].Nion_HI < 1e100, "Somehow have a grid cell with less than zero HI ionizing photons.  Grid cell = %d, Galaxy Number = %d, Snapshot = %d, Ngamma_HI = %.4e, fesc_local = %.4e\n", grid_position, p, GridNr, Ngamma_HI, fesc_local);
-       
-    Grid[grid_position].Nion_HeI += pow(10, Ngamma_HeI)*fesc_local; 
-    Grid[grid_position].Nion_HeII += pow(10, Ngamma_HeII)*fesc_local;
-  }  
-}
-
 
 // Takes the number of halos loaded in memory (totNHalos) and maps the properties onto the grid. //
-
-void update_grid_halo(int totNHalos, int GridNr)
-{
-  int i;
-  int x_grid, y_grid, z_grid, grid_position; 
-
-  for(i = 0; i < totNHalos; ++i)
-  {
-    if(Halo[i].SnapNum == ListOutputGrid[GridNr] && Halo[i].Mvir > 0.0) // Checks to make sure the halo existed at the output redshift.
-    {
-
-      x_grid = Halo[i].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
-      y_grid = Halo[i].Pos[1]*GridSize/BoxSize;
-      z_grid = Halo[i].Pos[2]*GridSize/BoxSize; 
-
-      grid_position = (x_grid*GridSize+y_grid)*GridSize+z_grid; // Convert the grid (x,y,z) to a 1D value.
-
-      Grid[grid_position].HaloMass += Halo[i].Mvir;
-      ++Grid[grid_position].HaloCount; 
-    
-    }
-  }
-}
-
-void update_grid_density(int GridNr)
-{ 
-  int i, count = 0;
-  double total_density = 0, max_density = 0;
-  double tot_StellarMass = 0, tot_HaloMass = 0;
-
-  for(i = 0; i < CUBE(GridSize); ++i)
-  {
-    tot_StellarMass += Grid[i].StellarMass;
-    tot_HaloMass += Grid[i].HaloMass;
-    total_density += Grid[i].StellarMass + Grid[i].HaloMass;  
-  }
-    
-  printf("=======================================\n\n");
-  printf("Calculating density for Snapshot %d (z = %.3f).\n", ListOutputGrid[GridNr], ZZ[ListOutputGrid[GridNr]]);
-  printf("The total mass in the grid is %.4e (10^10 MSun/h)\n", total_density);
-  printf("With %.4e Stellar, %.4e Halo Mass\n", tot_StellarMass, tot_HaloMass);
-
-  total_density /= CUBE(GridSize);
-
-  printf("Average density for a grid cell is %.4f (10^10 MSun/h)\n", total_density);
-  printf("One particle has a mass of %.4f (10^10MSun/h)\n", PartMass);
-  printf("Hence we make a cell with no particles have a density of %.4f\n", PartMass/total_density);
-    
-  // Convert to overdensity. //
-  for(i = 0; i < CUBE(GridSize); ++i)
-  {
-    Grid[i].Density = (Grid[i].StellarMass + Grid[i].HaloMass)/total_density;
-    if (Grid[i].Density > max_density) // Tracks maximum overdensity.
-	    max_density = Grid[i].Density;
-    if(Grid[i].Density == 0.0) // We don't want a grid cell to have zero density so if it does, just populate it with a single dark matter particle.
-    {
-      ++count;
-      Grid[i].Density = PartMass/total_density;
-    }
-      
-  }
-
-  printf("%d cells with zero Density\n", count);
-  printf("The maximum density was %.4f\n", max_density); 
-  printf("=======================================\n\n");
-
-}
-
+/*
 void update_grid_nion_halo(int GridNr) // Calculates number of ionizing photons using the halos. 
 {
   int i;
@@ -194,29 +97,39 @@ void update_grid_nion_halo(int GridNr) // Calculates number of ionizing photons 
   }
   
 }
-
-void count_grid_properties(int GridNr) // Count number of galaxies/halos in the grid.
+*/
+void count_grid_properties(struct GRID_STRUCT *count_grid) // Count number of galaxies/halos in the grid.
 {
-  int i;
 
-  int GalCount = 0, HaloCount = 0, SourcesCount = 0;
-  double totPhotons_HI = 0, totPhotons_HeI = 0, totPhotons_HeII = 0, HaloMass = 0;
-  for (i = 0; i < CUBE(GridSize); ++i)
+  int32_t snapshot_idx, grid_num_idx;
+
+  for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
   {
-    GalCount += Grid[i].Count;
-    HaloCount += Grid[i].HaloCount;
-    totPhotons_HI += Grid[i].Nion_HI;
-    totPhotons_HeI += Grid[i].Nion_HeI;
-    totPhotons_HeII += Grid[i].Nion_HeII;
-    HaloMass += Grid[i].HaloMass;
-    if(Grid[i].Nion_HI > 0.0)
-	SourcesCount++;
-  }
+    int64_t GlobalGalCount = 0, SourcesCount = 0, cell_idx;
+    float totPhotons_HI = 0, totPhotons_HeI = 0, totPhotons_HeII = 0;
 
-  printf("At redshift %.3f (Snapshot %d) there was %d galaxies, %d halos and [%.4e, %.4e, %.4e] {HI, HeI, HeII}  ionizing Photons emitted per second ([%.4e %.4e %.4e] s^-1 Mpc^-3), spread across %d cells (%.4f of the total cells) and %.4e (Msun) halo mass.\n", ZZ[ListOutputGrid[GridNr]], ListOutputGrid[GridNr], GalCount, HaloCount, totPhotons_HI, totPhotons_HeI, totPhotons_HeII, totPhotons_HI / pow(BoxSize/Hubble_h,3), totPhotons_HeI / pow(BoxSize/Hubble_h, 3), totPhotons_HeII / pow(BoxSize/Hubble_h,3), SourcesCount, (double)SourcesCount / (CUBE(GridSize)), HaloMass*1e10/Hubble_h);
+    grid_num_idx = snapshot_idx - LowSnap; // The grid indexing goes from 0 to NumGrids.
+    for (cell_idx = 0; cell_idx < count_grid->NumCellsTotal; ++cell_idx)
+    {
+      GlobalGalCount += count_grid->GridProperties[grid_num_idx].GalCount[cell_idx];
+  
+      totPhotons_HI += count_grid->GridProperties[grid_num_idx].Nion_HI[cell_idx];
+      totPhotons_HeI += count_grid->GridProperties[grid_num_idx].Nion_HeI[cell_idx];
+      totPhotons_HeII += count_grid->GridProperties[grid_num_idx].Nion_HeII[cell_idx];
+
+      if (count_grid->GridProperties[grid_num_idx].Nion_HI[cell_idx] > 0.0)
+      {
+        ++SourcesCount; 
+      }
+    }
+
+    printf("At redshift %.3f (Snapshot %d) there was %ld galaxies and [%.4e, %.4e, %.4e]e50 {HI, HeI, HeII}  ionizing Photons emitted per second ([%.4e %.4e %.4e]e50 s^-1 Mpc^-3), spread across %ld cells (%.4f of the total cells).\n", ZZ[snapshot_idx], snapshot_idx, GlobalGalCount, totPhotons_HI, totPhotons_HeI, totPhotons_HeII, totPhotons_HI / pow(BoxSize/Hubble_h,3), totPhotons_HeI / pow(BoxSize/Hubble_h, 3), totPhotons_HeII / pow(BoxSize/Hubble_h,3), (long)SourcesCount, (double)SourcesCount / (double)count_grid->NumCellsTotal); 
+
+  } // Snapshot loop.
 
 }
 
+/*
 void normalize_photon(int GridNr)
 {
 
@@ -282,6 +195,7 @@ void normalize_slope_photons(int GridNr)
 
    printf("The total number of photons in the grid is %.4e.  We only want %.4e photons for redshift %.4e giving a ratio of %.4e.\n", totPhotons, targetPhotons, ZZ[ListOutputGrid[GridNr]], ratio);
 }
+*/
 
 // INPUT:
 // Star formation rate of the galaxy (in units of Msun/yr) (SFR).
@@ -294,10 +208,6 @@ void normalize_slope_photons(int GridNr)
 // DOUBLE NOTE: These relationships assume a constant starformation scenario; a Starburst scenario is completely different.
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
 {
-
-  assert(Ngamma_HI);
-  assert(Ngamma_HeI);
-  assert(Ngamma_HeII);
 
   if (SFR == 0)
   {
@@ -359,24 +269,14 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
 //
 // OUTPUT: The escape fraction for the galaxy. 
 
-double calculate_fesc(int p, int i, int filenr)
+float calculate_fesc(int p, int i, int filenr)
 {
 
-  double fesc_local, halomass, ejectedfraction, SFR;
+  float fesc_local, halomass, ejectedfraction;
 
-  if (use_sage == 1)
-  {
-    halomass = GalGrid[p].CentralGalaxyMass[i];
-    ejectedfraction = GalGrid[p].EjectedFraction[i];
-    SFR = GalGrid[p].SFR[i];
-  }
-  else
-  { 
-    halomass = meraxes_Halo[p].Mvir;
-    ejectedfraction = meraxes_Halo[p].EjectedGas / (meraxes_Halo[p].EjectedGas + meraxes_Halo[p].ColdGas + meraxes_Halo[p].HotGas);
-    SFR = meraxes_Halo[p].SFR;
-  }
-
+  halomass = GalGrid[p].CentralGalaxyMass[i];
+  ejectedfraction = GalGrid[p].EjectedFraction[i];
+  
   if (fescPrescription == 0) 
     fesc_local = fesc;
   else if (fescPrescription == 1)
@@ -419,3 +319,33 @@ double get_metallicity(double gas, double metals)
     return 0.0;
 
 }
+
+#ifdef MPI
+struct GRID_STRUCT *MPI_sum_grids(void)
+{
+
+  int32_t status, grid_num_idx;
+  struct GRID_STRUCT *master_grid;
+  
+  master_grid = malloc(sizeof(struct GRID_STRUCT));
+
+  status = init_grid(master_grid);
+  if (status == EXIT_FAILURE)
+  { 
+    return NULL;
+  }
+
+  for (grid_num_idx = 0; grid_num_idx < master_grid->NumGrids; ++grid_num_idx)
+  {
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].SFR, master_grid->GridProperties[grid_num_idx].SFR, master_grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HI, master_grid->GridProperties[grid_num_idx].Nion_HI, master_grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeI, master_grid->GridProperties[grid_num_idx].Nion_HeI, master_grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeII, master_grid->GridProperties[grid_num_idx].Nion_HeII, master_grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].GalCount, master_grid->GridProperties[grid_num_idx].GalCount, master_grid->NumCellsTotal, MPI_UINT64_T, MPI_SUM, 0, MPI_COMM_WORLD); 
+    
+  }
+
+  return master_grid;
+}
+#endif

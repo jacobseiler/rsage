@@ -67,7 +67,7 @@ int32_t load_gals(char *fname)
   fread(GalsForTree, Ntrees, sizeof(int), infile);
 
   GalGrid = mymalloc(NtotGals * sizeof(struct GALAXY_GRID));
-  //estimate_gal_memory(NtotGals);
+  
   for (i = 0; i < NtotGals; ++i)
   {
 
@@ -203,7 +203,9 @@ int32_t load_gals(char *fname)
     }
 #endif
 
-  }
+  } // Galaxy Loop
+
+  printf("Read in %ld total galaxies.\n", (long)NtotGals);
 
   fclose(infile);
   free(GalsForTree);

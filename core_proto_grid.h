@@ -1,7 +1,8 @@
 #include "core_allvars_grid.h"
 
-void init(void);
-void init_grid(int GridNr, int ThisTask_GridNr);
+int32_t init(void);
+int32_t init_grid(struct GRID_STRUCT *grid);
+int32_t free_grid(void);
 void set_units(void);
 void read_snap_list(void);
 
@@ -18,21 +19,21 @@ double integrand_time_to_present(double a, void *param);
 void estimate_grid_memory(void);
 void estimate_gal_memory(int NtotGals);
 
-void update_grid_properties(int p, int merged, int GridNr, int filenr);
+int32_t update_grid_properties(int32_t filenr);
 void update_meraxes_grid_properties(int p, int GridNr);
-void update_grid_halo(int totNHalos, int GridNr);
-void update_grid_density(int GridNr);
-void update_grid_nion_halo(int GridNr);
-void count_grid_properties(int GridNr);
+void count_grid_properties(struct GRID_STRUCT *count_grid);
 void normalize_photon(int GridNr); 
 void normalize_slope_photons(int GridNr);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
-double calculate_fesc(int p, int i, int filenr);
+float calculate_fesc(int p, int i, int filenr);
 double get_metallicity(double gas, double metals);
+#ifdef MPI
+struct GRID_STRUCT *MPI_sum_grids(void);
+#endif
 
 const char* getfield(char* line, int num);
 
-void save_grid(int GridNr);
+int32_t save_grid(struct GRID_STRUCT *save_grid);
 void save_redshift(void);
 
 void load_halos(int filenr);

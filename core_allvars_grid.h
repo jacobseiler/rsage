@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <gsl/gsl_rng.h>
+#include <stdint.h>
 
 #define ABORT(sigterm)                                                  \
 do {                                                                \
@@ -156,25 +157,24 @@ struct GALAXY_GRID
 
 }*GalGrid;
 
-struct GRID
+struct GRID_STRUCT 
 {
 
-  double Sfr;
-  double StellarMass;
+  int32_t GridSize;   
+  uint64_t NumCellsTotal;
+  int32_t NumGrids;
 
-  double Density; // Overdensity, rho/<rho>.
-  double Nion_HI;
-  double Nion_HeI;
-  double Nion_HeII;  
-  int Count;
+  struct GRID_PROPERTIES_STRUCT 
+  {     
+    float *SFR;
+    float *StellarMass;
+    float *Nion_HI;
+    float *Nion_HeI;
+    float *Nion_HeII;
 
-//  double *ActiveTime;
-
-  double HaloMass; // Halo Mvir mass.
-  int HaloCount;
-  
-}
-*Grid;
+    uint64_t *GalCount; 
+  }*GridProperties;
+}*Grid;
 
 struct halo_data
 {
@@ -232,7 +232,7 @@ extern double UnitLength_in_cm,
   a0, ar;
 
 extern int Ntrees; // Number of trees per file.
-extern int NtotGals; // Number of galaxies per file.
+extern int64_t NtotGals; // Number of galaxies per file.
 extern int *GalsForTree;
 
 extern int Snaplistlen;
@@ -328,6 +328,4 @@ extern double fesc;
 extern double alpha;
 extern double beta;
 extern int HaloPartCut;
-
-extern int use_sage;
 #endif

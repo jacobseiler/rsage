@@ -7,16 +7,14 @@ OBJS   = 	./main_grid.o \
 			./core_io_gals.o \
 			./core_update_grid.o \
 			./core_save_grid.o \
-			./core_mymalloc.o \
-		        ./core_misc_grid.o	
-
+			./core_mymalloc.o
 
 INCL   =	./core_allvars_grid.h  \
 			./core_proto_grid.h \
 			./Makefile 
 
 
-USE-MPI = yes  # set this if you want to run in parallel
+USE-MPI = no # set this if you want to run in parallel
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
@@ -26,7 +24,7 @@ else
 endif
 
 
-OPT += -DDEBUG_GALS 
+OPT += 
 
 GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
 GSL_LIBS = -L/usr/local/lib
@@ -50,3 +48,5 @@ tidy:
 	rm -f $(OBJS) ./$(EXEC)
 
 all:  $(EXEC) 
+
+celan celna clena claen:clean

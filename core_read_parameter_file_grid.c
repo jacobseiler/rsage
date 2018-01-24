@@ -22,7 +22,7 @@ void read_parameter_file(char *fname)
   int id[MAXTAGS];
   void *addr[MAXTAGS];
   char tag[MAXTAGS][50];
-  int errorFlag = 0, galaxyFlag = 0;
+  int errorFlag = 0; 
 
 
 #ifdef MPI
@@ -149,10 +149,6 @@ void read_parameter_file(char *fname)
   addr[nt] = &HaloPartCut; 
   id[nt++] = INT;
 
-  strcpy(tag[nt], "use_sage");
-  addr[nt] = &use_sage;
-  id[nt++] = INT;
-
   if((fd = fopen(fname, "r")))
   {
     while(!feof(fd))
@@ -195,7 +191,7 @@ void read_parameter_file(char *fname)
       }
       else
       {        
-        galaxyFlag = 1;
+    
       }
     }
     fclose(fd);

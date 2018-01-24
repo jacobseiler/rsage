@@ -15,9 +15,9 @@
 
 
 
-void init(void)
+int32_t init(void)
 {
-  int i;
+  int32_t i, status;
   
 
   random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
@@ -45,36 +45,137 @@ void init(void)
     fprintf(stderr, "\n This takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta); 
   }
 
-}
-
-
-void init_grid(int GridNr, int ThisTask_GridNr)
-{
-  int i;
-
-  if (ThisTask_GridNr == 0) // Only need to malloc the grid once.
-    Grid = mymalloc(sizeof(struct GRID)*CUBE(GridSize));
-
-  //estimate_grid_memory();
-  
-  for(i = 0; i < CUBE(GridSize); ++i)
+  Grid = mymalloc(sizeof(struct GRID_STRUCT));
+  if (Grid == NULL)
   {
-    Grid[i].Sfr = 0.0;
-    Grid[i].StellarMass = 0.0;
-
-    Grid[i].Density = 0.0;
-    Grid[i].Nion_HI = 0.0;
-    Grid[i].Nion_HeI = 0.0;
-    Grid[i].Nion_HeII = 0.0;
-
-    Grid[i].Count = 0;
-
-    Grid[i].HaloMass = 0.0;
-    Grid[i].HaloCount = 0;
- 
+    fprintf(stderr, "Could not allocate memory for the high level grid structure\n");
+    return EXIT_FAILURE;
   }
- 
+
+  status = init_grid(Grid);
+  if (status == EXIT_FAILURE)
+  {
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+
 }
+
+
+int32_t init_grid(struct GRID_STRUCT *grid)
+{
+
+  int32_t i;
+  uint64_t cell_idx;
+
+  if (grid == NULL)
+  {
+    fprintf(stderr, "init_grid was called with a GRID_STRUCT pointer that has not been initialized\n");
+    return EXIT_FAILURE;
+  } 
+
+  
+  grid->GridSize = GridSize;
+  grid->NumCellsTotal = CUBE(GridSize);
+  
+  grid->NumGrids = MAXSNAPS; 
+
+  grid->GridProperties = malloc(sizeof(struct GRID_PROPERTIES_STRUCT) * grid->NumGrids);
+  if (grid->GridProperties == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for the grid properties struct\n");
+    return EXIT_FAILURE;
+  }
+
+  for (i = 0; i < grid->NumGrids; ++i)
+  {
+
+    grid->GridProperties[i].SFR = malloc(sizeof(*(grid->GridProperties[i].SFR)) * grid->NumCellsTotal);
+    if (grid->GridProperties[i].SFR == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for the grid SFR for grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    grid->GridProperties[i].StellarMass = malloc(sizeof(*(grid->GridProperties[i].StellarMass)) * grid->NumCellsTotal);
+    if (grid->GridProperties[i].StellarMass == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for the grid StellarMass for grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    grid->GridProperties[i].Nion_HI = malloc(sizeof(*(grid->GridProperties[i].Nion_HI)) * grid->NumCellsTotal);
+    if (grid->GridProperties[i].Nion_HI == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for the grid Nion_HI for grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    grid->GridProperties[i].Nion_HeI = malloc(sizeof(*(grid->GridProperties[i].Nion_HeI)) * grid->NumCellsTotal);
+    if (grid->GridProperties[i].Nion_HeI == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for the grid Nion_HeI for grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    grid->GridProperties[i].Nion_HeII = malloc(sizeof(*(grid->GridProperties[i].Nion_HeII)) * grid->NumCellsTotal);
+    if (grid->GridProperties[i].Nion_HeII == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for the grid Nion_HeII for grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    grid->GridProperties[i].GalCount = malloc(sizeof(*(grid->GridProperties[i].GalCount)) * grid->NumCellsTotal);
+    if (grid->GridProperties[i].GalCount == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for the grid GalCount for grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    // All the memory has been allocated for the inner grid.
+    // Now let's initialize the values.
+
+    for (cell_idx = 0; cell_idx < Grid->NumCellsTotal; ++cell_idx)
+    {
+      grid->GridProperties[i].SFR[cell_idx] = 0.0;  
+      grid->GridProperties[i].StellarMass[cell_idx] = 0.0;  
+      grid->GridProperties[i].Nion_HI[cell_idx] = 0.0;  
+      grid->GridProperties[i].Nion_HeI[cell_idx] = 0.0;  
+      grid->GridProperties[i].Nion_HeII[cell_idx] = 0.0;  
+
+      grid->GridProperties[i].GalCount[cell_idx] = 0; 
+    } 
+
+  } 
+ 
+  printf("All grids have been initialized\n");
+  return EXIT_SUCCESS; 
+}
+
+int32_t free_grid(void)
+{
+
+  int32_t i;
+
+  for (i = 0; i < Grid->NumGrids; ++i)
+  {
+    free(Grid->GridProperties[i].GalCount);
+
+    free(Grid->GridProperties[i].Nion_HeII);
+    free(Grid->GridProperties[i].Nion_HeI);
+    free(Grid->GridProperties[i].Nion_HI);
+    free(Grid->GridProperties[i].StellarMass);
+    free(Grid->GridProperties[i].SFR);
+  }
+
+  free(Grid->GridProperties);
+  free(Grid);
+
+  return EXIT_SUCCESS;
+
+}
+
 
 void set_units(void)
 {
@@ -154,6 +255,7 @@ double integrand_time_to_present(double a, void *param)
   return 1 / sqrt(Omega / a + (1 - Omega - OmegaLambda) + OmegaLambda * a * a);
 }
 
+/*
 void estimate_grid_memory(void)
 {
 
@@ -178,4 +280,4 @@ void estimate_gal_memory(int NtotGals)
   printf("Approximate memory occupied for this file of galaxies ===== %lu mb\n", (sizeof(struct GALAXY_INPUT)*NtotGals + sizeof(struct GALAXY_GRID)*NtotGals*LastSnapShotNr)/1024/1024);
 
 }
-
+*/
