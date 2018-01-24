@@ -254,7 +254,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 
     if(grid_position > CUBE(GridSize) || grid_position < 0) // Sanity check to ensure that no Grid Positions are outside the box.
     {
-	  //  fprintf(stderr, "Found a Grid Position outside the bounds of the box or negative; grid_position = %d, Galaxy Index = %d, halonr = %d\n", grid_position, p, halonr);
+	    fprintf(stderr, "Found a Grid Position outside the bounds of the box or negative; grid_position = %d, Galaxy Index = %d, halonr = %d\nPos[0] = %.4f\t Pos[1] = %.4f\tPos[2] = %.4f", grid_position, p, halonr, Gal[p].Pos[0], Gal[p].Pos[1], Gal[p].Pos[2]);
       ++outside_box;
     }
     else 

@@ -134,13 +134,12 @@ void load_tree(int filenr, int nr)
       Max_Halo = Halo[i].Mvir;
     if(Halo[i].Mvir < Min_Halo)
       Min_Halo = Halo[i].Mvir;
-  
+ 
+#ifdef BRITTON_SIM     
     Halo[i].Pos[0] = Halo[i].Pos[0] - 775.0;
     Halo[i].Pos[1] = Halo[i].Pos[1] - 775.0;
     Halo[i].Pos[2] = Halo[i].Pos[2] - 775.0;
- 
-    if (Halo[i].Pos[0] > 53.0)
-      printf("%.4f\n", Halo[i].Pos[0]);   
+#endif
     //if(Halo[i].NextHaloInFOFgroup != -1)
      // fprintf(stderr, "%d\n", nr);
   
