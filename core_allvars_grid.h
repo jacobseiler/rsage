@@ -130,22 +130,28 @@ struct GALAXY_INPUT
 
   // NOTE: Because the code has moved to pointers for the galaxy-grid information
   // They are no longer stored explicitly in the galaxy input struct.
- 
+
+  
 }*Gal;
 
-struct GALAXY_GRID
-{
 
+struct GALAXY_GRID
+{ 
+  int HaloNr;  
   int *History; // Integers that describe the grid position at every redshift.
   float *StellarMass; // Units of 1.0e10 Msun/h.
   float *SFR; // Units of Msun yr^-1
   float *Z; // NOT solar metallicity, actual metallicity.
   float *CentralGalaxyMass; // Units of 1.0e10 Msun/h.
-  float *Pad; // Used just to pad things out.
-  double *MfiltGnedin; // Units of 1.0e10 Msun/h.
-  double *MfiltSobacchi; // Units of 1.0e10 Msun/h.
+  float *MfiltGnedin; // Units of 1.0e10 Msun/h.
+  float *MfiltSobacchi; // Units of 1.0e10 Msun/h.
   float *EjectedFraction; // Unitless (fraction).
   int *LenHistory; // Number of particles in FoF Halo.
+  float *OutflowRate;
+  float *InfallRate;
+  float *EjectedMass;
+  int *QuasarActivity;
+  float *DynamicalTime;
 
 }*GalGrid;
 
@@ -158,9 +164,7 @@ struct GRID
   double Density; // Overdensity, rho/<rho>.
   double Nion_HI;
   double Nion_HeI;
-  double Nion_HeII;
-
-  int Diffuse;
+  double Nion_HeII;  
   int Count;
 
 //  double *ActiveTime;
@@ -249,13 +253,11 @@ extern int MaxGals;     // Maximum number of galaxies allowed for current tree
 
 extern int LastSnapShotNr;
 
+extern char GalaxiesInputDir[MAXLEN];
 extern char GridOutputDir[512];
-extern char GalaxiesInputDir[512];
 extern char FileNameGalaxies[512];
-extern char FileNameMergedGalaxies[512];
 extern char SimulationDir[512];
 extern char TreeName[512];
-extern char DiffuseDir[512];
 extern char FileWithSnapList[512];
 
 extern int TotHalos;
@@ -280,8 +282,6 @@ extern double BoxSize;
 extern int GridSize;
 extern int GridSnap;
 extern int NGrid;
-extern int LastOutputSnap;
-
 
 extern double Hubble_h;
 extern double EnergySNcode, EnergySN;
@@ -311,7 +311,6 @@ extern double Reionization_z0;
 extern double Reionization_zr;
 extern double ThresholdSatDisruption;
 
-extern int OutputMode;
 extern int LowSnap;
 extern int HighSnap;
 extern int ListOutputSnaps[ABSOLUTEMAXSNAPS];

@@ -21,7 +21,6 @@ void estimate_gal_memory(int NtotGals);
 void update_grid_properties(int p, int merged, int GridNr, int filenr);
 void update_meraxes_grid_properties(int p, int GridNr);
 void update_grid_halo(int totNHalos, int GridNr);
-void update_grid_diffuse(int GridNr);
 void update_grid_density(int GridNr);
 void update_grid_nion_halo(int GridNr);
 void count_grid_properties(int GridNr);
