@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
@@ -43,7 +44,7 @@ void load_halos(int filenr)
 //    printf("Read in a total of %d Halos for file %d.\n", totNHalos, filenr);
 }
 
-void load_gals(char *fname)
+int32_t load_gals(char *fname)
 {
 
   int i;
@@ -69,61 +70,136 @@ void load_gals(char *fname)
   //estimate_gal_memory(NtotGals);
   for (i = 0; i < NtotGals; ++i)
   {
-    //printf("%d\n", i);
-    //fread(Gal, sizeof(struct GALAXY_INPUT), 1, infile);
 
     fread(&GalGrid[i].HaloNr, sizeof(int), 1, infile); 
  
     GalGrid[i].History = malloc(sizeof(*(GalGrid[i].History)) * MAXSNAPS);
+    if (GalGrid[i].History == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.History for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].History, sizeof(*(GalGrid[i].History)), MAXSNAPS, infile);
 
     GalGrid[i].StellarMass = malloc(sizeof(*(GalGrid[i].StellarMass)) * MAXSNAPS);
+    if (GalGrid[i].StellarMass == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.StellarMass for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].StellarMass, sizeof(*(GalGrid[i].StellarMass)), MAXSNAPS, infile);
     
     GalGrid[i].SFR = malloc(sizeof(*(GalGrid[i].SFR)) * MAXSNAPS); 
+    if (GalGrid[i].SFR == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.SFR for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].SFR, sizeof(*(GalGrid[i].SFR)), MAXSNAPS, infile);
 
     GalGrid[i].Z = malloc(sizeof(*(GalGrid[i].Z)) * MAXSNAPS);
+    if (GalGrid[i].Z == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.Z for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].Z, sizeof(*(GalGrid[i].Z)), MAXSNAPS, infile);
 
     GalGrid[i].CentralGalaxyMass = malloc(sizeof(*(GalGrid[i].CentralGalaxyMass)) * MAXSNAPS);
+    if (GalGrid[i].CentralGalaxyMass == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.CentralGalaxyMass for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].CentralGalaxyMass, sizeof(*(GalGrid[i].CentralGalaxyMass)), MAXSNAPS, infile);
 
     GalGrid[i].MfiltGnedin = malloc(sizeof(*(GalGrid[i].MfiltGnedin)) * MAXSNAPS);
+    if (GalGrid[i].MfiltGnedin == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.MfiltGnedin for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].MfiltGnedin, sizeof(*(GalGrid[i].MfiltGnedin)), MAXSNAPS, infile);
 
     GalGrid[i].MfiltSobacchi = malloc(sizeof(*(GalGrid[i].MfiltSobacchi)) * MAXSNAPS);
+    if (GalGrid[i].MfiltSobacchi == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.MfiltSobacchi for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].MfiltSobacchi, sizeof(*(GalGrid[i].MfiltSobacchi)), MAXSNAPS, infile);
  
     GalGrid[i].EjectedFraction = malloc(sizeof(*(GalGrid[i].EjectedFraction)) * MAXSNAPS);
+    if (GalGrid[i].EjectedFraction == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.EjectedFraction for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].EjectedFraction, sizeof(*(GalGrid[i].EjectedFraction)), MAXSNAPS, infile);
 
     GalGrid[i].LenHistory = malloc(sizeof(*(GalGrid[i].LenHistory)) * MAXSNAPS);
+    if (GalGrid[i].LenHistory == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.LenHistory for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].LenHistory, sizeof(*(GalGrid[i].LenHistory)), MAXSNAPS, infile);
 
     GalGrid[i].OutflowRate= malloc(sizeof(*(GalGrid[i].OutflowRate)) * MAXSNAPS);
+    if (GalGrid[i].OutflowRate == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.OutflowRate for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].OutflowRate, sizeof(*(GalGrid[i].OutflowRate)), MAXSNAPS, infile);
 
     GalGrid[i].InfallRate= malloc(sizeof(*(GalGrid[i].InfallRate)) * MAXSNAPS);
+    if (GalGrid[i].InfallRate == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.InfallRate for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].InfallRate, sizeof(*(GalGrid[i].InfallRate)), MAXSNAPS, infile);
 
     GalGrid[i].EjectedMass= malloc(sizeof(*(GalGrid[i].EjectedMass)) * MAXSNAPS);
+    if (GalGrid[i].EjectedMass == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.EjectedMass for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].EjectedMass, sizeof(*(GalGrid[i].EjectedMass)), MAXSNAPS, infile);
 
     GalGrid[i].QuasarActivity= malloc(sizeof(*(GalGrid[i].QuasarActivity)) * MAXSNAPS);
+    if (GalGrid[i].QuasarActivity == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.QuasarActivity for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].QuasarActivity, sizeof(*(GalGrid[i].QuasarActivity)), MAXSNAPS, infile);
 
     GalGrid[i].DynamicalTime= malloc(sizeof(*(GalGrid[i].DynamicalTime)) * MAXSNAPS);
+    if (GalGrid[i].DynamicalTime == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.DynamicalTime for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
     fread(GalGrid[i].DynamicalTime, sizeof(*(GalGrid[i].DynamicalTime)), MAXSNAPS, infile);
 
-    //printf("DONE\n");
+    GalGrid[i].QuasarSubstep= malloc(sizeof(*(GalGrid[i].QuasarSubstep)) * MAXSNAPS);
+    if (GalGrid[i].QuasarSubstep == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.QuasarSubstep for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
+    fread(GalGrid[i].QuasarSubstep, sizeof(*(GalGrid[i].QuasarSubstep)), MAXSNAPS, infile);
+
 #ifdef DEBUG_GALS
     if (i == 0)
     {
       int tmp = MAXSNAPS - 1;
-      printf("History[Final] = %d\tStellarMass = %.4f\tSFR = %.4f\tZ = %.4f\tCentralGalaxyMass = %.4f\tMfiltGnedin = %.4f\tMfiltSobacchi = %.4f\tEjectedFraction = %.4f\tLenHistory = %d\tOutflowRate = %.4f\tInfallRate = %.4f\tEjectedMass = %.4f\tQuasarActivity = %d\tDynamicalTime = %.4f\n", GalGrid[i].History[tmp], GalGrid[i].StellarMass[tmp], GalGrid[i].SFR[tmp], GalGrid[i].Z[tmp], GalGrid[i].CentralGalaxyMass[tmp], GalGrid[i].MfiltGnedin[tmp], GalGrid[i].MfiltSobacchi[tmp], GalGrid[i].EjectedFraction[tmp], GalGrid[i].LenHistory[tmp], GalGrid[i].OutflowRate[tmp], GalGrid[i].InfallRate[tmp], GalGrid[i].EjectedMass[tmp], GalGrid[i].QuasarActivity[tmp], GalGrid[i].DynamicalTime[tmp]);
+      printf("History[Final] = %d\tStellarMass = %.4f\tSFR = %.4f\tZ = %.4f\tCentralGalaxyMass = %.4f\tMfiltGnedin = %.4f\tMfiltSobacchi = %.4f\tEjectedFraction = %.4f\tLenHistory = %d\tOutflowRate = %.4f\tInfallRate = %.4f\tEjectedMass = %.4f\tQuasarActivity = %d\tDynamicalTime = %.4f\tQuasarSubstep = %d\n", GalGrid[i].History[tmp], GalGrid[i].StellarMass[tmp], GalGrid[i].SFR[tmp], GalGrid[i].Z[tmp], GalGrid[i].CentralGalaxyMass[tmp], GalGrid[i].MfiltGnedin[tmp], GalGrid[i].MfiltSobacchi[tmp], GalGrid[i].EjectedFraction[tmp], GalGrid[i].LenHistory[tmp], GalGrid[i].OutflowRate[tmp], GalGrid[i].InfallRate[tmp], GalGrid[i].EjectedMass[tmp], GalGrid[i].QuasarActivity[tmp], GalGrid[i].DynamicalTime[tmp], GalGrid[i].QuasarSubstep[tmp]);
       fclose(infile);
-      exit(EXIT_FAILURE);  
+      return EXIT_FAILURE; 
     }
 #endif
 
@@ -131,6 +207,9 @@ void load_gals(char *fname)
 
   fclose(infile);
   free(GalsForTree);
+
+  return EXIT_SUCCESS;
+
 }
 
 void free_gals(void)
@@ -152,7 +231,8 @@ void free_gals(void)
       free(GalGrid[i].InfallRate); 
       free(GalGrid[i].EjectedMass); 
       free(GalGrid[i].QuasarActivity); 
-      free(GalGrid[i].DynamicalTime); 
+      free(GalGrid[i].DynamicalTime);
+      free(GalGrid[i].QuasarSubstep); 
     }
 
     myfree(GalGrid);

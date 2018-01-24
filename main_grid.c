@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <math.h>
 #include <signal.h>
@@ -60,6 +61,8 @@ int main(int argc, char **argv)
 
   struct sigaction current_XCPU;
   int NmeraxesHalos;
+
+  int32_t status;
 
 #ifdef MPI
   MPI_Init(&argc, &argv);
@@ -128,7 +131,11 @@ int main(int argc, char **argv)
           }
 //          if (Verbose == 1)
 //           printf("Loading galaxies for file %d, name '%s'\n", filenr, buf); 
-          load_gals(buf);    
+          status = load_gals(buf);    
+          if (status == EXIT_FAILURE)
+          {
+            exit(EXIT_FAILURE);
+          }
 
 //          if (Verbose == 1)
 //            printf("Gridding properties.\n");

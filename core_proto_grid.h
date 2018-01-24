@@ -7,7 +7,7 @@ void read_snap_list(void);
 
 void read_parameter_file(char *fname);
 
-void load_gals(char *fname);
+int32_t load_gals(char *fname);
 int load_meraxes_halos(int snapnum);
 void load_merged_gals(char *fname);
 void free_gals(void);

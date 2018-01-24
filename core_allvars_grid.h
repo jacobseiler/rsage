@@ -152,6 +152,7 @@ struct GALAXY_GRID
   float *EjectedMass;
   int *QuasarActivity;
   float *DynamicalTime;
+  int *QuasarSubstep;
 
 }*GalGrid;
 
