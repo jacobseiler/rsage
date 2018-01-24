@@ -156,7 +156,8 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
          ('GridInfallRate', (np.float32, MAXSNAPS)),
          ('GridEjectedMass', (np.float32, MAXSNAPS)),
          ('QuasarActivity', (np.int32, MAXSNAPS)),
-         ('DynamicalTime', (np.float32, MAXSNAPS))
+         ('DynamicalTime', (np.float32, MAXSNAPS)),
+         ('QuasarSubstep', (np.int32, MAXSNAPS))            
          ]
     
                             

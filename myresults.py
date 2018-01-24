@@ -248,16 +248,25 @@ def calculate_pooled_stats(mean_pool, std_pool, mean_local, std_local, N_local):
             N_times_mean_pool = np.zeros_like(N_times_mean_local) 
             N_pool = np.zeros_like(N_local)
             N_times_var_pool = np.zeros_like(N_times_var_local)
+
+            N_times_mean_pool = N_times_mean_pool.astype(np.float64) # Recast everything to double precision then use MPI.DOUBLE.
+            N_pool = N_pool.astype(np.float64)
+            N_times_var_pool = N_times_var_pool.astype(np.float64)
         else:
             N_times_mean_pool = None
             N_pool = None
             N_times_var_pool = None
 
         comm.Barrier()
-        comm.Reduce([N_times_mean_local, MPI.FLOAT], [N_times_mean_pool, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum the arrays across processors.
-        comm.Reduce([N_local, MPI.FLOAT],[N_pool, MPI.FLOAT], op = MPI.SUM, root = 0)   
-        comm.Reduce([N_times_var_local, MPI.FLOAT], [N_times_var_pool, MPI.FLOAT], op = MPI.SUM, root = 0)
 
+        N_times_mean_local = N_times_mean_local.astype(np.float64)
+        N_local = N_local.astype(np.float64)
+        N_times_var_local = N_times_var_local.astype(np.float64)
+
+        comm.Reduce([N_times_mean_local, MPI.DOUBLE], [N_times_mean_pool, MPI.DOUBLE], op = MPI.SUM, root = 0) # Sum the arrays across processors.
+        comm.Reduce([N_local, MPI.DOUBLE],[N_pool, MPI.DOUBLE], op = MPI.SUM, root = 0)   
+        comm.Reduce([N_times_var_local, MPI.DOUBLE], [N_times_var_pool, MPI.DOUBLE], op = MPI.SUM, root = 0)
+        
     else:
     
         N_times_mean_local = N_local * mean_local
@@ -637,7 +646,7 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
 
 ##
 
-def plot_fesc_galaxy(SnapList, PlotSnapList, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, mean_halo_fesc, std_halo_fesc, N_halo_fesc, ResolutionLimit_mean, model_tags, output_tag, save_data):
+def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, mean_halo_fesc, std_halo_fesc, N_halo_fesc, ResolutionLimit_mean, model_tags, output_tag, save_data, save_tags):
     """
     Plots the escape fraction as a function of stellar/halo mass.
     Parallel compatible.
@@ -648,6 +657,14 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, mean_galaxy_fesc, std_galaxy_fesc, 
     ---------
     SnapList : Nested array, SnapList[model_number0] = [snapshot0_model0, ..., snapshotN_model0], with length equal to the number of models.
         Snapshots for each model. 
+    simulation_norm : array with length equal to the number of models.
+        Denotes which simulation each model uses.  
+        0 : MySim
+        1 : Mini-Millennium
+        2 : Tiamat (down to z = 5)
+        3 : Extended Tiamat (down to z = 1.6ish).
+        4 : Britton's Simulation
+        5 : Kali
     mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc : Nested 3-dimensional array, mean_galaxy_fesc[model_number0][snapshot0]  = [bin0_meanfesc, ..., binN_meanfesc], with length equal to the number of models. 
         Mean/Standard deviation for fesc in each stellar mass bin, for each [model_number] and [snapshot_number]. N_galaxy_fesc is the number of galaxies placed into each mass bin.
     mean_halo_fesc, std_halo_fesc, N_halo_fesc  Nested 3-dimensional array, mean_halo_fesc[model_number0][snapshot0]  = [bin0_meanfesc, ..., binN_meanfesc], with length equal to the number of models. 
@@ -698,6 +715,22 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, mean_galaxy_fesc, std_galaxy_fesc, 
         bin_middle_halo_array.append([])
 
     for model_number in range(0, len(SnapList)): 
+
+        ## Normalization for each model. ##
+        if (simulation_norm[model_number] == 0):
+            AllVars.Set_Params_Mysim()
+        elif (simulation_norm[model_number] == 1):
+            AllVars.Set_Params_MiniMill()
+        elif (simulation_norm[model_number] == 2):
+            AllVars.Set_Params_Tiamat()
+        elif (simulation_norm[model_number] == 3):
+            AllVars.Set_Params_Tiamat_extended()
+        elif (simulation_norm[model_number] == 4):
+            AllVars.Set_Params_Britton()       
+        elif(simulation_norm[model_number] == 5):
+            AllVars.Set_Params_Kali()
+
+
         for snapshot_idx in range(0, len(SnapList[model_number])):
             tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
             redshift_labels[model_number].append(tmp)
@@ -710,6 +743,7 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, mean_galaxy_fesc, std_galaxy_fesc, 
             bin_middle_halo_array[model_number].append(np.arange(m_low, m_high+bin_width, bin_width)[:-1] + bin_width * 0.5)
  
     if rank == 0:
+        
         fig = plt.figure()  
         ax1 = fig.add_subplot(111)  
         ax2 = ax1.twinx()
@@ -719,14 +753,29 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, mean_galaxy_fesc, std_galaxy_fesc, 
         ax4 = ax3.twinx()
        
         for model_number in range(0, len(SnapList)):
+
+            ## Normalization for each model. ##
+            if (simulation_norm[model_number] == 0):
+                AllVars.Set_Params_Mysim()
+            elif (simulation_norm[model_number] == 1):
+                AllVars.Set_Params_MiniMill()
+            elif (simulation_norm[model_number] == 2):
+                AllVars.Set_Params_Tiamat()
+            elif (simulation_norm[model_number] == 3):
+                AllVars.Set_Params_Tiamat_extended()
+            elif (simulation_norm[model_number] == 4):
+                AllVars.Set_Params_Britton()       
+            elif(simulation_norm[model_number] == 5):
+                AllVars.Set_Params_Kali()
+
             if (save_data == 1):
-                fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/halo_bins_{0}.txt".format(model_tags[model_number])
+                fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/halo_bins_{0}.txt".format(save_tags[model_number])
                 np.savetxt(fname, bin_middle_halo_array[model_number])
 
-                fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/mean_fesc_halo_{0}.txt".format(model_tags[model_number])
+                fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/mean_fesc_halo_{0}.txt".format(save_tags[model_number])
                 np.savetxt(fname, mean_fesc_halo_array[model_number])
 
-                fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/N_halo_{0}.txt".format(model_tags[model_number])
+                fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/N_halo_{0}.txt".format(save_tags[model_number])
                 np.savetxt(fname, N_halo_fesc[model_number]) 
 
 
@@ -1362,6 +1411,20 @@ def plot_photoncount(SnapList, sum_nion, simulation_norm, FirstFile, LastFile, N
         ax1 = plt.subplot(111)
 
         for model_number in range(0, len(SnapList)):
+
+            if(simulation_norm[model_number] == 0):
+                AllVars.Set_Params_Mysim()
+            elif(simulation_norm[model_number] == 3):
+                AllVars.Set_Params_Tiamat_extended()
+            elif(simulation_norm[model_number] == 4):
+                AllVars.Set_Params_Britton()
+            elif(simulation_norm[model_number] == 5):
+                AllVars.Set_Params_Kali()
+            else: 
+                print("Simulation norm was set to {0}.".format(simulation_norm[model_number]))
+                raise ValueError("This option has been implemented yet.  Get your head in the game Jacob!")
+
+
             t = np.empty(len(SnapList[model_number]))
             for snapshot_idx in range(0, len(SnapList[model_number])):
                 t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3     
@@ -1673,7 +1736,7 @@ def plot_quasars_count(SnapList, N_quasars_z, N_quasars_boost_z, N_gal, fesc_pre
 
         ## We perform the plotting on Rank 0 so only this rank requires the final counts array. ##
         if rank == 0:
-            quasars_total = np.zeros_like(N_quasars_z[model_number])
+            quasars_total = np.zeros_like((N_quasars_z[model_number]))
             boost_total = np.zeros_like(N_quasars_boost_z[model_number])
             gal_count_total = np.zeros_like(N_gal[model_number])
         else:
@@ -1681,14 +1744,18 @@ def plot_quasars_count(SnapList, N_quasars_z, N_quasars_boost_z, N_gal, fesc_pre
             boost_total = None
             gal_count_total = None
        
-        N_quasars_tmp = np.array(N_quasars_z[model_number]) # So we can use MPI.Reduce()
-        comm.Reduce([N_quasars_tmp, MPI.FLOAT], [quasars_total, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum the number of quasars and passes back to rank 0. 
+        N_quasars_tmp = np.array((N_quasars_z[model_number])) # So we can use MPI.Reduce()
+        comm.Reduce([N_quasars_tmp, MPI.DOUBLE], [quasars_total, MPI.DOUBLE], op = MPI.SUM, root = 0) # Sum the number of quasars and passes back to rank 0. 
 
         N_quasars_boost_tmp = np.array(N_quasars_boost_z[model_number]) # So we can use MPI.Reduce()
-        comm.Reduce([N_quasars_boost_tmp, MPI.FLOAT], [boost_total, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum the number of galaxies that had their fesc boosted. 
+        comm.Reduce([N_quasars_boost_tmp, MPI.DOUBLE], [boost_total, MPI.DOUBLE], op = MPI.SUM, root = 0) # Sum the number of galaxies that had their fesc boosted. 
 
         N_gal_tmp = np.array(N_gal[model_number]) # So we can use MPI.Reduce()
-        comm.Reduce([N_gal_tmp, MPI.FLOAT], [gal_count_total, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum the number of total galaxies. 
+        comm.Reduce([N_gal_tmp, MPI.DOUBLE], [gal_count_total, MPI.DOUBLE], op = MPI.SUM, root = 0) # Sum the number of total galaxies.
+
+        if rank == 0:
+            print("Quasars_total {0}".format(quasars_total))
+      
         if rank == 0: 
                 
             title = model_tags[model_number] 
@@ -1770,6 +1837,34 @@ def plot_quasars_count(SnapList, N_quasars_z, N_quasars_boost_z, N_gal, fesc_pre
             plt.close(fig)
             plt.close(fig2)
 
+
+##
+
+def plot_photon_quasar_fraction(snapshot, filenr, output_tag, QuasarFractionalPhoton, QuasarActivityToggle, NumSubsteps):
+
+    ax1 = plt.subplot(111)
+
+    counts, bin_edges, bin_middle = AllVars.Calculate_Histogram(QuasarFractionalPhoton, 0.05, 0, 0, 1) 
+            
+    ax1.plot(bin_middle, counts, lw = PlotScripts.global_linewidth, color = 'r')
+   
+    ax1.axvline(np.mean(QuasarFractionalPhoton), lw = 0.5, ls = '-')
+ 
+    ax1.set_yscale('log', nonposy='clip')
+    ax1.set_xlabel(r"$\mathrm{Fractional \: Photon \: Boost}$")
+    ax1.set_ylabel(r"$\mathrm{Count}$")
+
+    ax1.set_ylim([1e1, 1e5])
+
+    outputFile1 = './photonfraction/file{0}_snap{1}_{2}{3}'.format(filenr, snapshot, output_tag, output_format)
+
+    plt.tight_layout()
+    plt.savefig(outputFile1)
+
+    print("Saved to {0}".format(outputFile1))
+    
+    plt.close()
+
 ### Here ends the plotting functions. ###
 ### Here begins the functions that calculate various properties for the galaxies (fesc, Magnitude etc). ###
 
@@ -1807,7 +1902,7 @@ def Calculate_HaloPartStellarMass(halo_part, stellar_mass, bound_low, bound_high
 ##
 
 
-def calculate_fesc(fesc_prescription, fesc_normalization, halo_mass, ejected_fraction, quasar_activity_toggle):
+def calculate_fesc(fesc_prescription, fesc_normalization, halo_mass, ejected_fraction, quasar_activity_toggle, quasar_fractional_boost, old):
     '''
     Calculate the escape fraction for a given prescription.
 
@@ -1826,9 +1921,12 @@ def calculate_fesc(fesc_prescription, fesc_normalization, halo_mass, ejected_fra
         Array that contains the halo masses for this snapshot. Units are log10(Msun).
     ejected_fraction : `numpy.darray'
         Array that contains the ejected fraction of the galaxies for this snapshot.
-    quasar_acitivity_toggle : `numpy.darray'
+    quasar_activity_toggle : `numpy.darray'
         Array that contains whether there has been a quasar event within 1 dynamical time for each galaxy.
-
+    quasar_fractional_boost : Array of floats with length equal to the number of galaxies.
+        Array that contains the fraction of photons that should be boosted with the quasar activity.
+        If the escape fraction should not be boosted by quasar activity, the index value with be 0.0. 
+    
     Returns
     -------
     fesc : array, length is same as input arrays.
@@ -1862,9 +1960,18 @@ def calculate_fesc(fesc_prescription, fesc_normalization, halo_mass, ejected_fra
     elif (fesc_prescription == 2):
         fesc = fesc_normalization[0]*ejected_fraction + fesc_normalization[1]
     elif (fesc_prescription == 3):
-        fesc = np.full((len(halo_mass)), fesc_normalization[0]) # Initialize to the base value.
-        fesc[quasar_activity_toggle == 1] = fesc_normalization[1] # Set the recent quasar galaxies to the boosted value.
-
+        if (old == 1):
+            fesc = np.full((len(halo_mass)), fesc_normalization[0]) # Initialize to the base value.
+            fesc[quasar_activity_toggle == 1] = fesc_normalization[1] # Set the recent quasar galaxies to the boosted value.
+        else:
+            fesc = fesc_normalization[0] * (1 - quasar_fractional_boost)  + fesc_normalization[1] * quasar_fractional_boost # This is a tad subtle so I'll explain. 
+        # quasar_fractional_boost is 0.0 if the escape fraction should not be boosted.  In this case, the escape fraction will be the base fraction.
+        # If the quasar should boost the escape fraction for the entire snapshot, then quasar_fractional_boost = 1 and the escape fraction becomes the boosted fraction.
+        # However if the quasar should boost the escape fraction for some fraction of the snapshot, then we perform the weighting and assign the escape fraction appropriately.
+        # For example, consider a galaxy that emits 10^50 photons/s with a base escape fraction of 0.2 and boosted value of 1.0. 
+        ## If we want three quarters of these photons to have the boosted escape fraction, then what should happen is (10^50 * (0.2 * 1/4) + 10^50 * (1.0 * 3/4)).
+        ## In essence this is the exact same as assigning a single escape fraction of 0.2 * 1/4 + 1.0 * 3/4 = 0.8.
+ 
     if len(fesc) != 0:
     ## Adjust bad values, provided there isn't a riduculous amount of them. ##  
         w = np.where((halo_mass >= m_low) & (halo_mass <= m_high))[0] # Only care about the escape fraction values between these bounds. 
@@ -2054,51 +2161,46 @@ def update_cumulative_stats(mean_pool, std_pool, N_pool, mean_local, std_local, 
 ### Here starts the main body of the code. ###
 
 np.seterr(divide='ignore')
-number_models = 2
+number_models = 1
 
-galaxies_model1 = '/lustre/projects/p004_swin/jseiler/britton_gals/delayed_z5.378'
-galaxies_model2 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_delayed_z1.827'
-#galaxies_model2 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_IRA_z1.827'
-galaxies_model3 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_IRA_z1.827'
-galaxies_model4 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_ira_z1.827'
-galaxies_model5 = '/lustre/projects/p004_swin/jseiler/january/galaxies/tiamat_delayed_z1.827' # Not actually delayed
+galaxies_model1 = '/lustre/projects/p004_swin/jseiler/january/galaxies/tiamat_IRA_reion_quasarsubstep_10step_z1.827'
+galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_quasarsubstep_z5.782'
+galaxies_model7 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_quasarsubstep_15step_z5.782'
+galaxies_model8 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_quasarsubstep_1step_z5.782'
 
-galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_z5.782'
 
-merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/britton_gals/delayed_MergedGalaxies'
-merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_delayed_MergedGalaxies'
-#merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_IRA_MergedGalaxies'
-merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_IRA_MergedGalaxies'
-merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/late_november/galaxies/tiamat_IRA_MergedGalaxies'
-merged_galaxies_model5 = '/lustre/projects/p004_swin/jseiler/january/galaxies/tiamat_delayed_MergedGalaxies' # Not actually delayed.
+merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/january/galaxies/tiamat_IRA_reion_quasarsubstep_10step_MergedGalaxies'
+merged_galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_quasarsubstep_MergedGalaxies'
+merged_galaxies_model7 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_quasarsubstep_15step_MergedGalaxies'
+merged_galaxies_model8 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_quasarsubstep_1step_MergedGalaxies'
 
-merged_galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_MergedGalaxies'
-
-#galaxies_filepath_array = [galaxies_model1, galaxies_model2]
+galaxies_filepath_array = [galaxies_model6]
 #galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3, galaxies_model4]
 #galaxies_filepath_array = [galaxies_model3, galaxies_model4]
-galaxies_filepath_array = [galaxies_model6, galaxies_model3]
+#galaxies_filepath_array = [galaxies_model8, galaxies_model6, galaxies_model7]
 
-#merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2] 
+merged_galaxies_filepath_array = [merged_galaxies_model6] 
 #merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3, merged_galaxies_model4]
 #merged_galaxies_filepath_array = [merged_galaxies_model3, merged_galaxies_model4]
-merged_galaxies_filepath_array = [merged_galaxies_model6, merged_galaxies_model3]
+#merged_galaxies_filepath_array = [merged_galaxies_model8, merged_galaxies_model6, merged_galaxies_model7]
 
+number_substeps = [10]
 #number_snapshots = [92, 164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 #number_snapshots = [164, 164, 164, 164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
-number_snapshots = [99, 164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
+number_snapshots = [99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 # Tiamat extended has 164 snapshots.
 #FirstFile = [0, 0, 0, 0] # The first file number THAT WE ARE PLOTTING.
-FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
+#FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
+FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
 #FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
 #LastFile = [26, 26, 26, 26] # The last file number THAT WE ARE PLOTTING.
-LastFile = [63, 26] # The last file number THAT WE ARE PLOTTING.
+LastFile = [0] # The last file number THAT WE ARE PLOTTING.
 #LastFile = [5, 1] # The last file number THAT WE ARE PLOTTING.
 #NumFile = [27, 27, 27, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
-NumFile = [64, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
+NumFile = [64] # The number of files for this simulation (plotting a subset of these files is allowed). 
 #NumFile = [64, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
 
-same_files = [0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
+same_files = [0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
 # This array will tell us if we should keep the files for the next model or otherwise throw them away and keep them.
 # The files will be kept until same_files[current_model_number] = 0.
 # For example if we had 5 models we were plotting and model 1, 2, 3 shared the same files and models 4, 5 shared different files,
@@ -2107,10 +2209,13 @@ done_model = np.zeros((number_models)) # We use this to keep track of if we have
 
 #model_tags = [r"$f_\mathrm{esc} = 0.2$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar} \: (\mathrm{Boost} = 1.0, N_\mathrm{Dynamical} = 0.1)$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar} \: (\mathrm{Boost} = 1.0, N_\mathrm{Dynamical} = 1)$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar} \: (\mathrm{Boost} = 1.0, N_\mathrm{Dynamical} = 3)$"]
 #model_tags = [r"$f_\mathrm{esc} \: \propto \: \mathrm{quasar} (\mathrm{boost} = 1.0, N_\mathrm{dynamical} = 1)$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
-model_tags = [r"$\mathrm{Kali}$", r"$\mathrm{Tiamat}$"]
+model_tags = [r"$\mathrm{Kali}$"]
+#model_tags = [r"$\mathrm{Tiamat}$"]
+#model_tags = [r"$\mathrm{Kali \: 1 \: Step}$", r"$\mathrm{Kali \: 10 \: Step}$"]
 #model_tags = [r"$\mathrm{ReionOn}$", r"$\mathrm{NoReion}$"]
 #model_tags = [r"Pip Delayed", r"Tiamat Delayed"]
 
+save_tags = ["Kali_Quasar_Newest"]
 for model_number in range(0,number_models):
     assert(LastFile[model_number] - FirstFile[model_number] + 1 >= size)
 
@@ -2124,7 +2229,7 @@ source_efficiency = [1, 1, 1, 1] # Used for the halo based prescription for ioni
 
 fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3] # Escape fraction of Lyman Alpha photons.
 #fesc_prescription = [0, 3, 3, 3] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity.
-fesc_prescription = [3, 3] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity.
+fesc_prescription = [3] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity.
 #fesc_prescription = [0, 0] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity.
 
 ## Normalizations for the escape fractions. ##
@@ -2135,10 +2240,10 @@ fesc_prescription = [3, 3] # 0 is constant, 1 is scaling with halo mass, 2 is sc
 
 #fesc_normalization = [[0.4, 0.2], [0.4, 0.2]]
 #fesc_normalization = [[0.2, 1.0], [0.4, 0.2]]
-fesc_normalization = [[0.2, 1.0], [0.2, 1.0]]
+fesc_normalization = [[0.2, 1.0]]
 #fesc_normalization = [0.2, 0.2]
 #fesc_normalization = [0.2, [0.2, 1.0], [0.2, 1.0], [0.2, 1.0]]
-N_dynamicaltime = [1, 1] # For escape fraction prescription == 3, this defines how many dynamical times we wait until we turn off the boosted escape fraction.
+N_dynamicaltime = [1] # For escape fraction prescription == 3, this defines how many dynamical times we wait until we turn off the boosted escape fraction.
 
 
 #N_dynamicaltime = [0, 0.1, 1, 3] # For escape fraction prescription == 3, this defines how many dynamical times we wait until we turn off the boosted escape fraction.
@@ -2149,19 +2254,20 @@ N_dynamicaltime = [1, 1] # For escape fraction prescription == 3, this defines h
 #SnapList = [[51, 64, 78]]
 #SnapList = [np.arange(0, 101), np.arange(0, 101), np.arange(0, 101), np.arange(0, 101)]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
-PlotSnapList = [[64, 76, 93], [64, 76, 93]]
-SnapList = [np.arange(0, 99), np.arange(0, 101)] 
+#PlotSnapList = [[51, 64, 78]]
+PlotSnapList = [[64, 76, 93]]
+SnapList = [np.arange(0, 99)]
 #PlotSnapList = [[45, 48, 52, 55, 57], [45, 48, 52, 55, 57]]
 #PlotSnapList = [[42, 43, 44], [42, 43, 44]]
 #PlotSnapList = [[90], [90]]
-simulation_norm = [5, 3, 3, 3] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish), 4 for Britton's Sim, 5 for Kali.
+simulation_norm = [5] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish), 4 for Britton's Sim, 5 for Kali.
 
 stellar_mass_halolen_lower = [32, 95, 95, 95] # These limits are for the number of particles in a halo.  
 stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
 calculate_observed_LF = 0
 ##############################################################################################################
 
-files = [galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, model_tags, SnapList]
+files = [galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, model_tags, SnapList, save_tags]
 goodness_check = [len(x) == len(y) for i,x in enumerate(files) for j,y in enumerate(files) if i != j] # This goes through the files array and checks to see if all the files have the same lengths.
 
 if False in goodness_check: # If any of the arrays had different lengths, throw an error.
@@ -2370,8 +2476,11 @@ for model_number in range(number_models):
         ## This boosted escape fraction lasts a dynamical time. ##
  
         QuasarActivityToggle = np.zeros((len(G))) # Array to specify whether the galaxy should have the base or boosted escape fraction.
+        QuasarActivitySubstep = np.full((len(G)), -1) # Array to specify in which substep the quasar boosting begins. 
         QuasarSnapshot = np.full((len(G)), -1) # Array to keep track of when the quasar went off. Initialize to -1. 
-        TargetQuasarTime = np.zeros((len(G))) # Array to keep track of the amount of time we want to keep the boosted escape fraction for. This will be the dynamical time WHEN THE QUASAR GOES OFF. 
+        TargetQuasarTime = np.zeros((len(G))) # Array to keep track of the amount of time we want to keep the boosted escape fraction for. This will be the dynamical time WHEN THE QUASAR GOES OFF.
+        QuasarBoostActiveTime = np.zeros((len(G))) # Array that tracks how long it has been since the quasar boosting was turned on.
+        QuasarFractionalPhoton = np.full((len(G)), 0.0) # Array to keep track of what fraction of photons we should boost with the prescription.             
 
         keep_files = 1 # Flips to 0 when we are done with this file.
         current_model_number = model_number # Used to differentiate between outer model_number and the inner model_number because we can keep files across model_numbers.
@@ -2382,6 +2491,7 @@ for model_number in range(number_models):
             current_source_efficiency = source_efficiency[current_model_number]
             current_halo_cut = halo_cut[current_model_number]
             N_dyntime = N_dynamicaltime[current_model_number]
+            NumSubsteps = number_substeps[current_model_number]
 
             for snapshot_idx in range(0, len(SnapList[current_model_number])):
             
@@ -2414,13 +2524,124 @@ for model_number in range(number_models):
                     M_UV_obs = calculate_UV_extinction(AllVars.SnapZ[current_snap], L_UV, M_UV[snap_idx])
             
                 #print("fesc_prescription[current_model_number] = {0} \t fesc_normalization[current_model_number] = {1}".format(fesc_prescription[current_model_number], fesc_normalization[current_model_number]))
+                old = 0
 
-                fesc_local = calculate_fesc(fesc_prescription[current_model_number], fesc_normalization[current_model_number], mass_central, ejected_fraction, QuasarActivityToggle[w_gal]) 
-                
+                ## Here we do calculations involving the quasars temporarily boosting the escape fraction. ##            
+                if (fesc_prescription[current_model_number] == 3): # Only do it if this model is using this escape fraction prescription.
+
+                    if (old == 1):
+                        N_quasars_tmp = 0.0
+                        N_quasars_boost_tmp = 0.0
+                        dynamicaltime_quasars_tmp = [] 
+                        dynamicaltime_all_tmp = [] 
+                        for gal_idx in w_gal:
+                            dynamicaltime_all_tmp.append(G.DynamicalTime[gal_idx, current_snap])
+
+                            ## Check to see if it's been N dynamical times since the quasar went off. ##
+                            if (QuasarActivityToggle[gal_idx] == 1):
+                                N_quasars_boost_tmp += 1 
+                                quasar_snap = QuasarSnapshot[gal_idx]
+                                assert(quasar_snap != -1)  
+                                dt = (float(AllVars.Lookback_Time[quasar_snap]) - float(AllVars.Lookback_Time[SnapList[model_number][snapshot_idx]])) * 1.0e3 # Time since the last quasar went off.                                              
+                                assert(dt >= 0.0) # Just make sure we're doing the lookback time difference correctly.
+                                if (dt >= TargetQuasarTime[gal_idx] * N_dyntime): # If it has been longer than N dynamical times, turn the boosted escape fraction off.
+                                    QuasarActivityToggle[gal_idx] = 0
+                                    QuasarSnapshot[gal_idx] = -1
+                                    TargetQuasarTime[gal_idx] = 0.0
+
+                            ## Check to see if any quasars went off during this snapshot. ##       
+                            if (G.QuasarActivity[gal_idx, current_snap] == 1): # If a quasar went off...
+                                QuasarActivityToggle[gal_idx] = 1 # Turn on the boosted escape fraction.
+                                QuasarSnapshot[gal_idx] = current_snap # Remember the snapshot that this quasar went off.
+                                TargetQuasarTime[gal_idx] = G.DynamicalTime[gal_idx, current_snap] # Keep track of how long we want the boosted escape fraction to last for.
+                                
+                                N_quasars_tmp += 1
+                                dynamicaltime_quasars_tmp.append(G.DynamicalTime[gal_idx, current_snap]) 
+
+                    else: 
+                        N_quasars_tmp = 0.0
+                        N_quasars_boost_tmp = 0.0
+                        dynamicaltime_quasars_tmp = [] 
+                        dynamicaltime_all_tmp = []
+                        dynamicaltime_all_tmp.extend(G.DynamicalTime[w_gal, current_snap])
+
+                        ## Check to see if any quasars went off during this snapshot. ## 
+                        w_quasar_activity = w_gal[np.where((G.QuasarActivity[w_gal, current_snap] == 1))[0]] 
+                        if (len(w_quasar_activity) > 0): # If a quasar went off...
+                            N_quasars_tmp += len(w_quasar_activity)                   
+                            QuasarActivityToggle[w_quasar_activity] = 1 # Turn on the boosted escape fraction.
+                            QuasarSnapshot[w_quasar_activity] = current_snap # Remember the snapshot that this quasar went off.
+                            TargetQuasarTime[w_quasar_activity] = G.DynamicalTime[w_quasar_activity, current_snap] # Keep track of how long we want the boosted escape fraction to last for.
+                            #print(G.QuasarSubstep[w_quasar_activity, current_snap])
+                            QuasarActivitySubstep[w_quasar_activity] = G.QuasarSubstep[w_quasar_activity, current_snap] # The substep of the snapshot the quasar went off. 
+                            dynamicaltime_quasars_tmp.extend(G.DynamicalTime[w_quasar_activity, current_snap])
+
+                        ## Update the boost times and see if we need to turn anything off ## 
+                        w_active_boost = w_gal[np.where((QuasarActivityToggle[w_gal] > 0.0))[0]] # Use greater than because comparing a float.
+                        if (len(w_active_boost) > 0):
+                            quasar_snap = QuasarSnapshot[w_active_boost]
+                            N_quasars_boost_tmp += len(w_active_boost)
+                            
+                            assert(quasar_snap.any() != -1) # Just a sanity check.
+
+                            dt = ((AllVars.Lookback_Time[SnapList[current_model_number][snapshot_idx] - 1]) - (AllVars.Lookback_Time[SnapList[current_model_number][snapshot_idx]])) * 1.0e3 # Time between the previous snapshot and now (in Myr). 
+                          
+                            w_just_turned_on = w_active_boost[np.where((quasar_snap == current_snap))[0]] # In this case, the boosted escape fraction turned on during this snapshot.  As a result, we need to account for it turning on during a substep and only providing a fractional boost.
+                            w_not_just_turned_on = w_active_boost[np.where((quasar_snap != current_snap))[0]] 
+
+                            QuasarBoostActiveTime[w_just_turned_on] += dt * (NumSubsteps - QuasarActivitySubstep[w_just_turned_on]) / NumSubsteps # This adds the time spanned by this snapshot weighted by when substep in which the quasar went off. E.g., if there are 10 substeps and the quasar went off during substep 3, then the boosted escape fraction occurs for (10 - 3) / 10 = 0.7 of the time.  
+                            QuasarFractionalPhoton[w_just_turned_on] = (NumSubsteps - QuasarActivitySubstep[w_just_turned_on]) / NumSubsteps # Only boost the photons for a fraction of the time during the snapshot step. 
+
+                            QuasarBoostActiveTime[w_not_just_turned_on] += dt # The boosted escape fraction lasts for the entire snapshot.
+                            QuasarFractionalPhoton[w_not_just_turned_on] = 1.0
+                    
+                            w_shutoff = w_active_boost[np.greater(QuasarBoostActiveTime[w_active_boost], TargetQuasarTime[w_active_boost] * N_dyntime).nonzero()] # If it's been longer than N dynamical times, turn the boosted escape fraction off.
+# np.greater returns True if it's time to turn off, .nonzero() returns the indices of those, and then we want the index within the GLOBAL galaxy array so wrap it all within w_active_boost.
+
+                            # Now for those galaxies for which we wish to shut off their boosted escape fraction, we need to determine on which substep we are turning it off.
+                            # This will then give us a fraction of the photons emitted that we should boost for this final time.
+
+                            TimeIntoSnapshot = TargetQuasarTime[w_shutoff] - (QuasarBoostActiveTime[w_shutoff] - dt) # This tells us how much time into this snapshot this quasar will be turned on for.
+                            FractionIntoSnapshot = TimeIntoSnapshot / dt # Then this is the fraction of time the quasar will be on for.
+                            QuasarFractionalPhoton[w_shutoff] = FractionIntoSnapshot # Weight the boosted escape fraction to be correct. E.g., if a galaxy is turned off 40% into the snapshot, then the escape fraction should only be boosted for 40% of the time.
+                            #TimePerSubstep = dt / NumSubsteps
+                            #TimeOverTarget = np.subtract(QuasarBoostActiveTime[w_active_boost], TargetQuasarTime[w_active_boost]) # For galaxies which have not reached their target time, this number will be negative.
+                            #StepsOverTarget = int(TimeOverTarget / TimePerSubstep) # Cast as an integer to match the definition of the initial substep boosting.
+                           
+
+#                            w_gal_over_target = w_active_boost[np.where((StepsOverTarget > 0.0))[0]] # Gets those galaxies who have gone over target time.
+#                            print("w_gal_over_target {0}".format(w_gal_over_target))
+#                            print("NumSubsteps {0}".format(NumSubsteps))
+#                            if (len(w_gal_over_target) > 0):
+#                                QuasarFractionalPhoton[w_gal_over_target] = StepsOverTarget[StepsOverTarget > 0.0] / NumSubsteps # Sets the fraction of time boosted to be correct. E.g., if a galaxy is 4 substeps over the target 
+                            
+                            QuasarActivityToggle[w_shutoff] = 0 # Then turn off all the toggles.
+                            QuasarSnapshot[w_shutoff] = -1
+                            TargetQuasarTime[w_shutoff] = 0.0
+                            QuasarBoostActiveTime[w_shutoff] = 0.0
+                            QuasarActivitySubstep[w_shutoff] = -1 
+                     
+                    '''
+                    if (N_quasars_tmp > 0):
+                        print("QuasarSnapshot {0}".format(QuasarSnapshot[QuasarSnapshot != -1]))
+                        print("QuasarActivityToggle {0}".format(QuasarActivityToggle[QuasarActivityToggle != 0]))
+                        print("TargetQuasarTime {0}".format(TargetQuasarTime[TargetQuasarTime != 0]))
+                        exit()
+                    '''
+                    if (N_quasars_tmp > 0):           
+                        (dynamicaltime_quasars_mean_z[current_model_number][snapshot_idx], dynamicaltime_quasars_std_z[current_model_number][snapshot_idx]) = update_cumulative_stats(dynamicaltime_quasars_mean_z[current_model_number][snapshot_idx], dynamicaltime_quasars_std_z[current_model_number][snapshot_idx], N_quasars_z[current_model_number][snapshot_idx], np.mean(dynamicaltime_quasars_tmp), np.std(dynamicaltime_quasars_tmp), N_quasars_tmp)               
+                    (dynamicaltime_all_mean_z[current_model_number][snapshot_idx], dynamicaltime_all_std_z[current_model_number][snapshot_idx]) = update_cumulative_stats(dynamicaltime_all_mean_z[current_model_number][snapshot_idx], dynamicaltime_all_std_z[current_model_number][snapshot_idx], N_z[current_model_number][snapshot_idx], np.mean(dynamicaltime_all_tmp), np.std(dynamicaltime_all_tmp), len(w_gal))
+                                
+                    N_quasars_z[current_model_number][snapshot_idx] += N_quasars_tmp
+                    N_quasars_boost_z[current_model_number][snapshot_idx] += N_quasars_boost_tmp
+  
                 galaxy_halo_mass_mean_local, galaxy_halo_mass_std_local = Calculate_HaloPartStellarMass(halo_part_count, mass_gal, stellar_mass_halolen_lower[current_model_number], stellar_mass_halolen_upper[current_model_number])
                 galaxy_halo_mass_mean[current_model_number][snapshot_idx] += pow(10, galaxy_halo_mass_mean_local) / (LastFile[current_model_number] + 1) # Adds to the average of the mean. 
-    
-                 
+
+                #plot_photon_quasar_fraction(SnapList[current_model_number][snapshot_idx], fnr, save_tags[current_model_number], QuasarFractionalPhoton[w_gal], QuasarActivityToggle[w_gal], NumSubsteps)
+
+                fesc_local = calculate_fesc(fesc_prescription[current_model_number], fesc_normalization[current_model_number], mass_central, ejected_fraction, QuasarActivityToggle[w_gal], QuasarFractionalPhoton[w_gal], old) 
+                     
                 photons_HI_gal = calculate_photons(SFR_gal, metallicity_gal)    
                 photons_HI_gal_nonlog = [10**x for x in photons_HI_gal]
                 ionizing_photons = np.multiply(photons_HI_gal_nonlog, fesc_local)
@@ -2458,60 +2679,6 @@ for model_number in range(number_models):
 
                 (mean_fesc_z_array[current_model_number][snapshot_idx], std_fesc_z_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_fesc_z_array[current_model_number][snapshot_idx], std_fesc_z_array[current_model_number][snapshot_idx], N_z[current_model_number][snapshot_idx], np.mean(fesc_local), np.std(fesc_local), len(w_gal))
      
-                ## Here we do calculations involving the quasars temporarily boosting the escape fraction. ##            
-                if (fesc_prescription[current_model_number] == 3): # Only do it if this model is using this escape fraction prescription.
-                    N_quasars_tmp = 0.0
-                    N_quasars_boost_tmp = 0.0
-                    dynamicaltime_quasars_tmp = [] 
-                    dynamicaltime_all_tmp = []
-                    dynamicaltime_all_tmp.extend(G.DynamicalTime[w_gal, current_snap])
-
-                    ## Check to see if it's been N dynamical times since the quasar went off. ##
-                    w_active_boost = np.where((QuasarActivityToggle > 0.0))[0] # Use greater than because comparing a float.
-#                    print("QuasarActivityToggle[QuasarActivityToggle > 0.0] {0}".format(QuasarActivityToggle[QuasarActivityToggle > 0.0]))   
-#                    print("w_active_boost {0}".format(w_active_boost)) 
-                    if (len(w_active_boost) > 0):
-                        quasar_snap = QuasarSnapshot[w_active_boost]
-                        #print("quasar_snap {0}".format(quasar_snap))
-
-                        N_quasars_boost_tmp += len(w_active_boost)
-                        
-                        assert(quasar_snap.any() != -1)
-                        #print(AllVars.Lookback_Time[quasar_snap])
-                        #print(AllVars.Lookback_Time[SnapList[current_model_number][snapshot_idx]]) 
-                        dt = ((AllVars.Lookback_Time[quasar_snap]) - np.array(AllVars.Lookback_Time[SnapList[current_model_number][snapshot_idx]])) * 1.0e3 # Time since the last quasar went off.
-                        #print(dt) 
-
-                        w_shutoff = w_active_boost[np.greater(dt, TargetQuasarTime[w_active_boost] * N_dyntime).nonzero()] # If it's been longer than N dynamical times, turn the boosted escape fraction off.
-                                                                                                                           # np.greater returns True if time to turn off, .nonzero() returns the indices of those, and then we want the index within the GLOBAL galaxy array so wrap it all within w_active_boost.
-                        QuasarActivityToggle[w_shutoff] = 0
-                        QuasarSnapshot[w_shutoff] = -1
-                        TargetQuasarTime[w_shutoff] = 0.0 
-                 
-
-                    ## Check to see if any quasars went off during this snapshot. ## 
-                    w_quasar_activity = np.where((G.QuasarActivity[w_gal, current_snap] == 1))[0] # If a quasar went off...
-   
-#                    print("w_quasar_activity {0}".format(w_quasar_activity)) 
-                    if (len(w_quasar_activity) > 0):
-#                        print("{0} quasars went off".format(len(w_quasar_activity)))
-                        N_quasars_tmp += len(w_quasar_activity)                   
-                        QuasarActivityToggle[w_quasar_activity] = 1 # Turn on the boosted escape fraction.
-#                        print("QuasarActivityToggle[w_quasar_activity] {0}".format(QuasarActivityToggle[w_quasar_activity]))
-                        QuasarSnapshot[w_quasar_activity] = current_snap # Remember the snapshot that this quasar went off.
-                        TargetQuasarTime[w_quasar_activity] = G.DynamicalTime[w_quasar_activity, current_snap] # Keep track of how long we want the boosted escape fraction to last for.
-
-                        
-                        dynamicaltime_quasars_tmp.extend(G.DynamicalTime[w_quasar_activity, current_snap])
-       
-#                        print("QuasarSnapshot[QuasarSnapshot != -1] {0}".format(QuasarSnapshot[QuasarSnapshot != -1]))
-                        
-                    if (N_quasars_tmp > 0):           
-                        (dynamicaltime_quasars_mean_z[current_model_number][snapshot_idx], dynamicaltime_quasars_std_z[current_model_number][snapshot_idx]) = update_cumulative_stats(dynamicaltime_quasars_mean_z[current_model_number][snapshot_idx], dynamicaltime_quasars_std_z[current_model_number][snapshot_idx], N_quasars_z[current_model_number][snapshot_idx], np.mean(dynamicaltime_quasars_tmp), np.std(dynamicaltime_quasars_tmp), N_quasars_tmp)               
-                    (dynamicaltime_all_mean_z[current_model_number][snapshot_idx], dynamicaltime_all_std_z[current_model_number][snapshot_idx]) = update_cumulative_stats(dynamicaltime_all_mean_z[current_model_number][snapshot_idx], dynamicaltime_all_std_z[current_model_number][snapshot_idx], N_z[current_model_number][snapshot_idx], np.mean(dynamicaltime_all_tmp), np.std(dynamicaltime_all_tmp), len(w_gal))
-                                
-                    N_quasars_z[current_model_number][snapshot_idx] += N_quasars_tmp
-                    N_quasars_boost_z[current_model_number][snapshot_idx] += N_quasars_boost_tmp
                 N_z[current_model_number][snapshot_idx] += len(w_gal)
 
 
@@ -2519,14 +2686,15 @@ for model_number in range(number_models):
             if (current_model_number < number_models):                
                 keep_files =  same_files[current_model_number] # If we want to keep the files and bin the next model, this will do it.
                 current_model_number += 1 # Update the inner loop model number.
-#for snap in SnapList[0]:
-#    print("Mean Dynamical Time for quasars at redshift {0} is {1} with std {2}".format(AllVars.SnapZ[snap], dynamicaltime_quasars_mean_z[0][snap], dynamicaltime_quasars_std_z[0][snap]))
+for snap in SnapList[0]:
+    print("Mean Dynamical Time for quasars at redshift {0} is {1} with std {2}".format(AllVars.SnapZ[snap], dynamicaltime_quasars_mean_z[0][snap], dynamicaltime_quasars_std_z[0][snap]))
 
+exit()
 #StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, "Kali_Tiamat_SMF") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
 #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 
-#plot_fesc_galaxy(SnapList, PlotSnapList, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_KaliTiamat_Quasar", 0)
-plot_quasars_count(SnapList, N_quasars_z, N_quasars_boost_z, N_z, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_Quasar_NewTechnique")
+plot_quasars_count(SnapList, N_quasars_z, N_quasars_boost_z, N_z, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_Quasar_Newest")
+plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_Kali_Quasar_Newest", 1, save_tags)
 #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_KaliTiamat_Quasar") ## PARALELL COMPATIBLE
 #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 

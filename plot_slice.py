@@ -87,7 +87,7 @@ cut_slice = 44
 
 #cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 #t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
-output_format = ".png"
+output_format = ".eps"
 
 def linear_growth(z, OM, OL):
         D = (OM*((1+z)**3) / (OM*(1+z) - (OM + OL - 1)*((1+z)**2) + OM))**(4/7)
@@ -629,7 +629,7 @@ def plot_density(z, density, OutputDir, output_tag):
 
     cut_slice = 63
     thickness_cut = 1
-    im = ax.imshow(density[:,:,cut_slice:cut_slice+thickness_cut].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], cmap = 'Purples', vmin = 0.12, vmax = 10) 
+    im = ax.imshow(density[:,:,cut_slice:cut_slice+thickness_cut].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,AllVars.BoxSize,0,AllVars.BoxSize], cmap = 'Purples', vmin = 0.12, vmax = 5) 
     
     cbar = plt.colorbar(im, ax = ax)
     cbar.set_label(r'$\rho/\langle \rho \rangle$')
@@ -2001,7 +2001,7 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 ##########
 
 
-
+### TODO: Use mass-averaged ionization fraction instead of volume-averaged.
 def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
 
     print("Plotting the optical depth")	

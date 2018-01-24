@@ -619,16 +619,16 @@ def Calculate_Histogram(data, bin_width, weights, min_hist=None, max_hist=None):
     Parameters
     ---------
     data : `array-like'
-    Data used in the histogram.
+        Data used in the histogram.
     bin_width : `array-like'
-    Width of the bins.
+        Width of the bins.
     weights : either 0 or 1
-    Selects the binning mode.
-    0 : Histogram will be a frequency (count) histogram.
-    1 : Histogram will be a probability histogram.  
+        Selects the binning mode.
+        0 : Histogram will be a frequency (count) histogram.
+        1 : Histogram will be a probability histogram.  
     min_hist, max_hist : float (optional)
-    Defines the bounds that we will be binning over.
-    If no values defined, range will be the minimum/maximum data point +/- 10 times the bin_width.
+        Defines the bounds that we will be binning over.
+        If no values defined, range will be the minimum/maximum data point +/- 10 times the bin_width.
 
     Returns
     -------
