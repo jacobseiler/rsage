@@ -325,7 +325,20 @@ extern int PhotonPrescription;
 extern int fescPrescription;
 extern double fesc; 
 
+extern double MH_low;
+extern double fesc_low;
+extern double MH_high;
+extern double fesc_high;
+
 extern double alpha;
 extern double beta;
 extern int HaloPartCut;
+
+extern int32_t *QuasarActivityToggle;
+extern int32_t *QuasarActivitySubstep;
+extern int32_t *QuasarSnapshot;
+extern float *TargetQuasarTime;
+extern float *QuasarBoostActiveTime;
+extern float *QuasarFractionalPhoton;
+
 #endif

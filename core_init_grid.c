@@ -32,8 +32,9 @@ int32_t init(void)
   {
     ZZ[i] = 1 / AA[i] - 1; // Redshift array.
     Age[i] = time_to_present(ZZ[i]); // Age array.
+    printf("%.4f\n", Age[i]);
   }
- 
+  exit(0);
   if (fescPrescription == 2)
   {
     fprintf(stderr,"\n\nUsing an fesc prescription that scales with halo mass.\n\n");
@@ -50,6 +51,11 @@ int32_t init(void)
   {
     fprintf(stderr, "Could not allocate memory for the high level grid structure\n");
     return EXIT_FAILURE;
+  }
+
+  if (fescPrescription == 1) // If we are using the prescription that scales with halo mass, use the 4 fixed points to determine the constants.
+  {
+    determine_fesc_constants();
   }
 
   status = init_grid(Grid);
@@ -255,6 +261,19 @@ double integrand_time_to_present(double a, void *param)
   return 1 / sqrt(Omega / a + (1 - Omega - OmegaLambda) + OmegaLambda * a * a);
 }
 
+void determine_fesc_constants(void)
+{
+
+  double A, B, log_A;
+
+  log_A = (log10(fesc_high) - (log10(fesc_low)*log10(MH_high)/log10(MH_low))) * pow(1 - (log10(MH_high) / log10(MH_low)), -1);
+  B = (log10(fesc_low) - log_A) / log10(MH_low);
+  A = pow(10, log_A);
+
+  alpha = A;
+  beta = B;
+
+}
 /*
 void estimate_grid_memory(void)
 {

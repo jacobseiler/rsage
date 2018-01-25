@@ -5,6 +5,7 @@ int32_t init_grid(struct GRID_STRUCT *grid);
 int32_t free_grid(void);
 void set_units(void);
 void read_snap_list(void);
+void determine_fesc_constants(void);
 
 void read_parameter_file(char *fname);
 
@@ -21,6 +22,7 @@ void estimate_gal_memory(int NtotGals);
 
 int32_t update_grid_properties(int32_t filenr);
 void update_meraxes_grid_properties(int p, int GridNr);
+int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx);
 void count_grid_properties(struct GRID_STRUCT *count_grid);
 void normalize_photon(int GridNr); 
 void normalize_slope_photons(int GridNr);

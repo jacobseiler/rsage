@@ -120,4 +120,16 @@ double tot_Halomass;
 
 double alpha;
 double beta;
+double MH_low;
+double fesc_low;
+double MH_high;
+double fesc_high;
 int HaloPartCut;
+
+int32_t *QuasarActivityToggle;
+int32_t *QuasarActivitySubstep;
+int32_t *QuasarSnapshot;
+float *TargetQuasarTime;
+float *QuasarBoostActiveTime;
+float *QuasarFractionalPhoton;
+

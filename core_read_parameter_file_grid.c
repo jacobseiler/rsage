@@ -141,6 +141,23 @@ void read_parameter_file(char *fname)
   addr[nt] = &beta; 
   id[nt++] = DOUBLE;
 
+  strcpy(tag[nt], "MH_low");
+  addr[nt] = &MH_low; 
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_low");
+  addr[nt] = &fesc_low; 
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "MH_high");
+  addr[nt] = &MH_high; 
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_high");
+  addr[nt] = &fesc_high; 
+  id[nt++] = DOUBLE;
+
+
   strcpy(tag[nt], "fesc");
   addr[nt] = &fesc;
   id[nt++] = DOUBLE;

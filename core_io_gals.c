@@ -207,6 +207,65 @@ int32_t load_gals(char *fname)
 
   printf("Read in %ld total galaxies.\n", (long)NtotGals);
 
+
+  // We now need to allocate memory for the quasar boosted escape fraction (if that prescription is selected).
+  if (fescPrescription == 4) 
+  { 
+    QuasarActivityToggle = mymalloc(sizeof(int32_t) * NtotGals);
+    if (QuasarActivityToggle == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for QuasarActivityToggle\n");
+      return EXIT_FAILURE;
+    }
+
+    QuasarActivitySubstep = mymalloc(sizeof(int32_t) * NtotGals);
+    if (QuasarActivitySubstep == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for QuasarActivitySubstep\n");
+      return EXIT_FAILURE;
+    }
+
+    QuasarSnapshot = mymalloc(sizeof(int32_t) * NtotGals);
+    if (QuasarSnapshot == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for QuasarSnapshot\n");
+      return EXIT_FAILURE;
+    }
+
+    TargetQuasarTime = mymalloc(sizeof(float) * NtotGals);
+    if (TargetQuasarTime == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for TargetQuasarTime\n");
+      return EXIT_FAILURE;
+    }
+
+    QuasarBoostActiveTime = mymalloc(sizeof(float) * NtotGals);
+    if (QuasarBoostActiveTime == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for QuasarBoostActiveTime\n");
+      return EXIT_FAILURE;
+    }
+
+    QuasarFractionalPhoton = mymalloc(sizeof(float) * NtotGals);
+    if (QuasarFractionalPhoton == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for QuasarFractionalPhoton\n");
+      return EXIT_FAILURE;
+    }
+
+    for (i = 0; i < NtotGals; ++i)
+    {
+      QuasarActivityToggle[i] = 0.0;
+      QuasarActivitySubstep[i] = -1;
+      QuasarSnapshot[i] = -1;
+      TargetQuasarTime[i] = 0.0;
+      QuasarBoostActiveTime[i] = 0.0;
+      QuasarFractionalPhoton[i] = 0.0; 
+    }
+
+
+  } // fesc if conidition.
+
   fclose(infile);
   free(GalsForTree);
 

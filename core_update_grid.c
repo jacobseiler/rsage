@@ -43,6 +43,11 @@ int32_t update_grid_properties(int32_t filenr)
       {
         ++good_gals;
 
+        if (fescPrescription == 4)
+        {
+          update_quasar_tracking(gal_idx, snapshot_idx); 
+        }
+
         Grid->GridProperties[grid_num_idx].SFR[grid_position] += GalGrid[gal_idx].SFR[snapshot_idx];
         Grid->GridProperties[grid_num_idx].StellarMass[grid_position] += GalGrid[gal_idx].StellarMass[snapshot_idx];  
 
@@ -362,3 +367,53 @@ struct GRID_STRUCT *MPI_sum_grids(void)
   return master_grid;
 }
 #endif
+
+int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
+{
+
+  float dt, substep_weight, time_into_snapshot, fraction_into_snapshot; 
+
+  if (GalGrid[gal_idx].QuasarActivity[snapshot_idx] == 1) // A quasar has gone off during this snapshot, time to update properties.
+  {
+    ++QuasarActivityToggle[gal_idx]; // Note, we plus one because we want to be able to handle the case of a quasar going off when the galaxy still is being boosted. 
+    QuasarSnapshot[gal_idx] = snapshot_idx; 
+    TargetQuasarTime[gal_idx] = GalGrid[gal_idx].DynamicalTime[snapshot_idx];
+    QuasarActivitySubstep[gal_idx] = GalGrid[gal_idx].QuasarSubstep[snapshot_idx];
+    QuasarBoostActiveTime[gal_idx] = 0.0;
+  }
+
+  if (QuasarActivityToggle[gal_idx] > 0) // This galaxy is having its escape fraction boosted, check to see if we need to turn it off.
+  {
+
+    dt = (Age[snapshot_idx - 1] - Age[snapshot_idx]) * UnitTime_in_Megayears;
+    if (QuasarSnapshot[gal_idx] == snapshot_idx && QuasarActivityToggle[gal_idx] == 1) // If this quasar is due to a quasar going off during this snapshot and the galaxy is NOT under the influence from a previous quasar event then we need to weight the fraction of time the photons are boosted by the substep the quasar went off in. 
+    {
+      substep_weight = (STEPS - QuasarActivitySubstep[gal_idx]) / STEPS;
+    }
+    else
+    {
+      substep_weight = 1.0;
+    } 
+
+    QuasarBoostActiveTime[gal_idx] += dt * substep_weight;
+    QuasarFractionalPhoton[gal_idx] = substep_weight; // If the quasar turned on part-way through the snapshot, we boost the photons for the remaining time during the snapshot.
+
+    if (QuasarBoostActiveTime[gal_idx] >= TargetQuasarTime[gal_idx]) // The boosted quasar time needs to be turned off.
+    {
+      time_into_snapshot = TargetQuasarTime[gal_idx] - (QuasarBoostActiveTime[gal_idx] - dt); // How much extra time into the snapshot does the quasar need to go to reach its target?
+      fraction_into_snapshot = time_into_snapshot / dt; // Then what fraction of the snapshot time will this be?
+      QuasarFractionalPhoton[gal_idx] = fraction_into_snapshot; 
+
+      // Reset toggles and trackers. //
+      --QuasarActivityToggle[gal_idx];
+      QuasarSnapshot[gal_idx] = -1;
+      TargetQuasarTime[gal_idx] = 0.0;
+      QuasarBoostActiveTime[gal_idx] = 0.0;
+      QuasarActivitySubstep[gal_idx] = -1;
+    }
+
+  } 
+
+  return EXIT_SUCCESS;
+
+}
