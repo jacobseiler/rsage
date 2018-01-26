@@ -250,7 +250,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     y_grid = Gal[p].Pos[1]*GridSize/BoxSize;
     z_grid = Gal[p].Pos[2]*GridSize/BoxSize; 
 
-    grid_position = (x_grid*GridSize+y_grid)*GridSize+z_grid; // Convert the grid (x,y,z) to a 1D value.
+    grid_position = (z_grid*GridSize+y_grid)*GridSize+x_grid; // Convert the grid (x,y,z) to a 1D value.
 
     if(grid_position > CUBE(GridSize) || grid_position < 0) // Sanity check to ensure that no Grid Positions are outside the box.
     {
