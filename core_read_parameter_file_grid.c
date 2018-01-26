@@ -157,6 +157,17 @@ void read_parameter_file(char *fname)
   addr[nt] = &fesc_high; 
   id[nt++] = DOUBLE;
 
+  strcpy(tag[nt], "quasar_baseline");
+  addr[nt] = &quasar_baseline; 
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "quasar_boosted");
+  addr[nt] = &quasar_boosted; 
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "N_dyntime");
+  addr[nt] = &N_dyntime; 
+  id[nt++] = INT;
 
   strcpy(tag[nt], "fesc");
   addr[nt] = &fesc;
@@ -237,7 +248,7 @@ void read_parameter_file(char *fname)
 	printf("\n");
 	
 	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
-	MAXSNAPS = LastSnapShotNr + 1;
+	MAXSNAPS = LastSnapShotNr + 1; 
 
 	XASSERT(LowSnap < HighSnap, "LowSnap must be less than HighSnap.");
 	

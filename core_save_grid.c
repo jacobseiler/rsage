@@ -31,20 +31,26 @@ int32_t save_grid(struct GRID_STRUCT *save_grid)
       snprintf(name_HeII, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, snapshot_idx); 
     } else if (fescPrescription == 1)
     {
-      snprintf(name_HI, MAXLEN, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHI_%03d", GridOutputDir, FileNameGalaxies, fesc, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHeI_%03d", GridOutputDir, FileNameGalaxies, fesc, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/Galaxies_%s_fesc%.2f_KimmFiducial_nionHeII_%03d", GridOutputDir, FileNameGalaxies, fesc, snapshot_idx); 
+      snprintf(name_HI, MAXLEN, "%s/%s_fesc%.2f_KimmFiducial_nionHI_%03d", GridOutputDir, FileNameGalaxies, fesc, snapshot_idx); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_fesc%.2f_KimmFiducial_nionHeI_%03d", GridOutputDir, FileNameGalaxies, fesc, snapshot_idx); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_fesc%.2f_KimmFiducial_nionHeII_%03d", GridOutputDir, FileNameGalaxies, fesc, snapshot_idx); 
     } else if (fescPrescription == 2)
     {
-      snprintf(name_HI, MAXLEN, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHeI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/Galaxies_%s_MH_alpha%.2fbeta%.2f_nionHeII_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, snapshot_idx); 
+      snprintf(name_HI, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_nionHI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, snapshot_idx); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_nionHeI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, snapshot_idx); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_nionHeII_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, snapshot_idx); 
     } else if (fescPrescription == 3)
     { 
-      snprintf(name_HI, MAXLEN, "%s/Galaxies_%s_Ejected_alpha%.3fbeta%.3f_nionHI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/Galaxies_%s_Ejected_alpha%.3fbeta%.3f_nionHeI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/Galaxies_%s_Ejected_alpha%.3fbeta%.3f_nionHeII_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, snapshot_idx); 
+      snprintf(name_HI, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_nionHI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, snapshot_idx); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_nionHeI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, snapshot_idx); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_nionHeII_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, snapshot_idx); 
     } 
+    else if (fescPrescription == 4)
+    {
+      snprintf(name_HI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
+    }
 
     file_HI = fopen(name_HI, "w"); 
     if (file_HI == NULL)

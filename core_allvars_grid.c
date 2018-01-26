@@ -124,6 +124,11 @@ double MH_low;
 double fesc_low;
 double MH_high;
 double fesc_high;
+
+double quasar_baseline;
+double quasar_boosted;
+int32_t N_dyntime;
+
 int HaloPartCut;
 
 int32_t *QuasarActivityToggle;

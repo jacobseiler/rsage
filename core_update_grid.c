@@ -23,10 +23,12 @@ int32_t update_grid_properties(int32_t filenr)
   float fesc_local, Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
 
   for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
-  { 
+  {
     grid_num_idx = snapshot_idx - LowSnap; // The grid indexing goes from 0 to NumGrids.
+//    printf("Snapshot_idx %d\t grid_num_idx %d\n", snapshot_idx, grid_num_idx); 
     for (gal_idx = 0; gal_idx < NtotGals; ++gal_idx)
     {
+//      printf("Gal_idx %ld\n", (long)gal_idx);
       grid_position = GalGrid[gal_idx].History[snapshot_idx];
       if (grid_position == -1)
       {
@@ -42,7 +44,7 @@ int32_t update_grid_properties(int32_t filenr)
       if ((GalGrid[gal_idx].StellarMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].SFR[snapshot_idx] > 0.0) & (GalGrid[gal_idx].CentralGalaxyMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].LenHistory[snapshot_idx] > HaloPartCut)) // Apply some requirements for the galaxy to be included.
       {
         ++good_gals;
-
+//        printf("Got to good gal\n");
         if (fescPrescription == 4)
         {
           update_quasar_tracking(gal_idx, snapshot_idx); 
@@ -50,13 +52,14 @@ int32_t update_grid_properties(int32_t filenr)
 
         Grid->GridProperties[grid_num_idx].SFR[grid_position] += GalGrid[gal_idx].SFR[snapshot_idx];
         Grid->GridProperties[grid_num_idx].StellarMass[grid_position] += GalGrid[gal_idx].StellarMass[snapshot_idx];  
-
+//        printf("Grid1\n");
         if (PhotonPrescription == 1)
         {
           calculate_photons(GalGrid[gal_idx].SFR[snapshot_idx], GalGrid[gal_idx].Z[snapshot_idx], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII); // Base number of ionizing photons
           fesc_local = calculate_fesc(gal_idx, snapshot_idx, filenr);
         }
 
+//        printf("Grid2\n");
         Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] += pow(10, Ngamma_HI - 50.0)*fesc_local; // We keep these in units of 10^50 photons/s.
         if (pow(10, Ngamma_HI - 50.0) * fesc_local < 0.0)
         {
@@ -71,8 +74,10 @@ int32_t update_grid_properties(int32_t filenr)
         Grid->GridProperties[grid_num_idx].Nion_HeI[grid_position] += pow(10, Ngamma_HeI - 50.0)*fesc_local;
         Grid->GridProperties[grid_num_idx].Nion_HeII[grid_position] += pow(10, Ngamma_HeII - 50.0)*fesc_local;
       
-        ++Grid->GridProperties[snapshot_idx].GalCount[grid_position]; 
+//        printf("Grid3\n");
+        ++Grid->GridProperties[grid_num_idx].GalCount[grid_position]; 
         
+//        printf("Grid4\n");
       }
       else
       {
@@ -295,17 +300,22 @@ float calculate_fesc(int p, int i, int filenr)
     fesc_local = alpha * pow((halomass * 1.0e10 / Hubble_h), beta); 
   else if (fescPrescription == 3)	
     fesc_local = alpha * ejectedfraction + beta; 
+  else if (fescPrescription == 4)
+  {
+    fesc = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p]; 
+  } 
 	
   if (fesc_local > 1.0)
   {
-  //  fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(SFR), ejectedfraction);
-    fesc_local = 1.0;
-  
+    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), ejectedfraction);
+    exit(EXIT_FAILURE);
+    fesc_local = 1.0; 
   }
    
   if (fesc_local < 0.0)
   {
     fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), GalGrid[p].EjectedFraction[i]);
+    exit(EXIT_FAILURE);
     fesc_local = 0.0; 
   }
 
@@ -373,13 +383,22 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
 
   float dt, substep_weight, time_into_snapshot, fraction_into_snapshot; 
 
+//  printf("Entering into quasar tracking\n");
   if (GalGrid[gal_idx].QuasarActivity[snapshot_idx] == 1) // A quasar has gone off during this snapshot, time to update properties.
   {
     ++QuasarActivityToggle[gal_idx]; // Note, we plus one because we want to be able to handle the case of a quasar going off when the galaxy still is being boosted. 
     QuasarSnapshot[gal_idx] = snapshot_idx; 
-    TargetQuasarTime[gal_idx] = GalGrid[gal_idx].DynamicalTime[snapshot_idx];
+    TargetQuasarTime[gal_idx] = GalGrid[gal_idx].DynamicalTime[snapshot_idx] * N_dyntime;
     QuasarActivitySubstep[gal_idx] = GalGrid[gal_idx].QuasarSubstep[snapshot_idx];
     QuasarBoostActiveTime[gal_idx] = 0.0;
+  }
+
+  // One edge case we need to consider is in regards to quasars that were turned off part way through the previous snapshot. // 
+  // In this case, we need to fully reset QuasarFractionalPhoton otherwise it will continue to be boosted for a fractional amount. //
+
+  if (QuasarFractionalPhoton[gal_idx] < 1.0 && QuasarSnapshot[gal_idx] != snapshot_idx) // Quasar that has fractional boosting due to turning off in the previous snapshot.
+  {
+    QuasarFractionalPhoton[gal_idx] = 0.0;
   }
 
   if (QuasarActivityToggle[gal_idx] > 0) // This galaxy is having its escape fraction boosted, check to see if we need to turn it off.
@@ -413,7 +432,8 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
     }
 
   } 
-
+  
+//  printf("Leaving quasar tracking\n");
   return EXIT_SUCCESS;
 
 }

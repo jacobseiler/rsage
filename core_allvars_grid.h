@@ -332,6 +332,11 @@ extern double fesc_high;
 
 extern double alpha;
 extern double beta;
+
+extern double quasar_baseline;
+extern double quasar_boosted;
+extern int32_t N_dyntime;
+
 extern int HaloPartCut;
 
 extern int32_t *QuasarActivityToggle;

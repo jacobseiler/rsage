@@ -36,12 +36,13 @@ void load_halos(int filenr)
   TreeNHalos = malloc(sizeof(int) * Ntrees); // Seeking again.
   fread(TreeNHalos, Ntrees, sizeof(int), load_fd); // Seeking again.
 
-  Halo = mymalloc(sizeof(struct halo_data) * totNHalos);
+  Halo = malloc(sizeof(struct halo_data) * totNHalos);
   fread(Halo, totNHalos, sizeof(struct halo_data), load_fd);
 
   fclose(load_fd);
 //  if (Verbose == 1)
 //    printf("Read in a total of %d Halos for file %d.\n", totNHalos, filenr);
+
 }
 
 int32_t load_gals(char *fname)
@@ -66,7 +67,7 @@ int32_t load_gals(char *fname)
   GalsForTree = malloc(Ntrees * sizeof(int));
   fread(GalsForTree, Ntrees, sizeof(int), infile);
 
-  GalGrid = mymalloc(NtotGals * sizeof(struct GALAXY_GRID));
+  GalGrid = malloc(NtotGals * sizeof(struct GALAXY_GRID));
   
   for (i = 0; i < NtotGals; ++i)
   {
@@ -211,42 +212,42 @@ int32_t load_gals(char *fname)
   // We now need to allocate memory for the quasar boosted escape fraction (if that prescription is selected).
   if (fescPrescription == 4) 
   { 
-    QuasarActivityToggle = mymalloc(sizeof(int32_t) * NtotGals);
+    QuasarActivityToggle = malloc(sizeof(int32_t) * NtotGals);
     if (QuasarActivityToggle == NULL)
     {
       fprintf(stderr, "Cannot allocate memory for QuasarActivityToggle\n");
       return EXIT_FAILURE;
     }
 
-    QuasarActivitySubstep = mymalloc(sizeof(int32_t) * NtotGals);
+    QuasarActivitySubstep = malloc(sizeof(int32_t) * NtotGals);
     if (QuasarActivitySubstep == NULL)
     {
       fprintf(stderr, "Cannot allocate memory for QuasarActivitySubstep\n");
       return EXIT_FAILURE;
     }
 
-    QuasarSnapshot = mymalloc(sizeof(int32_t) * NtotGals);
+    QuasarSnapshot = malloc(sizeof(int32_t) * NtotGals);
     if (QuasarSnapshot == NULL)
     {
       fprintf(stderr, "Cannot allocate memory for QuasarSnapshot\n");
       return EXIT_FAILURE;
     }
 
-    TargetQuasarTime = mymalloc(sizeof(float) * NtotGals);
+    TargetQuasarTime = malloc(sizeof(float) * NtotGals);
     if (TargetQuasarTime == NULL)
     {
       fprintf(stderr, "Cannot allocate memory for TargetQuasarTime\n");
       return EXIT_FAILURE;
     }
 
-    QuasarBoostActiveTime = mymalloc(sizeof(float) * NtotGals);
+    QuasarBoostActiveTime = malloc(sizeof(float) * NtotGals);
     if (QuasarBoostActiveTime == NULL)
     {
       fprintf(stderr, "Cannot allocate memory for QuasarBoostActiveTime\n");
       return EXIT_FAILURE;
     }
 
-    QuasarFractionalPhoton = mymalloc(sizeof(float) * NtotGals);
+    QuasarFractionalPhoton = malloc(sizeof(float) * NtotGals);
     if (QuasarFractionalPhoton == NULL)
     {
       fprintf(stderr, "Cannot allocate memory for QuasarFractionalPhoton\n");
@@ -263,40 +264,50 @@ int32_t load_gals(char *fname)
       QuasarFractionalPhoton[i] = 0.0; 
     }
 
+    printf("Quasar Tracking stuff allocated.\n");
 
-  } // fesc if conidition.
+  } // fesc if condition.
 
   fclose(infile);
   free(GalsForTree);
 
   return EXIT_SUCCESS;
-
 }
 
 void free_gals(void)
 {
 
-    int i;
-    for (i = 0; i < NtotGals; ++i)
-    { 
-      free(GalGrid[i].History);
-      free(GalGrid[i].StellarMass);
-      free(GalGrid[i].SFR);
-      free(GalGrid[i].Z);
-      free(GalGrid[i].CentralGalaxyMass); 
-      free(GalGrid[i].MfiltGnedin);
-      free(GalGrid[i].MfiltSobacchi); 
-      free(GalGrid[i].EjectedFraction);
-      free(GalGrid[i].LenHistory);
-      free(GalGrid[i].OutflowRate); 
-      free(GalGrid[i].InfallRate); 
-      free(GalGrid[i].EjectedMass); 
-      free(GalGrid[i].QuasarActivity); 
-      free(GalGrid[i].DynamicalTime);
-      free(GalGrid[i].QuasarSubstep); 
-    }
+  int i;
+  for (i = 0; i < NtotGals; ++i)
+  {     
+    free(GalGrid[i].History);
+    free(GalGrid[i].StellarMass);
+    free(GalGrid[i].SFR);
+    free(GalGrid[i].Z);
+    free(GalGrid[i].CentralGalaxyMass); 
+    free(GalGrid[i].MfiltGnedin);
+    free(GalGrid[i].MfiltSobacchi); 
+    free(GalGrid[i].EjectedFraction);
+    free(GalGrid[i].LenHistory);
+    free(GalGrid[i].OutflowRate); 
+    free(GalGrid[i].InfallRate); 
+    free(GalGrid[i].EjectedMass); 
+    free(GalGrid[i].QuasarActivity); 
+    free(GalGrid[i].DynamicalTime);
+    free(GalGrid[i].QuasarSubstep); 
+  }
 
-    myfree(GalGrid);
+  if (fescPrescription == 4)
+  {
+    free(QuasarActivityToggle);
+    free(QuasarActivitySubstep);
+    free(QuasarSnapshot); 
+    free(TargetQuasarTime);
+    free(QuasarBoostActiveTime);
+    free(QuasarFractionalPhoton);
+  }
+
+  free(GalGrid);
 }
 
 void load_merged_gals(char *fname)

@@ -32,30 +32,43 @@ int32_t init(void)
   {
     ZZ[i] = 1 / AA[i] - 1; // Redshift array.
     Age[i] = time_to_present(ZZ[i]); // Age array.
-    printf("%.4f\n", Age[i]);
   }
-  exit(0);
-  if (fescPrescription == 2)
+
+  
+  if (fescPrescription == 0)
+  {
+    fprintf(stderr, "\n\nUsing a constant escape fraction of %.4f\n", fesc); 
+  }
+  else if (fescPrescription == 1)
+  {
+    fprintf(stderr, "\n\nDeprecated! Use a new one!\n");
+    return EXIT_FAILURE;
+  } 
+  else if (fescPrescription == 2)
   {
     fprintf(stderr,"\n\nUsing an fesc prescription that scales with halo mass.\n\n");
-    fprintf(stderr,"\nThis takes the form A*B^H + B with A = %.4e and B = %.4e\n", alpha, beta); 
   }
   else if (fescPrescription == 3)
   {
     fprintf(stderr, "\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\n");
-    fprintf(stderr, "\n This takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta); 
+    fprintf(stderr, "\nThis takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta); 
+  }
+  else if (fescPrescription == 4)
+  {
+    fprintf(stderr, "\n\nUsing an fesc prescription that depends upon quasar activity.\n");
+    fprintf(stderr, "\nFor a galaxy that had a quasar event within %d dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
   }
 
-  Grid = mymalloc(sizeof(struct GRID_STRUCT));
+  if (fescPrescription == 2) // If we are using the prescription that scales with halo mass, use the 4 fixed points to determine the constants.
+  {
+    determine_fesc_constants();
+  }
+
+  Grid = malloc(sizeof(struct GRID_STRUCT));
   if (Grid == NULL)
   {
     fprintf(stderr, "Could not allocate memory for the high level grid structure\n");
     return EXIT_FAILURE;
-  }
-
-  if (fescPrescription == 1) // If we are using the prescription that scales with halo mass, use the 4 fixed points to determine the constants.
-  {
-    determine_fesc_constants();
   }
 
   status = init_grid(Grid);
@@ -85,7 +98,7 @@ int32_t init_grid(struct GRID_STRUCT *grid)
   grid->GridSize = GridSize;
   grid->NumCellsTotal = CUBE(GridSize);
   
-  grid->NumGrids = MAXSNAPS; 
+  grid->NumGrids = NGrid; 
 
   grid->GridProperties = malloc(sizeof(struct GRID_PROPERTIES_STRUCT) * grid->NumGrids);
   if (grid->GridProperties == NULL)
@@ -272,6 +285,9 @@ void determine_fesc_constants(void)
 
   alpha = A;
   beta = B;
+
+  printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
+  printf("This gives a power law with constants A = %.4e, B = %.4e\n", alpha, beta);
 
 }
 /*
