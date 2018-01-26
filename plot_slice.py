@@ -316,12 +316,9 @@ def calculate_volume_frac(ionized_cells, Ncell):
 #	HII = 1 - len(ionized_cells[ionized_cells > 0.95])/float(Ncell**3)
     
     assert(len(np.argwhere(np.isnan(ionized_cells))) == 0)
-
-    ionized_cells = 1 - ionized_cells
-
-	#HII = np.log10(sum(ionized_cells) / float(Ncell**3))
-    HII = sum(ionized_cells) / float(Ncell**3)
-    print("There is {0:.4f} fraction of HII.".format(HII))
+           
+    HII = np.mean(ionized_cells) 
+    print("There is {0:.4e} fraction of HII.".format(HII))
 
     return HII
 
@@ -378,7 +375,7 @@ def calculate_total_nion(model_name, nion):
 #########
 
 
-def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, plot_time, labels, OutputDir, output_tag):
+def plot_global_frac(ZZ, mass_frac, volume_frac, plot_time, labels, OutputDir, output_tag):
 # This function will plot the global HI fraction as a function of redshift. The function accepts an array of arrays for the global HI fraction to allow plotting of multiple realizations on the same graph.
 
 ## Input ##
@@ -407,19 +404,21 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, MC_ZZ, plot_time, labels, Outpu
 
     for i in range(0, len(volume_frac)):
 
+        '''
         dt = (cosmo.lookback_time(MC_ZZ[i][0]).value - cosmo.lookback_time(MC_ZZ[i][-1]).value) * 1.0e3
         if (i != 1):
             tmp = r"%s, $\Delta t = %.2f \: \mathrm{Myr}$" %(labels[i], dt)
         else:
             tmp = r"%s, $\Delta t = %.2f \: \mathrm{Myr}$" %(labels[i], dt)
             #tmp = r"%s, $\Delta t = \: ?$" %(labels[i]) 
+        '''
         print(volume_frac[i])
         if plot_time == 1:
-            ax1.plot(t, volume_frac[i], color = colors[i], label = tmp, ls = linestyles[i], lw = 3)
+            ax1.plot(t, volume_frac[i], color = colors[i], ls = linestyles[i], lw = 3)
         else:
-            ax1.plot(ZZ, volume_frac[i], color = colors[i], label = tmp, ls = linestyles[i], lw = 3)
+            ax1.plot(ZZ, volume_frac[i], color = colors[i], ls = linestyles[i], lw = 3)
         #ax3.plot(t, np.subtract(volume_frac[i], volume_frac[0]), color = colors[i])	
-	
+	    
     if plot_time == 1: 
         ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
@@ -522,20 +521,44 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
             cosmo = AllVars.Set_Params_Mysim()
         elif simulation_norm[model_number] == 2:
             cosmo = AllVars.Set_Params_Tiamat()
+        elif simulation_norm[model_number] == 6:
+            cosmo = AllVars.Set_Params_Kali()
+        else:
+            raise ValueError("Set simulation norm option in plot_total_nion")
         for snapshot_idx in range(0, len(total_nion[model_number])):
             nion[model_number][snapshot_idx] = np.log10(total_nion[model_number][snapshot_idx] / ((AllVars.BoxSize / AllVars.Hubble_h)**3))	
 
-        print("z = {0:.4f}".format(ZZ)) 
-        print("nion = {0:.4f}".format(nion[model_number]))	
+        print(nion[model_number])
         if plot_time == 1:
             ax1.plot((AllVars.t_BigBang- cosmo.lookback_time(ZZ).value) * 1.0e3, nion[model_number], color = colors[model_number], label = labels[model_number], ls = linestyles[model_number], lw = 3)
         else:	
             ax1.plot(ZZ, nion[model_number], color = colors[model_number], label = labels[model_number], ls = linestyles[model_number], lw = 3)
 
+    bouwens_z = np.arange(6,16) # Redshift range for the observations.
+    bouwens_t = (AllVars.t_BigBang - cosmo.lookback_time(bouwens_z).value) * 1.0e3 # Corresponding values for what we will plot on the x-axis.
+
+    bouwens_1sigma_lower = [50.81, 50.73, 50.60, 50.41, 50.21, 50.00, 49.80, 49.60, 49.39, 49.18] # 68% Confidence Intervals for the ionizing emissitivity from Bouwens 2015.
+    bouwens_1sigma_upper = [51.04, 50.85, 50.71, 50.62, 50.56, 50.49, 50.43, 50.36, 50.29, 50.23]
+
+    bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI. 
+    bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
+
+    if plot_time == 1:
+        ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2)
+        ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+    else:
+        ax1.fill_between(bouwens_z, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2)
+        ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+
+
     if plot_time == 1:
         ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(time_tick_interval))
         ax1.set_xlim(time_xlim)
+
+        ax1.set_ylabel(r'$\sum f_\mathrm{esc}\dot{N}_\gamma \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$', fontsize = PlotScripts.global_fontsize)                 
+        ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+        ax1.set_ylim([48.5, 51.5])
 
         ax2 = ax1.twiny()
 
@@ -546,7 +569,7 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
         ax2.set_xlim(time_xlim)
         ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
         ax2.set_xticklabels(z_labels) # But label them as redshifts.
-
+        
     else:
         ax1.set_xlabel(r"$z$", size = label_size)
         ax1.set_ylabel(r"$\mathrm{log}_{10} \: \dot{N}_{\mathrm{HI}} \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$", fontsize = label_size)
@@ -563,31 +586,11 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
         for tick in ax3.yaxis.get_major_ticks():
         tick.label.set_fontsize(label_size - 5)
         '''
-        leg = ax1.legend(loc='lower right', numpoints=1,
-                         labelspacing=0.1)
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
-            t.set_fontsize(legend_size + 3)
-
-        bouwens_z = np.arange(6,16) # Redshift range for the observations.
-        bouwens_t = (AllVars.t_BigBang - cosmo.lookback_time(bouwens_z).value) * 1.0e3 # Corresponding values for what we will plot on the x-axis.
-
-        bouwens_1sigma_lower = [50.81, 50.73, 50.60, 50.41, 50.21, 50.00, 49.80, 49.60, 49.39, 49.18] # 68% Confidence Intervals for the ionizing emissitivity from Bouwens 2015.
-        bouwens_1sigma_upper = [51.04, 50.85, 50.71, 50.62, 50.56, 50.49, 50.43, 50.36, 50.29, 50.23]
-
-        bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI.
-        bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
-
-        if plot_time == 1:
-            ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-            ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-        else:
-            ax1.fill_between(bouwens_z, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-            ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
-
-#       ax1.text(0.075, 0.965, '(a)', horizontalalignment='center', verticalalignment='center', transform = ax.transAxes)
-        ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
-        ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = label_size - 2)
+    leg = ax1.legend(loc='lower right', numpoints=1,
+                     labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(legend_size + 3)
 
     plt.tight_layout()
 
@@ -2268,13 +2271,13 @@ if __name__ == '__main__':
 
     ## Kali ## 
 
-    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$"]
+    model_tags = [r"$f_\mathrm{esc} = 0.30$", r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}2$"]
 
     output_tags = [r"Kali"]
 #    output_tags = [r"Densfield_full_Snap20"]
 #    output_tags = [r"densgrid_snapshot020_full"]
  
-    number_models = 1
+    number_models = 4
 
     simulation_model1 = 6 # Which simulation are we using?
     # 0 : Mysim (Manodeep's original simulation run).
@@ -2289,19 +2292,23 @@ if __name__ == '__main__':
         
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
 
-    #filepath_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/anne_output/XHII_constantfesc"
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_photHI2"
    
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_fesc0.10_HaloPartCut100_nionHI"
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_fesc0.25_HaloPartCut32_nionHI"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_fesc0.30_HaloPartCut32_nionHI"
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_fesc0.35_HaloPartCut32_nionHI"
+    filepath_nion_model4 = "/lustre/projects/p004_swin/jseiler/kali/grids/Galaxies_kali_fiducial_grid256_densfieldgridding_MH_1.000e+08_0.70_1.000e+12_0.10_nionHI"
+    filepath_nion_model5 = "/lustre/projects/p004_swin/jseiler/kali/grids/Galaxies_kali_fiducial_grid256_densfieldgridding_MH_1.000e+08_0.70_1.000e+12_0.20_nionHI"
 
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
         
     #filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/18month/grid_files/photHI_constantfesc"
 
-    simulation_norm = [simulation_model1]
-    precision_array = [precision_model1]
-    GridSize_array = [GridSize_model1]
-#    ionized_cells_filepath_array = [filepath_model1]
-    nion_filepath_array = [filepath_nion_model1]
+    simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1]
+    precision_array = [precision_model1, precision_model1, precision_model1, precision_model1]
+    GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
+    ionized_cells_filepath_array = [filepath_model1]
+    nion_filepath_array = [filepath_nion_model2, filepath_nion_model3, filepath_nion_model4, filepath_nion_model5]
     density_filepath_array = [filepath_density_model1]
 #    photofield_filepath_array = [filepath_photofield_model1]
     
@@ -2315,7 +2322,7 @@ if __name__ == '__main__':
 
     #snaplist = np.arange(0, len(AllVars.SnapZ)) 
     #snaplist = np.arange(0, 70)
-    snaplist = np.arange(20, 99) 
+    snaplist = np.arange(27, 99) 
     #snaplist = np.arange(20, 50)
 
     ZZ = np.empty(len(snaplist))
@@ -2425,9 +2432,9 @@ if __name__ == '__main__':
             nion_path = "{0}_{1:03d}".format(nion_filepath_array[model_number], snaplist[snapshot_idx])
             nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, 1) * 1.0e50) 
 
-            density_path = "{0}snap{1:03d}.dens.dat".format(density_filepath_array[model_number], snaplist[snapshot_idx])  
+            #density_path = "{0}snap{1:03d}.dens.dat".format(density_filepath_array[model_number], snaplist[snapshot_idx])  
             #density_path = "{0}.dens.dat".format(density_filepath_array[model_number])  
-            density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))
+            #density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))
 
             #		photofield_path = photofield_filepath_array[model_number] + number_tag_anne
             #		photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
@@ -2435,13 +2442,13 @@ if __name__ == '__main__':
             #plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, output_tags[model_number] + number_tag_anne)
 
             #volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
-            #nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
+            nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
             #volume_frac_model = volume_frac_array[model_number][snapshot_idx]	
 
             if(do_hoshen == 1):
                 hoshen_array[model_number][snapshot_idx] = hoshen_kopelman(ionized_cells_array[model_number])	
         
-            plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snaplist[snapshot_idx]))
+            #plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snaplist[snapshot_idx]))
             #density_array[model_number] = density_array[model_number] + 1
             #plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snaplist[snapshot_idx]))
             #plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
@@ -2487,10 +2494,10 @@ if __name__ == '__main__':
          
         #print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
 
-    '''
+    
     for model_number in range(0, number_models):
         if (MC_ZZ[model_number][-1] < 5 or MC_ZZ[model_number][-1] > 1000):
-        MC_ZZ[model_number][-1] = ZZ[-1]
+            MC_ZZ[model_number][-1] = ZZ[-1]
 
 
     volume_frac_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64) 
@@ -2498,10 +2505,10 @@ if __name__ == '__main__':
 
     mass_frac_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
     comm.Reduce([mass_frac_array, MPI.DOUBLE], [mass_frac_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
-
+   
     nion_total_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
     comm.Reduce([nion_total_array, MPI.DOUBLE], [nion_total_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
-
+    '''
     photo_mean_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
     comm.Reduce([photo_mean_array, MPI.DOUBLE], [photo_mean_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
 
@@ -2519,23 +2526,23 @@ if __name__ == '__main__':
 
     MC_ZZ_final = np.zeros((number_models, len(fractions_HI)))
     comm.Reduce([MC_ZZ, MPI.DOUBLE], [MC_ZZ_final, MPI.DOUBLE], op = MPI.MAX, root = 0)
-
+    '''
     if (rank == 0):
-        plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, MC_ZZ_final, 1, model_tags, OutputDir, "GlobalFraction_time")
-        plot_total_nion(ZZ, nion_total_array_final, simulation_norm, 1, model_tags, OutputDir, "Nion_z2")
+        #plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, 1, model_tags, OutputDir, "GlobalFraction_time")
+        plot_total_nion(ZZ, nion_total_array_final, simulation_norm, 1, model_tags, OutputDir, "Nion_z_fesc")
         #plot_optical_depth(ZZ, volume_frac_array_final, model_tags, OutputDir, "OpticalDepth")
 
-        plot_nine_panel_slices(ZZ, ionized_cells_filepath_array, GridSize_array, simulation_norm, MC_Snaps_final, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+        #plot_nine_panel_slices(ZZ, ionized_cells_filepath_array, GridSize_array, simulation_norm, MC_Snaps_final, fractions_HI, model_tags, OutputDir, "3PanelSlice")
 
         if(plot_MC == 1):
-        plotting_MC_ZZ = MC_ZZ_final
-        plotting_HI = fractions_HI
+            plotting_MC_ZZ = MC_ZZ_final
+            plotting_HI = fractions_HI
         elif(plot_MC == 2):
-        plotting_MC_ZZ = MC_ZZ_snaps 
-        plotting_HI = volume_frac_array 
+            plotting_MC_ZZ = MC_ZZ_snaps 
+            plotting_HI = volume_frac_array 
 
 
-    plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
+    #plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
     #plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum2")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
@@ -2561,4 +2568,4 @@ if __name__ == '__main__':
 
 
     #plot_nine_panel_photHI(ZZ, [filepath_photofield_model1, filepath_photofield_model2, filepath_photofield_model3], [GridSize_model1, GridSize_model2, GridSize_model3], MC_Snaps, fractions_HI, model_tags, OutputDir, "9PanelSlices_PhotHI")
-    ''' 
+    
