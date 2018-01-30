@@ -61,6 +61,7 @@ int32_t update_grid_properties(int32_t filenr)
 
 //        printf("Grid2\n");
         Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] += pow(10, Ngamma_HI - 50.0)*fesc_local; // We keep these in units of 10^50 photons/s.
+//        printf("%.4e \t%.2f \t%.4e\n", Ngamma_HI, fesc_local, pow(10, Ngamma_HI - 50.0)*fesc_local);
         if (pow(10, Ngamma_HI - 50.0) * fesc_local < 0.0)
         {
           fprintf(stderr, "For galaxy %ld, the number of HI ionizing photons is %.4f\n", (long)gal_idx, pow(10, Ngamma_HI - 50.0) * fesc_local); 
@@ -287,22 +288,50 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
 float calculate_fesc(int p, int i, int filenr)
 {
 
-  float fesc_local, halomass, ejectedfraction;
+  float fesc_local, halomass, ejectedfraction, Mh;
 
   halomass = GalGrid[p].CentralGalaxyMass[i];
   ejectedfraction = GalGrid[p].EjectedFraction[i];
   
   if (fescPrescription == 0) 
+  {
     fesc_local = fesc;
+  }
   else if (fescPrescription == 1)
-    fesc_local = pow(10,1.0 - 0.2*log10(halomass * 1.0e10 / Hubble_h));
+  {
+    fesc_local = pow(10,1.0 - 0.2*log10(halomass * 1.0e10 / Hubble_h)); // Deprecated.
+  }
   else if (fescPrescription == 2)
+  {
     fesc_local = alpha * pow((halomass * 1.0e10 / Hubble_h), beta); 
+  }
   else if (fescPrescription == 3)	
+  {
     fesc_local = alpha * ejectedfraction + beta; 
+  }
   else if (fescPrescription == 4)
   {
-    fesc = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p]; 
+    fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p]; 
+  }
+  else if (fescPrescription == 5)
+  {
+    Mh = halomass * 1.0e10 / Hubble_h;
+    fesc_local = pow(fesc_low * (fesc_low/fesc_high),(-log10(Mh/MH_low)/log10(MH_high/MH_low)));
+    if (fesc_local > fesc_low)
+    {
+      fesc_local = fesc_low;
+    }
+
+  } 
+  else if (fescPrescription == 6)
+  {
+    Mh = halomass * 1.0e10 / Hubble_h;
+    fesc_local = 1. - pow((1.-fesc_low) * ((1.-fesc_low)/(1.-fesc_high)),(-log10(Mh/MH_low)/log10(MH_high/MH_low)));
+    if (fesc_local < fesc_low)
+    {
+      fesc_local = fesc_low;
+    }
+
   } 
 	
   if (fesc_local > 1.0)
@@ -383,29 +412,20 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
 
   float dt, substep_weight, time_into_snapshot, fraction_into_snapshot; 
 
-//  printf("Entering into quasar tracking\n");
   if (GalGrid[gal_idx].QuasarActivity[snapshot_idx] == 1) // A quasar has gone off during this snapshot, time to update properties.
   {
     ++QuasarActivityToggle[gal_idx]; // Note, we plus one because we want to be able to handle the case of a quasar going off when the galaxy still is being boosted. 
     QuasarSnapshot[gal_idx] = snapshot_idx; 
-    TargetQuasarTime[gal_idx] = GalGrid[gal_idx].DynamicalTime[snapshot_idx] * N_dyntime;
-    QuasarActivitySubstep[gal_idx] = GalGrid[gal_idx].QuasarSubstep[snapshot_idx];
-    QuasarBoostActiveTime[gal_idx] = 0.0;
-  }
-
-  // One edge case we need to consider is in regards to quasars that were turned off part way through the previous snapshot. // 
-  // In this case, we need to fully reset QuasarFractionalPhoton otherwise it will continue to be boosted for a fractional amount. //
-
-  if (QuasarFractionalPhoton[gal_idx] < 1.0 && QuasarSnapshot[gal_idx] != snapshot_idx) // Quasar that has fractional boosting due to turning off in the previous snapshot.
-  {
-    QuasarFractionalPhoton[gal_idx] = 0.0;
+    TargetQuasarTime[gal_idx] = GalGrid[gal_idx].DynamicalTime[snapshot_idx] * N_dyntime; // How long the quasar will be boosted for.
+    QuasarActivitySubstep[gal_idx] = GalGrid[gal_idx].QuasarSubstep[snapshot_idx]; // What substep did the quasar go off?
+    QuasarBoostActiveTime[gal_idx] = 0.0; // How long the quasar boosting has been active for.
   }
 
   if (QuasarActivityToggle[gal_idx] > 0) // This galaxy is having its escape fraction boosted, check to see if we need to turn it off.
   {
 
-    dt = (Age[snapshot_idx - 1] - Age[snapshot_idx]) * UnitTime_in_Megayears;
-    if (QuasarSnapshot[gal_idx] == snapshot_idx && QuasarActivityToggle[gal_idx] == 1) // If this quasar is due to a quasar going off during this snapshot and the galaxy is NOT under the influence from a previous quasar event then we need to weight the fraction of time the photons are boosted by the substep the quasar went off in. 
+    dt = (Age[snapshot_idx - 1] - Age[snapshot_idx]) * UnitTime_in_Megayears; // Time spanned by previous snapshot.
+    if (QuasarSnapshot[gal_idx] == snapshot_idx && QuasarActivityToggle[gal_idx] == 1) // If this boosting is due to a quasar going off during this snapshot and the galaxy is NOT under the influence from a previous quasar event then we need to weight the fraction of time the photons are boosted by the substep the quasar went off in. 
     {
       substep_weight = (STEPS - QuasarActivitySubstep[gal_idx]) / STEPS;
     }
@@ -417,11 +437,13 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
     QuasarBoostActiveTime[gal_idx] += dt * substep_weight;
     QuasarFractionalPhoton[gal_idx] = substep_weight; // If the quasar turned on part-way through the snapshot, we boost the photons for the remaining time during the snapshot.
 
-    if (QuasarBoostActiveTime[gal_idx] >= TargetQuasarTime[gal_idx]) // The boosted quasar time needs to be turned off.
+    if (QuasarBoostActiveTime[gal_idx] >= TargetQuasarTime[gal_idx]) // The boosted escape fraction needs to be turned off.
     {
       time_into_snapshot = TargetQuasarTime[gal_idx] - (QuasarBoostActiveTime[gal_idx] - dt); // How much extra time into the snapshot does the quasar need to go to reach its target?
       fraction_into_snapshot = time_into_snapshot / dt; // Then what fraction of the snapshot time will this be?
       QuasarFractionalPhoton[gal_idx] = fraction_into_snapshot; 
+
+      //fprintf(stderr, "TargetQuasarTime = %.4f \tQuasarBoostActiveTime = %.4f\tdt = %.4f\ttime_into_snapshot = %.4f\tQuasarFractionalPhoton = %.4f\n", TargetQuasarTime[gal_idx], QuasarBoostActiveTime[gal_idx], dt, time_into_snapshot, QuasarFractionalPhoton[gal_idx]);
 
       // Reset toggles and trackers. //
       --QuasarActivityToggle[gal_idx];
@@ -431,9 +453,20 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
       QuasarActivitySubstep[gal_idx] = -1;
     }
 
-  } 
-  
-//  printf("Leaving quasar tracking\n");
+  }
+  else 
+  // One edge case we need to consider is in regards to quasars that were turned off part way through the previous snapshot. // 
+  // In this case, we need to fully reset QuasarFractionalPhoton otherwise it will continue to be boosted for a fractional amount. //
+  { 
+    QuasarFractionalPhoton[gal_idx] = 0.0;
+  }
+ 
+  if (QuasarFractionalPhoton[gal_idx] > 1.0)
+  {
+    fprintf(stderr, "gal_idx = %ld\tQuasarFractionalPhoton[gal_idx] = %.4f\n", (long)gal_idx, QuasarFractionalPhoton[gal_idx]);
+    return EXIT_FAILURE;
+  }
+ 
   return EXIT_SUCCESS;
 
 }

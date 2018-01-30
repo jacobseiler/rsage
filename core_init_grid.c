@@ -47,6 +47,7 @@ int32_t init(void)
   else if (fescPrescription == 2)
   {
     fprintf(stderr,"\n\nUsing an fesc prescription that scales with halo mass.\n\n");
+    determine_fesc_constants();
   }
   else if (fescPrescription == 3)
   {
@@ -58,10 +59,20 @@ int32_t init(void)
     fprintf(stderr, "\n\nUsing an fesc prescription that depends upon quasar activity.\n");
     fprintf(stderr, "\nFor a galaxy that had a quasar event within %d dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
   }
-
-  if (fescPrescription == 2) // If we are using the prescription that scales with halo mass, use the 4 fixed points to determine the constants.
+  else if (fescPrescription == 5)
   {
-    determine_fesc_constants();
+    fprintf(stderr, "\n\nUsing Anne's functional form for an escape fraction that decreases for increasing halo mass.\n");
+    XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 5), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
+  }
+  else if (fescPrescription == 6)
+  {
+    fprintf(stderr, "\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
+    XASSERT(fesc_low < fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 6), we require fesc_low < fesc_high\n", fesc_low, fesc_high);
+  }
+  else
+  {
+    fprintf(stderr, "\n\nOnly escape fraction prescriptions 0 to 6 (exlucding 1) are permitted.\n");
+    return EXIT_FAILURE;
   }
 
   Grid = malloc(sizeof(struct GRID_STRUCT));
@@ -279,16 +290,20 @@ void determine_fesc_constants(void)
 
   double A, B, log_A;
 
-  log_A = (log10(fesc_high) - (log10(fesc_low)*log10(MH_high)/log10(MH_low))) * pow(1 - (log10(MH_high) / log10(MH_low)), -1);
-  B = (log10(fesc_low) - log_A) / log10(MH_low);
-  A = pow(10, log_A);
+  if (fescPrescription == 2)
+  {
+    log_A = (log10(fesc_high) - (log10(fesc_low)*log10(MH_high)/log10(MH_low))) * pow(1 - (log10(MH_high) / log10(MH_low)), -1);
+    B = (log10(fesc_low) - log_A) / log10(MH_low);
+    A = pow(10, log_A);
 
-  alpha = A;
-  beta = B;
+    alpha = A;
+    beta = B;
 
-  printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
-  printf("This gives a power law with constants A = %.4e, B = %.4e\n", alpha, beta);
+    printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
+    printf("This gives a power law with constants A = %.4e, B = %.4e\n", alpha, beta);
+  }
 
+  
 }
 /*
 void estimate_grid_memory(void)

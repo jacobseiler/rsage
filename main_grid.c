@@ -159,7 +159,7 @@ int main(int argc, char **argv)
   }
 #else 
   count_grid_properties(Grid); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
-  //status = save_grid(Grid); // Saves grid.
+  status = save_grid(Grid); // Saves grid.
 #endif
   if (status == EXIT_FAILURE)
   {

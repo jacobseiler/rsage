@@ -48,8 +48,14 @@ int32_t save_grid(struct GRID_STRUCT *save_grid)
     else if (fescPrescription == 4)
     {
       snprintf(name_HI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HeI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HeII_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
+    }
+    else if (fescPrescription == 5 || fescPrescription == 6)
+    {
+      snprintf(name_HI, MAXLEN, "%s/%s_Anne_MH_%.3e_%.2f_%.3e_%.2f_nionHI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, snapshot_idx); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_Anne_MH_%.3e_%.2f_%.3e_%.2f_nionHeI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, snapshot_idx); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_Anne_MH_%.3e_%.2f_%.3e_%.2f_nionHeII_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, snapshot_idx);       
     }
 
     file_HI = fopen(name_HI, "w"); 
@@ -61,6 +67,7 @@ int32_t save_grid(struct GRID_STRUCT *save_grid)
     fwrite(save_grid->GridProperties[grid_num_idx].Nion_HI, sizeof(*(save_grid->GridProperties[grid_num_idx].Nion_HI)) * save_grid->NumCellsTotal, 1, file_HI);
     fclose(file_HI);
 
+    /*
     file_HeI = fopen(name_HeI, "w");
     if (file_HeI == NULL)
     {
@@ -78,7 +85,7 @@ int32_t save_grid(struct GRID_STRUCT *save_grid)
     }
     fwrite(save_grid->GridProperties[grid_num_idx].Nion_HeII, sizeof(*(save_grid->GridProperties[grid_num_idx].Nion_HeII)) * save_grid->NumCellsTotal, 1, file_HeII);
     fclose(file_HeII);
-    
+    */   
 
   } // Snapshot loop.
 
