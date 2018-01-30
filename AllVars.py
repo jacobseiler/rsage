@@ -180,11 +180,11 @@ def Set_Constants():
     global km_to_m
     global density_baryons  
  
-    proton_mass = 1.6726219e-24 # Grams.
-    solar_mass = 1.98855e33 # Grams.
-    sec_per_year = 3.155e7
-    sec_per_megayear = 3.155e13
-    ionized_mass_H = 0.53 # Molecular mass of ionized H.
+    Proton_Mass = 1.6726219e-24 # Grams.
+    Solar_Mass = 1.98855e33 # Grams.
+    Ssec_Per_Year = 3.155e7
+    Sec_Per_Megayear = 3.155e13
+    Ionized_Mass_H = 0.53 # Molecular mass of ionized H.
     LymanAlpha_energy = 10.2 # Energy of Lyman Alpha photon in eV.
     eV_to_erg = 1.6202e-12 # Conversion from eV to erg. 
     M_bol_Sun = 4.74 # Bolometric magnitude of the sun.
@@ -194,7 +194,7 @@ def Set_Constants():
     c_in_ms = 3.0e8 # Speed of light in m s^-1 
     pc_to_m = 3.086e16 # Parsec to metres. 
     m_to_cm = 1.0e2 # Meters to centimetres.
-    sigmat = 6.652e-29 # Thomson cross-section for an electron in m^2.
+    Sigmat = 6.652e-29 # Thomson cross-section for an electron in m^2.
     H0 = 3.24078e-18 # In h/sec.
     G = 6.674e-11 # Gravitational constant in m^3 kg^-1 s^-2.
     mpc_to_m = 3.0857e22 # How many metres in a Mpc 
@@ -526,7 +526,7 @@ def Set_Params_Kali():
     Hubble_h = 0.681
     Omega_m = 0.302
     Omega_L = 0.698
-    Omega_b = 0.0
+    Omega_b = 0.0452
     BoxSize = 108.96 # Mpc/h
     Volume = BoxSize**3
     BaryonFrac = 0.17

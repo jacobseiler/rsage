@@ -60,7 +60,7 @@ def Set_Params_Plot():
 
 	colors = ['r', 'b', 'g', 'm', 'c', 'k']
 	markers = ['x', 'o', '^', 's', 'D']
-	linestyles = ['-', '--', '-.', ':']
+	linestyles = ['-', '--', '-.', ':', '-']
 	z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
 	time_xlim = [290, 1000]
 	time_tickinterval = 25
