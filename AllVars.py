@@ -761,3 +761,79 @@ def ensure_dir(file_path):
 def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
     return array[idx], idx
+
+
+## Following two functions taken from Anne's grid-model Analysis code.
+
+def modes_to_pspec(modes, boxsize):
+    """
+    From a given set of fourier modes, compute the (binned) power spectrum
+    with errors.
+
+    modes   - (n,n,n) array (from ifftn of overdensity values)
+    boxsize - size of box (e.g. in Mpc/h)
+
+    returns
+
+    kmid    - k values of power spec
+    pspec   - estimate of power spec at k
+    perr    - error on estimate
+    """
+
+    ngrid = modes.shape[0]
+    assert(modes.shape==(ngrid, ngrid,ngrid))
+    kmin, kmax, kbins, kvol = powerspec_bins(ngrid, boxsize)
+
+    wts = np.square(modes.ravel().real) + np.square(modes.ravel().imag)
+
+    v1 = np.bincount(kbins, weights=wts)
+    powerspec = v1 * (1.0 / kvol)
+
+    # work out error on power spectrum
+    v2 = np.bincount(kbins, weights=np.square(wts))
+    v0 = np.bincount(kbins)
+    p_err = np.sqrt((v2*v0 - v1*v1)/(v0-1)) / kvol
+
+    kmid_bins = 0.5 * (kmin+kmax)
+
+    return kmid_bins, powerspec, p_err
+
+def powerspec_bins(ngrid, boxsize):
+    """
+    find power spectrum bins to for a cubic grid of size ngrid^3 of fourier modes.
+    Assumes the FFT convention of 0, ..., n/2, -n/2+1, ..., -1
+    ngrid   - num cells on side of cube
+    boxsize - size of the box in real space
+
+    returns kmin, kmax, kbins, kvol
+    kmin  - the lower bound of the bin
+    kmax  - the upper bound of the bin
+    kbins - index (0, ..., m) of the bin of each cell
+    kvol  - the volume in k space (number of cells of that type divided by k vol of each cell)
+    """
+
+    mid = int(ngrid/2)
+    # find the magnitude of the indices (i.e. ix**2+iy**2+iz**2 in the FFT convention)
+    n1 = np.arange(ngrid)
+    n1[1+mid:] -= ngrid
+    n2 = np.square(n1)
+    nmag = np.sqrt(np.add.outer(np.add.outer(n2, n2), n2)).ravel()
+
+    nbins = (-1,) + tuple(np.arange(mid-1)+1.5) + (ngrid*2,)
+    #print 'nbins', nbins
+    kbins = np.digitize(nmag, nbins) - 1
+    assert(kbins.min()==0)
+    assert(kbins.max()==len(nbins)-2)
+
+    # multiplier to go to k-space
+    kmult = 2.0 * np.pi / boxsize
+
+    kmin = (np.array(nbins) * kmult)[:-1]
+    kmin[0] = 0
+
+    kmax = (np.array(nbins) * kmult)[1:]
+    kmax[-1] = mid * kmult * np.sqrt(3.0)
+
+    kvol = np.bincount(kbins) * (kmult * kmult * kmult)
+    return kmin, kmax, kbins, kvol
+

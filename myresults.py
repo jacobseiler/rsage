@@ -754,6 +754,7 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, 
        
         for model_number in range(0, len(SnapList)):
 
+            print("There were a total of {0} galaxies over the entire redshift range.".format(sum(N_halo_fesc[model_number])))
             ## Normalization for each model. ##
             if (simulation_norm[model_number] == 0):
                 AllVars.Set_Params_Mysim()
@@ -844,9 +845,9 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, 
 
         ## Halo mass plots ##
 
-        ax3.axhline(0.45, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')
+        ax3.axhline(0.35, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')
         ax3.axvline(np.log10(32.0*AllVars.PartMass / AllVars.Hubble_h), color = 'k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')   
-        ax3.text(10.7, 0.50, r"$f_\mathrm{esc} = 0.45$", color = 'k', size = PlotScripts.global_fontsize)
+        ax3.text(10.7, 0.26, r"$f_\mathrm{esc} = 0.35$", color = 'k', size = PlotScripts.global_fontsize)
  
         ax3.set_xlabel(r'$\log_{10}\ M_\mathrm{vir}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
         ax3.set_ylabel(r'$f_\mathrm{esc}$', size = PlotScripts.global_fontsize)
@@ -2274,7 +2275,7 @@ def determine_MH_fesc_constants(low_MH, low_fesc, high_MH, high_fesc):
 ### Here starts the main body of the code. ###
 
 np.seterr(divide='ignore')
-number_models = 2
+number_models = 1
 
 galaxies_model1 = '/lustre/projects/p004_swin/jseiler/january/galaxies/tiamat_IRA_reion_quasarsubstep_10step_z1.827'
 galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_grid256_z5.782'
@@ -2286,36 +2287,36 @@ merged_galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_
 merged_galaxies_model7 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_delayedSN_grid256_densfieldgridding_MergedGalaxies'
 
 #galaxies_filepath_array = [galaxies_model6, galaxies_model6, galaxies_model6]
-galaxies_filepath_array = [galaxies_model7, galaxies_model7]
+galaxies_filepath_array = [galaxies_model7]
 #galaxies_filepath_array = [galaxies_model1, galaxies_model2, galaxies_model3, galaxies_model4]
 #galaxies_filepath_array = [galaxies_model3, galaxies_model4]
 #galaxies_filepath_array = [galaxies_model8, galaxies_model6, galaxies_model7]
 
 #merged_galaxies_filepath_array = [merged_galaxies_model6, merged_galaxies_model6, merged_galaxies_model6]
-merged_galaxies_filepath_array = [merged_galaxies_model7, merged_galaxies_model7]
+merged_galaxies_filepath_array = [merged_galaxies_model7]
 #merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2, merged_galaxies_model3, merged_galaxies_model4]
 #merged_galaxies_filepath_array = [merged_galaxies_model3, merged_galaxies_model4]
 #merged_galaxies_filepath_array = [merged_galaxies_model8, merged_galaxies_model6, merged_galaxies_model7]
 
 #number_substeps = [10, 10, 10]
-number_substeps = [10, 10]
+number_substeps = [10]
 #number_snapshots = [92, 164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 #number_snapshots = [164, 164, 164, 164] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 #number_snapshots = [99, 99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
-number_snapshots = [99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
+number_snapshots = [99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
 # Tiamat extended has 164 snapshots.
 #FirstFile = [0, 0, 0, 0] # The first file number THAT WE ARE PLOTTING.
 #FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
-FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
+FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
 #FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
 #LastFile = [26, 26, 26, 26] # The last file number THAT WE ARE PLOTTING.
-LastFile = [63, 63] # The last file number THAT WE ARE PLOTTING.
+LastFile = [63] # The last file number THAT WE ARE PLOTTING.
 #LastFile = [5, 1] # The last file number THAT WE ARE PLOTTING.
 #NumFile = [27, 27, 27, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
-NumFile = [64, 64] # The number of files for this simulation (plotting a subset of these files is allowed). 
+NumFile = [64] # The number of files for this simulation (plotting a subset of these files is allowed). 
 #NumFile = [64, 27] # The number of files for this simulation (plotting a subset of these files is allowed). 
 
-same_files = [1, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
+same_files = [0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
 # This array will tell us if we should keep the files for the next model or otherwise throw them away and keep them.
 # The files will be kept until same_files[current_model_number] = 0.
 # For example if we had 5 models we were plotting and model 1, 2, 3 shared the same files and models 4, 5 shared different files,
@@ -2325,7 +2326,9 @@ done_model = np.zeros((number_models)) # We use this to keep track of if we have
 #model_tags = [r"$f_\mathrm{esc} = 0.2$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar} \: (\mathrm{Boost} = 1.0, N_\mathrm{Dynamical} = 0.1)$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar} \: (\mathrm{Boost} = 1.0, N_\mathrm{Dynamical} = 1)$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar} \: (\mathrm{Boost} = 1.0, N_\mathrm{Dynamical} = 3)$"]
 #model_tags = [r"$f_\mathrm{esc} = 0.3$", r"$f_\mathrm{esc} = 0.8 f_\mathrm{ej} + 0.0$"] 
 
-model_tags = [r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
+#model_tags = [r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
+#model_tags = [r"$f_\mathrm{esc} \: \propto \mathrm{SN \: Activity}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
+model_tags = [r"jorj"]    
 #model_tags = [r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$df_\mathrm{esc} / dM_\mathrm{H} > 0$"]
 #model_tags = [r"MHneg", r"MHpos"] 
 #model_tags = [r"Ejected", r"Quasar"]
@@ -2337,7 +2340,7 @@ model_tags = [r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$f_\mathrm{esc}
 #model_tags = [r"$\mathrm{ReionOn}$", r"$\mathrm{NoReion}$"]
 #model_tags = [r"Pip Delayed", r"Tiamat Delayed"]
 
-save_tags = ["ejected_monday_large", "MHpos_anne_large"]
+save_tags = ["MHpos_anne_large"]
 #save_tags = ["fesc_quasar_friday", "fMH_anne_1e8_0.7_1e12_0.1", "fMH_anne_1e8_0.1_1e12_0.7"]
 #save_tags = ["fesc0.35", "fesc0.4fej_0.2", "Quasar"]
 #save_tags = ["quasar_IRA", "quasar_Delayed"]
@@ -2355,7 +2358,7 @@ source_efficiency = [1, 1, 1, 1] # Used for the halo based prescription for ioni
 
 fesc_lyman_alpha = [0.3, 0.3, 0.3, 0.3] # Escape fraction of Lyman Alpha photons.
 #fesc_prescription = [0, 3, 3, 3] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity.
-fesc_prescription = [2, 3] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity, 4 is Anne's Functional form that scales inversely with halo mass, 5 is Anne's function form that scales with halo mass.
+fesc_prescription = [0] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity, 4 is Anne's Functional form that scales inversely with halo mass, 5 is Anne's function form that scales with halo mass.
 #fesc_prescription = [2, 3] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity, 4 is Anne's Functional form that scales with halo mass, 5 is Anne's function form that scales inversely with halo mass.
 #fesc_prescription = [0, 0] # 0 is constant, 1 is scaling with halo mass, 2 is scaling with ejected fraction, 3 is a boosted escape fraction depending upon quasar activity.
 
@@ -2373,14 +2376,15 @@ C, D = determine_MH_fesc_constants(pow(10,9.5), 0.05, pow(10,11.5), 0.95)
 #fesc_normalization = [[pow(10,9.8),0.99,pow(10,11.5),0.05], [pow(10,9.8),1e-4,pow(10,11.5),0.95]]
 #fesc_normalization = [[0.2, 1.0], [1e8, 0.7, 1e12, 0.1], [1e8, 0.1, 1e12, 0.7]]
 #fesc_normalization = [0.25, [A, B], [C, D]]
-fesc_normalization = [[1.0, 0.0], [0.2, 1.0]]
+#fesc_normalization = [[1.0, 0.0], [0.2, 1.0]]
+fesc_normalization = [0.1]
 #fesc_normalization = [[1.0, 0.0], [pow(10,9.8),0.05,pow(10,11.5),0.95]]
 #fesc_normalization = [0.35, [0.4, 0.2], [0.2, 1.0]]
 #fesc_normalization = [0.35, 0.35] 
 #fesc_normalization = [[0.4, 0.2], [0.4, 0.2]]
 #fesc_normalization = [[0.2, 1.0], [0.2, 1.0]]
 #fesc_normalization = [0.2, [0.2, 1.0], [0.2, 1.0], [0.2, 1.0]]
-N_dynamicaltime = [1, 5] # For escape fraction prescription == 3, this defines how many dynamical times we wait until we turn off the boosted escape fraction.
+N_dynamicaltime = [1] # For escape fraction prescription == 3, this defines how many dynamical times we wait until we turn off the boosted escape fraction.
 
 
 #N_dynamicaltime = [0, 0.1, 1, 3] # For escape fraction prescription == 3, this defines how many dynamical times we wait until we turn off the boosted escape fraction.
@@ -2392,13 +2396,13 @@ N_dynamicaltime = [1, 5] # For escape fraction prescription == 3, this defines h
 #SnapList = [np.arange(0, 101), np.arange(0, 101), np.arange(0, 101), np.arange(0, 101)]
 # z = [6, 7, 8] are snapshots [78, 64, 51]
 #PlotSnapList = [[64, 76, 93], [64, 76, 93], [64, 76, 93]]
-PlotSnapList = [[64, 76, 93], [64, 76, 93]]
+PlotSnapList = [[64, 76, 93]]
 #SnapList = [np.arange(0, 99), np.arange(0, 99), np.arange(0, 99)]
-SnapList = [np.arange(0, 99), np.arange(0, 99)]
+SnapList = [np.arange(0, 99)]
 #SnapList = [[64, 76, 93], [64, 76, 93]]
 
 
-simulation_norm = [5, 5] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish), 4 for Britton's Sim, 5 for Kali.
+simulation_norm = [5] # 0 for MySim, 1 for Mini-Millennium, 2 for Tiamat (up to z =5), 3 for extended Tiamat (down to z = 1.6ish), 4 for Britton's Sim, 5 for Kali.
 
 stellar_mass_halolen_lower = [32, 95, 95, 95] # These limits are for the number of particles in a halo.  
 stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
@@ -2839,11 +2843,12 @@ for model_number in range(number_models):
                 keep_files =  same_files[current_model_number] # If we want to keep the files and bin the next model, this will do it.
                 current_model_number += 1 # Update the inner loop model number.
 
+print("The total number of galaxies is {0}".format(sum(N_z[0])))
 #StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, "Kali_IRA_Delayed") ## PARALLEL COMPATIBLE
 #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
 #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 
 #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_Quasar_IRA_Delayed")
-plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_Kali_Delayed_ejected_quasarNdym5_poster_plot", 0, save_tags)
-plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_Kali_quasar_Ndym5") ## PARALELL COMPATIBLE
+#plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_Kali_Delayed_ejected_quasarNdym5_poster_plot_FINAL", 0, save_tags)
+#plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_Kali_quasar_Ndym2") ## PARALELL COMPATIBLE
 #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 

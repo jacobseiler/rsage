@@ -1983,7 +1983,7 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
             ax.text(-0.65,0.5, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize) 
 
         tmp = r"$z = %.2f$" %(redshift)
-        txt = ax.text(0.6,0.9, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize, color = 'k')
+        txt = ax.text(0.55,0.9, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize, color = 'k')
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
         plt.draw()
         frame1 = plt.gca()
@@ -2320,80 +2320,6 @@ def plot_hoshen(order_parameter, HI_frac_model, model_tags, OutputDir, output_ta
 ########## Functions for calculations ##########
 ################################################
 
-def modes_to_pspec(modes, boxsize):
-    """
-    From a given set of fourier modes, compute the (binned) power spectrum
-    with errors.
-
-    modes   - (n,n,n) array (from ifftn of overdensity values)
-    boxsize - size of box (e.g. in Mpc/h)
-
-    returns
-
-    kmid    - k values of power spec
-    pspec   - estimate of power spec at k
-    perr    - error on estimate
-    """
-
-    ngrid = modes.shape[0]
-    assert(modes.shape==(ngrid, ngrid,ngrid))
-    kmin, kmax, kbins, kvol = powerspec_bins(ngrid, boxsize)
-
-    wts = square(modes.ravel().real) + square(modes.ravel().imag)
-
-    v1 = bincount(kbins, weights=wts)
-    powerspec = v1 * (1.0 / kvol)
-
-    # work out error on power spectrum
-    v2 = bincount(kbins, weights=square(wts))
-    v0 = bincount(kbins)
-    p_err = sqrt((v2*v0 - v1*v1)/(v0-1)) / kvol
-
-    kmid_bins = 0.5 * (kmin+kmax)
-
-    return kmid_bins, powerspec, p_err
-
-def powerspec_bins(ngrid, boxsize):
-    """
-    find power spectrum bins to for a cubic grid of size ngrid^3 of fourier modes.
-    Assumes the FFT convention of 0, ..., n/2, -n/2+1, ..., -1
-    ngrid   - num cells on side of cube
-    boxsize - size of the box in real space
-
-    returns kmin, kmax, kbins, kvol
-    kmin  - the lower bound of the bin
-    kmax  - the upper bound of the bin
-    kbins - index (0, ..., m) of the bin of each cell
-    kvol  - the volume in k space (number of cells of that type divided by k vol of each cell)
-    """
-
-    mid = int(ngrid/2)
-    # find the magnitude of the indices (i.e. ix**2+iy**2+iz**2 in the FFT convention)
-    n1 = arange(ngrid)
-    n1[1+mid:] -= ngrid
-    n2 = square(n1)
-    nmag = sqrt(add.outer(add.outer(n2, n2), n2)).ravel()
-
-    nbins = (-1,) + tuple(arange(mid-1)+1.5) + (ngrid*2,)
-    #print 'nbins', nbins
-    kbins = digitize(nmag, nbins) - 1
-    assert(kbins.min()==0)
-    assert(kbins.max()==len(nbins)-2)
-
-    # multiplier to go to k-space
-    kmult = 2.0 * pi / boxsize
-
-    kmin = (array(nbins) * kmult)[:-1]
-    kmin[0] = 0
-
-    kmax = (array(nbins) * kmult)[1:]
-    kmax[-1] = mid * kmult * sqrt(3.0)
-
-    kvol = bincount(kbins) * (kmult * kmult * kmult)
-    return kmin, kmax, kbins, kvol
-
-
-
 def calculate_power_spectrum(ionized_cells, density, GridSize, mode):
 
     if (mode == 0): # Calculating 21cm power spectrum
@@ -2410,7 +2336,7 @@ def calculate_power_spectrum(ionized_cells, density, GridSize, mode):
         print("Currently only support calculation of the 21cm power spectrum (mode = 0) and XHII power spectrum (mode = 1).")
         exit()   
  
-    kmid_bins, powerspec, p_err = modes_to_pspec(modes, boxsize=AllVars.BoxSize/AllVars.Hubble_h)
+    kmid_bins, powerspec, p_err = AllVars.modes_to_pspec(modes, boxsize=AllVars.BoxSize/AllVars.Hubble_h)
     return (kmid_bins, powerspec, p_err)
     
     '''	
@@ -2449,7 +2375,7 @@ if __name__ == '__main__':
     #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
     #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$"]
     #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$df_\mathrm{esc} / dM_\mathrm{H} > 0$"]
-    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
+    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{SN \: Activity}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
     #model_tags = [r"Ejectd", r"Anne MHPos", r"Anne MHNeg"]
     #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
     #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$",r"$\mathrm{Quasar}$", r"$f_\mathrm{esc} = 0.4f_\mathrm{ej} + 0.2$"]
@@ -2471,7 +2397,7 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'Kali_ejected_quasar'
+    model = 'Kali_correctbox_quick'
 
     GridSize_model1 = 256
         
@@ -2494,7 +2420,13 @@ if __name__ == '__main__':
     ## Anne
     filepath_model12 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescMHpos_anne_sphere"
     filepath_model13 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_ejected_new_sphere"
-    
+    filepath_model14 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescquasar5DynTime_sphere" 
+
+    ## Correct Box
+    filepath_model15 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescquasar5DynTime_sphere_correctbox" 
+    filepath_model16 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_sphere_fesc0.35_correctbox" 
+    filepath_model17 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_ejected_new_sphere_correctbox" 
+
 
     ## IRA        
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_fesc0.35_HaloPartCut32_nionHI"    
@@ -2515,6 +2447,9 @@ if __name__ == '__main__':
     filepath_nion_model12 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_Anne_MH_3.960e+09_0.00_3.160e+11_0.95_nionHI"
     filepath_nion_model13 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_Ejected_alpha1.000beta0.000_nionHI"
 
+
+    filepath_nion_model14 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_quasar_0.20_1.00_5_nion_HI"
+
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
         
     filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/photHI_photHI1_fesc0.35"
@@ -2524,11 +2459,11 @@ if __name__ == '__main__':
     simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1, simulation_model1]
     precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
-    ionized_cells_filepath_array = [filepath_model6, filepath_model13, filepath_model9]
+    ionized_cells_filepath_array = [filepath_model16, filepath_model17, filepath_model15]
     #ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3, filepath_model4, filepath_model5]
     #ionized_cells_filepath_array = [filepath_model6, filepath_model7, filepath_model8, filepath_model9, filepath_model10]
     #nion_filepath_array = [filepath_nion_model6, filepath_nion_model7, filepath_nion_model8, filepath_nion_model9, filepath_nion_model10] 
-    nion_filepath_array = [filepath_nion_model6, filepath_nion_model13, filepath_nion_model9]
+    nion_filepath_array = [filepath_nion_model6, filepath_nion_model13, filepath_nion_model14]
     #nion_filepath_array = [filepath_nion_model1, filepath_nion_model3, filepath_nion_model4, filepath_nion_model5] 
     #nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3, filepath_nion_model4, filepath_nion_model5] 
     density_filepath_array = [filepath_density_model1, filepath_density_model1, filepath_density_model1]
@@ -2544,7 +2479,7 @@ if __name__ == '__main__':
 
     #snaplist = np.arange(0, len(AllVars.SnapZ)) 
     #snaplist = np.arange(0, 70)
-    snaplist = np.arange(27, 94) 
+    snaplist = np.arange(27, 68) 
     #snaplist = np.arange(20, 50)
 
     ZZ = np.empty(len(snaplist))
@@ -2590,8 +2525,8 @@ if __name__ == '__main__':
     #fractions_HI = np.arange(0.75, 0.25, -0.05) 
     #delta_HI = np.full(len(fractions_HI), 0.025)
   
-    fractions_HI = [0.75, 0.25]
-    delta_HI = [0.03, 0.03]
+    fractions_HI = [0.75, 0.50, 0.25]
+    delta_HI = [0.03, 0.03, 0.03]
 
     HI_fraction_high = np.add(fractions_HI, delta_HI) 
     HI_fraction_low= np.subtract(fractions_HI, delta_HI) 
@@ -2605,7 +2540,7 @@ if __name__ == '__main__':
     calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
     MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
  
-    calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calculate it. 
+    calculate_power = 0 # 0 to NOT calculate the power spectra, 1 to calculate it. 
 
     do_hoshen = 0
     
@@ -2770,7 +2705,7 @@ if __name__ == '__main__':
         #plot_total_nion(ZZ, nion_total_array_final, simulation_norm, 1, model_tags, OutputDir, "Nion_z")
         #plot_optical_depth(ZZ, volume_frac_array_final, model_tags, OutputDir, "OpticalDepth")
 
-        #plot_nine_panel_slices(ZZ, ionized_cells_filepath_array, GridSize_array, simulation_norm, MC_Snaps_final, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+        plot_nine_panel_slices(ZZ, ionized_cells_filepath_array, GridSize_array, simulation_norm, MC_Snaps_final, fractions_HI, model_tags, OutputDir, "3PanelSlice_FINAL")
 
         if(plot_MC == 1):
             plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ_final))
@@ -2787,7 +2722,7 @@ if __name__ == '__main__':
             plotting_HI = volume_frac_array 
 
     #plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
-    plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
+    #plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne_FINAL")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)
