@@ -17,6 +17,7 @@ void init(void)
 {
   int i;
 
+  count_gal = 0;
   random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
   gsl_rng_set(random_generator, 42);	 // start-up seed 
 

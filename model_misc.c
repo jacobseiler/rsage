@@ -14,7 +14,8 @@
 void init_galaxy(int p, int halonr)
 {
   int j, step;
-
+  
+  ++count_gal;
 	assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
 
 //  printf("GALAXY INITIALIZED p = %d Halonr = %d\n", p, halonr);

@@ -174,3 +174,4 @@ int inside_box;
 
 int count_Mvir;
 int count_Len;
+long count_gal;

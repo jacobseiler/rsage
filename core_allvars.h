@@ -430,4 +430,6 @@ extern int inside_box;
 
 extern int count_Mvir;
 extern int count_Len;
+
+extern long count_gal;
 #endif  // #ifndef ALLVARS_H

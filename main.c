@@ -221,6 +221,8 @@ int main(int argc, char **argv)
   {
     status = free_grid();
   }
+  printf("There were %ld total galaxies\n", count_gal);
   return 0;
+  
 }
 
