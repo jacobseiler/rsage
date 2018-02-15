@@ -327,7 +327,6 @@ extern int ListOutputGrid[ABSOLUTEMAXSNAPS];
 extern int Verbose;
 
 // Input parameters for the photon prescription // 
-extern double SourceEfficiency;
 extern int PhotonPrescription;
 extern int fescPrescription;
 extern double fesc; 

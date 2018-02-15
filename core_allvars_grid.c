@@ -110,7 +110,6 @@ int ListOutputSnaps[ABSOLUTEMAXSNAPS];
 int ListOutputGrid[ABSOLUTEMAXSNAPS];
 int Snaplistlen;
 
-double SourceEfficiency;
 int PhotonPrescription;
 int Verbose;
 int fescPrescription;

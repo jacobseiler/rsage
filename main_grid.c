@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 
       if (fescPrescription != 1)
       {
-        status = save_fesc_properties(filenr, i);
+        //status = save_fesc_properties(filenr, i);
         if (status == EXIT_FAILURE)
         {
           exit(EXIT_FAILURE);

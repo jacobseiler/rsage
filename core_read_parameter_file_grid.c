@@ -106,10 +106,6 @@ void read_parameter_file(char *fname)
   addr[nt] = &GridSize;
   id[nt++] = INT;
 
-  strcpy(tag[nt], "SourceEfficiency");
-  addr[nt] = &SourceEfficiency;
-  id[nt++] = DOUBLE;
-
   strcpy(tag[nt], "FeedbackReheatingEpsilon");
   addr[nt] = &QuasarModeEfficiency;
 

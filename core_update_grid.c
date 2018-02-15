@@ -89,8 +89,6 @@ int32_t update_grid_properties(int32_t filenr)
         {
           Grid->GridProperties[grid_num_idx].NgammaGalaxy[gal_idx] = pow(10, Ngamma_HI - 50.0);
           Grid->GridProperties[grid_num_idx].NgammafescGalaxy[gal_idx] = pow(10, Ngamma_HI - 50.0)*fesc_local; 
-          if (grid_num_idx == 0)
-            printf("%.4e\n", Grid->GridProperties[grid_num_idx].NgammaGalaxy[gal_idx]);
         }
         
       }
