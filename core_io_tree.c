@@ -245,6 +245,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->QuasarActivity);
   free(g->DynamicalTime);
   free(g->QuasarSubstep);
+  free(g->GridColdGas);
 
   g->IsMalloced = 0;
 }
@@ -360,6 +361,13 @@ void malloc_grid_arrays(struct GALAXY *g)
   if (g->QuasarSubstep == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate QuasarSubstep.\n", sizeof(*(g->QuasarSubstep)) * MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  g->GridColdGas= malloc(sizeof(*(g->GridColdGas)) * (MAXSNAPS));
+  if (g->GridColdGas == NULL)
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridColdGas.\n", sizeof(*(g->GridColdGas)) * MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 

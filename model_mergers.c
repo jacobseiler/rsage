@@ -69,8 +69,8 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   {
     grow_black_hole(merger_centralgal, mass_ratio, step);
   }
-  // starburst recipe similar to Somerville et al. 2001
 
+  // starburst recipe similar to Somerville et al. 2001
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step, tree, ngal);
 
   if(mass_ratio > 0.1)
@@ -137,8 +137,9 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
     Gal[gal].ColdGas = 0.0;
     Gal[gal].MetalsColdGas = 0.0;
 
-    Gal[gal].QuasarActivity[Gal[gal].SnapNum] = 1; // Record that there was enough energy to eject cold gas.
-    Gal[gal].QuasarSubstep[Gal[gal].SnapNum] = step; // Record at which substep the activity happened. 
+    Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject cold gas.
+    Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
+
   }
   
   // compare quasar wind and cold+hot gas energies and eject hot
@@ -149,6 +150,7 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
 
     Gal[gal].HotGas = 0.0;
     Gal[gal].MetalsHotGas = 0.0;
+
   }
 }
 
@@ -256,7 +258,12 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   stars = eburst * Gal[merger_centralgal].ColdGas;
   if(stars < 0.0)
     stars = 0.0;
- 
+
+  if (Gal[merger_centralgal].GalaxyNr == 406 && Halo[Gal[merger_centralgal].HaloNr].SnapNum == 64 && Gal[merger_centralgal].QuasarActivity[64] == 1)
+  {
+    printf("GalaxyNr = %d\tColdGas = %.4f\tStars = %.4f\n", Gal[merger_centralgal].GalaxyNr, Gal[merger_centralgal].ColdGas, stars);
+  }
+
   if(SupernovaRecipeOn == 1)
   {    
     if(IRA == 0)
@@ -332,7 +339,8 @@ void add_galaxy_to_merger_list(int p)
       MergedGal[MergedNr].QuasarActivity[j] = Gal[p].QuasarActivity[j];
       MergedGal[MergedNr].DynamicalTime[j] = Gal[p].DynamicalTime[j];
       MergedGal[MergedNr].QuasarSubstep[j] = Gal[p].QuasarSubstep[j];
-  
+      MergedGal[MergedNr].GridColdGas[j] = Gal[p].GridColdGas[j];
+       
     }
  
     for (j = 0; j < SN_Array_Len; ++j)

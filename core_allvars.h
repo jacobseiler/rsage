@@ -221,6 +221,7 @@ struct GALAXY
   int *QuasarActivity;
   float *DynamicalTime; 
   int *QuasarSubstep;
+  float *GridColdGas;
 
   double StellarAge_Numerator;
   double StellarAge_Denominator;
