@@ -48,7 +48,7 @@ void load_halos(int filenr)
 int32_t load_gals(char *fname)
 {
 
-  int i;
+  int32_t i, j;
   FILE *infile;
 
   infile = fopen(fname, "rb");
@@ -194,11 +194,19 @@ int32_t load_gals(char *fname)
     }
     fread(GalGrid[i].QuasarSubstep, sizeof(*(GalGrid[i].QuasarSubstep)), MAXSNAPS, infile);
 
+    GalGrid[i].ColdGas= malloc(sizeof(*(GalGrid[i].ColdGas)) * MAXSNAPS);
+    if (GalGrid[i].ColdGas == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.ColdGas for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
+    fread(GalGrid[i].ColdGas, sizeof(*(GalGrid[i].ColdGas)), MAXSNAPS, infile);
+
 #ifdef DEBUG_GALS
     if (i == 0)
     {
       int tmp = MAXSNAPS - 1;
-      printf("History[Final] = %d\tStellarMass = %.4f\tSFR = %.4f\tZ = %.4f\tCentralGalaxyMass = %.4f\tMfiltGnedin = %.4f\tMfiltSobacchi = %.4f\tEjectedFraction = %.4f\tLenHistory = %d\tOutflowRate = %.4f\tInfallRate = %.4f\tEjectedMass = %.4f\tQuasarActivity = %d\tDynamicalTime = %.4f\tQuasarSubstep = %d\n", GalGrid[i].History[tmp], GalGrid[i].StellarMass[tmp], GalGrid[i].SFR[tmp], GalGrid[i].Z[tmp], GalGrid[i].CentralGalaxyMass[tmp], GalGrid[i].MfiltGnedin[tmp], GalGrid[i].MfiltSobacchi[tmp], GalGrid[i].EjectedFraction[tmp], GalGrid[i].LenHistory[tmp], GalGrid[i].OutflowRate[tmp], GalGrid[i].InfallRate[tmp], GalGrid[i].EjectedMass[tmp], GalGrid[i].QuasarActivity[tmp], GalGrid[i].DynamicalTime[tmp], GalGrid[i].QuasarSubstep[tmp]);
+      printf("History[Final] = %d\tStellarMass = %.4f\tSFR = %.4f\tZ = %.4f\tCentralGalaxyMass = %.4f\tMfiltGnedin = %.4f\tMfiltSobacchi = %.4f\tEjectedFraction = %.4f\tLenHistory = %d\tOutflowRate = %.4f\tInfallRate = %.4f\tEjectedMass = %.4f\tQuasarActivity = %d\tDynamicalTime = %.4f\tQuasarSubstep = %d\tColdGas = %.4f\n", GalGrid[i].History[tmp], GalGrid[i].StellarMass[tmp], GalGrid[i].SFR[tmp], GalGrid[i].Z[tmp], GalGrid[i].CentralGalaxyMass[tmp], GalGrid[i].MfiltGnedin[tmp], GalGrid[i].MfiltSobacchi[tmp], GalGrid[i].EjectedFraction[tmp], GalGrid[i].LenHistory[tmp], GalGrid[i].OutflowRate[tmp], GalGrid[i].InfallRate[tmp], GalGrid[i].EjectedMass[tmp], GalGrid[i].QuasarActivity[tmp], GalGrid[i].DynamicalTime[tmp], GalGrid[i].QuasarSubstep[tmp], GalGrid[i].ColdGas[tmp]);
       fclose(infile);
       return EXIT_FAILURE; 
     }
@@ -208,7 +216,55 @@ int32_t load_gals(char *fname)
 
   printf("Read in %ld total galaxies.\n", (long)NtotGals);
 
+  // We will now allocate memory for storing the escape fraction value of each galaxy.
 
+  for (i = 0;i<Grid->NumGrids; ++i)
+  {
+    Grid->GridProperties[i].SnapshotGalaxy = malloc(sizeof(*(Grid->GridProperties[i].SnapshotGalaxy)) * NtotGals);
+    if (Grid->GridProperties[i].SnapshotGalaxy == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for SnapshotGalaxy for Grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    Grid->GridProperties[i].fescGalaxy = malloc(sizeof(*(Grid->GridProperties[i].fescGalaxy)) * NtotGals);
+    if (Grid->GridProperties[i].fescGalaxy == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for fescGalaxy for Grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    Grid->GridProperties[i].MvirGalaxy = malloc(sizeof(*(Grid->GridProperties[i].MvirGalaxy)) * NtotGals);
+    if (Grid->GridProperties[i].MvirGalaxy == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for MvirGalaxy for Grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    Grid->GridProperties[i].NgammaGalaxy = malloc(sizeof(*(Grid->GridProperties[i].NgammaGalaxy)) * NtotGals);
+    if (Grid->GridProperties[i].NgammaGalaxy == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for NgammaGalaxy for Grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    Grid->GridProperties[i].NgammafescGalaxy = malloc(sizeof(*(Grid->GridProperties[i].NgammafescGalaxy)) * NtotGals);
+    if (Grid->GridProperties[i].NgammafescGalaxy == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for NgammafescGalaxy for Grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+    for (j = 0; j < NtotGals; ++j)
+    {
+      Grid->GridProperties[i].SnapshotGalaxy[j] = -1;
+      Grid->GridProperties[i].fescGalaxy[j] = 0.0;
+      Grid->GridProperties[i].MvirGalaxy[j] = 0.0;
+      Grid->GridProperties[i].NgammaGalaxy[j] = 0.0;
+      Grid->GridProperties[i].NgammafescGalaxy[j] = 0.0;
+    }
+  }
+    
   // We now need to allocate memory for the quasar boosted escape fraction (if that prescription is selected).
   if (fescPrescription == 4) 
   { 
@@ -297,6 +353,15 @@ void free_gals(void)
     free(GalGrid[i].QuasarSubstep); 
   }
 
+  for (i = 0; i < Grid->NumGrids; ++i)
+  {
+    free(Grid->GridProperties[i].SnapshotGalaxy);
+    free(Grid->GridProperties[i].fescGalaxy);
+    free(Grid->GridProperties[i].MvirGalaxy);      
+    free(Grid->GridProperties[i].NgammaGalaxy);      
+    free(Grid->GridProperties[i].NgammafescGalaxy);      
+  }
+  
   if (fescPrescription == 4)
   {
     free(QuasarActivityToggle);

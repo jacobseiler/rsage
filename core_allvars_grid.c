@@ -127,7 +127,7 @@ double fesc_high;
 
 double quasar_baseline;
 double quasar_boosted;
-int32_t N_dyntime;
+double N_dyntime;
 
 int HaloPartCut;
 

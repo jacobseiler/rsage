@@ -57,7 +57,7 @@ int32_t init(void)
   else if (fescPrescription == 4)
   {
     fprintf(stderr, "\n\nUsing an fesc prescription that depends upon quasar activity.\n");
-    fprintf(stderr, "\nFor a galaxy that had a quasar event within %d dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
+    fprintf(stderr, "\nFor a galaxy that had a quasar event within %.2f dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
   }
   else if (fescPrescription == 5)
   {

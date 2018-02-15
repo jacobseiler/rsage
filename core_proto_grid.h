@@ -35,6 +35,7 @@ struct GRID_STRUCT *MPI_sum_grids(void);
 
 const char* getfield(char* line, int num);
 
+int32_t save_fesc_properties(int filenr, int32_t merged_gal_flag); 
 int32_t save_grid(struct GRID_STRUCT *save_grid);
 void save_redshift(void);
 

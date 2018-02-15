@@ -47,9 +47,9 @@ int32_t save_grid(struct GRID_STRUCT *save_grid)
     } 
     else if (fescPrescription == 4)
     {
-      snprintf(name_HI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HeI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%d_nion_HeII_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
+      snprintf(name_HI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_nion_HI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_nion_HeI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_nion_HeII_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, snapshot_idx); 
     }
     else if (fescPrescription == 5 || fescPrescription == 6)
     {
@@ -92,6 +92,56 @@ int32_t save_grid(struct GRID_STRUCT *save_grid)
   return EXIT_SUCCESS;    
 }
 
+
+int32_t save_fesc_properties(int filenr, int32_t merged_gal_flag) 
+{
+
+  FILE *save_properties;
+  char name_properties[MAXLEN];
+  int32_t i, j; 
+
+  printf("Saving fesc properties\n");
+  for (i = 0; i < Grid->NumGrids; ++i)
+  {
+    if (fescPrescription == 0)
+    {
+      snprintf(name_properties, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_fescproperties_%d.txt", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, i + LowSnap);
+    }
+    else if (fescPrescription == 3)
+    {
+      snprintf(name_properties, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_fescproperties_%d.txt", GridOutputDir, FileNameGalaxies, alpha, beta, i + LowSnap); 
+    }
+    else if (fescPrescription == 4)
+    {
+      snprintf(name_properties, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_fescproperties_%d.txt", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, i + LowSnap);
+    }
+
+    if (filenr == 0 && merged_gal_flag == 0) // For the first grid want to open up a fresh file
+    {
+      save_properties = fopen(name_properties, "w");
+    }
+    else
+    {  
+      save_properties = fopen(name_properties, "a"); // But for the others we want to append.
+    }
+    if (save_properties == NULL)
+    {
+      fprintf(stderr, "Cannot open file %s\n", name_properties);
+      return EXIT_FAILURE;
+    }
+
+    for (j = 0; j < NtotGals; ++j)
+    {
+      if (Grid->GridProperties[i].SnapshotGalaxy[j] != -1)
+      {
+        fprintf(save_properties, "%d %.4f %.4f %.4e %.4e\n", Grid->GridProperties[i].SnapshotGalaxy[j], Grid->GridProperties[i].fescGalaxy[j], Grid->GridProperties[i].MvirGalaxy[j], Grid->GridProperties[i].NgammaGalaxy[j], Grid->GridProperties[i].NgammafescGalaxy[j]); 
+      }
+    }
+    fclose(save_properties);
+  }
+  return EXIT_SUCCESS;
+
+}
 /*
 void save_redshift(void)
 {

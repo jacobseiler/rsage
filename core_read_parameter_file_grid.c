@@ -167,7 +167,7 @@ void read_parameter_file(char *fname)
 
   strcpy(tag[nt], "N_dyntime");
   addr[nt] = &N_dyntime; 
-  id[nt++] = INT;
+  id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "fesc");
   addr[nt] = &fesc;
@@ -250,7 +250,7 @@ void read_parameter_file(char *fname)
 	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
 	MAXSNAPS = LastSnapShotNr + 1; 
 
-	XASSERT(LowSnap < HighSnap, "LowSnap must be less than HighSnap.");
+	XASSERT(LowSnap <= HighSnap, "LowSnap must be less than HighSnap\n");
 	
 	// read in the output snapshot list
   printf("Selecting sequential snapshots from Snapshot %d to %d.\n", LowSnap, HighSnap);

@@ -19,19 +19,22 @@ int32_t update_grid_properties(int32_t filenr)
 {
 
   int32_t snapshot_idx, grid_num_idx;
-  int64_t grid_position, gal_idx, good_gals = 0, bad_gals = 0;
+  int64_t grid_position, gal_idx, good_gals, bad_gals;
   float fesc_local, Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
 
   for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
   {
+    good_gals = 0;
+    bad_gals = 0;
+
     grid_num_idx = snapshot_idx - LowSnap; // The grid indexing goes from 0 to NumGrids.
-//    printf("Snapshot_idx %d\t grid_num_idx %d\n", snapshot_idx, grid_num_idx); 
+
     for (gal_idx = 0; gal_idx < NtotGals; ++gal_idx)
     {
-//      printf("Gal_idx %ld\n", (long)gal_idx);
       grid_position = GalGrid[gal_idx].History[snapshot_idx];
       if (grid_position == -1)
       {
+        ++bad_gals;
         continue;
       }
 
@@ -41,7 +44,7 @@ int32_t update_grid_properties(int32_t filenr)
         return EXIT_FAILURE;
       }
 
-      if ((GalGrid[gal_idx].StellarMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].SFR[snapshot_idx] > 0.0) & (GalGrid[gal_idx].CentralGalaxyMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].LenHistory[snapshot_idx] > HaloPartCut)) // Apply some requirements for the galaxy to be included.
+      if ((GalGrid[gal_idx].StellarMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].SFR[snapshot_idx] >= 0.0) & (GalGrid[gal_idx].CentralGalaxyMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].LenHistory[snapshot_idx] > HaloPartCut)) // Apply some requirements for the galaxy to be included.
       {
         ++good_gals;
 //        printf("Got to good gal\n");
@@ -51,20 +54,24 @@ int32_t update_grid_properties(int32_t filenr)
         }
 
         Grid->GridProperties[grid_num_idx].SFR[grid_position] += GalGrid[gal_idx].SFR[snapshot_idx];
-        Grid->GridProperties[grid_num_idx].StellarMass[grid_position] += GalGrid[gal_idx].StellarMass[snapshot_idx];  
-//        printf("Grid1\n");
+        Grid->GridProperties[grid_num_idx].StellarMass[grid_position] += GalGrid[gal_idx].StellarMass[snapshot_idx]; 
+ 
         if (PhotonPrescription == 1)
         {
           calculate_photons(GalGrid[gal_idx].SFR[snapshot_idx], GalGrid[gal_idx].Z[snapshot_idx], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII); // Base number of ionizing photons
-          fesc_local = calculate_fesc(gal_idx, snapshot_idx, filenr);
+          fesc_local = calculate_fesc(gal_idx, snapshot_idx, filenr);          
         }
 
-//        printf("Grid2\n");
-        Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] += pow(10, Ngamma_HI - 50.0)*fesc_local; // We keep these in units of 10^50 photons/s.
-//        printf("%.4e \t%.2f \t%.4e\n", Ngamma_HI, fesc_local, pow(10, Ngamma_HI - 50.0)*fesc_local);
+        if (Ngamma_HI > 0.0)
+        {
+          Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] += pow(10, Ngamma_HI - 50.0)*fesc_local; // We keep these in units of 10^50 photons/s.
+          Grid->GridProperties[grid_num_idx].Nion_HeI[grid_position] += pow(10, Ngamma_HeI - 50.0)*fesc_local;
+          Grid->GridProperties[grid_num_idx].Nion_HeII[grid_position] += pow(10, Ngamma_HeII - 50.0)*fesc_local;
+        }
+
         if (pow(10, Ngamma_HI - 50.0) * fesc_local < 0.0)
         {
-          fprintf(stderr, "For galaxy %ld, the number of HI ionizing photons is %.4f\n", (long)gal_idx, pow(10, Ngamma_HI - 50.0) * fesc_local); 
+          fprintf(stderr, "For galaxy %ld, the number of HI ionizing photons is %.4fe50\n", (long)gal_idx, pow(10, Ngamma_HI - 50.0) * fesc_local); 
           return EXIT_FAILURE;
         }
         if (Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] < 0.0 || Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] > 1e100)
@@ -72,19 +79,29 @@ int32_t update_grid_properties(int32_t filenr)
           fprintf(stderr, "For galaxy %ld, cell %ld now has an error number of photons. This number is %.4f e50 photons/s\n", (long)gal_idx, (long)grid_position, Grid->GridProperties[grid_num_idx].Nion_HI[grid_position]);
           return EXIT_FAILURE;
         }
-        Grid->GridProperties[grid_num_idx].Nion_HeI[grid_position] += pow(10, Ngamma_HeI - 50.0)*fesc_local;
-        Grid->GridProperties[grid_num_idx].Nion_HeII[grid_position] += pow(10, Ngamma_HeII - 50.0)*fesc_local;
       
-//        printf("Grid3\n");
         ++Grid->GridProperties[grid_num_idx].GalCount[grid_position]; 
+
+        Grid->GridProperties[grid_num_idx].SnapshotGalaxy[gal_idx] = snapshot_idx;          
+        Grid->GridProperties[grid_num_idx].fescGalaxy[gal_idx] = fesc_local;
+        Grid->GridProperties[grid_num_idx].MvirGalaxy[gal_idx] = GalGrid[gal_idx].CentralGalaxyMass[snapshot_idx];
+        if (Ngamma_HI > 0.0)
+        {
+          Grid->GridProperties[grid_num_idx].NgammaGalaxy[gal_idx] = pow(10, Ngamma_HI - 50.0);
+          Grid->GridProperties[grid_num_idx].NgammafescGalaxy[gal_idx] = pow(10, Ngamma_HI - 50.0)*fesc_local; 
+          if (grid_num_idx == 0)
+            printf("%.4e\n", Grid->GridProperties[grid_num_idx].NgammaGalaxy[gal_idx]);
+        }
         
-//        printf("Grid4\n");
       }
       else
       {
         ++bad_gals;
       }
     } // Galaxy loop.
+    //printf("For snapshot %d there were %ld galaxies meeting the gridding condition and %ld not.\n", snapshot_idx, (long)good_gals, (long)bad_gals); 
+    //printf("For snapshot %d there were a total of %.4e photons\n", snapshot_idx, sum*1.0e50); 
+
   } // Snapshot loop.
   
   return EXIT_SUCCESS;
@@ -415,8 +432,8 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
   if (GalGrid[gal_idx].QuasarActivity[snapshot_idx] == 1) // A quasar has gone off during this snapshot, time to update properties.
   {
     ++QuasarActivityToggle[gal_idx]; // Note, we plus one because we want to be able to handle the case of a quasar going off when the galaxy still is being boosted. 
-    QuasarSnapshot[gal_idx] = snapshot_idx; 
-    TargetQuasarTime[gal_idx] = GalGrid[gal_idx].DynamicalTime[snapshot_idx] * N_dyntime; // How long the quasar will be boosted for.
+    QuasarSnapshot[gal_idx] = snapshot_idx;
+    TargetQuasarTime[gal_idx] = GalGrid[gal_idx].DynamicalTime[snapshot_idx] * N_dyntime; // How long the quasar will be boosted for.   
     QuasarActivitySubstep[gal_idx] = GalGrid[gal_idx].QuasarSubstep[snapshot_idx]; // What substep did the quasar go off?
     QuasarBoostActiveTime[gal_idx] = 0.0; // How long the quasar boosting has been active for.
   }

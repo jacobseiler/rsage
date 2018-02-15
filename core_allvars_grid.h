@@ -154,6 +154,7 @@ struct GALAXY_GRID
   int *QuasarActivity;
   float *DynamicalTime;
   int *QuasarSubstep;
+  float *ColdGas;
 
 }*GalGrid;
 
@@ -172,7 +173,13 @@ struct GRID_STRUCT
     float *Nion_HeI;
     float *Nion_HeII;
 
-    uint64_t *GalCount; 
+    uint64_t *GalCount;
+ 
+    int32_t *SnapshotGalaxy;
+    float *fescGalaxy;
+    float *MvirGalaxy;
+    float *NgammaGalaxy;
+    float *NgammafescGalaxy;
   }*GridProperties;
 }*Grid;
 
@@ -335,7 +342,7 @@ extern double beta;
 
 extern double quasar_baseline;
 extern double quasar_boosted;
-extern int32_t N_dyntime;
+extern double N_dyntime;
 
 extern int HaloPartCut;
 

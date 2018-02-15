@@ -134,12 +134,24 @@ int main(int argc, char **argv)
       {
         exit(EXIT_FAILURE);
       }
-     
+  
+
+      if (fescPrescription != 1)
+      {
+        status = save_fesc_properties(filenr, i);
+        if (status == EXIT_FAILURE)
+        {
+          exit(EXIT_FAILURE);
+        }
+      } 
+
+   
       free_gals();	
 
     } // Galaxy/Merger loop.
 
-        printf("Done File %d.\n\n", filenr);
+    printf("Done File %d.\n\n", filenr);
+
   } // File Loop.
   
 #ifdef MPI
