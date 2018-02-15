@@ -157,7 +157,8 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
          ('GridEjectedMass', (np.float32, MAXSNAPS)),
          ('QuasarActivity', (np.int32, MAXSNAPS)),
          ('DynamicalTime', (np.float32, MAXSNAPS)),
-         ('QuasarSubstep', (np.int32, MAXSNAPS))            
+         ('QuasarSubstep', (np.int32, MAXSNAPS)),
+         ('GridColdGas', (np.float32, MAXSNAPS))
          ]
     
                             
@@ -194,7 +195,7 @@ def Create_Snap_Arrays(G, NumSnaps, SnapList):
                 SnapCount[j] += 1
 
 
-def read_binary_grid(filepath, GridSize, precision):
+def read_binary_grid(filepath, GridSize, precision, reshape=True):
     '''
     Reads a cubic, Cartesian grid that was stored in binary.
     NOTE: Assumes the grid has equal number of cells in each dimension.
@@ -202,14 +203,17 @@ def read_binary_grid(filepath, GridSize, precision):
     Parameters
     ----------
     filepath : string
-	Location of the grid file
+        Location of the grid file
     GridSize : integer
-	Number of cells along one dimension.  Grid is assumed to be saved in the form N*N*N. 
+        Number of cells along one dimension.  Grid is assumed to be saved in the form N*N*N. 
     precision : integer
-	Denotes the precision of the data being read in.
-	0 : Integer (4 bytes)
-	1 : Float (4 bytes)
-	2 : Double (4 bytes)
+        Denotes the precision of the data being read in.
+        0 : Integer (4 bytes)
+        1 : Float (4 bytes)
+        2 : Double (4 bytes)
+    reshape : boolean
+        Controls whether the array should be reshaped into a cubic array of shape (GridSize, GridSize, GridSize) or kepts as a 1D array.
+        Default: True.
 
     Returns
     -------
@@ -241,7 +245,8 @@ def read_binary_grid(filepath, GridSize, precision):
 
     fd = open(filepath, 'rb')
     grid = np.fromfile(fd, count = GridSize**3, dtype = readformat) 
-    grid.shape = (GridSize, GridSize, GridSize) 
+    if (reshape == True):
+        grid.shape = (GridSize, GridSize, GridSize) 
     fd.close()
 
     return grid

@@ -23,47 +23,48 @@ import AllVars
 
 def Set_Params_Plot():
 
-	global global_labelsize
-	global global_fontsize
-	global global_legendsize
-	global global_linewidth
-	global global_tickinterval
-	global global_errorwidth
+    global global_labelsize
+    global global_fontsize
+    global global_legendsize
+    global global_linewidth
+    global global_tickinterval
+    global global_errorwidth
 
-	global colors
-	global markers
-	global linestyles
+    global colors
+    global markers
+    global linestyles
 
-	global z_plot
-	global time_xlim
-	global time_tickinterval 
+    global z_plot
+    global time_xlim
+    global time_tickinterval 
 
-	global_labelsize = 24
-	global_fontsize = 20
-	global_legendsize = 12
-	global_linewidth = 3
-	global_tickinterval = 0.25
-	global_errorwidth = 3
+    global_labelsize = 24
+    global_fontsize = 20
+    global_legendsize = 12
+    global_linewidth = 3
+    global_tickinterval = 0.25
+    global_errorwidth = 3
 
-	matplotlib.rcdefaults()
-	plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
-	plt.rc('lines', linewidth=global_linewidth)
-	# plt.rc('font', variant='monospace')
-	plt.rc('legend', numpoints=1, fontsize='x-large')
-	plt.rc('text', usetex=True)
+    matplotlib.rcdefaults()
+    plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
+    plt.rc('lines', linewidth=global_linewidth)
+    # plt.rc('font', variant='monospace')
+    plt.rc('legend', numpoints=1, fontsize='x-large')
+    plt.rc('text', usetex=True)
 
-	plt.rc('xtick', labelsize=global_fontsize)
-	plt.rc('ytick', labelsize=global_fontsize)
-	plt.rc('text', usetex=True)
+    plt.rc('xtick', labelsize=global_fontsize)
+    plt.rc('ytick', labelsize=global_fontsize)
+    plt.rc('text', usetex=True)
 
-	np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
+    np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
 
-	colors = ['r', 'b', 'g', 'm', 'c', 'k']
-	markers = ['x', 'o', '^', 's', 'D']
-	linestyles = ['-', '--', '-.', ':', '-']
-	z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
-	time_xlim = [290, 1000]
-	time_tickinterval = 25
+    colors = ['#1b9e77','#d95f02','#7570b3', '#f03b20', '#2c7fb8']
+    #colors = ['r', 'b', 'g', 'm', 'c', 'k']
+    markers = ['x', 'o', '^', 's', 'D']
+    linestyles = ['-', '--', '-.', ':', '-']
+    z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
+    time_xlim = [290, 950]
+    time_tickinterval = 25
 
 def plot_xy(ax, x_data, y_data, y_std, snapshot_labels, model_labels):
 	'''
