@@ -45,7 +45,7 @@ PlotScripts.Set_Params_Plot()
 cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
 
-output_format = ".pdf"
+output_format = ".png"
 
 # For the Tiamat extended results there is a weird hump when calculating the escape fraction.
 # This hump occurs at a halo mass of approximately 10.3. 
@@ -2450,25 +2450,25 @@ if __name__ == '__main__':
         boosted_dynamicaltime = float(sys.argv[4])
    
     np.seterr(divide='ignore')
-    number_models = 1
+    number_models = 2
 
     galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_delayedSN_grid256_densfieldgridding_z5.782'    
     merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_delayedSN_grid256_densfieldgridding_MergedGalaxies'
 
-    galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_IRA_z5.782'
-    merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_IRA_MergedGalaxies'
+    galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_grid256_quasarreionization_z5.782'
+    merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_fiducial_grid256_quasarreionization_MergedGalaxies'
 
-    galaxies_filepath_array = [galaxies_model1]
-    merged_galaxies_filepath_array = [merged_galaxies_model1]
+    galaxies_filepath_array = [galaxies_model1, galaxies_model2]
+    merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2]
        
-    number_substeps = [10] # How many substeps does each model have (specified by STEPS variable within SAGE).
-    number_snapshots = [99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
+    number_substeps = [10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
+    number_snapshots = [99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
      
-    FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [63] # The last file number THAT WE ARE PLOTTING.
-    NumFile = [64] # The number of files for this simulation (plotting a subset of these files is allowed).     
-    same_files = [0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
+    FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
+    LastFile = [63, 63] # The last file number THAT WE ARE PLOTTING.
+    NumFile = [64, 64] # The number of files for this simulation (plotting a subset of these files is allowed).     
+    same_files = [0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
     # This array will tell us if we should keep the files for the next model or otherwise throw them away. 
     # The files will be kept until same_files[current_model_number] = 0.
     # For example if we had 5 models we were plotting and model 1, 2, 3 shared the same files and models 4, 5 shared different files,
@@ -2477,9 +2477,9 @@ if __name__ == '__main__':
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
     #model_tags = [r"$f_\mathrm{esc} = 0.3$", r"$f_\mathrm{esc} = 0.7f_\mathrm{ej} + 0.0$", r"$f_\mathrm{esc} = \mathrm{Quasar} \: 0.1, 1.0, 2.0$"] # Tag for each model that will be used in the plots.
     #model_tags = [r"$\mathrm{Kali \: Delayed}$", r"$\mathrm{Kali \: No \: Quasar \: Mode \: Feedback \: Instant \: SN}$"]
-    model_tags = [r"$\mathrm{Kali \: Delayed}$"]
+    model_tags = [r"$\mathrm{Kali \: Delayed}$", r"$\mathrm{Kali \: With \: Quasar \: Reionization}$"]
     #model_tags = [r"$\mathrm{Kali}$"]
-    save_tags = ["Kali_fiducial"]
+    save_tags = ["Kali_fiducial", "dummy"]
 
     ## Constants used for each model. ##
     # Need to add an entry for EACH model. #
@@ -2487,7 +2487,7 @@ if __name__ == '__main__':
     halo_cut = [32, 32, 32] # Only calculate properties for galaxies whose host halos have at least this many particles.
 
     ### fesc Stuff ###
-    fesc_prescription = [0] # This defines what escape fractions prescription we want to use for each mode. 
+    fesc_prescription = [0, 0] # This defines what escape fractions prescription we want to use for each mode. 
     # 0 is constant.
     # 1 is scaling with halo mass. 
     # 2 is scaling with ejected fraction. 
@@ -2495,7 +2495,7 @@ if __name__ == '__main__':
     # 4 is Anne's Functional form that scales inversely with halo mass (smaller fesc for higher halo mass).
     # 5 is Anne's function form that scales with halo mass (larger fesc for higher halo mass).
 
-    fesc_normalization = [0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
+    fesc_normalization = [0.3, 0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
     # For prescription 0, requires a number that defines the constant fesc.
     # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
     # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
@@ -2504,7 +2504,7 @@ if __name__ == '__main__':
     # For prescription 5, fesc = 1 - (1 - B) * (1 - B) / (1 - D) ^ (log(MH/A) / log(C/A))
    
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
-    SnapList = [[93, 76, 64]] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
+    SnapList = [[93, 76, 64], [93, 76, 64]] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
     
     PlotSnapList = [[64, 76, 93], [64, 76, 93], [64, 76, 93]] # For plots that contain properties plotted at specific redshifts, this specifies which snapshots we should plot at. 
 
@@ -2845,7 +2845,7 @@ if __name__ == '__main__':
                     keep_files =  same_files[current_model_number] # Decide if we want to keep the files loaded or throw them out. 
                     current_model_number += 1 # Update the inner loop model number.
 
-    StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, 0, save_tags, model_tags, 1, "Kali_delayed_paper") 
+    StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, 0, save_tags, model_tags, 1, "Kali_reionization") 
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 
     #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_Quasar_aspen")
