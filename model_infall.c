@@ -53,8 +53,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
     reionization_modifier = do_reionization(centralgal, Zcurr, 0);
   }
   else if (ReionizationOn == 2 || ReionizationOn == 3) 
-  {
-     
+  {     
     reionization_modifier = do_myreionization(centralgal, Zcurr, &dummy);
   }
   else
@@ -219,14 +218,19 @@ double do_myreionization(int gal, double Zcurr, double *Mfilt)
   double d = 2.3;
   double my_Mfilt, Mvir, PhotHI, reionization_modifier;
 
-  int32_t x_grid, y_grid, z_grid, grid_position;
+  int32_t grid_position, status;
 
-  x_grid = Gal[gal].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
-  y_grid = Gal[gal].Pos[1]*GridSize/BoxSize;
-  z_grid = Gal[gal].Pos[2]*GridSize/BoxSize; 
+  if (Grid->PhotoGrid[Gal[gal].SnapNum].valid_grid == 0) // In this instance reionization has not started yet so we don't have any data loaded.
+  {
+    return 1.0;
+  }
 
-  grid_position = (x_grid*GridSize+y_grid)*GridSize+z_grid; // Convert the grid (x,y,z) to a 1D value.
-    
+  status= determine_1D_idx(Gal[gal].Pos[0], Gal[gal].Pos[1], Gal[gal].Pos[2], &grid_position); 
+  if (status == EXIT_FAILURE)
+  {
+    exit(EXIT_FAILURE);
+  }
+
   z_reion = Grid->ReionRedshift[grid_position]; // This is the redshift the cell was ionized at. For ReionizationOn == 3, we only have knowledge of a single snapshot so this will be = 0 if the cell has yet to be ionized. 
 
   if((ReionizationOn == 2 && Zcurr < z_reion) || (ReionizationOn == 3 && Zcurr < z_reion && Gal[gal].SnapNum == ReionSnap)) // Has the cell been reionized yet? Note, for ReionizationOn == 3 we are only doing a single snapshot for feedback.

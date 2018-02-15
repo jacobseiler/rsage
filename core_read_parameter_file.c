@@ -14,7 +14,7 @@
 
 
 
-void read_parameter_file(char *fname)
+int32_t read_parameter_file(char *fname)
 {
   FILE *fd;
   char buf[400], buf1[400], buf2[400], buf3[400];
@@ -22,7 +22,7 @@ void read_parameter_file(char *fname)
   int id[MAXTAGS];
   void *addr[MAXTAGS];
   char tag[MAXTAGS][50];
-  int errorFlag = 0, gridFlag = 0;
+  int errorFlag = 0; 
 
 
 #ifdef MPI
@@ -222,6 +222,14 @@ void read_parameter_file(char *fname)
   addr[nt] = &NOUT;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "LowSnap");
+  addr[nt] = &LowSnap;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "HighSnap");
+  addr[nt] = &HighSnap;
+  id[nt++] = INT;
+
   strcpy(tag[nt], "RescaleSN");
   addr[nt] = &RescaleSN;
   id[nt++] = INT;
@@ -268,8 +276,7 @@ void read_parameter_file(char *fname)
       }
       else
       {
-        //printf("Error in file %s:   Tag '%s' not allowed or multiple defined.\n", fname, buf1);
-        gridFlag = 1;
+        //printf("Error in file %s:   Tag '%s' not allowed or multiple defined.\n", fname, buf1);        
       }
     }
     fclose(fd);
@@ -294,7 +301,10 @@ void read_parameter_file(char *fname)
     }
   }
 	
-	assert(!errorFlag);
+  if (errorFlag == 1)
+  {
+    return EXIT_FAILURE;
+  }
 	printf("\n");
 	
 	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
@@ -343,5 +353,13 @@ void read_parameter_file(char *fname)
 		assert(done);
 		printf("\n");
 	}
+
+  if (GridSize > 1024)
+  {
+    fprintf(stderr, "The grid size cannot be greater than 1024.\n");
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
 
 }

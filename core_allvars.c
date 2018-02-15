@@ -175,3 +175,6 @@ int inside_box;
 int count_Mvir;
 int count_Len;
 long count_gal;
+
+int32_t LowSnap;
+int32_t HighSnap;

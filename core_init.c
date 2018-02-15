@@ -145,6 +145,7 @@ int32_t init_grid()
   FILE *photoion, *reionredshift;
   char buf[MAXLEN];
 
+  printf("Reading in the data for the reionization feedback using cifog.\n");
   Grid = mymalloc(sizeof(struct GRID_STRUCT));
   if (Grid == NULL)
   {
@@ -169,6 +170,7 @@ int32_t init_grid()
     return EXIT_FAILURE;
   }
 
+  printf("Reading the reionization redshift grid from %s\n", buf);
   fread(Grid->ReionRedshift, sizeof(*(Grid->ReionRedshift)), Grid->NumCellsTotal, reionredshift);
   fclose(reionredshift);
    
@@ -199,23 +201,38 @@ int32_t init_grid()
 
     if (ReionizationOn == 2)
     {
-      snprintf(buf, MAXLEN, "%s/%s_%02d", PhotoionDir, PhotoionName, i);
+      // For some of the early snapshots we don't have photoionization grids (because ionization hasn't started yet at z=100).  
+      // Let's put a flag to know whether we have any valid data for this snapshot so we don't have to create empty grids.
+      if (i >= LowSnap && i <= HighSnap)
+      {
+        Grid->PhotoGrid[i].valid_grid = 1;
+      }
+      else
+      { 
+        Grid->PhotoGrid[i].valid_grid = 0;
+        printf("Snapshot %d is not a valid snapshot for reionization -- SKIPPING! --\n", i);
+        continue;
+      }
+      snprintf(buf, MAXLEN, "%s/%s_%03d", PhotoionDir, PhotoionName, i);
     }
     else
     {
-      snprintf(buf, MAXLEN, "%s/%s_%02d", PhotoionDir, PhotoionName, ReionSnap);
+      snprintf(buf, MAXLEN, "%s/%s_%03d", PhotoionDir, PhotoionName, ReionSnap);
     }
- 
+
     if(!(photoion = fopen(buf, "rb")))
     {
       fprintf(stderr, "Cannot open file %s\n", buf);
       return EXIT_FAILURE;
     }
 
-    fread(&Grid->PhotoGrid[i].PhotoRate, sizeof(*(Grid->PhotoGrid[i].PhotoRate)), Grid->NumCellsTotal, photoion);
+    printf("Reading photoionization grid %s\n", buf);    
+    fread(Grid->PhotoGrid[i].PhotoRate, sizeof(*(Grid->PhotoGrid[i].PhotoRate)), Grid->NumCellsTotal, photoion);
     fclose(photoion);
-    
+
   }
+
+  printf("All reionization feedback stuff read in successfully\n");
 
   return EXIT_SUCCESS;   
 }

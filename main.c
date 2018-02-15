@@ -102,7 +102,12 @@ int main(int argc, char **argv)
   current_XCPU.sa_handler = termination_handler;
   sigaction(SIGXCPU, &current_XCPU, NULL);
 
-  read_parameter_file(argv[1]);
+  status = read_parameter_file(argv[1]);
+  if (status == EXIT_FAILURE)
+  {
+    exit(EXIT_FAILURE);
+  }
+
   init();
 
   if(ReionizationOn == 2 || ReionizationOn == 3)

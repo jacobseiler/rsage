@@ -25,7 +25,7 @@ int32_t free_grid(void);
 void malloc_grid_arrays(struct GALAXY *g);
 void print_allocated(void);
 
-void read_parameter_file(char *fname);
+int32_t read_parameter_file(char *fname);
 void *mymalloc(size_t n);
 void *myrealloc(void *p, size_t n); 
 void myfree(void *p);
@@ -83,6 +83,8 @@ double integrand_Z_dependent_SF(double q, void *p);
 void grid_update_mass_metals(double mass, double metallicity, int GridPos, int SnapNum);
 void grid_update_mass_metals_mass(double mass, double mass_metals, int GridPos, int SnapNum);
 
+
+int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t *grid_1D);
 void update_grid_array(int p, int halonr, int steps_completed, int centralgal);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
 

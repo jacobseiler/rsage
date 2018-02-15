@@ -265,6 +265,7 @@ struct GRID_STRUCT
   struct PHOTO_GRID 
   {     
     double *PhotoRate; // Photoionization Rate (s^-1).
+    int32_t valid_grid; // This will control whether data has been read in for this snapshot. Useful for the early snapshots where we don't have any ionization.
   }*PhotoGrid;
 }*Grid;
 
@@ -433,4 +434,7 @@ extern int count_Mvir;
 extern int count_Len;
 
 extern long count_gal;
+
+extern int32_t LowSnap;
+extern int32_t HighSnap;
 #endif  // #ifndef ALLVARS_H

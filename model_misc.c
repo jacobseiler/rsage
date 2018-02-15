@@ -233,6 +233,26 @@ double get_virial_radius(int halonr)
   return cbrt(get_virial_mass(halonr) * fac);
 }
 
+int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t *grid_1D)
+{
+
+  int32_t x_grid, y_grid, z_grid;
+
+  x_grid = pos_x * GridSize/BoxSize;
+  y_grid = pos_y * GridSize/BoxSize;
+  z_grid = pos_z * GridSize/BoxSize;
+
+  *grid_1D = (z_grid*GridSize+y_grid)*GridSize+x_grid; // Convert the grid (x,y,z) to a 1D value.
+
+  if(*grid_1D > CUBE(GridSize) || *grid_1D < 0) // Sanity check to ensure that no Grid Positions are outside the box.
+  {
+    fprintf(stderr, "Found a Grid Position outside the bounds of the box or negative; grid_position = %d\nPos[0] = %.4f\t Pos[1] = %.4f\tPos[2] = %.4f", *grid_1D, pos_x, pos_y, pos_z); 
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
 // INPUT: 
 // Galaxy index (p).
 // Halo index (halonr).
@@ -244,26 +264,16 @@ double get_virial_radius(int halonr)
 
 void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 {
-    int32_t x_grid, y_grid, z_grid, grid_position, step;
+    int32_t grid_position, step, status;
     int32_t SnapCurr = Halo[halonr].SnapNum;
     double MfiltSobacchi, reionization_modifier; 
- 
-    x_grid = Gal[p].Pos[0]*GridSize/BoxSize; // Convert the (x,y,z) position to a grid (x,y,z).
-    y_grid = Gal[p].Pos[1]*GridSize/BoxSize;
-    z_grid = Gal[p].Pos[2]*GridSize/BoxSize; 
 
-    grid_position = (z_grid*GridSize+y_grid)*GridSize+x_grid; // Convert the grid (x,y,z) to a 1D value.
-
-    if(grid_position > CUBE(GridSize) || grid_position < 0) // Sanity check to ensure that no Grid Positions are outside the box.
+    status = determine_1D_idx(Gal[p].Pos[0], Gal[p].Pos[1], Gal[p].Pos[2], &grid_position); 
+    if (status == EXIT_FAILURE)
     {
-	    fprintf(stderr, "Found a Grid Position outside the bounds of the box or negative; grid_position = %d, Galaxy Index = %d, halonr = %d\nPos[0] = %.4f\t Pos[1] = %.4f\tPos[2] = %.4f", grid_position, p, halonr, Gal[p].Pos[0], Gal[p].Pos[1], Gal[p].Pos[2]);
-      ++outside_box;
+      exit(EXIT_FAILURE);
     }
-    else 
-    {
-      ++inside_box;
-    }
-
+    
     Gal[p].GridPos = grid_position; 
 
     // NOTE: We use the Snapshot number of the FOF-Halo (i.e. the main halo the galaxy belongs to) because the snapshot number of the galaxy has been shifted by -1. //
