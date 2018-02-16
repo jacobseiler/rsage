@@ -333,3 +333,51 @@ def read_trees_smallarray(treedir, file_idx, simulation):
     fin.close() # Close the file  
 
     return Halos, HalosPerTree
+
+def load_data(fname):
+    """
+    Reads data from a .npz file.
+    If no .npz file exists the function searches for a .txt file.  If the .txt file exists it saves it as a .npz file before return the requested data.
+    If no .txt file exists return a FileNotFoundError.
+ 
+    Parameters
+    ==========
+
+    fname : string
+        Base name of the file (no extensions) 
+        
+    Returns
+    =======
+
+    data : array-like
+        Array of the read data. Shape will be dependant upon how the file itself was saved.  
+    """ 
+
+    print("")
+    print("Attempting to open {0}".format(fname))
+    try:
+        filename = "{0}.npz".format(fname)
+        data = np.load(filename)
+
+    except FileNotFoundError:
+
+        print(".npz file does not exist, checking for a .txt file")
+        filename = "{0}.txt".format(fname)
+        try:
+            data = np.loadtxt(filename)
+
+        except FileNotFoundError:
+
+            raise FileNotFoundError("File {0} could not be found".format(filename))           
+        else:
+
+            print(".txt file was successfully located and loaded.")
+            print("Now saving as a .npz file")
+                
+            np.savez(fname, data)
+
+            return load_data(fname) 
+            
+    else:           
+        print("") 
+        return data['arr_0']
