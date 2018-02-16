@@ -25,8 +25,8 @@ void init_galaxy(int p, int halonr)
   GalaxyCounter++;
   
   Gal[p].HaloNr = halonr;
-  //Gal[p].MostBoundID = Halo[halonr].MostBoundID;
-  Gal[p].MostBoundID = -1; 
+  Gal[p].MostBoundID = Halo[halonr].MostBoundID;
+  //Gal[p].MostBoundID = -1; 
   Gal[p].SnapNum = Halo[halonr].SnapNum - 1;
 
   Gal[p].mergeType = 0;

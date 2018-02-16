@@ -137,9 +137,6 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
     Gal[gal].ColdGas = 0.0;
     Gal[gal].MetalsColdGas = 0.0;
 
-    Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject cold gas.
-    Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
-
   }
   
   // compare quasar wind and cold+hot gas energies and eject hot
@@ -151,6 +148,8 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
     Gal[gal].HotGas = 0.0;
     Gal[gal].MetalsHotGas = 0.0;
 
+    Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject cold gas.
+    Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
   }
 }
 

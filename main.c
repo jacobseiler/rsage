@@ -119,8 +119,6 @@ int main(int argc, char **argv)
     }
   }
 
-  fprintf(stderr, "ListoutputSnaps[0] = %d\n", ListOutputSnaps[0]);
-
 #ifdef MPI
   for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
 #else

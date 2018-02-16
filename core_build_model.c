@@ -152,7 +152,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
         if(prog == first_occupied)
         {
           // update properties of this galaxy with physical properties of halo 
-          //Gal[ngal].MostBoundID = Halo[halonr].MostBoundID;
+          Gal[ngal].MostBoundID = Halo[halonr].MostBoundID;
 
           for(j = 0; j < 3; j++)
           {

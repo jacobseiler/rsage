@@ -24,13 +24,7 @@ void load_tree_table(int filenr)
 
   if(use_tiamat == 1)
   {
-    if(filenr < 10)
-      snprintf(tag, MAXLEN, "00%d", filenr);
-    else if (filenr >= 10 && filenr < 100)
-      snprintf(tag, MAXLEN, "0%d", filenr);
-    else
-      snprintf(tag, MAXLEN, "%d", filenr);
-    sprintf(buf, "%s/%s_%s.dat", SimulationDir, TreeName, tag);
+    sprintf(buf, "%s/%s_%03d.dat", SimulationDir, TreeName, filenr);
   }
   else
   {  
@@ -99,8 +93,6 @@ void free_tree_table(void)
 		load_fd = NULL;
 	}
 }
-
-
 
 void load_tree(int filenr, int nr)
 {
