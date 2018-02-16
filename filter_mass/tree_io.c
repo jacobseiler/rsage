@@ -13,11 +13,11 @@
 FILE *forest_file = NULL;
 // keep a static file handle to remove the need to do constant seeking
 
-int32_t load_tree_table(int32_t filenr, char *treedir, char *treename, int32_t *Ntrees, int32_t *totNHalos, int32_t **TreeNHalos)
+int32_t load_tree_table(int32_t filenr, SAGE_params params, int32_t *Ntrees, int32_t *totNHalos, int32_t **TreeNHalos)
 {
   char forestname[MAXLEN]; 
 
-  snprintf(forestname, MAXLEN, "%s/%s_%03d.dat", treedir, treename, filenr);
+  snprintf(forestname, MAXLEN, "%s/%s_%03d.dat", params->TreeDir, params->TreeName, filenr);
 
   fprintf(stderr, "Reading file %s\n", forestname);
   if(!(forest_file= fopen(forestname, "r")))
@@ -44,13 +44,13 @@ int32_t load_tree_table(int32_t filenr, char *treedir, char *treename, int32_t *
 
 }
 
-int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, Halo_t *Halos, int32_t *NHalos_ThisSnap)
+int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, halo_t *Halos, int32_t *NHalos_ThisSnap)
 {
 
   *Halos = malloc(sizeof(struct HALO_STRUCT) * NHalos_ThisTree);
   if (*Halos == NULL)
   {
-    fprintf(stderr, "Could not allocatem memory for Halos in tree %d\n", treenr);
+    fprintf(stderr, "Could not allocate memory for Halos in tree %d\n", treenr);
     return EXIT_FAILURE;
   }
 

@@ -19,10 +19,12 @@
 #define MAXLEN 1024
 #define	CUBE(x) (x*x*x)
 
+// Local Structs //
+
 // Local Variables //
 
-char *treedir, *treename, *photoiondir, *photoionname, *reionredshiftname;
-int32_t snapnum, first_run, numfiles;
+SAGE_params params;
+int32_t SnapNum, first_run;
 #ifdef MPI
 int ThisTask, NTask, nodeNameLen;
 char *ThisNode;
@@ -59,13 +61,13 @@ int32_t parse_params(int32_t argc, char **argv)
     return EXIT_FAILURE; 
   }
 
-  status = read_parameter_file(argv[1], &treedir, &treename, &photoiondir, &photoionname, &reionredshiftname, &numfiles);  
+  status = read_parameter_file(argv[1], &params); 
   if (status == EXIT_FAILURE)
   {
     return EXIT_FAILURE;
   } 
 
-  snapnum = atoi(argv[2]);
+  SnapNum = atoi(argv[2]);
 
   first_run = atoi(argv[3]);
   if (first_run < 0 || first_run > 1)
@@ -76,7 +78,7 @@ int32_t parse_params(int32_t argc, char **argv)
 
   printf("\n\n");
   printf("==================================================\n");
-  printf("Executing with\nTree Directory: %s\nTree Name: %s\nNumber of Tree Files: %d\nPhotoionization Directory: %s\nPhotoionization Name: %s\nReionization Redshift Name: %s\nSnapshot Number: %d\nFirst Run Flag: %d\n", treedir, treename, numfiles, photoiondir, photoionname, reionredshiftname, snapnum, first_run); 
+  printf("Executing with\nTree Directory: %s\nTree Name: %s\nNumber of Tree Files: %d\nPhotoionization Directory: %s\nPhotoionization Name: %s\nReionization Redshift Name: %s\nGridSize: %d\nSnapshot Number: %d\nFirst Run Flag: %d\n", params->TreeDir, params->TreeName, params->LastFile - params->FirstFile + 1, params->PhotoionDir, params->PhotoionName, params->ReionRedshiftName, params->GridSize, SnapNum, first_run); 
   printf("==================================================\n\n");
   printf("\n\n");
  
@@ -93,11 +95,11 @@ int32_t init()
 int main(int argc, char **argv)
 {
 
-  int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_ThisSnap = 0;
+  int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_ThisSnap = 0, NHalos_Ionized = 0;
   int64_t *HaloID;
   float *Mfilt; 
 
-  Halo_t Halos;
+  halo_t Halos;
   grid_t Grid;
 
 #ifdef MPI
@@ -123,17 +125,22 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  status = read_grid(snapnum, photoiondir, photoionname, &Grid); 
+  status = read_grid(SnapNum, params, &Grid); 
+  if (status == EXIT_FAILURE)
+  {
+    exit(EXIT_FAILURE);
+  }
   
-  numfiles = 1;
+  
+  params->LastFile = 0;
 #ifdef MPI  
-  for(filenr = 0 + ThisTask; filenr < numfiles; filenr += NTask)
+  for(filenr = params->FirstFile + ThisTask; filenr < params->LastFile + 1 ; filenr += NTask)
 #else
-  for(filenr = 0; filenr < numfiles; filenr++)
+  for(filenr = params->FirstFile; filenr < params->LastFile + 1; filenr++)
 #endif
   { 
 
-    status = load_tree_table(filenr, treedir, treename, &Ntrees, &totNHalos, &TreeNHalos);
+    status = load_tree_table(filenr, params, &Ntrees, &totNHalos, &TreeNHalos);
     if (status == EXIT_FAILURE)
     {
       exit(EXIT_FAILURE);
@@ -154,6 +161,12 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
       }
 
+      status = populate_halo_arrays(filenr, treenr, NHalos_ThisSnap, SnapNum, Halos, Grid, &HaloID, &Mfilt, &NHalos_Ionized);
+      if (status == EXIT_FAILURE)
+      {
+        exit(EXIT_FAILURE);
+      }
+
       free(Halos);
     } 
 
@@ -161,7 +174,12 @@ int main(int argc, char **argv)
         
   }
 
+  status = free_grid(&Grid);
+  if (status == EXIT_FAILURE)
+  {
+    exit(EXIT_FAILURE);
+  }
 
- 
+  free(params); 
   return EXIT_SUCCESS;
 } 

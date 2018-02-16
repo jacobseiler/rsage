@@ -4,6 +4,8 @@
 #include <math.h>
 #include <assert.h>
 
+#include "main.h"
+
 #define DOUBLE 1
 #define STRING 2
 #define INT 3
@@ -11,7 +13,7 @@
 
 #define MAXLEN 1024
 
-int32_t read_parameter_file(char *fname, char **treedir, char **treename, char **photoiondir, char **photoionname, char **reionredshiftname, int32_t *numfiles)
+int32_t read_parameter_file(char *fname, SAGE_params *params) 
 {
   FILE *fd;
   char buf[400], buf1[400], buf2[400], buf3[400];
@@ -21,8 +23,9 @@ int32_t read_parameter_file(char *fname, char **treedir, char **treename, char *
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
-  char treedir_tmp[MAXLEN], treename_tmp[MAXLEN], photoiondir_tmp[MAXLEN], photoionname_tmp[MAXLEN], reionredshiftname_tmp[MAXLEN];
-  int32_t FirstFile, LastFile;
+  char TreeDir_tmp[MAXLEN], TreeName_tmp[MAXLEN], PhotoionDir_tmp[MAXLEN], PhotoionName_tmp[MAXLEN], ReionRedshiftName_tmp[MAXLEN];
+  int32_t FirstFile_tmp, LastFile_tmp, GridSize_tmp;
+  double BoxSize_tmp;
 
 #ifdef MPI
   if(ThisTask == 0)
@@ -30,31 +33,39 @@ int32_t read_parameter_file(char *fname, char **treedir, char **treename, char *
   printf("\nreading parameter file:\n\n");
   
   strcpy(tag[nt], "TreeName");
-  addr[nt] = treename_tmp;
+  addr[nt] = TreeName_tmp;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "SimulationDir");
-  addr[nt] = treedir_tmp;
+  addr[nt] = TreeDir_tmp;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "PhotoionDir");
-  addr[nt] = photoiondir_tmp;
+  addr[nt] = PhotoionDir_tmp;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "PhotoionName");
-  addr[nt] = photoionname_tmp;
+  addr[nt] = PhotoionName_tmp;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "FirstFile");
-  addr[nt] = &FirstFile;
+  addr[nt] = &FirstFile_tmp;
   id[nt++] = INT;
 
   strcpy(tag[nt], "LastFile");
-  addr[nt] = &LastFile;
+  addr[nt] = &LastFile_tmp;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "GridSize");
+  addr[nt] = &GridSize_tmp;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "BoxSize");
+  addr[nt] = &BoxSize_tmp;
+  id[nt++] = DOUBLE;
+
   strcpy(tag[nt], "ReionRedshiftName");
-  addr[nt] = reionredshiftname_tmp;
+  addr[nt] = ReionRedshiftName_tmp;
   id[nt++] = STRING;
 
   if((fd = fopen(fname, "r")))
@@ -123,12 +134,20 @@ int32_t read_parameter_file(char *fname, char **treedir, char **treename, char *
   }
 	printf("\n");
 
-  *treedir = treedir_tmp;
-  *treename = treename_tmp;
-  *photoiondir = photoiondir_tmp; 
-  *photoionname = photoionname_tmp; 
-  *reionredshiftname = reionredshiftname_tmp; 
-  *numfiles = LastFile - FirstFile + 1;
+  *params = malloc(sizeof(struct SAGE_PARAMETERS));
+
+  (*params)->TreeDir = TreeDir_tmp;
+  (*params)->TreeName = TreeName_tmp;
+  (*params)->PhotoionDir = PhotoionDir_tmp;
+  (*params)->PhotoionName = PhotoionName_tmp;
+  (*params)->ReionRedshiftName = ReionRedshiftName_tmp;
+
+  (*params)->FirstFile = FirstFile_tmp;
+  (*params)->LastFile = LastFile_tmp;
+  (*params)->TreeDir = TreeDir_tmp;
+
+  (*params)->GridSize = GridSize_tmp;
+  (*params)->BoxSize = BoxSize_tmp;
 
   return EXIT_SUCCESS;
 

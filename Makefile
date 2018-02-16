@@ -8,6 +8,7 @@ OBJS  := filter_mass/main.o \
 EXECS_OBJS := filter_mass/create_filter_mass.o 
 
 INCL  := ./Makefile \
+		 filter_mass/main.h \
 		 filter_mass/read_parmater_file.h \
 		 filter_mass/tree_io.h \
 		 filter_mass/reionization.h
