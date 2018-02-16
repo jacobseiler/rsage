@@ -2,8 +2,6 @@
 from __future__ import print_function
 
 import sys
-print(sys.path)
-
 
 import numpy as np
 from numpy import *
@@ -13,24 +11,22 @@ import matplotlib
 matplotlib.use('Agg')
 
 import os
-
 import pylab as plt
-import matplotlib.colors as colors
-import matplotlib.cm as cm
-import numpy as np
+sys.path.append('/home/jseiler/SAGE-stuff/output/')
+
+import PlotScripts
+import ReadScripts
+import AllVars
+
 from random import sample, seed
 from os.path import getsize as getFileSize
 import math
 import random
 import csv
-from io import StringIO
-from collections import Counter
 from matplotlib.colors import LogNorm
 import time
-from scipy.ndimage.filters import generic_filter as gf
+
 from matplotlib.ticker import MultipleLocator
-import matplotlib.gridspec as gridspec
-import scipy.integrate as integrate
 from numpy.fft import fftn, ifftn
 import matplotlib.patheffects as PathEffects
 from astropy import units as u
@@ -41,9 +37,6 @@ from matplotlib import patches
 
 from mpi4py import MPI
 
-import PlotScripts
-import ReadScripts
-import AllVars
 
 cut_slice = 40
 output_format = ".png"
@@ -72,7 +65,7 @@ def create_redshift_grid(SnapList, GridSize, precision, xHII_base, redshift_outp
 
     print("Reionization redshift grid saved to file {0}".format(fname_out))
 
-def read_redshift_grid(SnapList,GridSize, precision, redshift_input_base, output_tag):
+def read_redshift_grid(SnapList,GridSize, precision, redshift_input_base, output_tag, output_dir="./"):
 
     fname_in = "{0}_{1}_{2}".format(redshift_input_base, SnapList[0], SnapList[-1])      
     reionization_redshift_grid = ReadScripts.read_binary_grid(fname_in, GridSize, precision, True)
@@ -91,7 +84,7 @@ def read_redshift_grid(SnapList,GridSize, precision, redshift_input_base, output
     ax1.set_xlim([0.0, AllVars.BoxSize])
     ax1.set_ylim([0.0, AllVars.BoxSize])
 
-    outputFile = "./" + output_tag + output_format
+    outputFile = "{0}{1}{2}".format(output_dir, output_tag, output_format) 
     plt.savefig(outputFile)  # Save the figure
     print('Saved file to {0}'.format(outputFile))
 

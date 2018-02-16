@@ -1,0 +1,18 @@
+The coupled SAGE/cifog pipeline will run in a number of steps.
+
+====================================
+=== Creation of Filtering Masses ===
+====================================
+
+Since we have the photoionization rates at each redshift (or will have them), we cna pre-process the dark matter halos to create a list of filtering masses irrespective of the evolution of the resident galaxy population.
+
+This code will work in the following way:
+
+After the first iteration of SAGE -> Grid -> cifog, we will need to create a file for each tree file (so in the case of Kali 64 files). This file will contain, for each snapshot, the number of dark matter halos THAT ARE LOCATED IN IONIZED REGIONS in this file for that snapshot followed by the unique halo ID and the filtering mass for this halo. Since we don't start the reionization feedback until snapshot ~27 (for Kali), the first iteration will fill the file with the following information
+
+0 0 1 0 2 0 3 0 .... 26 0 27 <Number of Halos IN IONIZED REGIONS at snapshot 27> <ID of each Halo> <Filtering Mass of each Halo> 
+
+We will determine the filtering mass of each halo by reading in the photoionization rate grid and the trees. 
+
+Subsequent iterations of the coupled code will open the file in append mode and attach the <Snapshot Number> <Number of Halos IN IONIZED REGIONS at Snapshot> <ID of each Halo> <Filtering Mass of each Halo> data. 
+
