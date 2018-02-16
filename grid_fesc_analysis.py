@@ -48,8 +48,20 @@ from scipy.integrate import quad
 m_low = 7.0 # We only sum the photons coming from halos within the mass range m_low < Halo Mass < m_high
 m_high = 15.0
 
-output_format = ".pdf"
+output_format = ".png"
 
+def my_load_data(fname):
+
+    data = ReadScripts.load_data(fname)
+    
+    snap = data[:,0]
+    fesc = data[:,1]
+    Mvir = data[:,2]
+    Ngamma = data[:,3]
+    Ngammafesc = data[:,4]            
+
+    return snap, fesc, Mvir, Ngamma, Ngammafesc
+   
 def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
 
     ax1 = plt.subplot(111)
@@ -57,13 +69,11 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
     for model_number in range(len(filename_base)):
         count = 0
         for snapshot_idx in PlotSnapshot[model_number]:
-            fname = "{0}_{1}.txt".format(filename_base[model_number], snapshot_idx)
-                                                                              
-            snap, fesc, Mvir, Ngamma, Ngammafesc = np.loadtxt(fname, unpack=True)
-
-            fname_out = "{0}_{1}".format(filename_base[model_number], snapshot_idx)
-            exit()
-
+            fname = "{0}_{1}".format(filename_base[model_number], snapshot_idx)
+                            
+            #snap, fesc, Mvir, Ngamma, Ngammafesc = ReadScripts.load_data(fname)
+            snap, fesc, Mvir, Ngamma, Ngammafesc = my_load_data(fname)
+                                                  
             Mvir = np.log10(Mvir * 1.0e10 / AllVars.Hubble_h)                   
             mean, std, N, bins_mid = AllVars.Calculate_2D_Mean(Mvir, fesc, 0.2, m_low, m_high) 
 
@@ -104,16 +114,17 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
-def plot_total_nion(SnapList, base_grid_name, GridSize, simulation_norm, plot_time, labels, OutputDir, output_tag):
+    
+def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, labels, output_tag):
 
     print("")
     print("Plotting the total number of ionizing photons") 
 
     ax1 = plt.subplot(111)
 
-    nion = np.empty((len(total_nion), len(total_nion[0])))
+    nion = np.empty((len(base_grid_name), len(SnapList[0])))
 
-    for model_number in range(0, len(total_nion)):
+    for model_number in range(0, len(base_grid_name)):
         if simulation_norm[model_number] == 0:
             cosmo = AllVars.Set_Params_Mysim()
         elif simulation_norm[model_number] == 2:
@@ -122,17 +133,18 @@ def plot_total_nion(SnapList, base_grid_name, GridSize, simulation_norm, plot_ti
             cosmo = AllVars.Set_Params_Kali()
         else:
             raise ValueError("Set simulation norm option in plot_total_nion")
-        for snapshot_idx in SnapList: 
+        for count, snapshot_idx in enumerate(SnapList[model_number]):  
             nion_path = "{0}_{1:03d}".format(base_grid_name[model_number], snapshot_idx) 
             nion_snap = ReadScripts.read_binary_grid(nion_path, GridSize[model_number], 1) * 1.0e50
-            
-            nion[model_number][snapshot_idx] = np.log10(np.sum(nion_snap) / ((AllVars.BoxSize / AllVars.Hubble_h)**3))	
+       
+            nion[model_number][count] = np.log10(np.sum(nion_snap) / ((AllVars.BoxSize / AllVars.Hubble_h)**3))	
 
-        print("The sum of ionizing photons for model {0} is {1}".format(model_number, sum(nion[model_number]))) 
         if plot_time == 1:
-            ax1.plot((AllVars.t_BigBang- cosmo.lookback_time(ZZ).value) * 1.0e3, nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
+            print ((AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number]])*1.0e3)
+            
+            ax1.plot((AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number]])*1.0e3, nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
         else:	
-            ax1.plot(ZZ, nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
+            ax1.plot(SnapList[model_number], nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
 
     bouwens_z = np.arange(6,16) # Redshift range for the observations.
     bouwens_t = (AllVars.t_BigBang - cosmo.lookback_time(bouwens_z).value) * 1.0e3 # Corresponding values for what we will plot on the x-axis.
@@ -151,7 +163,7 @@ def plot_total_nion(SnapList, base_grid_name, GridSize, simulation_norm, plot_ti
         ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
 
     if plot_time == 1:
-        ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
+        ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_labelsize)
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(PlotScripts.time_tickinterval))
         ax1.set_xlim(PlotScripts.time_xlim)
 
@@ -164,15 +176,14 @@ def plot_total_nion(SnapList, base_grid_name, GridSize, simulation_norm, plot_ti
         t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
         z_labels = ["$%d$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
 
-        print(z_labels)
-        ax2.set_xlabel(r"$z$", fontsize = label_size)
+        ax2.set_xlabel(r"$z$", fontsize = PlotScripts.global_labelsize)
         ax2.set_xlim(PlotScripts.time_xlim)
         ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
         ax2.set_xticklabels(z_labels) # But label them as redshifts.
         
     else:
-        ax1.set_xlabel(r"$z$", size = label_size)
-        ax1.set_ylabel(r"$\mathrm{log}_{10} \: \dot{N}_{\mathrm{HI}} \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$", fontsize = label_size)
+        ax1.set_xlabel(r"$z$", size = PlotScripts.global_labelsize)
+        ax1.set_ylabel(r"$\mathrm{log}_{10} \: \dot{N}_{\mathrm{HI}} \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$", fontsize = PlotScripts.global_labelsize)
         ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
         ax1.set_ylim([48.5, 51.5])
 
@@ -192,11 +203,11 @@ def plot_total_nion(SnapList, base_grid_name, GridSize, simulation_norm, plot_ti
                      labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size + 3)
+        t.set_fontsize(PlotScripts.global_legendsize)
 
     plt.tight_layout()
 
-    outputFile = OutputDir + output_tag + output_format 			
+    outputFile = "./" + output_tag + output_format 			
     plt.savefig(outputFile)  # Save the figure	
     print('Saved file to {0}'.format(outputFile))		
         
@@ -223,18 +234,20 @@ if __name__ == '__main__':
 
     AllVars.Set_Params_Kali()
     PlotScripts.Set_Params_Plot()
-    PlotSnapshot = [[93, 76, 64, 55, 42]]
+    PlotSnapshot = [[93, 76, 64, 55, 42], [93, 76, 64, 55, 42], [93, 76, 64, 55, 42]]
+    #PlotSnapshot = [[28]]
     #PlotSnapshot = [[50, 64, 76, 93], [50, 64, 76, 93]]
     #model_tags = [r"$f_\mathrm{esc} \: \propto \: \mathrm{SN}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar}$"]
-    model_tags = [r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar}$", r"$\mathrm{Quasar \: Hot \: Cold}$"]
+    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar}$", r"$\mathrm{Quasar \: Hot \: Cold}$"]
+    
+    fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_fesc0.30_HaloPartCut32_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_quasar_0.15_1.00_1.00_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_coldhot_quasar_0.20_1.00_1.00_fescproperties"]
 
-    #fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_Ejected_alpha0.700beta0.000_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_quasar_0.15_1.00_1.00_fescproperties"]
-    #fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_quasar_0.15_1.00_1.00_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_coldhot_quasar_0.15_1.00_1.00_fescproperties"]
-    #fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_quasar_0.15_1.00_1.00_fescproperties"]
-    fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_fesc0.30_HaloPartCut32_fescproperties"]
+    nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_fesc0.30_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_quasar_0.15_1.00_1.00_nion_HI", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_coldhot_quasar_0.20_1.00_1.00_nion_HI"]
+    simulation_norm = [6, 6, 6]
 
-    grid_output_to_binary(np.arange(20, 98), fname, "/lustre/projects/p004_swin/jseiler/kali/anne/")
-    #plot_fesc_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_test")     
+    #plot_nion(nion_fname, [np.arange(27, 99), np.arange(27, 99), np.arange(27,99)], [256, 256, 256], simulation_norm, 1, model_tags, "nion")
+    #grid_output_to_binary(np.arange(20, 98), fname, "/lustre/projects/p004_swin/jseiler/kali/anne/")
+    plot_fesc_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_test")     
 
 
     

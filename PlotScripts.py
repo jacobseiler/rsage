@@ -59,7 +59,7 @@ def Set_Params_Plot():
     np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
 
     #colors = ['#1b9e77','#d95f02','#7570b3', '#f03b20', '#2c7fb8']
-    colors = ['#2c7fb8','#f03b20', '#f768a1']
+    colors = ['#2c7fb8','#f03b20', '#f768a1', "r", "b", "m"]
     #colors = ['r', 'b', 'g', 'm', 'c', 'k']
     markers = ['x', 'o', '^', 's', 'D']
     linestyles = ['-', '--', '-.', ':', '-']

@@ -83,7 +83,7 @@ cut_slice = 44
 
 #cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
 #t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
-output_format = ".pdf"
+output_format = ".png"
 
 def linear_growth(z, OM, OL):
         D = (OM*((1+z)**3) / (OM*(1+z) - (OM + OL - 1)*((1+z)**2) + OM))**(4/7)
@@ -2383,7 +2383,8 @@ if __name__ == '__main__':
     #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
     #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$"]
     #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$df_\mathrm{esc} / dM_\mathrm{H} > 0$"]
-    model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
+    #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
+    model_tags = [r"$\mathrm{Kali \: Reionization \: On}$", r"$\mathrm{Kali \: Reionization \: Off}$"]
     #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$\mathrm{Quasar \: Hot \: Cold}$", r"$\mathrm{Quasar \: Cold}$"]
     #model_tags = [r"Ejectd", r"Anne MHPos", r"Anne MHNeg"]
     #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
@@ -2406,7 +2407,7 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'Kali_post_aspen'
+    model = 'Kali_reionization_comp'
 
     GridSize_model1 = 256
         
@@ -2440,9 +2441,10 @@ if __name__ == '__main__':
     filepath_model18 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_ejected_alpha0.7beta0.0"
     filepath_model19 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescquasr_0.15_1.00_1.00"
     filepath_model20 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_sphere_fesc0.30"
-   
- 
 
+    filepath_model22 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_noreionization_photHI1_sphere_fesc0.30"
+    
+ 
     ## IRA        
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_fesc0.35_HaloPartCut32_nionHI"    
     filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/Galaxies_kali_fiducial_grid256_densfieldgridding_MH_1.000e+08_0.70_1.000e+12_0.20_nionHI"
@@ -2472,6 +2474,8 @@ if __name__ == '__main__':
     filepath_nion_model20 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_fesc0.30_HaloPartCut32_nionHI"
 
     filepath_nion_model21 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_coldhot_quasar_0.15_1.00_1.00_nion_HI"
+
+    filepath_nion_model22 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_noreionization_fesc0.30_HaloPartCut32_nionHI" 
   
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
         
@@ -2482,11 +2486,11 @@ if __name__ == '__main__':
     simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1, simulation_model1]
     precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
-    ionized_cells_filepath_array = [filepath_model20, filepath_model18, filepath_model19]
+    ionized_cells_filepath_array = [filepath_model20, filepath_model22]
     #ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3, filepath_model4, filepath_model5]
     #ionized_cells_filepath_array = [filepath_model6, filepath_model7, filepath_model8, filepath_model9, filepath_model10]
     #nion_filepath_array = [filepath_nion_model6, filepath_nion_model7, filepath_nion_model8, filepath_nion_model9, filepath_nion_model10] 
-    nion_filepath_array = [filepath_nion_model20, filepath_nion_model19]
+    nion_filepath_array = [filepath_nion_model20, filepath_nion_model22]
     #nion_filepath_array = [filepath_nion_model1, filepath_nion_model3, filepath_nion_model4, filepath_nion_model5] 
     #nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3, filepath_nion_model4, filepath_nion_model5] 
     density_filepath_array = [filepath_density_model1, filepath_density_model1, filepath_density_model1]
@@ -2615,8 +2619,10 @@ if __name__ == '__main__':
                 ##### Reading in all the files. ####### 
                 #######################################
 
-
-            ionized_cells_path = ionized_cells_filepath_array[model_number] + "_%02d" %(snapshot_idx) 
+            if (model_number == 0):
+                ionized_cells_path = ionized_cells_filepath_array[model_number] + "_%02d" %(snapshot_idx)
+            else: 
+                ionized_cells_path = "{0}_{1:03d}".format(ionized_cells_filepath_array[model_number], snaplist[snapshot_idx]) 
             ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, precision_model)) 
 
             nion_path = "{0}_{1:03d}".format(nion_filepath_array[model_number], snaplist[snapshot_idx])
@@ -2728,9 +2734,9 @@ if __name__ == '__main__':
     comm.Reduce([MC_ZZ, MPI.DOUBLE], [MC_ZZ_final, MPI.DOUBLE], op = MPI.MAX, root = 0)
 
     if (rank == 0): 
-        #plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, 1, model_tags, OutputDir, "GlobalFraction_time")
+        plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, 1, model_tags, OutputDir, "GlobalFraction_time")
         plot_total_nion(ZZ, nion_total_array_final, simulation_norm, 1, model_tags, OutputDir, "QuasarCold_Paper")
-        #plot_optical_depth(ZZ, volume_frac_array_final, model_tags, OutputDir, "OpticalDepth")
+        plot_optical_depth(ZZ, volume_frac_array_final, model_tags, OutputDir, "OpticalDepth")
 
         #plot_nine_panel_slices(ZZ, ionized_cells_filepath_array, GridSize_array, simulation_norm, MC_Snaps_final, fractions_HI, model_tags, OutputDir, "3PanelSlice")
 
@@ -2749,7 +2755,7 @@ if __name__ == '__main__':
             plotting_HI = volume_frac_array 
 
     #plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
-    #plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
+    plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)
