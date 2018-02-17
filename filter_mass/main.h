@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define ABSOLUTEMAXSNAPS 999
+
 // Structs //
 struct SAGE_PARAMETERS
 {
@@ -17,8 +19,13 @@ struct SAGE_PARAMETERS
   int32_t GridSize;
   double BoxSize;
 
+  double Hubble_h;
+
+  int32_t LastSnapshotNr;
   int32_t FirstFile;
   int32_t LastFile;
+
+  double ZZ[ABSOLUTEMAXSNAPS];
  
 };
 typedef struct SAGE_PARAMETERS *SAGE_params;

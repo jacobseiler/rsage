@@ -23,9 +23,9 @@ int32_t read_parameter_file(char *fname, SAGE_params *params)
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
-  char TreeDir_tmp[MAXLEN], TreeName_tmp[MAXLEN], PhotoionDir_tmp[MAXLEN], PhotoionName_tmp[MAXLEN], ReionRedshiftName_tmp[MAXLEN];
-  int32_t FirstFile_tmp, LastFile_tmp, GridSize_tmp;
-  double BoxSize_tmp;
+  char TreeDir_tmp[MAXLEN], TreeName_tmp[MAXLEN], PhotoionDir_tmp[MAXLEN], PhotoionName_tmp[MAXLEN], ReionRedshiftName_tmp[MAXLEN], SnapListFile_tmp[MAXLEN];
+  int32_t FirstFile_tmp, LastFile_tmp, LastSnapshotNr_tmp, GridSize_tmp;
+  double BoxSize_tmp, Hubble_h_tmp;
 
 #ifdef MPI
   if(ThisTask == 0)
@@ -38,6 +38,10 @@ int32_t read_parameter_file(char *fname, SAGE_params *params)
 
   strcpy(tag[nt], "SimulationDir");
   addr[nt] = TreeDir_tmp;
+  id[nt++] = STRING;
+
+  strcpy(tag[nt], "FileWithSnapList");
+  addr[nt] = SnapListFile_tmp;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "PhotoionDir");
@@ -56,12 +60,20 @@ int32_t read_parameter_file(char *fname, SAGE_params *params)
   addr[nt] = &LastFile_tmp;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "LastSnapShotNr");
+  addr[nt] = &LastSnapshotNr_tmp;
+  id[nt++] = INT;
+
   strcpy(tag[nt], "GridSize");
   addr[nt] = &GridSize_tmp;
   id[nt++] = INT;
 
   strcpy(tag[nt], "BoxSize");
   addr[nt] = &BoxSize_tmp;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "Hubble_h");
+  addr[nt] = &Hubble_h_tmp;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "ReionRedshiftName");
@@ -139,15 +151,18 @@ int32_t read_parameter_file(char *fname, SAGE_params *params)
   (*params)->TreeDir = TreeDir_tmp;
   (*params)->TreeName = TreeName_tmp;
   (*params)->PhotoionDir = PhotoionDir_tmp;
+  (*params)->SnapListFile = SnapListFile_tmp;
   (*params)->PhotoionName = PhotoionName_tmp;
   (*params)->ReionRedshiftName = ReionRedshiftName_tmp;
 
   (*params)->FirstFile = FirstFile_tmp;
   (*params)->LastFile = LastFile_tmp;
+  (*params)->LastSnapshotNr = LastSnapshotNr_tmp;
   (*params)->TreeDir = TreeDir_tmp;
 
   (*params)->GridSize = GridSize_tmp;
   (*params)->BoxSize = BoxSize_tmp;
+  (*params)->Hubble_h = Hubble_h_tmp;
 
   return EXIT_SUCCESS;
 

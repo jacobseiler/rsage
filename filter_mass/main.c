@@ -18,6 +18,7 @@
 
 #define MAXLEN 1024
 #define	CUBE(x) (x*x*x)
+#define ABSOLUTEMAXSNAPS 999
 
 // Local Structs //
 
@@ -33,7 +34,7 @@ char *ThisNode;
 // Proto-types //
 
 int32_t parse_params(int32_t argc, char **argv);
-int32_t init(void);
+int32_t read_snap_list(SAGE_params params);
 
 // Functions //
 
@@ -85,8 +86,45 @@ int32_t parse_params(int32_t argc, char **argv)
   return EXIT_SUCCESS;
 }
 
-int32_t init()
+int32_t read_snap_list(SAGE_params params) 
 {
+
+  FILE *fd;
+  char fname[1000];
+  double AA[ABSOLUTEMAXSNAPS];
+
+  int32_t i, Snaplistlen = 0;
+
+  snprintf(fname, MAXLEN, "%s", params->SnapListFile);
+
+  printf("%s\n", fname);
+  if(!(fd = fopen(fname, "r")))
+  {
+    printf("can't read output list in file '%s'\n", fname);
+    return EXIT_FAILURE;  
+  }
+
+  Snaplistlen = 0;
+  do
+  {
+    if(fscanf(fd, " %lg ", &AA[Snaplistlen]) == 1)
+      Snaplistlen++;
+    else
+      break;
+  }
+  while(Snaplistlen < (params->LastSnapshotNr + 1));
+
+  fclose(fd);
+
+#ifdef MPI
+  if(ThisTask == 0)
+#endif
+    printf("found %d defined times in snaplist\n", Snaplistlen);
+
+  for (i = 0; i < Snaplistlen; ++i)
+  {  
+    params->ZZ[i] = 1 / AA[i] - 1;  
+  } 
 
   return EXIT_SUCCESS;
 
@@ -95,9 +133,9 @@ int32_t init()
 int main(int argc, char **argv)
 {
 
-  int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_ThisSnap = 0, NHalos_Ionized = 0;
+  int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_Ionized = 0;
   int64_t *HaloID;
-  float *Mfilt; 
+  float *reion_mod, sum_reion_mod; 
 
   halo_t Halos;
   grid_t Grid;
@@ -125,6 +163,12 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
+  status = read_snap_list(params);
+  if (status == EXIT_FAILURE)
+  {
+    exit(EXIT_FAILURE);
+  }
+
   status = read_grid(SnapNum, params, &Grid); 
   if (status == EXIT_FAILURE)
   {
@@ -146,7 +190,7 @@ int main(int argc, char **argv)
       exit(EXIT_FAILURE);
     }       
 
-    status = allocate_array_memory(totNHalos, &HaloID, &Mfilt);   
+    status = allocate_array_memory(totNHalos, &HaloID, &reion_mod);   
     if (status == EXIT_FAILURE)
     {
       exit(EXIT_FAILURE);
@@ -155,13 +199,13 @@ int main(int argc, char **argv)
     for (treenr = 0; treenr < Ntrees; ++treenr)
     {
 
-      status = load_halos(treenr, TreeNHalos[treenr], &Halos, &NHalos_ThisSnap);
+      status = load_halos(treenr, TreeNHalos[treenr], &Halos);
       if (status == EXIT_FAILURE)
       {
         exit(EXIT_FAILURE);
       }
 
-      status = populate_halo_arrays(filenr, treenr, NHalos_ThisSnap, SnapNum, Halos, Grid, &HaloID, &Mfilt, &NHalos_Ionized);
+      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], SnapNum, Halos, Grid, params, &HaloID, &reion_mod, &NHalos_Ionized, &sum_reion_mod);
       if (status == EXIT_FAILURE)
       {
         exit(EXIT_FAILURE);
@@ -170,8 +214,10 @@ int main(int argc, char **argv)
       free(Halos);
     } 
 
-    free_memory(&TreeNHalos, &HaloID, &Mfilt);
-        
+    free_memory(&TreeNHalos, &HaloID, &reion_mod);
+    
+    printf("For file %d there were %d total halos within ionized regions (out of %d halos, a ratio of %.4f). The average ionization modifier for these is %.4f\n", filenr, NHalos_Ionized, totNHalos, (float)NHalos_Ionized / (float)totNHalos, sum_reion_mod / NHalos_Ionized);
+    
   }
 
   status = free_grid(&Grid);

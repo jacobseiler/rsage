@@ -39,7 +39,7 @@ typedef struct HALO_STRUCT *halo_t;
 // Proto-Types //
 
 int32_t load_tree_table(int32_t filenr, SAGE_params params, int32_t *Ntrees, int32_t *totNHalos, int32_t **TreeNHalos);
-int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **Mfilt);   
-int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **Mfilt);   
-int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, halo_t *Halos, int32_t *NHalos_ThisSnap);      
+int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **reion_mod);   
+int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **reion_mod);   
+int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, halo_t *Halos); 
 #endif

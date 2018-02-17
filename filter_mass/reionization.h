@@ -21,7 +21,7 @@ typedef struct GRID_STRUCT *grid_t;
 
 int32_t read_grid(int32_t SnapNum, SAGE_params params, grid_t *Grid); 
 int32_t free_grid(grid_t *Grid);
-int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisSnap, int32_t ThisSnap, halo_t Halos, grid_t Grid, int64_t **HaloID, float **Mfilt, int32_t *NHalos_Ionized);
-int32_t determine_Mfilt(struct HALO_STRUCT Halo, grid_t Grid, float *filtering_mass);
+int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, halo_t Halos, grid_t Grid, SAGE_params params, int64_t **HaloID, float **reion_mod, int32_t *NHalos_Ionized, float *sum_reion_mod);
+int32_t determine_Mfilt(struct HALO_STRUCT Halo, grid_t Grid, SAGE_params params, float *filtering_mass);
 int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t GridSize, double BoxSize, int32_t *grid_1D);
 #endif

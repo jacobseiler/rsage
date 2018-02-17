@@ -44,7 +44,7 @@ int32_t load_tree_table(int32_t filenr, SAGE_params params, int32_t *Ntrees, int
 
 }
 
-int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, halo_t *Halos, int32_t *NHalos_ThisSnap)
+int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, halo_t *Halos)
 {
 
   *Halos = malloc(sizeof(struct HALO_STRUCT) * NHalos_ThisTree);
@@ -60,7 +60,7 @@ int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, halo_t *Halos, int32
 } 
 
 
-int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **Mfilt)
+int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **reion_mod)
 {
 
   *HaloID = malloc(sizeof(*(*HaloID)) * totNHalos);
@@ -70,10 +70,10 @@ int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **Mfilt
     return EXIT_FAILURE;
   }
 
-  *Mfilt = malloc(sizeof(*(*Mfilt)) * totNHalos);
-  if (*Mfilt == NULL)
+  *reion_mod = malloc(sizeof(*(*reion_mod)) * totNHalos);
+  if (*reion_mod == NULL)
   {
-    fprintf(stderr, "Could not allocate memory for Mfilt.\n");
+    fprintf(stderr, "Could not allocate memory for reion_mod.\n");
     return EXIT_FAILURE;
   } 
 
@@ -81,12 +81,12 @@ int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **Mfilt
 
 }
 
-int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **Mfilt)
+int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **reion_mod)
 {
 
   free(*TreeNHalos);
   free(*HaloID);
-  free(*Mfilt);
+  free(*reion_mod);
 
   if (forest_file)
   {

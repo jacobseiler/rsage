@@ -30,7 +30,6 @@ int32_t read_grid(int32_t SnapNum, SAGE_params params, grid_t *Grid)
   (*Grid)->NumCellsTotal = CUBE(params->GridSize);
   (*Grid)->BoxSize = params->BoxSize;
 
-
   (*Grid)->ReionRedshift = malloc(sizeof(*((*Grid)->ReionRedshift)) * (*Grid)->NumCellsTotal);   
   if ((*Grid)->ReionRedshift == NULL)
   {
@@ -83,22 +82,37 @@ int32_t free_grid(grid_t *Grid)
 
 }
  
-int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisSnap, int32_t ThisSnap, halo_t Halos, grid_t Grid, int64_t **HaloID, float **Mfilt, int32_t *NHalos_Ionized)
+int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, halo_t Halos, grid_t Grid, SAGE_params params, int64_t **HaloID, float **reion_mod, int32_t *NHalos_Ionized, float *sum_reion_mod)
 {
 
   int32_t halonr, status;
-  float Mfilt_tmp;
+  float reion_mod_tmp;
+  int64_t unique_ID;
 
-  for (halonr = 0; halonr < NHalos_ThisSnap; ++halonr)
+  for (halonr = 0; halonr < NHalos_ThisTree; ++halonr)
   {
-
-    if (Halos[halonr].SnapNum == ThisSnap)
+    if (Halos[halonr].SnapNum == ThisSnap) // Only care about halos at the snapshot specified.
     {
-      status = determine_Mfilt(Halos[halonr], Grid, &Mfilt_tmp);
+      status = determine_Mfilt(Halos[halonr], Grid, params, &reion_mod_tmp); // Determine the reionization modifier for this halo.
       if (status == EXIT_FAILURE)
       {
         return EXIT_FAILURE;
       }
+  
+      if (reion_mod_tmp > 0.9999) // Only want to save those halos with a reionization modifier (appreciably) below 1.
+      {
+        continue;
+      }
+
+      unique_ID = (int64_t) halonr << 32 | treenr; // We create a unique ID for each halo within the file by generating a 64 bit number with the left-most 32 bits being the halo number and the right-most bits being the tree number.     
+     
+      (*HaloID)[(*NHalos_Ionized)] = unique_ID;
+      (*reion_mod)[(*NHalos_Ionized)] = reion_mod_tmp;
+      (*sum_reion_mod) += reion_mod_tmp;
+
+      ++(*NHalos_Ionized);
+
+
     }
   } 
 
@@ -106,16 +120,45 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
 
 }
 
-int32_t determine_Mfilt(struct HALO_STRUCT Halo, grid_t Grid, float *filtering_mass)
+int32_t determine_Mfilt(struct HALO_STRUCT Halo, grid_t Grid, SAGE_params params, float *reionization_modifier) 
 { 
 
   int32_t status, grid_idx;
 
+  double z_reion;
+
+  double M = 3.0e9; // Fits from Sobbachi 2015.
+  double a = 0.17;
+  double b = -2.1;
+  double c = 2.0;
+  double d = 2.3;
+  double Mfilt, Mvir, PhotHI;
+  double Zcurr = params->ZZ[Halo.SnapNum]; 
+  
   status = determine_1D_idx(Halo.Pos[0], Halo.Pos[1], Halo.Pos[2], Grid->GridSize, Grid->BoxSize, &grid_idx);
   if (status == EXIT_FAILURE)
   {
     return EXIT_FAILURE;
   } 
+
+  z_reion = Grid->ReionRedshift[grid_idx]; // This is the redshift the cell was ionized at. 
+
+//  printf("z_reion %.4f \tSnapNum = %d\tz_curr = %.4f\n", z_reion, Halo.SnapNum, Zcurr);
+
+  if(Zcurr < z_reion) // Has the cell been reionized yet? 
+  {
+
+    PhotHI = Grid->PhotoRate[grid_idx]/1.0e-12; // Photoionization Rate (in units of 1e-12).
+
+    Mfilt = M * pow(PhotHI,a) * pow((1.0 + Zcurr)/10.0,b) * pow(1.0 - pow((1.0 + Zcurr)/(1.0 + z_reion), c), d);
+    Mvir = Halo.Mvir * 1.0e10 / params->Hubble_h;
+
+    *reionization_modifier = pow(2.0, -Mfilt/Mvir);
+  }
+  else
+  {
+    *reionization_modifier = 1.0;
+  }
 
   return EXIT_SUCCESS;
 
