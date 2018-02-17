@@ -10,6 +10,9 @@ struct halo_data *Halo;
 struct GRID_STRUCT
   *Grid;
 
+struct REIONMOD_STRUCT
+  *ReionList;
+
 // auxiliary halo data 
 struct halo_aux_data		
   *HaloAux;

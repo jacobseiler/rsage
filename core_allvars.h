@@ -252,8 +252,25 @@ struct halo_aux_data
 }
 *HaloAux;
 
+// For the fully self consistent model we read in a list of reionization modifiers for each halo.
+// These lists only contain those halos with a reionization modifier less than 0.9999.
+// We will read if a list for each of the previous snapshots below the one we are currently on.
+// E.g., if we are applying reionization feedback for snapshot 40, we will read in lists for snapshot 0 to 39. 
+// There is one list for each tree file.
+struct REIONMOD_STRUCT
+{
+
+  int32_t NumLists; // Will be reionization snapshot number.
+  struct REIONMOD_LIST
+  {
+    int32_t NHalos_Ionized; // Number of halos in the list.
+    int64_t *HaloID; // This is a unique ID for each tree file.  The most significant 32 bits (left-most) is the tree number, and the least significant (right-most) bits is the halonr within the tree.
+    float *ReionMod; // Reionization Modifer for each halo.
+  }*ReionMod_List; 
+}*ReionList;
+
 // Grid for doing photoionization feedback.
-// This can be multiple grids (for each redshift) or one for a single redshift.
+// This will contain multiple grids, one for each redshift. 
 struct GRID_STRUCT 
 {
 

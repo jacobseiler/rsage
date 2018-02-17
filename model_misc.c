@@ -297,11 +297,17 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 //    Gal[p].GridPhotons_HeI[SnapCurr] = Ngamma_HeI; 
 //    Gal[p].GridPhotons_HeII[SnapCurr] = Ngamma_HeII; 
 //    Gal[p].MfiltGnedin[SnapCurr] = do_reionization(centralgal, ZZ[SnapCurr], 1);
-    if (ReionizationOn == 2 || ReionizationOn == 3)
+    if (ReionizationOn == 2) 
     {  
       reionization_modifier = do_myreionization(centralgal, ZZ[SnapCurr], &MfiltSobacchi);
       Gal[p].MfiltSobacchi[SnapCurr] = MfiltSobacchi; 
     }
+    else
+    {
+      reionization_modifier = 0.0;
+      Gal[p].MfiltSobacchi[SnapCurr] = 1.0;
+    }
+
  
     if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
 	Gal[p].EjectedFraction[SnapCurr] = 0.0;

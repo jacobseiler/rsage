@@ -19,17 +19,11 @@ FILE* load_fd = NULL;
 void load_tree_table(int filenr)
 {
   int i, n, totNHalos;
-  char buf[MAXLEN], tag[MAXLEN];
+  char buf[MAXLEN];
   FILE *fd;
 
-  if(use_tiamat == 1)
-  {
-    sprintf(buf, "%s/%s_%03d.dat", SimulationDir, TreeName, filenr);
-  }
-  else
-  {  
-    snprintf(buf, MAXLEN, "%s/%s.%d", SimulationDir, TreeName, filenr);
-  }
+  snprintf(buf, MAXLEN, "%s/%s_%03d.dat", SimulationDir, TreeName, filenr);
+
   fprintf(stderr, "Reading file %s\n", buf);
   if(!(load_fd = fopen(buf, "r")))
   {
@@ -383,6 +377,29 @@ int32_t free_grid()
   return EXIT_SUCCESS;
 
 } 
+
+int32_t free_reion_lists()
+{
+
+  int32_t SnapNum;
+
+  for (SnapNum = 0; SnapNum < ReionList->NumLists; ++SnapNum)
+  {
+    if (ReionList->ReionMod_List[SnapNum].NHalos_Ionized == 0) // No lists were read for this snapshot to move along.
+    {
+      continue;
+    }
+
+    free(ReionList->ReionMod_List[SnapNum].ReionMod);
+    free(ReionList->ReionMod_List[SnapNum].HaloID);
+  }
+
+  free(ReionList->ReionMod_List);
+  free(ReionList);
+
+  return EXIT_SUCCESS;
+
+}
 
 size_t myfread(void *ptr, size_t size, size_t nmemb, FILE * stream)
 {

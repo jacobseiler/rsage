@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -116,7 +116,6 @@ void init(void)
     }
 
     //SN_Array_Len = 50;
-    fprintf(stderr, "Length of the supernova array is %d\n", SN_Array_Len);
   }
   
   mergedgal_mallocs = 0;
@@ -138,8 +137,6 @@ int32_t init_grid()
   // In the first we read the photoionization rates and redshift of reionization for ALL redshifts. //
   // Feedback is then applied to all of redshifts.  This has extensive memory requirements as assuming a 512^3 grid to float precision, then each grid will be ~0.5GB in size. //
 
-  // The second mode we read in only one sets of grids for one redshift and only apply the feedback for galaxies at this redshift. //
-  // This will be used to the super recursive mode where one redshift is updated at a time. //
 
   int32_t i; 
   FILE *photoion, *reionredshift;
@@ -174,15 +171,8 @@ int32_t init_grid()
   fread(Grid->ReionRedshift, sizeof(*(Grid->ReionRedshift)), Grid->NumCellsTotal, reionredshift);
   fclose(reionredshift);
    
-  if (ReionizationOn == 2) // This is the mode where we read everything in.
-  {
-    Grid->NumGrids = MAXSNAPS;
-  }
-  else 
-  {
-    Grid->NumGrids = 1;  
-  } 
-  
+  Grid->NumGrids = MAXSNAPS;
+    
   Grid->PhotoGrid = malloc(sizeof(struct PHOTO_GRID) * Grid->NumGrids); // Allocate enough memory to hold the photoionization grids.
   if (Grid->PhotoGrid == NULL)
   {
@@ -199,26 +189,20 @@ int32_t init_grid()
       return EXIT_FAILURE;
     }
 
-    if (ReionizationOn == 2)
+ 
+    // For some of the early snapshots we don't have photoionization grids (because ionization hasn't started yet at z=100).  
+    // Let's put a flag to know whether we have any valid data for this snapshot so we don't have to create empty grids.
+    if (i >= LowSnap && i <= HighSnap)
     {
-      // For some of the early snapshots we don't have photoionization grids (because ionization hasn't started yet at z=100).  
-      // Let's put a flag to know whether we have any valid data for this snapshot so we don't have to create empty grids.
-      if (i >= LowSnap && i <= HighSnap)
-      {
-        Grid->PhotoGrid[i].valid_grid = 1;
-      }
-      else
-      { 
-        Grid->PhotoGrid[i].valid_grid = 0;
-        printf("Snapshot %d is not a valid snapshot for reionization -- SKIPPING! --\n", i);
-        continue;
-      }
-      snprintf(buf, MAXLEN, "%s/%s_%03d", PhotoionDir, PhotoionName, i);
+      Grid->PhotoGrid[i].valid_grid = 1;
     }
     else
-    {
-      snprintf(buf, MAXLEN, "%s/%s_%03d", PhotoionDir, PhotoionName, ReionSnap);
+    { 
+      Grid->PhotoGrid[i].valid_grid = 0;
+      printf("Snapshot %d is not a valid snapshot for reionization -- SKIPPING! --\n", i);
+      continue;
     }
+    snprintf(buf, MAXLEN, "%s/%s_%03d", PhotoionDir, PhotoionName, i);
 
     if(!(photoion = fopen(buf, "rb")))
     {
@@ -236,6 +220,88 @@ int32_t init_grid()
 
   return EXIT_SUCCESS;   
 }
+
+int32_t init_reion_lists(int32_t filenr)
+{
+
+  FILE *ListFile;
+  char ListFile_name[MAXLEN];
+  int32_t SnapNum, SnapNum_Read;
+ 
+  if (ReionSnap == LowSnap) // This is the first iteration of the self-consistent run so there will be no ionization yet.
+  {
+    return EXIT_SUCCESS;
+  }
+
+  snprintf(ListFile_name, MAXLEN, "%s/reionization_modifiers/treefile_%03d", PhotoionDir, filenr);    
+
+  ListFile = fopen(ListFile_name, "rb");
+  if (ListFile == NULL)
+  {
+    fprintf(stderr, "Cannot open file %s\n", ListFile_name);
+    return EXIT_FAILURE;
+  }
+ 
+  printf("Reading in the reionization modifier lists.\n");
+ 
+  ReionList = malloc(sizeof(struct REIONMOD_STRUCT));
+  if (ReionList == NULL)
+  {
+    fprintf(stderr, "Cannot allocate memory for Reionization List struct\n");
+    return EXIT_FAILURE;
+  }
+
+  ReionList->NumLists = ReionSnap; 
+
+  ReionList->ReionMod_List = malloc(sizeof(struct REIONMOD_LIST) * ReionList->NumLists);
+
+
+
+  for (SnapNum = 0; SnapNum < ReionList->NumLists; ++SnapNum)
+  {
+
+    fread(&SnapNum_Read, sizeof(int32_t), 1, ListFile);
+
+    fread(&ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(int32_t), 1, ListFile);
+    printf("Snapshot %d has %d Halos in the list.\n", SnapNum_Read, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
+
+    if (SnapNum_Read != SnapNum)
+    { 
+      fprintf(stderr, "When attempting to read the reionization modifier lists, the read file had a snapshot number %d when we expected a number %d\n", SnapNum_Read, SnapNum);
+      return EXIT_FAILURE;
+    }
+ 
+    if (ReionList->ReionMod_List[SnapNum].NHalos_Ionized == 0) // There were no halos within ionized regions for this snapshot, reionization hasn't started or is in the beginning.
+    {
+      continue;
+    }
+   
+    ReionList->ReionMod_List[SnapNum].HaloID = malloc(sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID)) * ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
+    if (ReionList->ReionMod_List[SnapNum].HaloID == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for the HaloIDs for the Reionization Modifier lists for snapshot %d\n", SnapNum);
+      return EXIT_FAILURE;
+    }
+
+    fread(ReionList->ReionMod_List[SnapNum].HaloID, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
+
+    ReionList->ReionMod_List[SnapNum].ReionMod = malloc(sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)) * ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
+    if (ReionList->ReionMod_List[SnapNum].ReionMod == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for the ReionMods for the Reionization Modifier lists for snapshot %d\n", SnapNum);
+      return EXIT_FAILURE;
+    }
+
+    fread(ReionList->ReionMod_List[SnapNum].ReionMod, sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
+  
+    
+  }
+  fclose(ListFile);
+ 
+  return EXIT_SUCCESS;
+
+}
+
 
 void set_units(void)
 {
@@ -314,8 +380,6 @@ double time_to_present(double z)
   // return time to present as a function of redshift 
   return time;
 }
-
-
 
 double integrand_time_to_present(double a, void *param)
 {

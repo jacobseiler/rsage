@@ -52,9 +52,14 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
   {
     reionization_modifier = do_reionization(centralgal, Zcurr, 0);
   }
-  else if (ReionizationOn == 2 || ReionizationOn == 3) 
+  else if (ReionizationOn == 2) 
   {     
     reionization_modifier = do_myreionization(centralgal, Zcurr, &dummy);
+  }
+  else if (ReionizationOn == 3)
+  {
+    //reionization_modifier = read_reion_list
+    reionization_modifier = 1.0;
   }
   else
   {
@@ -106,10 +111,15 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
   {
     reionization_modifier = do_reionization(centralgal, ZZ[Halo[halonr].SnapNum], 0); 
   }
-  else if (ReionizationOn == 2 || ReionizationOn == 3) 
+  else if (ReionizationOn == 2) 
   {
     reionization_modifier = do_myreionization(centralgal, ZZ[Halo[halonr].SnapNum], &dummy);
   }
+  else if (ReionizationOn == 3)
+  {
+    reionization_modifier = 1.0;
+  }
+
   else
   {
     reionization_modifier = 1.0;
@@ -231,19 +241,12 @@ double do_myreionization(int gal, double Zcurr, double *Mfilt)
     exit(EXIT_FAILURE);
   }
 
-  z_reion = Grid->ReionRedshift[grid_position]; // This is the redshift the cell was ionized at. For ReionizationOn == 3, we only have knowledge of a single snapshot so this will be = 0 if the cell has yet to be ionized. 
+  z_reion = Grid->ReionRedshift[grid_position]; // This is the redshift the cell was ionized at. 
 
-  if((ReionizationOn == 2 && Zcurr < z_reion) || (ReionizationOn == 3 && Zcurr < z_reion && Gal[gal].SnapNum == ReionSnap)) // Has the cell been reionized yet? Note, for ReionizationOn == 3 we are only doing a single snapshot for feedback.
+  if(ReionizationOn == 2 && Zcurr < z_reion) // Has the cell been reionized yet? 
   {
-    if (ReionizationOn == 2)
-    {
-      PhotHI = Grid->PhotoGrid[Gal[gal].SnapNum].PhotoRate[grid_position]/1.0e-12; // Photoionization Rate (in units of 1e-12).
-    }
-    else
-    {             
-      PhotHI = Grid->PhotoGrid[0].PhotoRate[grid_position]/1.0e-12; // If ReionizationOn == 3 we only have a single photoionization rate grid. 
-    }
-
+    PhotHI = Grid->PhotoGrid[Gal[gal].SnapNum].PhotoRate[grid_position]/1.0e-12; // Photoionization Rate (in units of 1e-12).
+    
     my_Mfilt = M * pow(PhotHI,a) * pow((1.0 + Zcurr)/10.0,b) * pow(1.0 - pow((1.0 + Zcurr)/(1.0 + z_reion), c), d);
     Mvir = Gal[gal].Mvir * 1.0e10 / Hubble_h;
  

@@ -9,6 +9,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr);
 int  join_galaxies_of_progenitors(int halonr, int nstart);
 void init(void);
 int32_t init_grid(void);
+int32_t init_reion_lists(int32_t filenr);
 void set_units(void);
 
 void load_tree_table(int filenr);

@@ -360,6 +360,13 @@ int32_t read_parameter_file(char *fname)
     return EXIT_FAILURE;
   }
 
+  if ((ReionSnap < LowSnap || ReionSnap > HighSnap) && ReionizationOn == 3)
+  {
+    fprintf(stderr, "The reionization prescription chosen was for the self-consistent run. However the snapshot chosen for the current reionization iteration (snapshot %d) is smaller/larger than the range we are calculating over (LowSnap to SnapHigh, %d to %d).\n", ReionSnap, LowSnap, HighSnap);
+    return EXIT_FAILURE;
+  }
+  
+
   return EXIT_SUCCESS;
 
 }

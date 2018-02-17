@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 
   init();
 
-  if(ReionizationOn == 2 || ReionizationOn == 3)
+  if(ReionizationOn == 2)
   {
     status = init_grid();
     if (status == EXIT_FAILURE)
@@ -118,32 +118,25 @@ int main(int argc, char **argv)
       exit(EXIT_FAILURE);
     }
   }
-
+    
 #ifdef MPI
   for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
 #else
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
 #endif
   {
-    
-   //if(filenr == 33 || filenr == 49 || filenr == 80)
-//	continue;
 
-    if(use_tiamat == 1)
+    if (ReionizationOn == 3)
     {
-      if(filenr < 10)
-        snprintf(tag, MAXLEN, "00%d", filenr);
-      else if (filenr >= 10 && filenr < 100)
-        snprintf(tag, MAXLEN, "0%d", filenr);
-      else
-        snprintf(tag, MAXLEN, "%d", filenr);
-      snprintf(bufz0, MAXLEN, "%s/%s_%s.dat", SimulationDir, TreeName, tag);
+      status = init_reion_lists(filenr);
+      if (status == EXIT_FAILURE)
+      {
+        exit(EXIT_FAILURE);
+      }
     }
-    else
-    {
-      snprintf(bufz0, MAXLEN, "%s/%s.%d", SimulationDir, TreeName, filenr);
-    }
-
+        
+    snprintf(bufz0, MAXLEN, "%s/%s_%03d.dat", SimulationDir, TreeName, filenr);
+   
     if(!(fd = fopen(bufz0, "r")))
     {
       printf("-- missing tree %s ... skipping\n", bufz0);
@@ -208,8 +201,13 @@ int main(int argc, char **argv)
     
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
-    //break; 
-  }
+
+    if (ReionizationOn == 3)
+    {
+      status = free_reion_lists();
+    }
+
+  } // filenr loop
   XASSERT((gal_mallocs == gal_frees) && (mergedgal_mallocs == mergedgal_frees), "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees);
   exitfail = 0;
   printf("There was %d firstSF and %d notfirstSF\n", count_firstSF, count_notfirstSF);
@@ -220,10 +218,13 @@ int main(int argc, char **argv)
 
   fprintf(stderr, "Returned Mvir %d times compared to Len %d times\n", count_Mvir, count_Len);
 
-  if (ReionizationOn == 2 || ReionizationOn == 3)
+  if (ReionizationOn == 2 )
   {
     status = free_grid();
-  }
+  } 
+
+  
+
   printf("There were %ld total galaxies\n", count_gal);
   return 0;
   
