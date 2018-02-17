@@ -26,7 +26,7 @@
 // Local Variables //
 
 SAGE_params params;
-int32_t SnapNum, first_run;
+int32_t ThisSnap, first_run;
 #ifdef MPI
 int ThisTask, NTask, nodeNameLen;
 char *ThisNode;
@@ -69,7 +69,7 @@ int32_t parse_params(int32_t argc, char **argv)
     return EXIT_FAILURE;
   } 
 
-  SnapNum = atoi(argv[2]);
+  ThisSnap = atoi(argv[2]);
 
   first_run = atoi(argv[3]);
   if (first_run < 0 || first_run > 1)
@@ -80,7 +80,7 @@ int32_t parse_params(int32_t argc, char **argv)
 
   printf("\n\n");
   printf("==================================================\n");
-  printf("Executing with\nTree Directory: %s\nTree Name: %s\nNumber of Tree Files: %d\nPhotoionization Directory: %s\nPhotoionization Name: %s\nReionization Redshift Name: %s\nGridSize: %d\nSnapshot Number: %d\nFirst Run Flag: %d\n", params->TreeDir, params->TreeName, params->LastFile - params->FirstFile + 1, params->PhotoionDir, params->PhotoionName, params->ReionRedshiftName, params->GridSize, SnapNum, first_run); 
+  printf("Executing with\nTree Directory: %s\nTree Name: %s\nNumber of Tree Files: %d\nPhotoionization Directory: %s\nPhotoionization Name: %s\nReionization Redshift Name: %s\nGridSize: %d\nSnapshot Number: %d\nFirst Run Flag: %d\n", params->TreeDir, params->TreeName, params->LastFile - params->FirstFile + 1, params->PhotoionDir, params->PhotoionName, params->ReionRedshiftName, params->GridSize, ThisSnap, first_run); 
   printf("==================================================\n\n");
   printf("\n\n");
  
@@ -170,13 +170,13 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  status = read_grid(SnapNum, params, &Grid); // Read the reionization redshift and photoionization grid. 
+  status = read_grid(ThisSnap, params, &Grid); // Read the reionization redshift and photoionization grid. 
   if (status == EXIT_FAILURE)
   {
     exit(EXIT_FAILURE);
   }
    
-  params->LastFile = 0;
+  params->LastFile = 1;
 #ifdef MPI  
   for(filenr = params->FirstFile + ThisTask; filenr < params->LastFile + 1 ; filenr += NTask)
 #else
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
       }
 
       // Now time to go through all the halos in this tree, determine those at the Snapshot specified and the associate reionization modifier (if it's within an ionized cell).
-      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], SnapNum, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
+      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], ThisSnap, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
       if (status == EXIT_FAILURE)
       {
         exit(EXIT_FAILURE);
@@ -215,23 +215,23 @@ int main(int argc, char **argv)
     } 
         
     printf("For file %d there were %d total halos within ionized regions (out of %d halos in this snapshot, a ratio of %.4f). There were %d total halos with a reionization modifier lower than 1.0 (a ratio of %.4f to the total number of halos in this snapshot). The average ionization modifier for these is %.4f\n", filenr, NHalos_In_Regions, NHalos_ThisSnap, (float)NHalos_In_Regions / (float)NHalos_ThisSnap, NHalos_Ionized, (float)NHalos_Ionized / (float)NHalos_ThisSnap, sum_ReionMod / NHalos_Ionized);
-      
-    status = trim_arrays(HaloID, ReionMod, NHalos_Ionized); // Since we allocate enough memory assuming ALL halos in the tree were at the snapshot, need to trim the array to "proper" size.
+          
+    status = save_arrays(HaloID, ReionMod, params, NHalos_Ionized, filenr, ThisSnap, first_run);
     if (status == EXIT_FAILURE)
     {
       exit(EXIT_FAILURE);
     }
-    
-    printf("%ld\n", (long)HaloID[0]);  
 
-    status = save_arrays(HaloID, ReionMod, params, NHalos_Ionized, filenr, first_run);
+
+    status = read_arrays(params, filenr, ThisSnap);
     if (status == EXIT_FAILURE)
     {
       exit(EXIT_FAILURE);
     }
 
     free_memory(&TreeNHalos, &HaloID, &ReionMod);
- 
+
+    printf("\n\n"); 
   }
 
   // Everything done, time to free!
