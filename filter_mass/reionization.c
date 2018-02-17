@@ -82,7 +82,7 @@ int32_t free_grid(grid_t *Grid)
 
 }
  
-int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, halo_t Halos, grid_t Grid, SAGE_params params, int64_t **HaloID, float **reion_mod, int32_t *NHalos_Ionized, float *sum_reion_mod)
+int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, halo_t Halos, grid_t Grid, SAGE_params params, int64_t **HaloID, float **reion_mod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_reion_mod)
 {
 
   int32_t halonr, status;
@@ -93,7 +93,9 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
   {
     if (Halos[halonr].SnapNum == ThisSnap) // Only care about halos at the snapshot specified.
     {
-      status = determine_Mfilt(Halos[halonr], Grid, params, &reion_mod_tmp); // Determine the reionization modifier for this halo.
+      ++(*NHalos_ThisSnap);
+
+      status = determine_Mfilt(Halos[halonr], Grid, params, &reion_mod_tmp, NHalos_In_Regions); // Determine the reionization modifier for this halo.
       if (status == EXIT_FAILURE)
       {
         return EXIT_FAILURE;
@@ -120,7 +122,7 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
 
 }
 
-int32_t determine_Mfilt(struct HALO_STRUCT Halo, grid_t Grid, SAGE_params params, float *reionization_modifier) 
+int32_t determine_Mfilt(struct HALO_STRUCT Halo, grid_t Grid, SAGE_params params, float *reionization_modifier, int32_t *NHalos_In_Regions) 
 { 
 
   int32_t status, grid_idx;
@@ -143,11 +145,9 @@ int32_t determine_Mfilt(struct HALO_STRUCT Halo, grid_t Grid, SAGE_params params
 
   z_reion = Grid->ReionRedshift[grid_idx]; // This is the redshift the cell was ionized at. 
 
-//  printf("z_reion %.4f \tSnapNum = %d\tz_curr = %.4f\n", z_reion, Halo.SnapNum, Zcurr);
-
   if(Zcurr < z_reion) // Has the cell been reionized yet? 
   {
-
+    ++(*NHalos_In_Regions);
     PhotHI = Grid->PhotoRate[grid_idx]/1.0e-12; // Photoionization Rate (in units of 1e-12).
 
     Mfilt = M * pow(PhotHI,a) * pow((1.0 + Zcurr)/10.0,b) * pow(1.0 - pow((1.0 + Zcurr)/(1.0 + z_reion), c), d);

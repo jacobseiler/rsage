@@ -133,7 +133,7 @@ int32_t read_snap_list(SAGE_params params)
 int main(int argc, char **argv)
 {
 
-  int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_Ionized = 0;
+  int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_Ionized = 0, NHalos_In_Regions = 0, NHalos_ThisSnap = 0;
   int64_t *HaloID;
   float *reion_mod, sum_reion_mod; 
 
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
       }
 
-      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], SnapNum, Halos, Grid, params, &HaloID, &reion_mod, &NHalos_Ionized, &sum_reion_mod);
+      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], SnapNum, Halos, Grid, params, &HaloID, &reion_mod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_reion_mod);
       if (status == EXIT_FAILURE)
       {
         exit(EXIT_FAILURE);
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 
     free_memory(&TreeNHalos, &HaloID, &reion_mod);
     
-    printf("For file %d there were %d total halos within ionized regions (out of %d halos, a ratio of %.4f). The average ionization modifier for these is %.4f\n", filenr, NHalos_Ionized, totNHalos, (float)NHalos_Ionized / (float)totNHalos, sum_reion_mod / NHalos_Ionized);
+    printf("For file %d there were %d total halos within ionized regions (out of %d halos in this snapshot, a ratio of %.4f). There were %d total halos with a reionization modifier lower than 1.0 (a ratio of %.4f to the total number of halos in this snapshot). The average ionization modifier for these is %.4f\n", filenr, NHalos_In_Regions, NHalos_ThisSnap, (float)NHalos_In_Regions / (float)NHalos_ThisSnap, NHalos_Ionized, (float)NHalos_Ionized / (float)NHalos_ThisSnap, sum_reion_mod / NHalos_Ionized);
     
   }
 
