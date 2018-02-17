@@ -20,7 +20,7 @@ int32_t load_tree_table(int32_t filenr, SAGE_params params, int32_t *Ntrees, int
   snprintf(forestname, MAXLEN, "%s/%s_%03d.dat", params->TreeDir, params->TreeName, filenr);
 
   fprintf(stderr, "Reading file %s\n", forestname);
-  if(!(forest_file= fopen(forestname, "r")))
+  if(!(forest_file= fopen(forestname, "rb")))
   {
     printf("can't open file `%s'\n", forestname);
     return EXIT_FAILURE; 
@@ -60,7 +60,7 @@ int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, halo_t *Halos)
 } 
 
 
-int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **reion_mod)
+int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **ReionMod)
 {
 
   *HaloID = malloc(sizeof(*(*HaloID)) * totNHalos);
@@ -70,10 +70,10 @@ int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **reion
     return EXIT_FAILURE;
   }
 
-  *reion_mod = malloc(sizeof(*(*reion_mod)) * totNHalos);
-  if (*reion_mod == NULL)
+  *ReionMod = malloc(sizeof(*(*ReionMod)) * totNHalos);
+  if (*ReionMod == NULL)
   {
-    fprintf(stderr, "Could not allocate memory for reion_mod.\n");
+    fprintf(stderr, "Could not allocate memory for ReionMod.\n");
     return EXIT_FAILURE;
   } 
 
@@ -81,12 +81,12 @@ int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **reion
 
 }
 
-int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **reion_mod)
+int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **ReionMod)
 {
 
   free(*TreeNHalos);
   free(*HaloID);
-  free(*reion_mod);
+  free(*ReionMod);
 
   if (forest_file)
   {
@@ -98,3 +98,48 @@ int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **reion_mod)
   return EXIT_SUCCESS;
 
 }
+
+int32_t trim_arrays(int64_t *HaloID, float *ReionMod, int32_t NHalos_Ionized)
+{
+
+  int64_t *HaloID_tmp;
+  float *ReionMod_tmp;
+  int32_t i;
+
+  printf("Trimming the arrays to the number of those in the ionized regions.\n");
+
+  HaloID_tmp = malloc(sizeof(*(HaloID_tmp)) * NHalos_Ionized);
+  if (HaloID_tmp == NULL)
+  {
+    fprintf(stderr, "Cannot allocate memory for the tempory HaloID array (for the trimming\n");
+    return EXIT_FAILURE;
+  }
+
+  ReionMod_tmp = malloc(sizeof(*(ReionMod_tmp)) * NHalos_Ionized);
+  if (ReionMod_tmp == NULL)
+  {
+    fprintf(stderr, "Cannot allocate memory for the tempory ReionMod array (for the trimming\n");
+    return EXIT_FAILURE;
+  }
+
+  for (i = 0; i < NHalos_Ionized; ++i)
+  {       
+    HaloID_tmp[i] = (HaloID)[i];  
+    ReionMod_tmp[i] = (ReionMod)[i];
+  } 
+
+  printf("Freeing the originals\n"); 
+  free(HaloID);
+  free(ReionMod);
+
+  HaloID = HaloID_tmp;
+  ReionMod = ReionMod_tmp;
+
+  printf("Successfully reassigned, freeing the temp.\n");
+  free(HaloID_tmp);
+  free(ReionMod_tmp);
+
+  return EXIT_SUCCESS;
+
+} 
+

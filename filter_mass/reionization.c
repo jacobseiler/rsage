@@ -82,11 +82,11 @@ int32_t free_grid(grid_t *Grid)
 
 }
  
-int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, halo_t Halos, grid_t Grid, SAGE_params params, int64_t **HaloID, float **reion_mod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_reion_mod)
+int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, halo_t Halos, grid_t Grid, SAGE_params params, int64_t **HaloID, float **ReionMod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_ReionMod)
 {
 
   int32_t halonr, status;
-  float reion_mod_tmp;
+  float ReionMod_tmp;
   int64_t unique_ID;
 
   for (halonr = 0; halonr < NHalos_ThisTree; ++halonr)
@@ -95,22 +95,23 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
     {
       ++(*NHalos_ThisSnap);
 
-      status = determine_Mfilt(Halos[halonr], Grid, params, &reion_mod_tmp, NHalos_In_Regions); // Determine the reionization modifier for this halo.
+      status = determine_Mfilt(Halos[halonr], Grid, params, &ReionMod_tmp, NHalos_In_Regions); // Determine the reionization modifier for this halo.
       if (status == EXIT_FAILURE)
       {
         return EXIT_FAILURE;
       }
   
-      if (reion_mod_tmp > 0.9999) // Only want to save those halos with a reionization modifier (appreciably) below 1.
+      if (ReionMod_tmp > 0.9999) // Only want to save those halos with a reionization modifier (appreciably) below 1.
       {
         continue;
       }
 
       unique_ID = (int64_t) halonr << 32 | treenr; // We create a unique ID for each halo within the file by generating a 64 bit number with the left-most 32 bits being the halo number and the right-most bits being the tree number.     
-     
+    
+      printf("Unique ID for halo number %d and treenr %d is %ld\n", halonr, treenr, (long)unique_ID); 
       (*HaloID)[(*NHalos_Ionized)] = unique_ID;
-      (*reion_mod)[(*NHalos_Ionized)] = reion_mod_tmp;
-      (*sum_reion_mod) += reion_mod_tmp;
+      (*ReionMod)[(*NHalos_Ionized)] = ReionMod_tmp;
+      (*sum_ReionMod) += ReionMod_tmp;
 
       ++(*NHalos_Ionized);
 

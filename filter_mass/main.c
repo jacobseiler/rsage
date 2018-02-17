@@ -15,6 +15,7 @@
 #include "read_parameter_file.h"
 #include "tree_io.h"
 #include "reionization.h"
+#include "save.h"
 
 #define MAXLEN 1024
 #define	CUBE(x) (x*x*x)
@@ -135,7 +136,7 @@ int main(int argc, char **argv)
 
   int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_Ionized = 0, NHalos_In_Regions = 0, NHalos_ThisSnap = 0;
   int64_t *HaloID;
-  float *reion_mod, sum_reion_mod; 
+  float *ReionMod, sum_ReionMod; 
 
   halo_t Halos;
   grid_t Grid;
@@ -163,19 +164,18 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  status = read_snap_list(params);
+  status = read_snap_list(params); // Get the simulation redshifts.
   if (status == EXIT_FAILURE)
   {
     exit(EXIT_FAILURE);
   }
 
-  status = read_grid(SnapNum, params, &Grid); 
+  status = read_grid(SnapNum, params, &Grid); // Read the reionization redshift and photoionization grid. 
   if (status == EXIT_FAILURE)
   {
     exit(EXIT_FAILURE);
   }
-  
-  
+   
   params->LastFile = 0;
 #ifdef MPI  
   for(filenr = params->FirstFile + ThisTask; filenr < params->LastFile + 1 ; filenr += NTask)
@@ -183,14 +183,13 @@ int main(int argc, char **argv)
   for(filenr = params->FirstFile; filenr < params->LastFile + 1; filenr++)
 #endif
   { 
-
-    status = load_tree_table(filenr, params, &Ntrees, &totNHalos, &TreeNHalos);
+    status = load_tree_table(filenr, params, &Ntrees, &totNHalos, &TreeNHalos); // Loads the table for this file.
     if (status == EXIT_FAILURE)
     {
       exit(EXIT_FAILURE);
     }       
 
-    status = allocate_array_memory(totNHalos, &HaloID, &reion_mod);   
+    status = allocate_array_memory(totNHalos, &HaloID, &ReionMod); // Memory for the output arrays. 
     if (status == EXIT_FAILURE)
     {
       exit(EXIT_FAILURE);
@@ -199,13 +198,14 @@ int main(int argc, char **argv)
     for (treenr = 0; treenr < Ntrees; ++treenr)
     {
 
-      status = load_halos(treenr, TreeNHalos[treenr], &Halos);
+      status = load_halos(treenr, TreeNHalos[treenr], &Halos); // Loads the halos for this tree.
       if (status == EXIT_FAILURE)
       {
         exit(EXIT_FAILURE);
       }
 
-      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], SnapNum, Halos, Grid, params, &HaloID, &reion_mod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_reion_mod);
+      // Now time to go through all the halos in this tree, determine those at the Snapshot specified and the associate reionization modifier (if it's within an ionized cell).
+      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], SnapNum, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
       if (status == EXIT_FAILURE)
       {
         exit(EXIT_FAILURE);
@@ -213,12 +213,28 @@ int main(int argc, char **argv)
 
       free(Halos);
     } 
+        
+    printf("For file %d there were %d total halos within ionized regions (out of %d halos in this snapshot, a ratio of %.4f). There were %d total halos with a reionization modifier lower than 1.0 (a ratio of %.4f to the total number of halos in this snapshot). The average ionization modifier for these is %.4f\n", filenr, NHalos_In_Regions, NHalos_ThisSnap, (float)NHalos_In_Regions / (float)NHalos_ThisSnap, NHalos_Ionized, (float)NHalos_Ionized / (float)NHalos_ThisSnap, sum_ReionMod / NHalos_Ionized);
+      
+    status = trim_arrays(HaloID, ReionMod, NHalos_Ionized); // Since we allocate enough memory assuming ALL halos in the tree were at the snapshot, need to trim the array to "proper" size.
+    if (status == EXIT_FAILURE)
+    {
+      exit(EXIT_FAILURE);
+    }
+    
+    printf("%ld\n", (long)HaloID[0]);  
 
-    free_memory(&TreeNHalos, &HaloID, &reion_mod);
-    
-    printf("For file %d there were %d total halos within ionized regions (out of %d halos in this snapshot, a ratio of %.4f). There were %d total halos with a reionization modifier lower than 1.0 (a ratio of %.4f to the total number of halos in this snapshot). The average ionization modifier for these is %.4f\n", filenr, NHalos_In_Regions, NHalos_ThisSnap, (float)NHalos_In_Regions / (float)NHalos_ThisSnap, NHalos_Ionized, (float)NHalos_Ionized / (float)NHalos_ThisSnap, sum_reion_mod / NHalos_Ionized);
-    
+    status = save_arrays(HaloID, ReionMod, params, NHalos_Ionized, filenr, first_run);
+    if (status == EXIT_FAILURE)
+    {
+      exit(EXIT_FAILURE);
+    }
+
+    free_memory(&TreeNHalos, &HaloID, &ReionMod);
+ 
   }
+
+  // Everything done, time to free!
 
   status = free_grid(&Grid);
   if (status == EXIT_FAILURE)
