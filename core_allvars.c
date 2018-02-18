@@ -66,7 +66,6 @@ double BoxSize;
 int GridSize;
 double EnergySNcode, EnergySN;
 double EtaSNcode, EtaSN;
-int use_tiamat;
 
 // recipe flags 
 int ReionizationOn;

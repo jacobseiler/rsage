@@ -70,7 +70,6 @@ int main(int argc, char **argv)
 
   struct stat filestatus;
   FILE *fd;
-  char tag[MAXLEN];
 
   int32_t status;
 
@@ -136,6 +135,7 @@ int main(int argc, char **argv)
     }
         
     snprintf(bufz0, MAXLEN, "%s/%s_%03d.dat", SimulationDir, TreeName, filenr);
+    //snprintf(bufz0, MAXLEN, "%s/%s.%d", SimulationDir, TreeName, filenr);
    
     if(!(fd = fopen(bufz0, "r")))
     {
@@ -222,9 +222,7 @@ int main(int argc, char **argv)
   {
     status = free_grid();
   } 
-
   
-
   printf("There were %ld total galaxies\n", count_gal);
   return 0;
   

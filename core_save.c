@@ -18,8 +18,7 @@ FILE* save_fd2 = NULL;
 void save_galaxies(int filenr, int tree)
 {
   char buf[1000];
-  int i, n;
-  //struct GALAXY_OUTPUT galaxy_output;
+  int32_t i, n, max_snap, j;
 
   int OutputGalCount[MAXSNAPS], *OutputGalOrder;
   
@@ -51,9 +50,7 @@ void save_galaxies(int filenr, int tree)
   
   // now prepare and write galaxies
   for(n = 0; n < NOUT; n++)
-  {
-
-    
+  {    
     // only open the file if it is not already open.
     if( !save_fd[n] )
     {
@@ -72,22 +69,34 @@ void save_galaxies(int filenr, int tree)
 			fwrite( tmp_buf, sizeof(int), Ntrees + 2, save_fd[n] );
 			free( tmp_buf );
 		}
-
-     
+    
+    // There are some galaxies that aren't at the root redshift but do not have any descendants.
+    // This block of code catches these excepetions.
+    // A more detailed comment on this is located in the 'free_galaxies_and_tree' function in 'core_io_tree.c'. 
+ 
     for(i = 0; i < NumGals; i++)
     {
-      if(HaloGal[i].SnapNum == ListOutputSnaps[n]) 
-      { 	       
-      
-        //prepare_galaxy_for_output(filenr, tree, &HaloGal[i], &galaxy_output);
-        //myfwrite(&galaxy_output, sizeof(struct GALAXY_OUTPUT), 1, save_fd[n]);
-        write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
-       	TotGalaxies[n]++;
-        TreeNgals[n][tree]++;
+      max_snap = 0;
 
+      if(HaloGal[i].IsMerged != -1)
+        continue;
+      for(j = 1; j < MAXSNAPS; ++j)
+      {
+        if(HaloGal[i].GridHistory[j] != -1)
+        {    
+          max_snap = j;
+        } 
       }
-    }
-  }
+
+      if(HaloGal[i].SnapNum == max_snap && Halo[HaloGal[i].HaloNr].Descendant == -1)
+      {
+          write_gridarray(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
+          TotGalaxies[n]++;
+          TreeNgals[n][tree]++;          
+      } 
+
+    } // NumGals loop.
+  } // NOUT loop.
 
   // don't forget to free the workspace.
   free( OutputGalOrder );
@@ -233,6 +242,8 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   ++count;
   
   nwritten = fwrite(&g->HaloNr, sizeof(g->HaloNr), 1, fp);
+
+  fwrite(&g->mergeType, sizeof(g->mergeType), 1, fp);
  
   XASSERT(g->IsMalloced == 1, "We are trying to write out the grid arrays for a galaxies who has already been freed.\n");
  

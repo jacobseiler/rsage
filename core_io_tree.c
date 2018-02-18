@@ -23,6 +23,7 @@ void load_tree_table(int filenr)
   FILE *fd;
 
   snprintf(buf, MAXLEN, "%s/%s_%03d.dat", SimulationDir, TreeName, filenr);
+  //snprintf(buf, MAXLEN, "%s/%s.%d", SimulationDir, TreeName, filenr);
 
   fprintf(stderr, "Reading file %s\n", buf);
   if(!(load_fd = fopen(buf, "r")))
