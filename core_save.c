@@ -367,6 +367,11 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   nwritten = fwrite(g->GridColdGas, sizeof(*(g->GridColdGas)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing GridColdGas, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
+
+  XASSERT(g->LenMergerGal != NULL, "LenMergerGal has a NULL pointer.\n"); 
+  nwritten = fwrite(g->LenMergerGal, sizeof(*(g->LenMergerGal)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing LenMergerGal, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
  
   ++times_written;
 

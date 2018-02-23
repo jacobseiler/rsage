@@ -73,6 +73,7 @@ void init(void)
   }
  
   // Testing Parameters //
+
   /*
   V_energy = 70.0;
   alpha_energy = 1.80; 
@@ -87,13 +88,17 @@ void init(void)
 
   V_energy = 70.0;
   alpha_energy = 0.5;
-  beta_energy = 2.0;
+  //beta_energy = 2.0;
+  beta_energy = 10.0;
 
   V_mass = 70.0; 
   alpha_mass = 6.0; 
-  beta_mass = 0.0; 
+  //beta_mass = 0.0; 
+  beta_mass = 10.0; 
 
-  epsilon_mass_max = 10.0;
+  epsilon_mass_max = 30.0;
+
+  //
 
   count_firstSF = 0;
   count_notfirstSF = 0;

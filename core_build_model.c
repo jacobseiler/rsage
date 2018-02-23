@@ -408,8 +408,6 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
   } // Go on to the next STEPS substep
 
-  
-
   for(p = 0; p < ngal; ++p)
   { 
     if (Gal[p].mergeType > 0) continue; // Merged galaxies have already had their grid properties updated.

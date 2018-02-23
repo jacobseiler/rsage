@@ -222,7 +222,8 @@ struct GALAXY
   float *DynamicalTime; 
   int *QuasarSubstep;
   float *GridColdGas;
-
+  int *LenMergerGal;
+   
   double StellarAge_Numerator;
   double StellarAge_Denominator;
   double Total_SF_Time;
@@ -335,7 +336,6 @@ extern int GridSize;
 extern double Hubble_h;
 extern double EnergySNcode, EnergySN;
 extern double EtaSNcode, EtaSN;
-extern int use_tiamat;
 
 // recipe flags 
 extern int    ReionizationOn;
@@ -454,4 +454,5 @@ extern long count_gal;
 
 extern int32_t LowSnap;
 extern int32_t HighSnap;
+
 #endif  // #ifndef ALLVARS_H

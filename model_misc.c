@@ -114,6 +114,7 @@ void init_galaxy(int p, int halonr)
     Gal[p].DynamicalTime[j] = 0.0;
     Gal[p].QuasarSubstep[j] = -1;
     Gal[p].GridColdGas[j] = 0.0;
+    Gal[p].LenMergerGal[j] = -1;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)

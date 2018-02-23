@@ -23,6 +23,7 @@ void free_galaxies_and_tree(void);
 void free_grid_arrays(struct GALAXY *g);
 void free_tree_table(void);
 int32_t free_grid(void);
+int32_t free_reion_lists(void);
 void malloc_grid_arrays(struct GALAXY *g);
 void print_allocated(void);
 
@@ -52,7 +53,7 @@ double do_reionization(int centralgal, double Zcurr, int ReturnMfilt);
 double do_myreionization(int centralgal, double Zcurr, double *Mfilt);
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree, int ngal);
-void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal);
+void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal, bool update_stars);
 void update_from_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double metallicity);
 void make_bulge_from_burst(int p);
 void grow_black_hole(int merger_centralgal, double mass_ratio, int32_t step);

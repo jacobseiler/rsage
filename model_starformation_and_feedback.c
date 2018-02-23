@@ -70,7 +70,7 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
 }
 
 
-void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal) 
+void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal, bool update_stars) 
 {
 
 //  if(tree == 476)
@@ -94,8 +94,25 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
 
   }
 
-  if(IRA == 0) 
+  if(update_stars == true)
+  {
+    if (ismerger == true)
+    { 
+      update_stars_array(p, stars, 0.0, tree, step, ngal); // When we add the stars from a merger to the stars array, we don't want to increase the time spanned.
+    }
+    else
+    {
       update_stars_array(p, stars, dt, tree, step, ngal);
+    }
+  }
+
+
+  /*
+  if (update_stars == true)
+  {
+    update_stars_array(p, stars, dt, tree, step, ngal);
+  }
+  */
 
   // update gas and metals from star formation 
   Gal[p].ColdGas -= stars;
@@ -190,11 +207,16 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   // If this galaxy has evolved for the time defined by 'TimeResolutionSN' and 'IRA' is 0, then we perform the delayed SN feedback.
   // i.e., the delayed prescription is only implemented every 'TimeResolutionSN' Megayears.
 
-
   if(IRA == 0)
   {
     do_previous_recycling(p, centralgal, step, dt); 
-    update_from_SN_feedback(p, centralgal, Gal[p].reheated_mass / STEPS, Gal[p].ejected_mass / STEPS, Gal[p].mass_stars_recycled / STEPS, Gal[p].mass_metals_new / STEPS, dt);
+    update_from_SN_feedback(p, centralgal, Gal[p].reheated_mass / (STEPS-step), Gal[p].ejected_mass / (STEPS-step), Gal[p].mass_stars_recycled / (STEPS-step), Gal[p].mass_metals_new / (STEPS-step), dt);
+
+    Gal[p].reheated_mass -= Gal[p].reheated_mass / (STEPS-step);
+    Gal[p].ejected_mass -= Gal[p].ejected_mass / (STEPS-step);
+    Gal[p].mass_stars_recycled -= Gal[p].mass_stars_recycled / (STEPS-step);
+    Gal[p].mass_metals_new -= Gal[p].mass_metals_new / (STEPS-step);
+
   }
 
   // star formation recipes 
@@ -206,7 +228,8 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 
     // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h 
     cold_crit = 0.19 * Gal[p].Vvir * reff;
-    //fprintf(stderr, "cold_crit = %.4e, ColdGas = %.4e, Vvir = %.4e, reff = %.4e\n", cold_crit, Gal[p].ColdGas, Gal[p].Vvir, reff);
+    //if (Gal[p].ColdGas > 0.005 && Gal[p].SnapNum == 94)
+     // fprintf(stderr, "SnapNum = %d\tcold_crit = %.4e\tColdGas = %.4e\tVvir = %.4e\treff = %.4e\n", Gal[p].SnapNum, cold_crit * 1.0e10 /Hubble_h, Gal[p].ColdGas * 1.0e10 / Hubble_h, Gal[p].Vvir, reff);
     if(Gal[p].ColdGas > cold_crit && tdyn > 0.0)
     	strdot = SfrEfficiency * (Gal[p].ColdGas - cold_crit) / tdyn;
     else
@@ -232,7 +255,6 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
     else if(IRA == 1)
     {
       do_IRA_SN(p, centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
-//      mass_stars_recycled = 0.0; // We deal with the Recycled Stars in the 'update_from_star_formation' routine.
     } 
 
   } 
@@ -243,7 +265,11 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
     stars *= factor; 
   }
   
-  update_from_star_formation(p, stars, dt, step, false, tree, ngal); 
+  if (IRA == 0) 
+    update_from_star_formation(p, stars, dt, step, false, tree, ngal, false);
+  else
+    update_from_star_formation(p, stars, dt, step, false, tree, ngal, true);
+ 
   update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, dt);
 
   // check for disk instability
@@ -603,7 +629,7 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
   double fac;
  
   if(dt * UnitTime_in_Megayears / Hubble_h / 2.0 < TimeResolutionSN) // If the star formation time scale is smaller than the time scale on which we do SN feedback
-    t_low = (TimeResolutionSN - Gal[p].Total_SF_Time) / 2.0; // Then our 'sub-grid' SN feedback time will be the time from this SF episode until we next calculate SN feedback (divided by 2 as we assume the stars are formed in the middle of the interval).
+    t_low = (TimeResolutionSN - Gal[p].Total_SF_Time); // Then our 'sub-grid' SN feedback time will be the time from this SF episode until we next calculate SN feedback (divided by 2 as we assume the stars are formed in the middle of the interval).
   else // Otherwise the star formation time scale is larger than the SN feedback time scale.
     t_low  = (dt * UnitTime_in_Megayears / Hubble_h) / 2.0; // Then the feedback time will be the time from this SF event to the next star formation event. This is because SN feedback is only calculated when star formation occurs regardless of the actual value of 'TimeResolutionSN'. 
     

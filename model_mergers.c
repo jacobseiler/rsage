@@ -58,20 +58,22 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
     ma = Gal[p].StellarMass + Gal[p].ColdGas;
   }
 
+  Gal[merger_centralgal].LenMergerGal[Halo[Gal[merger_centralgal].HaloNr].SnapNum] = Gal[p].Len;
+
   if(ma > 0)
     mass_ratio = mi / ma;
   else
     mass_ratio = 1.0;
   add_galaxies_together(merger_centralgal, p);
 
+  // starburst recipe similar to Somerville et al. 2001
+  collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step, tree, ngal);
+
   // grow black hole through accretion from cold disk during mergers, a la Kauffmann & Haehnelt (2000) 
   if(AGNrecipeOn)
   {
     grow_black_hole(merger_centralgal, mass_ratio, step);
   }
-
-  // starburst recipe similar to Somerville et al. 2001
-  collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step, tree, ngal);
 
   if(mass_ratio > 0.1)
 		Gal[merger_centralgal].TimeOfLastMinorMerger = time;
@@ -87,11 +89,9 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
     Gal[p].mergeType = 1;  // mark as minor merger
   }
 
-  Gal[p].CentralGal = merger_centralgal;  
-
+  Gal[p].CentralGal = merger_centralgal; 
+ 
 }
-
-
 
 void grow_black_hole(int merger_centralgal, double mass_ratio, int32_t step)
 {
@@ -117,40 +117,105 @@ void grow_black_hole(int merger_centralgal, double mass_ratio, int32_t step)
   }
 }
 
-
-
 void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
 {
-  float quasar_energy, cold_gas_energy, hot_gas_energy;
+  float quasar_energy, cold_gas_energy, hot_gas_energy, cold_energy_ratio, remaining_energy, hot_energy_ratio;
+  int32_t fractional_ejection = 0;
 
   // work out total energies in quasar wind (eta*m*c^2), cold and hot gas (1/2*m*Vvir^2)
+  
   quasar_energy = QuasarModeEfficiency * 0.1 * BHaccrete * (C / UnitVelocity_in_cm_per_s) * (C / UnitVelocity_in_cm_per_s);
   cold_gas_energy = 0.5 * Gal[gal].ColdGas * Gal[gal].Vvir * Gal[gal].Vvir;
   hot_gas_energy = 0.5 * Gal[gal].HotGas * Gal[gal].Vvir * Gal[gal].Vvir;
+
+  /*
+  if (Halo[Gal[gal].HaloNr].SnapNum == 76)  
+  {
+    printf("BHaccrete = %.4e\tQuasar Energy = %.4e\tColdGas = %.4e\tCold Gas Energy = %.4e\tHotGas = %.4e\tHot Gas Energy = %.4e\tCold+Hot Energy = %.4e\n", BHaccrete, quasar_energy, Gal[gal].ColdGas, cold_gas_energy, Gal[gal].HotGas, hot_gas_energy, cold_gas_energy+hot_gas_energy);
+    if (quasar_energy > cold_gas_energy + hot_gas_energy)
+      printf("YES!\n");
+
+  }
+  */
+
+  cold_energy_ratio = quasar_energy / cold_gas_energy;
+
+  if (fractional_ejection == 1)
+  {
+    if (cold_energy_ratio > 1.0)
+    {
+      Gal[gal].EjectedMass += Gal[gal].ColdGas;
+      Gal[gal].MetalsEjectedMass += Gal[gal].MetalsColdGas;
+
+      Gal[gal].ColdGas = 0.0;
+      Gal[gal].MetalsColdGas = 0.0;
+
+      remaining_energy = quasar_energy - cold_gas_energy;
+      hot_energy_ratio = remaining_energy / hot_gas_energy;
+     
+      if (hot_energy_ratio > 1.0)
+      {
+        Gal[gal].EjectedMass += Gal[gal].HotGas;
+        Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas; 
+
+        Gal[gal].HotGas = 0.0;
+        Gal[gal].MetalsHotGas = 0.0;
+
+        Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject all of the cold gas and 50% of the hot gas. 
+        Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
+
+      }
+      else
+      {
+        Gal[gal].EjectedMass += Gal[gal].HotGas * hot_energy_ratio;
+        Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas * hot_energy_ratio; 
+
+        Gal[gal].HotGas -= Gal[gal].HotGas * hot_energy_ratio;
+        Gal[gal].MetalsHotGas -= Gal[gal].HotGas * hot_energy_ratio;
    
-  // compare quasar wind and cold gas energies and eject cold
-  if(quasar_energy > cold_gas_energy)
-  {
-    Gal[gal].EjectedMass += Gal[gal].ColdGas;
-    Gal[gal].MetalsEjectedMass += Gal[gal].MetalsColdGas;
+      } 
 
-    Gal[gal].ColdGas = 0.0;
-    Gal[gal].MetalsColdGas = 0.0;
+    }
+    else
+    {
+        Gal[gal].EjectedMass += Gal[gal].ColdGas * cold_energy_ratio;
+        Gal[gal].MetalsEjectedMass += Gal[gal].MetalsColdGas * cold_energy_ratio;
 
+        Gal[gal].ColdGas -= Gal[gal].ColdGas * cold_energy_ratio;
+        Gal[gal].MetalsColdGas -= Gal[gal].MetalsColdGas * cold_energy_ratio;  
+
+    }
   }
-  
-  // compare quasar wind and cold+hot gas energies and eject hot
-  if(quasar_energy > cold_gas_energy + hot_gas_energy)
+  else
   {
-    Gal[gal].EjectedMass += Gal[gal].HotGas;
-    Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas; 
 
-    Gal[gal].HotGas = 0.0;
-    Gal[gal].MetalsHotGas = 0.0;
 
-    Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject cold gas.
-    Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
+    // compare quasar wind and cold gas energies and eject cold
+    if(quasar_energy > cold_gas_energy)
+    {
+      Gal[gal].EjectedMass += Gal[gal].ColdGas;
+      Gal[gal].MetalsEjectedMass += Gal[gal].MetalsColdGas;
+
+      Gal[gal].ColdGas = 0.0;
+      Gal[gal].MetalsColdGas = 0.0;
+    }
+    
+    // compare quasar wind and cold+hot gas energies and eject hot
+    if(quasar_energy > cold_gas_energy + hot_gas_energy)
+    {
+
+        Gal[gal].EjectedMass += Gal[gal].HotGas;
+        Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas; 
+
+        Gal[gal].HotGas = 0.0;
+        Gal[gal].MetalsHotGas = 0.0;
+
+      Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject cold+hot gas.
+      Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
+
+    }
   }
+
 }
 
 
@@ -234,8 +299,6 @@ void make_bulge_from_burst(int p)
   }
 }
 
-
-
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree, int ngal)
 {
   double stars, eburst;
@@ -247,21 +310,18 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
   // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more accurate then previous. 
 
+//  if (Gal[merger_centralgal].LenMergerGal[Halo[Gal[merger_centralgal].HaloNr].SnapNum] < 32)
+//    return;
+
   // the bursting fraction 
   if(mode == 1)
     eburst = mass_ratio;
   else
-    eburst = 0.56 * pow(mass_ratio, 0.7);
+    eburst = 0.56 * pow(mass_ratio, 0.7); // (1 + ZZ[Gal[merger_centralgal].SnapNum]);
 
-
-  stars = eburst * Gal[merger_centralgal].ColdGas;
+  stars = eburst * Gal[merger_centralgal].ColdGas ;
   if(stars < 0.0)
     stars = 0.0;
-
-  if (Gal[merger_centralgal].GalaxyNr == 406 && Halo[Gal[merger_centralgal].HaloNr].SnapNum == 64 && Gal[merger_centralgal].QuasarActivity[64] == 1)
-  {
-    printf("GalaxyNr = %d\tColdGas = %.4f\tStars = %.4f\n", Gal[merger_centralgal].GalaxyNr, Gal[merger_centralgal].ColdGas, stars);
-  }
 
   if(SupernovaRecipeOn == 1)
   {    
@@ -269,6 +329,8 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
       do_contemporaneous_SN(centralgal, merger_centralgal, dt, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
     else if(IRA == 1)
       do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
+
+    //do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
    
   } 
   
@@ -278,7 +340,13 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     stars *= factor; 
   }
 
-  update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal); 
+  if (IRA == 0)
+    update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, false); 
+  else
+    update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, true);
+
+  //update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, false); 
+ 
   update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, dt);
 
   // check for disk instability
@@ -287,8 +355,6 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     check_disk_instability(merger_centralgal, centralgal, halonr, time, dt, step, tree, ngal);
 
 }
-
-
 
 void disrupt_satellite_to_ICS(int centralgal, int gal, int tree)
 {
@@ -339,6 +405,7 @@ void add_galaxy_to_merger_list(int p)
       MergedGal[MergedNr].DynamicalTime[j] = Gal[p].DynamicalTime[j];
       MergedGal[MergedNr].QuasarSubstep[j] = Gal[p].QuasarSubstep[j];
       MergedGal[MergedNr].GridColdGas[j] = Gal[p].GridColdGas[j];
+      MergedGal[MergedNr].LenMergerGal[j] = Gal[p].LenMergerGal[j];
        
     }
  
