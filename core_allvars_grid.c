@@ -137,3 +137,5 @@ float *TargetQuasarTime;
 float *QuasarBoostActiveTime;
 float *QuasarFractionalPhoton;
 
+int QuasarEventsAbovePartCut;
+int QuasarEventsBelowPartCut;

@@ -277,6 +277,9 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
     *Ngamma_HeII = log10(SFR) + 47.939;
   }
 
+
+  *Ngamma_HI = log10(SFR) + 53.041;
+
   if (SFR != 0)
   {
     assert(*Ngamma_HI > 0.0);
@@ -429,11 +432,20 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
 
   if (GalGrid[gal_idx].QuasarActivity[snapshot_idx] == 1) // A quasar has gone off during this snapshot, time to update properties.
   {
-    ++QuasarActivityToggle[gal_idx]; // Note, we plus one because we want to be able to handle the case of a quasar going off when the galaxy still is being boosted. 
-    QuasarSnapshot[gal_idx] = snapshot_idx;
-    TargetQuasarTime[gal_idx] = GalGrid[gal_idx].DynamicalTime[snapshot_idx] * N_dyntime; // How long the quasar will be boosted for.   
-    QuasarActivitySubstep[gal_idx] = GalGrid[gal_idx].QuasarSubstep[snapshot_idx]; // What substep did the quasar go off?
-    QuasarBoostActiveTime[gal_idx] = 0.0; // How long the quasar boosting has been active for.
+    if (GalGrid[gal_idx].LenMergerGal[snapshot_idx] > HaloPartCut)
+    {
+      ++QuasarActivityToggle[gal_idx]; // Note, we plus one because we want to be able to handle the case of a quasar going off when the galaxy still is being boosted. 
+      QuasarSnapshot[gal_idx] = snapshot_idx;
+      TargetQuasarTime[gal_idx] = GalGrid[gal_idx].DynamicalTime[snapshot_idx] * N_dyntime; // How long the quasar will be boosted for.   
+      QuasarActivitySubstep[gal_idx] = GalGrid[gal_idx].QuasarSubstep[snapshot_idx]; // What substep did the quasar go off?
+      QuasarBoostActiveTime[gal_idx] = 0.0; // How long the quasar boosting has been active for.
+
+      ++QuasarEventsAbovePartCut;
+    }
+    else
+    {
+      ++QuasarEventsBelowPartCut;
+    }
   }
 
   if (QuasarActivityToggle[gal_idx] > 0) // This galaxy is having its escape fraction boosted, check to see if we need to turn it off.

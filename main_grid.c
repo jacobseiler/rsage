@@ -153,6 +153,8 @@ int main(int argc, char **argv)
     printf("Done File %d.\n\n", filenr);
 
   } // File Loop.
+
+  printf("There were %d quasar activity events in which the merged gal was above the halo part cut compared to %d below.\n", QuasarEventsAbovePartCut, QuasarEventsBelowPartCut); 
   
 #ifdef MPI
   

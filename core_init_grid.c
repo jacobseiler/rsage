@@ -90,6 +90,10 @@ int32_t init(void)
 
   return EXIT_SUCCESS;
 
+
+  QuasarEventsAbovePartCut = 0;
+  QuasarEventsBelowPartCut = 0;
+
 }
 
 

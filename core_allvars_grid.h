@@ -138,7 +138,8 @@ struct GALAXY_INPUT
 
 struct GALAXY_GRID
 { 
-  int HaloNr;  
+  int HaloNr; 
+  int mergeType;
   int *History; // Integers that describe the grid position at every redshift.
   float *StellarMass; // Units of 1.0e10 Msun/h.
   float *SFR; // Units of Msun yr^-1
@@ -155,6 +156,7 @@ struct GALAXY_GRID
   float *DynamicalTime;
   int *QuasarSubstep;
   float *ColdGas;
+  int *LenMergerGal;
 
 }*GalGrid;
 
@@ -352,4 +354,6 @@ extern float *TargetQuasarTime;
 extern float *QuasarBoostActiveTime;
 extern float *QuasarFractionalPhoton;
 
+extern int QuasarEventsAbovePartCut;
+extern int QuasarEventsBelowPartCut;
 #endif

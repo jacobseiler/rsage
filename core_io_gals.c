@@ -73,6 +73,7 @@ int32_t load_gals(char *fname)
   {
 
     fread(&GalGrid[i].HaloNr, sizeof(int), 1, infile); 
+    fread(&GalGrid[i].mergeType, sizeof(int), 1, infile); 
  
     GalGrid[i].History = malloc(sizeof(*(GalGrid[i].History)) * MAXSNAPS);
     if (GalGrid[i].History == NULL)
@@ -202,11 +203,19 @@ int32_t load_gals(char *fname)
     }
     fread(GalGrid[i].ColdGas, sizeof(*(GalGrid[i].ColdGas)), MAXSNAPS, infile);
 
+    GalGrid[i].LenMergerGal= malloc(sizeof(*(GalGrid[i].LenMergerGal)) * MAXSNAPS);
+    if (GalGrid[i].LenMergerGal == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.LenMergerGal for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
+    fread(GalGrid[i].LenMergerGal, sizeof(*(GalGrid[i].LenMergerGal)), MAXSNAPS, infile);
+
 #ifdef DEBUG_GALS
-    if (i == 0)
+    if (i == 53)
     {
       int tmp = MAXSNAPS - 1;
-      printf("History[Final] = %d\tStellarMass = %.4f\tSFR = %.4f\tZ = %.4f\tCentralGalaxyMass = %.4f\tMfiltGnedin = %.4f\tMfiltSobacchi = %.4f\tEjectedFraction = %.4f\tLenHistory = %d\tOutflowRate = %.4f\tInfallRate = %.4f\tEjectedMass = %.4f\tQuasarActivity = %d\tDynamicalTime = %.4f\tQuasarSubstep = %d\tColdGas = %.4f\n", GalGrid[i].History[tmp], GalGrid[i].StellarMass[tmp], GalGrid[i].SFR[tmp], GalGrid[i].Z[tmp], GalGrid[i].CentralGalaxyMass[tmp], GalGrid[i].MfiltGnedin[tmp], GalGrid[i].MfiltSobacchi[tmp], GalGrid[i].EjectedFraction[tmp], GalGrid[i].LenHistory[tmp], GalGrid[i].OutflowRate[tmp], GalGrid[i].InfallRate[tmp], GalGrid[i].EjectedMass[tmp], GalGrid[i].QuasarActivity[tmp], GalGrid[i].DynamicalTime[tmp], GalGrid[i].QuasarSubstep[tmp], GalGrid[i].ColdGas[tmp]);
+      printf("mergeType = %d\tHistory[Final] = %d\tStellarMass = %.4f\tSFR = %.4f\tZ = %.4f\tCentralGalaxyMass = %.4f\tMfiltGnedin = %.4f\tMfiltSobacchi = %.4f\tEjectedFraction = %.4f\tLenHistory = %d\tOutflowRate = %.4f\tInfallRate = %.4f\tEjectedMass = %.4f\tQuasarActivity = %d\tDynamicalTime = %.4f\tQuasarSubstep = %d\tColdGas = %.4f\tLenMergerGal = %d\n", GalGrid[i].mergeType, GalGrid[i].History[tmp], GalGrid[i].StellarMass[tmp], GalGrid[i].SFR[tmp], GalGrid[i].Z[tmp], GalGrid[i].CentralGalaxyMass[tmp], GalGrid[i].MfiltGnedin[tmp], GalGrid[i].MfiltSobacchi[tmp], GalGrid[i].EjectedFraction[tmp], GalGrid[i].LenHistory[tmp], GalGrid[i].OutflowRate[tmp], GalGrid[i].InfallRate[tmp], GalGrid[i].EjectedMass[tmp], GalGrid[i].QuasarActivity[tmp], GalGrid[i].DynamicalTime[tmp], GalGrid[i].QuasarSubstep[tmp], GalGrid[i].ColdGas[tmp], GalGrid[i].LenMergerGal[tmp]);
       fclose(infile);
       return EXIT_FAILURE; 
     }
@@ -351,6 +360,8 @@ void free_gals(void)
     free(GalGrid[i].QuasarActivity); 
     free(GalGrid[i].DynamicalTime);
     free(GalGrid[i].QuasarSubstep); 
+    free(GalGrid[i].ColdGas); 
+    free(GalGrid[i].LenMergerGal); 
   }
 
   for (i = 0; i < Grid->NumGrids; ++i)
