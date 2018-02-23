@@ -143,6 +143,7 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
 
     Galdesc_full = [ 
          ('HaloNr', np.int32),
+         ('mergeType', np.int32),
          ('GridHistory', (np.int32, MAXSNAPS)), # Array index 48 
          ('GridStellarMass', (np.float32, MAXSNAPS)),
          ('GridSFR', (np.float32, MAXSNAPS)),
@@ -158,7 +159,8 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
          ('QuasarActivity', (np.int32, MAXSNAPS)),
          ('DynamicalTime', (np.float32, MAXSNAPS)),
          ('QuasarSubstep', (np.int32, MAXSNAPS)),
-         ('GridColdGas', (np.float32, MAXSNAPS))
+         ('GridColdGas', (np.float32, MAXSNAPS)),
+         ('LenMergerGal', (np.int32, MAXSNAPS))
          ]
     
                             

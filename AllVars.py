@@ -736,13 +736,14 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
     bins_mid = bins_mid[:-1] # len(bins_mid) should be 1 less than len(bins) as the last bin doesn't have a midpoint.   
 
     mean_data_y, bin_edges, bin_number = stats.binned_statistic(data_x, data_y, statistic='mean', bins = bins)
+    sum_data_y, bin_edges, bin_number = stats.binned_statistic(data_x, data_y, statistic='sum', bins = bins)
     N_data_y, bin_edges, bin_number = stats.binned_statistic(data_x, data_y, statistic='count', bins = bins)
     std_data_y, bin_edges, bin_number = stats.binned_statistic(data_x, data_y, statistic=np.std, bins = bins)
     
     mean_data_y[N_data_y == 0] = 0.0
     std_data_y[N_data_y == 0] = 0.0   
  
-    return mean_data_y, std_data_y, N_data_y, bins_mid
+    return mean_data_y, std_data_y, N_data_y, sum_data_y, bins_mid
  
 ##
 
