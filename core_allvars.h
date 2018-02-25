@@ -223,7 +223,8 @@ struct GALAXY
   int *QuasarSubstep;
   float *GridColdGas;
   int *LenMergerGal;
-   
+  float *GridBHMass;      
+ 
   double StellarAge_Numerator;
   double StellarAge_Denominator;
   double Total_SF_Time;

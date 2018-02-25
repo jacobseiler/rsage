@@ -115,6 +115,7 @@ void init_galaxy(int p, int halonr)
     Gal[p].QuasarSubstep[j] = -1;
     Gal[p].GridColdGas[j] = 0.0;
     Gal[p].LenMergerGal[j] = -1;
+    Gal[p].GridBHMass[j] = 0.0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -330,5 +331,6 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 
     Gal[p].DynamicalTime[SnapCurr] = Gal[p].Rvir / Gal[p].Vvir; 
     Gal[p].GridColdGas[SnapCurr] = Gal[p].ColdGas;
+    Gal[p].GridBHMass[SnapCurr] = Gal[p].BlackHoleMass;
 }
 

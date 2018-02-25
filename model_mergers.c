@@ -66,11 +66,12 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
     mass_ratio = 1.0;
   add_galaxies_together(merger_centralgal, p);
 
+
   // starburst recipe similar to Somerville et al. 2001
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step, tree, ngal);
 
   // grow black hole through accretion from cold disk during mergers, a la Kauffmann & Haehnelt (2000) 
-  if(AGNrecipeOn)
+  if(AGNrecipeOn > 0)
   {
     grow_black_hole(merger_centralgal, mass_ratio, step);
   }
@@ -90,12 +91,13 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
   }
 
   Gal[p].CentralGal = merger_centralgal; 
+  
  
 }
 
 void grow_black_hole(int merger_centralgal, double mass_ratio, int32_t step)
 {
-  double BHaccrete, metallicity;
+  double metallicity, BHaccrete;
 
   if(Gal[merger_centralgal].ColdGas > 0.0)
   {
@@ -109,7 +111,7 @@ void grow_black_hole(int merger_centralgal, double mass_ratio, int32_t step)
     metallicity = get_metallicity(Gal[merger_centralgal].ColdGas, Gal[merger_centralgal].MetalsColdGas);
     Gal[merger_centralgal].BlackHoleMass += BHaccrete;
     Gal[merger_centralgal].ColdGas -= BHaccrete;
-    Gal[merger_centralgal].MetalsColdGas -= metallicity * BHaccrete;
+    Gal[merger_centralgal].MetalsColdGas -= metallicity * (BHaccrete);
 
     Gal[merger_centralgal].QuasarModeBHaccretionMass += BHaccrete;
 
@@ -198,17 +200,19 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
 
       Gal[gal].ColdGas = 0.0;
       Gal[gal].MetalsColdGas = 0.0;
+
     }
-    
+   
+
     // compare quasar wind and cold+hot gas energies and eject hot
     if(quasar_energy > cold_gas_energy + hot_gas_energy)
     {
 
-        Gal[gal].EjectedMass += Gal[gal].HotGas;
-        Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas; 
+      Gal[gal].EjectedMass += Gal[gal].HotGas;
+      Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas; 
 
-        Gal[gal].HotGas = 0.0;
-        Gal[gal].MetalsHotGas = 0.0;
+      Gal[gal].HotGas = 0.0;
+      Gal[gal].MetalsHotGas = 0.0;
 
       Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject cold+hot gas.
       Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
@@ -406,6 +410,7 @@ void add_galaxy_to_merger_list(int p)
       MergedGal[MergedNr].QuasarSubstep[j] = Gal[p].QuasarSubstep[j];
       MergedGal[MergedNr].GridColdGas[j] = Gal[p].GridColdGas[j];
       MergedGal[MergedNr].LenMergerGal[j] = Gal[p].LenMergerGal[j];
+      MergedGal[MergedNr].GridBHMass[j] = Gal[p].GridBHMass[j];
        
     }
  

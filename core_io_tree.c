@@ -234,6 +234,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->QuasarSubstep);
   free(g->GridColdGas);
   free(g->LenMergerGal);
+  free(g->GridBHMass);
 
   g->IsMalloced = 0;
 }
@@ -359,11 +360,17 @@ void malloc_grid_arrays(struct GALAXY *g)
     exit(EXIT_FAILURE);
   }
 
-
   g->LenMergerGal= malloc(sizeof(*(g->LenMergerGal)) * (MAXSNAPS));
   if (g->LenMergerGal == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate LenMergerGal.\n", sizeof(*(g->LenMergerGal)) * MAXSNAPS);
+    exit(EXIT_FAILURE);
+  }
+
+  g->GridBHMass= malloc(sizeof(*(g->GridBHMass)) * (MAXSNAPS));
+  if (g->GridBHMass == NULL)
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridBHMass.\n", sizeof(*(g->GridBHMass)) * MAXSNAPS);
     exit(EXIT_FAILURE);
   }
 
