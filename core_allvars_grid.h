@@ -157,6 +157,7 @@ struct GALAXY_GRID
   int *QuasarSubstep;
   float *ColdGas;
   int *LenMergerGal;
+  float *BHMass;
 
 }*GalGrid;
 

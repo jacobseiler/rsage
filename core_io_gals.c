@@ -211,6 +211,15 @@ int32_t load_gals(char *fname)
     }
     fread(GalGrid[i].LenMergerGal, sizeof(*(GalGrid[i].LenMergerGal)), MAXSNAPS, infile);
 
+    GalGrid[i].BHMass= malloc(sizeof(*(GalGrid[i].BHMass)) * MAXSNAPS);
+    if (GalGrid[i].BHMass == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memory for GalGrid.BHMass for galaxy %d\n", i);
+      exit(EXIT_FAILURE);
+    }
+    fread(GalGrid[i].BHMass, sizeof(*(GalGrid[i].BHMass)), MAXSNAPS, infile);
+
+
 #ifdef DEBUG_GALS
     if (i == 53)
     {
@@ -362,6 +371,7 @@ void free_gals(void)
     free(GalGrid[i].QuasarSubstep); 
     free(GalGrid[i].ColdGas); 
     free(GalGrid[i].LenMergerGal); 
+    free(GalGrid[i].BHMass); 
   }
 
   for (i = 0; i < Grid->NumGrids; ++i)

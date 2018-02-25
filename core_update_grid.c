@@ -18,9 +18,11 @@
 int32_t update_grid_properties(int32_t filenr)
 {
 
-  int32_t snapshot_idx, grid_num_idx;
+  int32_t snapshot_idx, grid_num_idx; 
   int64_t grid_position, gal_idx, good_gals, bad_gals;
   float fesc_local, Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
+
+  int32_t count;
 
   for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
   {
@@ -65,6 +67,11 @@ int32_t update_grid_properties(int32_t filenr)
         if (Ngamma_HI > 0.0)
         {
           Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] += pow(10, Ngamma_HI - 50.0)*fesc_local; // We keep these in units of 10^50 photons/s.
+          if (count < 10)
+          {
+            //printf("gal_idx %ld\tsnapshot_idx %d\tSFR %.10e\tfesc %.4e\tNion %.10e\n", (long)gal_idx, snapshot_idx, log10(GalGrid[gal_idx].SFR[snapshot_idx]), fesc_local, Ngamma_HI);
+            ++count;
+          }  
           Grid->GridProperties[grid_num_idx].Nion_HeI[grid_position] += pow(10, Ngamma_HeI - 50.0)*fesc_local;
           Grid->GridProperties[grid_num_idx].Nion_HeII[grid_position] += pow(10, Ngamma_HeII - 50.0)*fesc_local;
         }
@@ -276,10 +283,7 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
     *Ngamma_HeI = log10(SFR) + 52.052;
     *Ngamma_HeII = log10(SFR) + 47.939;
   }
-
-
-  *Ngamma_HI = log10(SFR) + 53.041;
-
+  
   if (SFR != 0)
   {
     assert(*Ngamma_HI > 0.0);
