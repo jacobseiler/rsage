@@ -48,7 +48,7 @@ from scipy.integrate import quad
 m_low = 7.0 # We only sum the photons coming from halos within the mass range m_low < Halo Mass < m_high
 m_high = 15.0
 
-output_format = ".pdf"
+output_format = ".png"
 
 def my_load_data(fname):
 
@@ -109,7 +109,7 @@ def plot_fescNgamma_z(filename_base, PlotSnapshot, model_tags, output_tag):
         
                 if (cumulative_nion_ratio_above[bin_idx] < 0.5):
                     print(bins_cut[bin_idx -1])
-     
+                 
             ax1.plot(bins_cut, np.log10(photons_cut), color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)
             ax2.plot(bins_cut, cumulative_nion_ratio_above, color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)
             ax3.plot(bins_cut, photons_cut / total_photons[count], color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)
@@ -186,10 +186,9 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
             fname = "{0}_{1}".format(filename_base[model_number], snapshot_idx)
                             
             snap, fesc, Mvir, Ngamma, Ngammafesc = my_load_data(fname)
-            
+
             print("There are {0} galaxies at Snapshot {1}".format(len(Mvir), snapshot_idx))
-                                      
-            Mvir = np.log10(Mvir * 1.0e10 / AllVars.Hubble_h)                   
+                                          
             mean, std, N, sum_fesc, bins_mid = AllVars.Calculate_2D_Mean(Mvir, fesc, 0.2, m_low, m_high)             
 
             w = np.where((N > 0.0))
@@ -198,7 +197,6 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
             else:
                 label = ""
             ax1.plot(bins_mid[w], mean[w], color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)
-
             #ax1.fill_between(bins_mid[w], np.subtract(mean[w],std[w]), np.add(mean[w],std[w]), color = PlotScripts.colors[count], alpha = 0.25)
 
         #ax1.plot(np.nan, np.nan, color = 'k', ls = PlotScripts.linestyles[model_number], lw = PlotScripts.global_linewidth, label = model_tags[model_number])
@@ -410,7 +408,9 @@ if __name__ == '__main__':
     #model_tags = [r"$Useless$", r"$f_\mathrm{esc} = 0.15, \: \mathrm{SF 0.03}$"]
     #model_tags = [model_tags[0]]
  
-    fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_quasar_0.05_1.00_1.00_HaloPartCut32_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_fesc0.10_HaloPartCut32_fescproperties"]
+    #fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_quasar_0.05_1.00_1.00_HaloPartCut32_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_fesc0.10_HaloPartCut32_fescproperties"]
+    #fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_quasar_0.05_1.00_2.00_HaloPartCut32_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_fesc0.10_HaloPartCut32_fescproperties"]
+    fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_quasar_0.05_1.00_5.00_HaloPartCut32_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_fesc0.10_HaloPartCut32_fescproperties"]
     fname = [fname[0]]
 
     nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_quasar_0.05_1.00_1.00_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_fesc0.10_HaloPartCut32_nionHI"]
@@ -419,6 +419,6 @@ if __name__ == '__main__':
 
     #plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1, model_tags, "nion_NoFractional_fboosted1.00_fesc0.10_HaloPartCut32_1DynTime")
 
-    plot_fesc_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_all_starburst_quasarwind_mediumquasar_fboosted1.00_HaloPartCut32_1DynTime")
+    plot_fesc_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_all_starburst_quasarwind_mediumquasar_fboosted1.00_HaloPartCut32_5DynTime")
 
     #plot_fescNgamma_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_paper_Ngammafesc_allz_starburst_medium_quasarwind_fesc0.10_fboosted1.00_HaloPartCut32_1DynTime")

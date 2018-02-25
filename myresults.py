@@ -44,7 +44,7 @@ AllVars.Set_Constants()
 PlotScripts.Set_Params_Plot()
 
 
-output_format = ".pdf"
+output_format = ".png"
 
 # For the Tiamat extended results there is a weird hump when calculating the escape fraction.
 # This hump occurs at a halo mass of approximately 10.3. 
@@ -488,54 +488,63 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
 
         if (paper_plot == 1):
 
-            fig, ax = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(12, 12))
+            fig, ax = plt.subplots(nrows=1, ncols=3, sharex=False, sharey=True, figsize=(8, 8))
 
             delta_fontsize = 0
             caps = 5
             ewidth = 1.5
 
             for model_number in range(0, len(SnapList)):
-                ax[0,0].plot(bin_middle_array[model_number][0], counts_array[model_number][0] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = "SAGE", linewidth = PlotScripts.global_linewidth)            
-                ax[0,1].plot(bin_middle_array[model_number][1], counts_array[model_number][1] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, linewidth = PlotScripts.global_linewidth, label = "SAGE")
-                ax[1,0].plot(bin_middle_array[model_number][2], counts_array[model_number][2] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, linewidth = PlotScripts.global_linewidth, label = "SAGE")
-                ax[1,1].axis('off')
+                ax[0].plot(bin_middle_array[model_number][0], counts_array[model_number][0] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = "SAGE", linewidth = PlotScripts.global_linewidth)            
+                ax[1].plot(bin_middle_array[model_number][1], counts_array[model_number][1] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, linewidth = PlotScripts.global_linewidth, label = "SAGE")
+                ax[2].plot(bin_middle_array[model_number][2], counts_array[model_number][2] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, linewidth = PlotScripts.global_linewidth, label = "SAGE")
+                #ax[1,1].axis('off')
 
                 #Obs.Get_Data_SMF()
-                ax[0,0].set_yscale('log', nonposy='clip')
+                ax[0].set_yscale('log', nonposy='clip')
 
-                ax[0,1].set_xlabel(r'$\log_{10}\ \mathrm{M}_{\mathrm{*}} \:[\mathrm{M}_{\odot}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                ax[1,0].set_xlabel(r'$\log_{10}\ \mathrm{M}_{\mathrm{*}} \:[\mathrm{M}_{\odot}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                ax[0].set_xlabel(r'$\log_{10}\ \mathrm{M}_{\mathrm{*}} \:[\mathrm{M}_{\odot}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                ax[1].set_xlabel(r'$\log_{10}\ \mathrm{M}_{\mathrm{*}} \:[\mathrm{M}_{\odot}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                ax[2].set_xlabel(r'$\log_{10}\ \mathrm{M}_{\mathrm{*}} \:[\mathrm{M}_{\odot}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize)
 
-                ax[0,0].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
-                ax[0,0].set_xticks(np.arange(6.0, 12.0))
+                ax[0].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
+                ax[1].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
+                ax[2].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
+                ax[0].set_xticks(np.arange(6.0, 12.0))
+                ax[1].set_xticks(np.arange(6.0, 12.0))
+                ax[2].set_xticks(np.arange(6.0, 12.0))
 
-                ax[0,0].set_xlim([7, 11.5])
-                ax[0,0].set_ylim([1e-6, 1e-0])
-                for tk in ax[0,1].get_xticklabels():
-                    tk.set_visible(True)
+                ax[0].set_xlim([7, 11.5])
+                ax[1].set_xlim([7, 11.5])
+                ax[2].set_xlim([7, 11.5])
+
+                ax[0].set_ylim([1e-6, 1e-0])
+                #for tk in ax[0,1].get_xticklabels():
+                #    tk.set_visible(True)
  
-                fig.text(0.05, 0.6, r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', rotation = 'vertical', fontsize = PlotScripts.global_fontsize - delta_fontsize) 
+                #fig.text(0.05, 0.6, r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', rotation = 'vertical', fontsize = PlotScripts.global_fontsize - delta_fontsize) 
 
                 Obs.Get_Data_SMF()
 
-                PlotScripts.Plot_SMF_z6(ax[0,0], errorwidth=ewidth, capsize=caps) 
-                PlotScripts.Plot_SMF_z7(ax[0,1], errorwidth=ewidth, capsize=caps) 
-                PlotScripts.Plot_SMF_z8(ax[1,0], errorwidth=ewidth, capsize=caps) 
+                PlotScripts.Plot_SMF_z6(ax[0], errorwidth=ewidth, capsize=caps) 
+                PlotScripts.Plot_SMF_z7(ax[1], errorwidth=ewidth, capsize=caps) 
+                PlotScripts.Plot_SMF_z8(ax[2], errorwidth=ewidth, capsize=caps) 
                 
                 ####
  
-                ax[0,0].text(0.8, 0.95, r"z = 6", transform = ax[0,0].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                ax[0,1].text(0.8, 0.95, r"z = 7", transform = ax[0,1].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                ax[1,0].text(0.8, 0.95, r"z = 8", transform = ax[1,0].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                ax[0].text(0.6, 0.95, r"z = 6", transform = ax[0].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                ax[1].text(0.6, 0.95, r"z = 7", transform = ax[1].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                ax[2].text(0.6, 0.95, r"z = 8", transform = ax[2].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
                                            
-                leg = ax[0,1].legend(loc=2, bbox_to_anchor = (0.2, -0.5), numpoints=1, labelspacing=0.1)
+                #leg = ax[0,0].legend(loc=2, bbox_to_anchor = (0.2, -0.5), numpoints=1, labelspacing=0.1)
+                leg = ax[1].legend(loc=2, bbox_to_anchor = (-0.1, -0.1), numpoints=1, labelspacing=0.1)
                 leg.draw_frame(True)  # Don't want a box frame
                 for t in leg.get_texts():  # Reduce the size of the text
                     t.set_fontsize(PlotScripts.global_legendsize + 6)
 
                 plt.tight_layout()
-                adjustprops = dict(left=0.15, bottom=0.1, right=0.97, top=0.93, wspace=0.05, hspace=0.05)
-                fig.subplots_adjust(**adjustprops)  
+                #adjustprops = dict(left=0.15, bottom=0.1, right=0.97, top=0.93, wspace=0.05, hspace=0.05)
+                #fig.subplots_adjust(**adjustprops)  
                 outputFile = "{0}_paper{1}".format(output_tag, output_format) 
                 plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
                 print('Saved file to {0}'.format(outputFile))
@@ -2059,6 +2068,100 @@ def plot_post_quasar_SFR(PlotSnapList, model_number, Gal, output_tag):
         
         plt.close()
         exit()
+
+
+def plot_stellarmass_blackhole(SnapList, simulation_norm, mean_galaxy_BHmass, std_galaxy_BHmass, N_galaxy_BHmass, model_tags, output_tag):
+
+    mean_BHmass_stellar_array = []
+    std_BHmass_stellar_array = []
+    N_BHmass_stellar_array = []
+
+    bin_middle_stellar_array = []
+    redshift_labels = []
+
+    for model_number in range(0, len(SnapList)):
+        redshift_labels.append([])
+
+        mean_BHmass_stellar_array.append([])
+        std_BHmass_stellar_array.append([])
+        N_BHmass_stellar_array.append([])
+
+        bin_middle_stellar_array.append([])        
+
+    for model_number in range(0, len(SnapList)): 
+
+        ## Normalization for each model. ##
+        if (simulation_norm[model_number] == 0):
+            AllVars.Set_Params_Mysim()
+        elif (simulation_norm[model_number] == 1):
+            AllVars.Set_Params_MiniMill()
+        elif (simulation_norm[model_number] == 2):
+            AllVars.Set_Params_Tiamat()
+        elif (simulation_norm[model_number] == 3):
+            AllVars.Set_Params_Tiamat_extended()
+        elif (simulation_norm[model_number] == 4):
+            AllVars.Set_Params_Britton()       
+        elif(simulation_norm[model_number] == 5):
+            AllVars.Set_Params_Kali()
+
+        for snapshot_idx in range(0, len(SnapList[model_number])):
+            tmp = 'z = %.2f' %(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
+            redshift_labels[model_number].append(tmp)
+ 
+            mean_BHmass_stellar_array[model_number], std_BHmass_stellar_array[model_number], N_BHmass_stellar_array[model_number] = calculate_pooled_stats(mean_BHmass_stellar_array[model_number], std_BHmass_stellar_array[model_number], N_BHmass_stellar_array[model_number], mean_galaxy_BHmass[model_number][snapshot_idx], std_galaxy_BHmass[model_number][snapshot_idx], N_galaxy_BHmass[model_number][snapshot_idx]) 
+
+            bin_middle_stellar_array[model_number].append(np.arange(m_gal_low, m_gal_high+bin_width, bin_width)[:-1] + bin_width * 0.5)
+         
+    if rank == 0:
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+
+        for model_number in range(0, len(SnapList)):
+            for snapshot_idx in range(0, len(SnapList[model_number])):
+                w = np.where((N_BHmass_stellar_array[model_number][snapshot_idx] > 0.0))[0]
+
+                print(mean_BHmass_stellar_array[model_number][snapshot_idx][w])
+                print(std_BHmass_stellar_array[model_number][snapshot_idx][w])
+                print(N_BHmass_stellar_array[model_number][snapshot_idx][w])
+                print(np.subtract(mean_BHmass_stellar_array[model_number][snapshot_idx][w], std_BHmass_stellar_array[model_number][snapshot_idx][w]))
+                mean = np.log10(mean_BHmass_stellar_array[model_number][snapshot_idx][w])
+                upper = np.log10(np.add(mean_BHmass_stellar_array[model_number][snapshot_idx][w], std_BHmass_stellar_array[model_number][snapshot_idx][w]))
+                lower = np.log10(np.subtract(mean_BHmass_stellar_array[model_number][snapshot_idx][w], std_BHmass_stellar_array[model_number][snapshot_idx][w]))
+                 
+                ax1.plot(bin_middle_stellar_array[model_number][snapshot_idx][w], mean, label = redshift_labels[model_number][snapshot_idx], color = PlotScripts.colors[snapshot_idx], ls = PlotScripts.linestyles[model_number], lw = PlotScripts.global_linewidth, rasterized = True) 
+                ax1.fill_between(bin_middle_stellar_array[model_number][snapshot_idx][w], lower, upper, color = PlotScripts.colors[model_number], alpha = 0.25)
+
+        Obs.Get_Data_SMBH()
+        PlotScripts.plot_SMBH_z8(ax1) 
+
+        ax1.set_xlabel(r"$\log_{10}\mathrm{M}_* [\mathrm{M}_\odot]$", size = PlotScripts.global_fontsize) 
+        ax1.set_ylabel(r"$\log_{10}\mathrm{M}_\mathrm{BH} [\mathrm{M}_\odot]$", size = PlotScripts.global_fontsize)     
+
+        ax1.set_xticks(np.arange(7.0, 12.0))  
+        ax1.set_yticks(np.arange(3.0, 12.0))  
+
+        ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+        ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+        
+        ax1.set_xlim([7.0, 10.25])
+        ax1.set_ylim([3.0, 8.0])
+
+
+        leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(PlotScripts.global_legendsize)
+   
+        outputFile = "{0}{1}".format(output_tag, output_format)
+
+        plt.tight_layout()
+        fig.savefig(outputFile)
+
+        print("Saved to {0}".format(outputFile))
+        
+        plt.close()
+        exit()
+
  
 ### Here ends the plotting functions. ###
 ### Here begins the functions that calculate various properties for the galaxies (fesc, Magnitude etc). ###
@@ -2650,6 +2753,9 @@ if __name__ == '__main__':
     galaxies_model45 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_SuperStrongQuasar_z5.782'
     merged_galaxies_model45 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_SuperStrongQuasar_MergedGalaxies'
 
+    galaxies_model46 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_BHGrowthStarburstQuasar_z5.782'
+    merged_galaxies_model46 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_BHGrowthStarburstQuasar_MergedGalaxies'
+
     galaxies_filepath_array = [galaxies_model44]
     merged_galaxies_filepath_array = [merged_galaxies_model44]
 
@@ -2692,7 +2798,7 @@ if __name__ == '__main__':
     # 4 is Anne's Functional form that scales inversely with halo mass (smaller fesc for higher halo mass).
     # 5 is Anne's function form that scales with halo mass (larger fesc for higher halo mass).
 
-    fesc_normalization = [[0.15, 0.6, 2.0]] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
+    fesc_normalization = [[0.05, 1.0, 1.0]] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
     #fesc_normalization = [0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
     # For prescription 0, requires a number that defines the constant fesc.
     # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
@@ -2778,6 +2884,8 @@ if __name__ == '__main__':
     mean_fesc_galaxy_array = [] # Mean escape fraction as a function of stellar mass.
     std_fesc_galaxy_array = [] # Same as above but standard devation.
     N_galaxy_array = [] # Number of galaxies as a function of stellar mass.
+    mean_BHmass_galaxy_array = [] # Black hole mass as a function of stellar mass.
+    std_BHmass_galaxy_array = [] # Same as above but standard deviation. 
 
     ## Arrays for functions of halo mass. ##
     mean_ejected_halo_array = [] # Mean ejected fractions as a function of halo mass.
@@ -2814,7 +2922,9 @@ if __name__ == '__main__':
         mean_fesc_galaxy_array.append([])
         std_fesc_galaxy_array.append([])
         N_galaxy_array.append([])
-
+        mean_BHmass_galaxy_array.append([])
+        std_BHmass_galaxy_array.append([])
+ 
         ## Halo arrays. ##
         mean_ejected_halo_array.append([])
         std_ejected_halo_array.append([])
@@ -2855,6 +2965,8 @@ if __name__ == '__main__':
             mean_fesc_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
             std_fesc_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32))
             N_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
+            mean_BHmass_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
+            std_BHmass_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
 
             ## Function of halo mass arrays. ##
             mean_ejected_halo_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
@@ -2967,13 +3079,13 @@ if __name__ == '__main__':
                     Mfilt_gnedin = G.MfiltGnedin[w_gal, current_snap]
                     Mfilt_sobacchi = G.MfiltSobacchi[w_gal, current_snap]
                     ejected_fraction = G.EjectedFraction[w_gal, current_snap]
-
+ 
+                    mass_BH = G.GridBHMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h # Msun. Not log units. 
+                    
                     merge_flag = G_Merged.mergeType[w_merged_gal]
                     merge_flag[merge_flag >= 1] = 1.0 
                     merge_mass_central = np.log10(G_Merged.GridCentralGalaxyMass[w_merged_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
-                    
-
-                    
+                                        
                     L_UV = SFR_gal + 39.927 # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
                     M_UV = AllVars.Luminosity_to_ABMag(L_UV, 1600)
 
@@ -3006,6 +3118,7 @@ if __name__ == '__main__':
                     ionizing_photons = np.multiply(photons_HI_gal_nonlog, fesc_local) # Then get the number that actually escape.
 
                     '''
+                    print(w_gal[0:10]) 
                     print(SFR_gal[0:10])
                     print(photons_HI_gal[0:10])
                     print(photons_HI_gal_nonlog[0:10])
@@ -3013,7 +3126,8 @@ if __name__ == '__main__':
                     print(sum(ionizing_photons))
                     print("The total number of ionizing photons is {0:.4e}.".format(sum(ionizing_photons)))
                     exit()
-                    '''
+                    '''                   
+ 
                     ###########################################                     
                     ######## BASE PROPERTIES CALCULATED #######
                     ###########################################
@@ -3026,7 +3140,10 @@ if __name__ == '__main__':
 
                     (mean_fesc_galaxy_local, std_fesc_galaxy_local, N_local, sum_fesc_galaxy, bin_middle) = AllVars.Calculate_2D_Mean(mass_gal, fesc_local, bin_width, m_gal_low, m_gal_high)# Calculate the escape fraction as a function of stellar mass.
                     (mean_fesc_galaxy_array[current_model_number][snapshot_idx], std_fesc_galaxy_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_fesc_galaxy_array[current_model_number][snapshot_idx], std_fesc_galaxy_array[current_model_number][snapshot_idx], N_galaxy_array[current_model_number][snapshot_idx], mean_fesc_galaxy_local, std_fesc_galaxy_local, N_local) # Then update the running total.
-    #
+  
+                    (mean_BHmass_galaxy_local, std_BHmass_galaxy_local, N_local, sum_BHmass_galaxy, bin_middle) = AllVars.Calculate_2D_Mean(mass_gal, mass_BH, bin_width, m_gal_low, m_gal_high) # Calculate the black hole mass as a function of stellar mass.
+                    (mean_BHmass_galaxy_array[current_model_number][snapshot_idx], std_BHmass_galaxy_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_BHmass_galaxy_array[current_model_number][snapshot_idx], std_BHmass_galaxy_array[current_model_number][snapshot_idx], N_galaxy_array[current_model_number][snapshot_idx], mean_BHmass_galaxy_local, std_BHmass_galaxy_local, N_local) # Then update the running total.
+                     
                     N_galaxy_array[current_model_number][snapshot_idx] += N_local 
 
                     ### Functions of Halos/Halo Mass ###
@@ -3064,7 +3181,8 @@ if __name__ == '__main__':
                     keep_files =  same_files[current_model_number] # Decide if we want to keep the files loaded or throw them out. 
                     current_model_number += 1 # Update the inner loop model number.
 
-    StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, 0, save_tags, model_tags, 1, 1, "Kali_starburst_quasarwind_SF0.01_NoFractional")
+    StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, 0, save_tags, model_tags, 1, 1, "Kali_starburst_quasarwind_SF0.01_NoFractional_BHGrowthStarburstQuasar")
+    #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, std_BHmass_galaxy_array, N_galaxy_array, model_tags, "StellarMass_BHMass")
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 
     #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_starburst_quasarwind_mediumquasar")

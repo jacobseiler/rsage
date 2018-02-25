@@ -137,3 +137,15 @@ def Get_Data_SMF():
     Duncan_SMF_z6 = np.loadtxt("/home/jseiler/ObservationalData/Duncan14_MF_z6.txt")    
     Duncan_SMF_z7 = np.loadtxt("/home/jseiler/ObservationalData/Duncan14_MF_z7.txt")    
 
+def Get_Data_SMBH():
+
+    ## This is data for the StellarMass - BlackHole relationship.
+    global Mstar
+    global Huang_z8_BHSM
+    global SMBH_colors
+
+    SMBH_colors = ["b", "g", "c", "m"]
+
+    Mstar = np.arange(1.0, 12.0, 0.01) # Array of stellar masses.
+
+    Huang_z8_BHSM = 1.10*Mstar - 3.85 # Relationship is log10(M_BH) = 1.10*log10(M_*/10^11) + 8.25.  Units in Msun.  

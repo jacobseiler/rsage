@@ -165,9 +165,14 @@ def Plot_SMF_z7(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
 
     ax.errorbar(Obs.Song_SMF_z7[:,0], 10**Obs.Song_SMF_z7[:,1], yerr= (10**Obs.Song_SMF_z7[:,1] - 10**Obs.Song_SMF_z7[:,3], 10**Obs.Song_SMF_z7[:,2] - 10**Obs.Song_SMF_z7[:,1]), xerr = 0.25, capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2015', color = Obs.SMF_colors[1], rasterized=True) # z = 7
 
-    ax.errorbar(Obs.Duncan_SMF_z7[:,0], Obs.Duncan_SMF_z7[:,1], yerr = [Obs.Duncan_SMF_z7[:,2], Obs.Duncan_SMF_z7[:,3]], capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[2], ls='none', label = 'Duncan et al. 2014', color = Obs.SMF_colors[2], rasterized=True) 
+    ax.errorbar(Obs.Duncan_SMF_z7[:,0], Obs.Duncan_SMF_z7[:,1], yerr = [Obs.Duncan_SMF_z7[:,2], Obs.Duncan_SMF_z7[:,3]], capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[2], ls='none', label = 'Duncan et al. 2014', color = Obs.SMF_colors[2], rasterized=True) 
 
 def Plot_SMF_z8(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
 
-    ax.errorbar(Obs.Song_SMF_z8[:,0], 10**Obs.Song_SMF_z8[:,1], yerr= (10**Obs.Song_SMF_z8[:,1] - 10**Obs.Song_SMF_z8[:,3], 10**Obs.Song_SMF_z8[:,2] - 10**Obs.Song_SMF_z8[:,1]), xerr = 0.25, capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2015', color = Obs.SMF_colors[1], rasterized=True) # z = 7
+    ax.errorbar(Obs.Song_SMF_z8[:,0], 10**Obs.Song_SMF_z8[:,1], yerr= (10**Obs.Song_SMF_z8[:,1] - 10**Obs.Song_SMF_z8[:,3], 10**Obs.Song_SMF_z8[:,2] - 10**Obs.Song_SMF_z8[:,1]), xerr = 0.25, capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2015', color = Obs.SMF_colors[1], rasterized=True) # z = 7
+  
+
+def plot_SMBH_z8(ax, linewidth = 1.0):
+  
+    ax.plot(Obs.Mstar, Obs.Huang_z8_BHSM, alpha = 0.75, lw = linewidth, ls = '-.', label = "Huang et al. 2018", color = Obs.SMBH_colors[0], rasterized = True)
    

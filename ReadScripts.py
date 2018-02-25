@@ -160,7 +160,8 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
          ('DynamicalTime', (np.float32, MAXSNAPS)),
          ('QuasarSubstep', (np.int32, MAXSNAPS)),
          ('GridColdGas', (np.float32, MAXSNAPS)),
-         ('LenMergerGal', (np.int32, MAXSNAPS))
+         ('LenMergerGal', (np.int32, MAXSNAPS)),
+         ('GridBHMass', (np.float32, MAXSNAPS))
          ]
     
                             
