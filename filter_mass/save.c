@@ -96,7 +96,7 @@ int32_t read_arrays(SAGE_params params, int32_t filenr, int32_t ThisSnap)
     fread(&snapread, sizeof(int32_t), 1, infile);
     fread(&NHalos_read, sizeof(int32_t), 1, infile);
 
-    //printf("Snapshot %d has %d in region\n", snapread, NHalos_read);
+    printf("Snapshot %d has %d in region\n", snapread, NHalos_read);
     if (NHalos_read == 0)
     {
       continue;
@@ -119,14 +119,14 @@ int32_t read_arrays(SAGE_params params, int32_t filenr, int32_t ThisSnap)
     fread(HaloID, sizeof(int64_t), NHalos_read, infile);
     fread(ReionMod, sizeof(float), NHalos_read, infile);
       
-    //printf("After read\n"); 
+    printf("After read\n"); 
     for (j = 0; j < NHalos_read; ++j)
     {
      
       treenr = (int32_t)(HaloID[j] >> 32);
       halonr = (int32_t)HaloID[j];
 
-      //printf("Unique HaloID %ld represents treenr %d halonr %d with reionization modifier %.4f\n", HaloID[j], treenr, halonr, ReionMod[j]);
+      printf("Unique HaloID %ld represents treenr %d halonr %d with reionization modifier %.4f\n", HaloID[j], treenr, halonr, ReionMod[j]);
  
     } 
     free(HaloID);

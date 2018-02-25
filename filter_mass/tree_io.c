@@ -47,13 +47,6 @@ int32_t load_tree_table(int32_t filenr, SAGE_params params, int32_t *Ntrees, int
 int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, halo_t *Halos)
 {
 
-  *Halos = malloc(sizeof(struct HALO_STRUCT) * NHalos_ThisTree);
-  if (*Halos == NULL)
-  {
-    fprintf(stderr, "Could not allocate memory for Halos in tree %d\n", treenr);
-    return EXIT_FAILURE;
-  }
-
   fread(*Halos, NHalos_ThisTree, sizeof(struct HALO_STRUCT), forest_file); 
   return EXIT_SUCCESS;
 

@@ -34,7 +34,7 @@ char *ThisNode;
 
 // Proto-types //
 
-int32_t parse_params(int32_t argc, char **argv);
+int32_t parse_params(int32_t argc, char **argv, SAGE_params params);
 int32_t read_snap_list(SAGE_params params);
 
 // Functions //
@@ -47,7 +47,7 @@ void bye()
 #endif
 }
 
-int32_t parse_params(int32_t argc, char **argv)
+int32_t parse_params(int32_t argc, char **argv, SAGE_params params)
 {
 
   int32_t status;
@@ -62,7 +62,7 @@ int32_t parse_params(int32_t argc, char **argv)
     fprintf(stderr, "\n\n"); 
     return EXIT_FAILURE; 
   }
-
+  
   status = read_parameter_file(argv[1], &params); 
   if (status == EXIT_FAILURE)
   {
@@ -98,7 +98,6 @@ int32_t read_snap_list(SAGE_params params)
 
   snprintf(fname, MAXLEN, "%s", params->SnapListFile);
 
-  printf("%s\n", fname);
   if(!(fd = fopen(fname, "r")))
   {
     printf("can't read output list in file '%s'\n", fname);
@@ -120,7 +119,6 @@ int32_t read_snap_list(SAGE_params params)
 #ifdef MPI
   if(ThisTask == 0)
 #endif
-    printf("found %d defined times in snaplist\n", Snaplistlen);
 
   for (i = 0; i < Snaplistlen; ++i)
   {  
@@ -157,8 +155,15 @@ int main(int argc, char **argv)
 #endif
 
   atexit(bye);
+
+  params = malloc(sizeof(struct SAGE_PARAMETERS));
+  if (params == NULL)
+  {
+    fprintf(stderr, "Cannot allocate memory for parameter struct.\n");
+    exit(EXIT_FAILURE); 
+  }
  
-  status = parse_params(argc, argv); // Set the input parameters.
+  status = parse_params(argc, argv, params); // Set the input parameters.
   if (status == EXIT_FAILURE)
   {
     exit(EXIT_FAILURE);
@@ -176,7 +181,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
    
-  params->LastFile = 1;
+  params->LastFile = 0;
 #ifdef MPI  
   for(filenr = params->FirstFile + ThisTask; filenr < params->LastFile + 1 ; filenr += NTask)
 #else
@@ -197,6 +202,14 @@ int main(int argc, char **argv)
 
     for (treenr = 0; treenr < Ntrees; ++treenr)
     {
+
+
+      Halos = malloc(sizeof(struct HALO_STRUCT) * TreeNHalos[treenr]); // Allocate the memory in main to keep consistency.
+      if (Halos == NULL)
+      {
+        fprintf(stderr, "Could not allocate memory for Halos in tree %d\n", treenr);
+        exit(EXIT_FAILURE); 
+      }
 
       status = load_halos(treenr, TreeNHalos[treenr], &Halos); // Loads the halos for this tree.
       if (status == EXIT_FAILURE)
@@ -222,13 +235,13 @@ int main(int argc, char **argv)
       exit(EXIT_FAILURE);
     }
 
-
+#ifdef DEBUG
     status = read_arrays(params, filenr, ThisSnap);
     if (status == EXIT_FAILURE)
     {
       exit(EXIT_FAILURE);
     }
-
+#endif
     free_memory(&TreeNHalos, &HaloID, &ReionMod);
 
     printf("\n\n"); 

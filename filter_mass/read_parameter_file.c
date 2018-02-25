@@ -146,8 +146,6 @@ int32_t read_parameter_file(char *fname, SAGE_params *params)
   }
 	printf("\n");
 
-  *params = malloc(sizeof(struct SAGE_PARAMETERS));
-
   (*params)->TreeDir = TreeDir_tmp;
   (*params)->TreeName = TreeName_tmp;
   (*params)->PhotoionDir = PhotoionDir_tmp;
