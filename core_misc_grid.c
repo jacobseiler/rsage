@@ -7,10 +7,6 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-#ifdef MPI
-#include <mpi.h>
-#endif
-
 #include "core_allvars_grid.h"
 #include "core_proto_grid.h"
 

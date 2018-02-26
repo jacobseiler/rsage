@@ -13,16 +13,7 @@ INCL   =	./core_allvars_grid.h  \
 			./core_proto_grid.h \
 			./Makefile 
 
-
-#USE-MPI = no # set this if you want to run in parallel
-
-ifdef USE-MPI
-    OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
-    CC = mpicc  # sets the C-compiler
-else
-    CC = cc  # sets the C-compiler
-endif
-
+CC = gcc  # sets the C-compiler
 
 OPT += #-DDEBUG_GALS 
 

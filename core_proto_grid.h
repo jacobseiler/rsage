@@ -29,9 +29,6 @@ void normalize_slope_photons(int GridNr);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
 float calculate_fesc(int p, int i, int filenr);
 double get_metallicity(double gas, double metals);
-#ifdef MPI
-struct GRID_STRUCT *MPI_sum_grids(void);
-#endif
 
 const char* getfield(char* line, int num);
 

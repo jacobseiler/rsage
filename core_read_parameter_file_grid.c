@@ -24,11 +24,7 @@ void read_parameter_file(char *fname)
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
-
-#ifdef MPI
-  if(ThisTask == 0)
-#endif
-    printf("\nreading parameter file:\n\n");
+  printf("\nreading parameter file:\n\n");
 
   strcpy(tag[nt], "GridOutputDir"); 
   addr[nt] = GridOutputDir; 
@@ -195,10 +191,7 @@ void read_parameter_file(char *fname)
 
       if(j >= 0)
       {
-#ifdef MPI
-        if(ThisTask == 0)
-#endif
-          printf("%35s\t%10s\n", buf1, buf2);
+        printf("%35s\t%10s\n", buf1, buf2);
 
         switch (id[j])
         {

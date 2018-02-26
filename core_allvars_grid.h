@@ -181,6 +181,7 @@ struct GRID_STRUCT
     int32_t *SnapshotGalaxy;
     float *fescGalaxy;
     float *MvirGalaxy;
+    float *MstarGalaxy;
     float *NgammaGalaxy;
     float *NgammafescGalaxy;
   }*GridProperties;
@@ -280,11 +281,6 @@ extern int *FirstHaloInSnap;
 
 extern int *TreeNHalos;
 extern int *TreeFirstHalo;
-
-#ifdef MPI
-extern int ThisTask, NTask, nodeNameLen;
-extern char *ThisNode;
-#endif
 
 extern double Omega;
 extern double OmegaLambda;

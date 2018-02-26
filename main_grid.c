@@ -8,10 +8,6 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-#ifdef MPI
-#include <mpi.h>
-#endif
-
 #include "core_allvars_grid.h"
 #include "core_proto_grid.h"
 
@@ -29,32 +25,6 @@ void termination_handler(int signum)
     (*saveaction_XCPU.sa_handler) (signum);
 }
 
-void myexit(int signum)
-{
-#ifdef MPI
-  printf("Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
-#else
-  printf("We're exiting\n\n\n");
-#endif    
-  exit(signum);
-}
-
-void bye()
-{
-#ifdef MPI
-  MPI_Finalize();
-  free(ThisNode);
-#endif
-
-  if(exitfail)
-  {
-#ifdef MPI
-    if(ThisTask == 0 && gotXCPU == 1)
-      printf("Received XCPU, exiting. But we'll be back.\n");
-#endif
-  }
-}
-
 
 int main(int argc, char **argv)
 {
@@ -62,23 +32,6 @@ int main(int argc, char **argv)
   struct sigaction current_XCPU;
 
   int32_t status;
-
-#ifdef MPI
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
-  MPI_Comm_size(MPI_COMM_WORLD, &NTask);
-
-  ThisNode = malloc(MPI_MAX_PROCESSOR_NAME * sizeof(char));
-
-  MPI_Get_processor_name(ThisNode, &nodeNameLen);
-  if (nodeNameLen >= MPI_MAX_PROCESSOR_NAME)
-  {
-    printf("Node name string not long enough!...\n");
-    ABORT(0);
-  }
-#endif
-
-  atexit(bye);
 
   sigaction(SIGXCPU, NULL, &saveaction_XCPU);
   current_XCPU = saveaction_XCPU;
@@ -97,16 +50,8 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   } 
  
-#ifdef MPI
-  for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
-#else
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
-#endif
   { 
-#ifdef MPI     
-    printf("I am Task %d and I'm doing file %d.\n", ThisTask, filenr);
-#endif     
-
     for (i = 0; i < 2; ++i) // i = 0 does the normal galaxies, i = 1 does the merged galaxies.
     {
       if(i == 0)      
@@ -156,25 +101,9 @@ int main(int argc, char **argv)
 
   printf("There were %d quasar activity events in which the merged gal was above the halo part cut compared to %d below.\n", QuasarEventsAbovePartCut, QuasarEventsBelowPartCut); 
   
-#ifdef MPI
-  
-  struct GRID_STRUCT *master_grid;
-
-  master_grid = MPI_sum_grids();
-  if (master_grid == NULL)
-  {
-    exit(EXIT_FAILURE);
-  }
-
-  if (ThisTask == 0)
-  {
-    count_grid_properties(master_grid); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
-    status = save_grid(master_grid); // Saves grid.
-  }
-#else 
   count_grid_properties(Grid); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
   status = save_grid(Grid); // Saves grid.
-#endif
+
   if (status == EXIT_FAILURE)
   {
     exit(EXIT_FAILURE);

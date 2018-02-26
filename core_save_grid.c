@@ -134,7 +134,7 @@ int32_t save_fesc_properties(int filenr, int32_t merged_gal_flag)
     {
       if (Grid->GridProperties[i].SnapshotGalaxy[j] != -1)
       {
-        fprintf(save_properties, "%d %.4f %.4f %.4e %.4e\n", Grid->GridProperties[i].SnapshotGalaxy[j], Grid->GridProperties[i].fescGalaxy[j], Grid->GridProperties[i].MvirGalaxy[j], Grid->GridProperties[i].NgammaGalaxy[j], Grid->GridProperties[i].NgammafescGalaxy[j]); 
+        fprintf(save_properties, "%d %.4f %.4f %.4f %.4e %.4e\n", Grid->GridProperties[i].SnapshotGalaxy[j], Grid->GridProperties[i].fescGalaxy[j], Grid->GridProperties[i].MvirGalaxy[j], Grid->GridProperties[i].MstarGalaxy[j], Grid->GridProperties[i].NgammaGalaxy[j], Grid->GridProperties[i].NgammafescGalaxy[j]); 
       }
     }
     fclose(save_properties);

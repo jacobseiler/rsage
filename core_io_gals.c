@@ -259,6 +259,15 @@ int32_t load_gals(char *fname)
       return EXIT_FAILURE;
     }
 
+    Grid->GridProperties[i].MstarGalaxy = malloc(sizeof(*(Grid->GridProperties[i].MstarGalaxy)) * NtotGals);
+    if (Grid->GridProperties[i].MstarGalaxy == NULL)
+    {
+      fprintf(stderr, "Could not allocate memory for MstarGalaxy for Grid number %d\n", i);
+      return EXIT_FAILURE;
+    }
+
+
+
     Grid->GridProperties[i].NgammaGalaxy = malloc(sizeof(*(Grid->GridProperties[i].NgammaGalaxy)) * NtotGals);
     if (Grid->GridProperties[i].NgammaGalaxy == NULL)
     {
@@ -278,6 +287,7 @@ int32_t load_gals(char *fname)
       Grid->GridProperties[i].SnapshotGalaxy[j] = -1;
       Grid->GridProperties[i].fescGalaxy[j] = 0.0;
       Grid->GridProperties[i].MvirGalaxy[j] = 0.0;
+      Grid->GridProperties[i].MstarGalaxy[j] = 0.0;
       Grid->GridProperties[i].NgammaGalaxy[j] = 0.0;
       Grid->GridProperties[i].NgammafescGalaxy[j] = 0.0;
     }
@@ -379,6 +389,7 @@ void free_gals(void)
     free(Grid->GridProperties[i].SnapshotGalaxy);
     free(Grid->GridProperties[i].fescGalaxy);
     free(Grid->GridProperties[i].MvirGalaxy);      
+    free(Grid->GridProperties[i].MstarGalaxy);      
     free(Grid->GridProperties[i].NgammaGalaxy);      
     free(Grid->GridProperties[i].NgammafescGalaxy);      
   }
