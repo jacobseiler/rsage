@@ -197,7 +197,7 @@ int32_t init_grid()
  
     // For some of the early snapshots we don't have photoionization grids (because ionization hasn't started yet at z=100).  
     // Let's put a flag to know whether we have any valid data for this snapshot so we don't have to create empty grids.
-    if (i >= LowSnap && i <= HighSnap)
+    if (i > LowSnap && i <= HighSnap)
     {
       Grid->PhotoGrid[i].valid_grid = 1;
     }
