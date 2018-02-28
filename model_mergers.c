@@ -66,7 +66,6 @@ void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, doubl
     mass_ratio = 1.0;
   add_galaxies_together(merger_centralgal, p);
 
-
   // starburst recipe similar to Somerville et al. 2001
   collisional_starburst_recipe(mass_ratio, merger_centralgal, centralgal, time, dt, halonr, 0, step, tree, ngal);
 
@@ -221,8 +220,6 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
   }
 
 }
-
-
 
 void add_galaxies_together(int t, int p)
 {
