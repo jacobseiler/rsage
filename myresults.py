@@ -426,8 +426,7 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
                         title = redshift_labels[model_number][snapshot_idx]
                     else:
                         title = ''
-                
-                    print(counts_array[model_number][snapshot_idx])        
+                    
                     plt.plot(bin_middle_array[model_number][snapshot_idx], counts_array[model_number][snapshot_idx] / normalization_array[model_number], color = PlotScripts.colors[snapshot_idx], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = title, linewidth = PlotScripts.global_linewidth) 
 
             #print(np.min(np.log10(ResolutionLimit_mean)))
@@ -453,12 +452,7 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
                 Obs.Get_Data_SMF()
                 delta = 0.05
                 caps = 5
-
-                ## Gonzalaez (2011) Plotting ##                   
-                plt.errorbar(Obs.Gonzalez_SMF_z6[:,0], 10**Obs.Gonzalez_SMF_z6[:,1], yerr= (10**Obs.Gonzalez_SMF_z6[:,3], 10**Obs.Gonzalez_SMF_z6[:,2]) , alpha=0.75, lw=1.0, marker='o', ls='none', label = 'Gonzalez 2011, z = 6', color = PlotScripts.colors[0])
-                plt.errorbar(Obs.Gonzalez_SMF_z7[:,0], 10**Obs.Gonzalez_SMF_z7[:,1], yerr= (10**Obs.Gonzalez_SMF_z7[:,3], 10**Obs.Gonzalez_SMF_z7[:,2]) , alpha=0.75, lw=1.0, marker='o', ls='none'    , label = 'Gonzalez 2011, z = 7', color = PlotScripts.colors[1])
-                ####
-
+                
                 ## Song (2016) Plotting ##
                 plt.errorbar(Obs.Song_SMF_z6[:,0], 10**Obs.Song_SMF_z6[:,1], yerr= (10**Obs.Song_SMF_z6[:,1] - 10**Obs.Song_SMF_z6[:,3], 10**Obs.Song_SMF_z6[:,2] - 10**Obs.Song_SMF_z6[:,1]), xerr = 0.25, capsize = caps, elinewidth = PlotScripts.global_errorwidth, alpha = 1.0, lw=2.0, marker='o', ls='none', label = 'Song 2015, z = 6', color = PlotScripts.colors[0], rasterized=True)
                 plt.errorbar(Obs.Song_SMF_z7[:,0], 10**Obs.Song_SMF_z7[:,1], yerr= (10**Obs.Song_SMF_z7[:,1] - 10**Obs.Song_SMF_z7[:,3], 10**Obs.Song_SMF_z7[:,2] - 10**Obs.Song_SMF_z7[:,1]), xerr = 0.25, capsize = caps, alpha=0.75, elinewidth = PlotScripts.global_errorwidth, lw=1.0, marker='o', ls='none', label = 'Song 2015, z = 7', color = PlotScripts.colors[1], rasterized=True)
@@ -488,7 +482,7 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
 
         if (paper_plot == 1):
 
-            fig, ax = plt.subplots(nrows=1, ncols=3, sharex=False, sharey=True, figsize=(8, 8))
+            fig, ax = plt.subplots(nrows=1, ncols=3, sharex=False, sharey=True, figsize=(12, 8))
 
             delta_fontsize = 0
             caps = 5
@@ -514,15 +508,15 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
                 ax[1].set_xticks(np.arange(6.0, 12.0))
                 ax[2].set_xticks(np.arange(6.0, 12.0))
 
-                ax[0].set_xlim([7, 11.5])
-                ax[1].set_xlim([7, 11.5])
-                ax[2].set_xlim([7, 11.5])
+                ax[0].set_xlim([6.8, 10.3])
+                ax[1].set_xlim([6.8, 10.3])
+                ax[2].set_xlim([6.8, 10.3])
 
                 ax[0].set_ylim([1e-6, 1e-0])
                 #for tk in ax[0,1].get_xticklabels():
                 #    tk.set_visible(True)
  
-                #fig.text(0.05, 0.6, r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', rotation = 'vertical', fontsize = PlotScripts.global_fontsize - delta_fontsize) 
+                ax[0].set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize) 
 
                 Obs.Get_Data_SMF()
 
@@ -532,12 +526,12 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
                 
                 ####
  
-                ax[0].text(0.6, 0.95, r"z = 6", transform = ax[0].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                ax[1].text(0.6, 0.95, r"z = 7", transform = ax[1].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                ax[2].text(0.6, 0.95, r"z = 8", transform = ax[2].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                ax[0].text(0.7, 0.95, r"z = 6", transform = ax[0].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                ax[1].text(0.7, 0.95, r"z = 7", transform = ax[1].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                ax[2].text(0.7, 0.95, r"z = 8", transform = ax[2].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
                                            
                 #leg = ax[0,0].legend(loc=2, bbox_to_anchor = (0.2, -0.5), numpoints=1, labelspacing=0.1)
-                leg = ax[1].legend(loc=2, bbox_to_anchor = (-0.1, -0.1), numpoints=1, labelspacing=0.1)
+                leg = ax[1].legend(loc=2, bbox_to_anchor = (0.0, -0.1), numpoints=1, labelspacing=0.1)
                 leg.draw_frame(True)  # Don't want a box frame
                 for t in leg.get_texts():  # Reduce the size of the text
                     t.set_fontsize(PlotScripts.global_legendsize + 6)
@@ -1663,7 +1657,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
 
 ##
 
-def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal, mean_quasar_activity, std_quasar_activity, N_halo, N_merger, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, output_tag):
+def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal_z, mean_quasar_activity, std_quasar_activity, N_halo, N_merger_halo, N_gal, N_merger_galaxy, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, output_tag):
     '''
     Parameters
     ---------
@@ -1675,7 +1669,7 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
         Number of quasars, THAT WENT OFF, during the given redshift. 
     N_quasars_boost_z : Nested array of floats, N_quasars_boost_z[model_number0] = [N_quasars_boost_z0, N_quasars_boost_z1, ..., N_quasars_boost_zN]. Outer array has length equal to the number of models, inner array has length equal to length of the model's SnapList. 
         Number of galaxies that had their escape fraction boosted by quasar activity. 
-    N_gal : Nested array of floats, N_gal_z[model_number0] = [N_gal_z0, N_gal_z1, ..., N_gal_zN]. Outer array has length equal to the number of models, inner array has length equal to length of the model's SnapList. 
+    N_gal_z : Nested array of floats, N_gal_z[model_number0] = [N_gal_z0, N_gal_z1, ..., N_gal_zN]. Outer array has length equal to the number of models, inner array has length equal to length of the model's SnapList. 
         Number of galaxies at each redshift.
     mean_quasar_activity, std_quasar_activity : Nested 2-dimensional array of floats, mean_quasar_activity[model_number0][snapshot0] = [bin0quasar_activity, ..., binNquasar_activity].  Outer array has length equal to the number of models, inner array has length equal to the length of the model's snaplist and most inner array has length equal to the number of halo bins (NB).
         Mean/std fraction of galaxies that had quasar go off during each snapshot as a function of halo mass.
@@ -1724,16 +1718,25 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
    
         fig4 = plt.figure()
         ax50 = fig4.add_subplot(111)
+
+        fig5 = plt.figure()
+        ax55 = fig5.add_subplot(111)
+
+        fig6 = plt.figure()
+        ax56 = fig6.add_subplot(111)
  
     mean_quasar_activity_array = []
     std_quasar_activity_array = []
     N_quasar_activity_array = []
 
     N_gal_halo_array = []
+    N_gal_array = []
  
-    merger_counts_array = []
+    merger_counts_halo_array = []
+    merger_counts_galaxy_array = []
 
     bin_middle_halo_array = []    
+    bin_middle_galaxy_array = []    
  
     for model_number in range(0, len(SnapList)): # Does this for each of the models. 
         if (fesc_prescription[model_number] != 3): # Want to skip the models that didn't count quasars.
@@ -1757,11 +1760,13 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
         N_quasar_activity_array.append([])
 
         N_gal_halo_array.append([])
+        N_gal_array.append([])
 
-        merger_counts_array.append([]) 
+        merger_counts_halo_array.append([]) 
+        merger_counts_galaxy_array.append([]) 
 
         bin_middle_halo_array.append([])
-
+        bin_middle_galaxy_array.append([])
  
         box_factor = (LastFile[model_number] - FirstFile[model_number] + 1.0)/(NumFile[model_number]) # This factor allows us to take a sub-volume of the box and scale the results to represent the entire box.
         print("We are plotting the quasar density using {0:.4f} of the box's volume.".format(box_factor))
@@ -1773,7 +1778,7 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
         if rank == 0:
             quasars_total = np.zeros_like((N_quasars_z[model_number]))
             boost_total = np.zeros_like(N_quasars_boost_z[model_number])
-            gal_count_total = np.zeros_like(N_gal[model_number])
+            gal_count_total = np.zeros_like(N_gal_z[model_number])
     
         else:
             quasars_total = None
@@ -1786,26 +1791,40 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
         N_quasars_boost_tmp = np.array(N_quasars_boost_z[model_number]) # So we can use MPI.Reduce()
         comm.Reduce([N_quasars_boost_tmp, MPI.DOUBLE], [boost_total, MPI.DOUBLE], op = MPI.SUM, root = 0) # Sum the number of galaxies that had their fesc boosted. 
 
-        N_gal_tmp = np.array(N_gal[model_number]) # So we can use MPI.Reduce()
+        N_gal_tmp = np.array(N_gal_z[model_number]) # So we can use MPI.Reduce()
         comm.Reduce([N_gal_tmp, MPI.DOUBLE], [gal_count_total, MPI.DOUBLE], op = MPI.SUM, root = 0) # Sum the number of total galaxies.
 
         for snapshot_idx in range(len(SnapList[model_number])): 
             mean_quasar_activity_array[model_number], std_quasar_activity_array[model_number], N_quasar_activity_array[model_number] = calculate_pooled_stats(mean_quasar_activity_array[model_number], std_quasar_activity_array[model_number], N_quasar_activity_array[model_number], mean_quasar_activity[model_number][snapshot_idx], std_quasar_activity[model_number][snapshot_idx], N_halo[model_number][snapshot_idx]) 
 
             if rank == 0:
-                merger_count_total = np.zeros_like((N_merger[model_number][snapshot_idx]))
+                merger_count_halo_total = np.zeros_like((N_merger_halo[model_number][snapshot_idx]))
                 N_gal_halo_total = np.zeros_like((N_halo[model_number][snapshot_idx]))
+
+                merger_count_galaxy_total = np.zeros_like((N_merger_galaxy[model_number][snapshot_idx]))
+                N_gal_total = np.zeros_like((N_gal[model_number][snapshot_idx]))
             else:
-                merger_count_total = None
+                merger_count_halo_total = None
                 N_gal_halo_total = None
  
-            comm.Reduce([N_merger[model_number][snapshot_idx], MPI.FLOAT], [merger_count_total, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum all the stellar mass and pass to Rank 0.
+                merger_count_galaxy_total = None 
+                N_gal_total = None
+ 
+            comm.Reduce([N_merger_halo[model_number][snapshot_idx], MPI.FLOAT], [merger_count_halo_total, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum all the stellar mass and pass to Rank 0.
             comm.Reduce([N_halo[model_number][snapshot_idx], MPI.FLOAT], [N_gal_halo_total, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum all the stellar mass and pass to Rank 0.
+
+            comm.Reduce([N_merger_galaxy[model_number][snapshot_idx], MPI.FLOAT], [merger_count_galaxy_total, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum all the stellar mass and pass to Rank 0.
+            comm.Reduce([N_gal[model_number][snapshot_idx], MPI.FLOAT], [N_gal_total, MPI.FLOAT], op = MPI.SUM, root = 0) # Sum all the stellar mass and pass to Rank 0.
+
             if rank == 0:
-                merger_counts_array[model_number].append(merger_count_total)
+                merger_counts_halo_array[model_number].append(merger_count_halo_total)
                 N_gal_halo_array[model_number].append(N_gal_halo_total)   
+
+                merger_counts_galaxy_array[model_number].append(merger_count_galaxy_total)
+                N_gal_array[model_number].append(N_gal_total)   
  
             bin_middle_halo_array[model_number].append(np.arange(m_low, m_high+bin_width, bin_width)[:-1] + bin_width * 0.5)
+            bin_middle_galaxy_array[model_number].append(np.arange(m_gal_low, m_gal_high+bin_width, bin_width)[:-1] + bin_width * 0.5)
              
         if rank == 0:     
             plot_count = 0
@@ -1816,25 +1835,29 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
             for snapshot_idx in range(0, len(SnapList[model_number])):  
                 t[snapshot_idx] = (AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number][snapshot_idx]]) * 1.0e3 
                 ZZ[snapshot_idx] = AllVars.SnapZ[SnapList[model_number][snapshot_idx]] 
-                if (stop_plot == 0): 
+                if (stop_plot == 0):
                     if (SnapList[model_number][snapshot_idx] == PlotList[model_number][plot_count]): 
                         label = "z = {0:.2f}".format(AllVars.SnapZ[PlotList[model_number][plot_count]])
 
                         ax7.plot(bin_middle_halo_array[model_number][snapshot_idx], mean_quasar_activity_array[model_number][snapshot_idx], color = PlotScripts.colors[plot_count], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = label, linewidth = PlotScripts.global_linewidth)
 
-                        ax50.plot(bin_middle_halo_array[model_number][snapshot_idx], merger_counts_array[model_number][snapshot_idx] / gal_count_total[snapshot_idx], color = PlotScripts.colors[plot_count], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = label, linewidth = PlotScripts.global_linewidth)
+                        #ax50.plot(bin_middle_halo_array[model_number][snapshot_idx], merger_counts_array[model_number][snapshot_idx] / gal_count_total[snapshot_idx], color = PlotScripts.colors[plot_count], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = label, linewidth = PlotScripts.global_linewidth)
+                        ax50.plot(bin_middle_halo_array[model_number][snapshot_idx], merger_counts_halo_array[model_number][snapshot_idx], color = PlotScripts.colors[plot_count], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = label, linewidth = PlotScripts.global_linewidth)
                         #ax50.plot(bin_middle_halo_array[model_number][snapshot_idx], merger_counts_array[model_number][snapshot_idx] / N_gal_halo_array[model_number][snapshot_idx], color = PlotScripts.colors[plot_count], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = label, linewidth = PlotScripts.global_linewidth)
-
+                                        
+                        ax55.plot(bin_middle_galaxy_array[model_number][snapshot_idx], merger_counts_galaxy_array[model_number][snapshot_idx], color = PlotScripts.colors[plot_count], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = label, linewidth = PlotScripts.global_linewidth)
                         plot_count += 1
                         if (plot_count == len(PlotList[model_number])):
                             stop_plot = 1
- 
+                print("For Snapshot {0} at t {3} there were {1} total mergers compared to {2} total galaxies.".format(snapshot_idx, np.sum(merger_counts_galaxy_array[model_number][snapshot_idx]), np.sum(gal_count_total[snapshot_idx]), t[snapshot_idx]))
+                if (np.sum(gal_count_total[snapshot_idx]) > 0.0 and np.sum(merger_counts_galaxy_array[model_number][snapshot_idx]) > 0.0):
+                    
+                    ax56.scatter(t[snapshot_idx], np.sum(merger_counts_galaxy_array[model_number][snapshot_idx]) / np.sum(gal_count_total[snapshot_idx]), color = 'r', rasterized = True)
             ax1.plot(t, quasars_total / norm, color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[0], rasterized = True, linewidth = PlotScripts.global_linewidth)
            
             p = np.where((ZZ < 15))[0] 
             #ax1.plot(ZZ[p], quasars_total[p] / norm, color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[0], rasterized = True, linewidth = PlotScripts.global_linewidth)
-            
- 
+             
             ax3.plot(t, boost_total, color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[0], rasterized = True, label = title, linewidth = PlotScripts.global_linewidth) 
             w = np.where((gal_count_total > 0.0))[0] # Since we're doing a division, need to only plot those redshifts that actually have galaxies.
 
@@ -1852,8 +1875,17 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
             ax7.set_ylabel(r'$\mathrm{Mean \: Quasar \: Activity}$', size = PlotScripts.global_fontsize)
        
             ax50.set_xlabel(r'$\log_{10}\ M_\mathrm{vir}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
-            ax50.set_ylabel(r'$\mathrm{Fraction \: Galaxies \: Undergoing \: Merger}$', size = PlotScripts.global_fontsize)
-                
+            #ax50.set_ylabel(r'$\mathrm{Fraction \: Galaxies \: Undergoing \: Merger}$', size = PlotScripts.global_fontsize)
+            ax50.set_ylabel(r'$\mathrm{Number \: Galaxies \: Undergoing \: Merger}$', size = PlotScripts.global_fontsize)
+
+            ax55.set_xlabel(r'$\log_{10}\ M_\mathrm{*}\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
+            #ax50.set_ylabel(r'$\mathrm{Fraction \: Galaxies \: Undergoing \: Merger}$', size = PlotScripts.global_fontsize)
+            ax55.set_ylabel(r'$\mathrm{Number \: Galaxies \: Undergoing \: Merger}$', size = PlotScripts.global_fontsize)
+
+            ax56.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_labelsize)             
+            ax56.set_ylabel(r'$\mathrm{Fraction \: Galaxies \: Undergoing \: Merger}$', size = PlotScripts.global_fontsize)
+            ax56.set_yscale('log', nonposy='clip')
+
             ax50.axvline(np.log10(32.0*AllVars.PartMass / AllVars.Hubble_h), color = 'k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')   
          
             ax1.xaxis.set_minor_locator(mtick.MultipleLocator(PlotScripts.time_tickinterval))
@@ -1868,6 +1900,7 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
             ## The redshift defined in the variable 'z_plot' will be displayed. ##
             ax2 = ax1.twiny()
             ax4 = ax3.twiny()
+            ax57 = ax56.twiny()
 
             t_plot = (AllVars.t_BigBang - AllVars.cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding time values on the bottom.
             z_labels = ["$%d$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
@@ -1881,6 +1914,12 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
             ax4.set_xlim(PlotScripts.time_xlim)
             ax4.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
             ax4.set_xticklabels(z_labels) # But label them as redshifts.
+
+            ax57.set_xlabel(r"$z$", size = PlotScripts.global_labelsize) 
+            ax57.set_xlim(PlotScripts.time_xlim)
+            ax57.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
+            ax57.set_xticklabels(z_labels) # But label them as redshifts.
+
 
             ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_labelsize) 
             #ax1.set_xlabel(r"$z$", size = PlotScripts.global_labelsize) 
@@ -1911,25 +1950,37 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
             for t in leg.get_texts():  # Reduce the size of the text
                 t.set_fontsize(PlotScripts.global_legendsize)
 
+            leg = ax55.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+            leg.draw_frame(False)  # Don't want a box frame
+            for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize(PlotScripts.global_legendsize)
+
             fig.tight_layout()            
             fig2.tight_layout()           
             fig3.tight_layout()           
-            fig4.tight_layout()
+            fig5.tight_layout()
+            fig6.tight_layout()
  
             outputFile1 = './{0}_quasardensity{1}'.format(output_tag, output_format)
             outputFile2 = './{0}_boostedcount{1}'.format(output_tag, output_format)
             outputFile3 = './{0}_quasar_activity_halo{1}'.format(output_tag, output_format)
             outputFile4 = './{0}_mergercount_global{1}'.format(output_tag, output_format)
+            outputFile5 = './{0}_mergercount_global_stellarmass{1}'.format(output_tag, output_format)
+            outputFile6 = './{0}_mergercount_total{1}'.format(output_tag, output_format)
 
             fig.savefig(outputFile1)  # Save the figure
             fig2.savefig(outputFile2)  # Save the figure
             fig3.savefig(outputFile3)  # Save the figure
             fig4.savefig(outputFile4)  # Save the figure
+            fig5.savefig(outputFile5)  # Save the figure
+            fig6.savefig(outputFile6)  # Save the figure
 
             print("Saved to {0}".format(outputFile1))
             print("Saved to {0}".format(outputFile2))
             print("Saved to {0}".format(outputFile3))
             print("Saved to {0}".format(outputFile4))
+            print("Saved to {0}".format(outputFile5))
+            print("Saved to {0}".format(outputFile6))
 
             plt.close(fig)
             plt.close(fig2)
@@ -2364,7 +2415,7 @@ def calculate_photons(SFR, Z):
         elif (Z[i] >= 0.0025 and Z[i] < 0.006):
             ngamma_HI_tmp = SFR[i] + 53.290
         elif (Z[i] >= 0.006 and Z[i] < 0.014):
-            ngamma_HI_tmp = SFR[i] + 53.240
+            ngamma_HI_tmp = SFR[i] + 53.248
         elif (Z[i] >= 0.014 and Z[i] < 0.30):
             ngamma_HI_tmp = SFR[i] + 53.166
         else:
@@ -2618,149 +2669,41 @@ if __name__ == '__main__':
     np.seterr(divide='ignore')
     number_models = 1
 
-    galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_quasarwind_starburst_z5.782'    
-    merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_quasarwind_starburst_MergedGalaxies'
+    galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_z5.782'
+    merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_MergedGalaxies'
 
-    galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_z5.782'    
-    merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_MergedGalaxies'
+    galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_strongquasar_z5.782'
+    merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_strongquasar_MergedGalaxies'
 
-    galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_fractionalejection_z5.782'    
-    merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_fractionalejection_MergedGalaxies'
+    galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.005_z5.782'
+    merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.005_MergedGalaxies'
 
-    galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_fractionalejection_highkappa_z5.782'    
-    merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_fractionalejection_highkappa_MergedGalaxies'
+    galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.05_z5.782'
+    merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.05_MergedGalaxies'
 
-    galaxies_model5 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_noquasarwind_z5.782'    
-    merged_galaxies_model5 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_noquasarwind_MergedGalaxies'
+    galaxies_model5 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.0005_z5.782'
+    merged_galaxies_model5 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.0005_MergedGalaxies'
 
-    galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_noquasarwind_IRA_z5.782'    
-    merged_galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_noquasarwind_IRA_MergedGalaxies'
+    galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.000_z5.782'
+    merged_galaxies_model6 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.000_MergedGalaxies'
 
-    galaxies_model7 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_IRA_z5.782'    
-    merged_galaxies_model7 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_IRA_MergedGalaxies'
+    galaxies_model7 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.005_CorrectDiskInstability_z5.782'
+    merged_galaxies_model7 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.005_CorrectDiskInstability_MergedGalaxies'
 
-    galaxies_model8 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_strongdelayed_z5.782'    
-    merged_galaxies_model8 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_strongdelayed_MergedGalaxies'
+    galaxies_model8 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.0005_CorrectDiskInstability_z5.782'
+    merged_galaxies_model8 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.0005_CorrectDiskInstability_MergedGalaxies'
 
-    galaxies_model9 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNold_z5.782'    
-    merged_galaxies_model9 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNold_MergedGalaxies'
+    galaxies_model9 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.05_CorrectDiskInstability_z5.782'
+    merged_galaxies_model9 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.05_CorrectDiskInstability_MergedGalaxies'
 
-    galaxies_model10 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_strongSNold_z5.782'
-    merged_galaxies_model10 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_strongSNold_MergedGalaxies'
+    galaxies_model10 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_z5.782'
+    merged_galaxies_model10 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_MergedGalaxies'
 
-    galaxies_model11 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_superstrongSNold_z5.782'
-    merged_galaxies_model11 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_superstrongSNold_MergedGalaxies'
+    galaxies_model11 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.0005_BHGrowth0.05_CorrectDiskInstability/kali_tiamat_pars_z5.782'
+    merged_galaxies_model11 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.0005_BHGrowth0.05_CorrectDiskInstability/kali_tiamat_pars_MergedGalaxies'
 
-    galaxies_model12 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_superstrongSNold_fractional_z5.782'
-    merged_galaxies_model12 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_superstrongSNold_fractional_MergedGalaxies'
-
-    galaxies_model13 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNold_fractional_highkappa_z5.782'
-    merged_galaxies_model13 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNold_fractional_highkappa_MergedGalaxies'
-
-    galaxies_model14 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNold_fractional_crazy_z5.782'
-    merged_galaxies_model14 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNold_fractional_crazy_MergedGalaxies'
-
-    galaxies_model15 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTestingParams_fractional_crazy_z5.782'
-    merged_galaxies_model15 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTestingParams_fractional_crazy_MergedGalaxies'
-
-    galaxies_model16 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTiamatParams_fractional_crazy_z5.782'
-    merged_galaxies_model16 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTiamatParams_fractional_crazy_MergedGalaxies'
-
-    galaxies_model17 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTiamatParams_fractional_notcrazy_z5.782'
-    merged_galaxies_model17 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTiamatParams_fractional_notcrazy_MergedGalaxies'
-
-    galaxies_model18 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTestingParams_fractional_notcrazy_z5.782'
-    merged_galaxies_model18 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTestingParams_fractional_notcrazy_MergedGalaxies'
-
-    galaxies_model19 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTestingParams_fractional_contemp_z5.782'
-    merged_galaxies_model19 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTestingParams_fractional_contemp_MergedGalaxies'
-
-    galaxies_model20 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTestingParams_fractional_nocontemp_z5.782'
-    merged_galaxies_model20 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNnewTestingParams_fractional_nocontemp_MergedGalaxies'
-
-    galaxies_model21 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_nocontemp_z5.782'
-    merged_galaxies_model21 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_nocontemp_MergedGalaxies'
-
-    galaxies_model22 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_contemp_notimespan_z5.782'
-    merged_galaxies_model22 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_contemp_notimespan_MergedGalaxies'
-
-    galaxies_model23 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_contemp_notimespan_nodiv2_z5.782'
-    merged_galaxies_model23 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_contemp_notimespan_nodiv2_MergedGalaxies'
-
-    galaxies_model24 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_HUGEQUASAR_contemp_notimespan_nodiv2_z5.782'
-    merged_galaxies_model24 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_HUGEQUASAR_contemp_notimespan_nodiv2_MergedGalaxies'
-
-    galaxies_model25 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_z5.782'
-    merged_galaxies_model25 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_MergedGalaxies'
-
-    galaxies_model26 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_lowSF_z5.782'
-    merged_galaxies_model26 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_lowSF_MergedGalaxies'
-
-    galaxies_model27 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_lowSF_lowburst_z5.782'
-    merged_galaxies_model27 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_lowSF_lowburst_MergedGalaxies'
-
-    galaxies_model28 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_lowSF_superlowburst_z5.782'
-    merged_galaxies_model28 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_lowSF_superlowburst_MergedGalaxies'
-
-    galaxies_model29 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_lowSF_scalingzburst_z5.782'
-    merged_galaxies_model29 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SNTiamatParams_fractional_SMALLQUASAR_contemp_notimespan_nodiv2_lowSF_scalingzburst_MergedGalaxies'
-
-    galaxies_model30 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_lowrecycle_z5.782'
-    merged_galaxies_model30 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_lowrecycle_MergedGalaxies'
-
-    galaxies_model31 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_z5.782'
-    merged_galaxies_model31 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_MergedGalaxies'
-
-    galaxies_model32 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_superSN_z5.782'
-    merged_galaxies_model32 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_superSN_MergedGalaxies'
-
-    galaxies_model33 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_timespan_z5.782'
-    merged_galaxies_model33 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_timespan_MergedGalaxies'
-
-    galaxies_model34 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_timespan_z5.782'
-    merged_galaxies_model34 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_timespan_MergedGalaxies'
-
-    galaxies_model35 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_lowquasar_z5.782'
-    merged_galaxies_model35 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_lowquasar_MergedGalaxies'
-
-    galaxies_model36 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_mediumquasar_z5.782'
-    merged_galaxies_model36 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_mediumquasar_MergedGalaxies'
-
-    galaxies_model37 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_mediumquasar_oldSNcoeff_z5.782'
-    merged_galaxies_model37 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_mediumquasar_oldSNcoeff_MergedGalaxies'
-
-    galaxies_model38 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_mediumquasar_z5.782'
-    merged_galaxies_model38 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_mediumquasar_MergedGalaxies'
-
-    galaxies_model39 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_mediumquasar_strongSN_z5.782'
-    merged_galaxies_model39 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_mediumquasar_strongSN_MergedGalaxies'
-
-    galaxies_model40 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoLowResMergers_z5.782'
-    merged_galaxies_model40 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoLowResMergers_MergedGalaxies'
-
-    galaxies_model41 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractionalQuasar_z5.782'
-    merged_galaxies_model41 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractionalQuasar_MergedGalaxies'
-
-    galaxies_model42 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_HighBHGrowth_z5.782'
-    merged_galaxies_model42 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_HighBHGrowth_MergedGalaxies'
-
-    galaxies_model43 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.03_z5.782'
-    merged_galaxies_model43 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.03_MergedGalaxies'
-
-    galaxies_model44 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_z5.782'
-    merged_galaxies_model44 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_MergedGalaxies'
-
-    galaxies_model45 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_SuperStrongQuasar_z5.782'
-    merged_galaxies_model45 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_SuperStrongQuasar_MergedGalaxies'
-
-    galaxies_model46 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_BHGrowthStarburstQuasar_z5.782'
-    merged_galaxies_model46 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_BHGrowthStarburstQuasar_MergedGalaxies'
-
-    galaxies_filepath_array = [galaxies_model44]
-    merged_galaxies_filepath_array = [merged_galaxies_model44]
-
-    #galaxies_filepath_array = [galaxies_model2, galaxies_model8]
-    #merged_galaxies_filepath_array = [merged_galaxies_model2, merged_galaxies_model8] 
+    galaxies_filepath_array = [galaxies_model10]
+    merged_galaxies_filepath_array = [merged_galaxies_model10]
        
     number_substeps = [10] # How many substeps does each model have (specified by STEPS variable within SAGE).
     number_snapshots = [99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
@@ -2776,12 +2719,7 @@ if __name__ == '__main__':
     # Then same_files = [1, 1, 0, 1, 0] would be the correct values.
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
-    #model_tags = [r"$f_\mathrm{esc} = 0.3$", r"$f_\mathrm{esc} = 0.7f_\mathrm{ej} + 0.0$", r"$f_\mathrm{esc} = \mathrm{Quasar} \: 0.1, 1.0, 2.0$"] # Tag for each model that will be used in the plots.
-    #model_tags = [r"$\mathrm{Kali \: Delayed}$", r"$\mathrm{Kali \: No \: Quasar \: Mode \: Feedback \: Instant \: SN}$"]
-    #model_tags = [r"$\mathrm{Mini-Millennium}$"]
-    #model_tags = [r"$\mathrm{Kali \: Quasar \: Then \: Starburst}$", r"$\mathrm{Kali \: Starburst \: Then \: Quasar \: High} \kappa$"]
-    model_tags = [r"$\mathrm{Kali \: Quasar \: Then \: Starburst \: Delayed}$"]
-    #model_tags = [r"$\mathrm{Kali \: Quasar \: Then \: Starburst}$", r"$\mathrm{Kali \: Starburst \: Then \: Fractional \: Quasar}$"]
+    model_tags = [r"$\mathrm{Dummy}$"]
     save_tags = ["dummy"]
 
     ## Constants used for each model. ##
@@ -2809,10 +2747,11 @@ if __name__ == '__main__':
    
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
-    #SnapList = [np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
-    SnapList = [[93, 76, 64]] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
-    
-    PlotSnapList = [[65]] # For plots that contain properties plotted at specific redshifts, this specifies which snapshots we should plot at. 
+    SnapList = [np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
+    #SnapList = [[93, 76, 64]] 
+    PlotSnapList = [[93, 76, 64]] 
+   
+    #PlotSnapList = [[29, 40, 49, 76, 93]] # For plots that contain properties plotted at specific redshifts, this specifies which snapshots we should plot at. 
 
     simulation_norm = [5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
     # 0 for MySim (Manodeep's old one).
@@ -2825,6 +2764,8 @@ if __name__ == '__main__':
     stellar_mass_halolen_lower = [32, 95, 95, 95] # These limits are for the number of particles in a halo.  
     stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
     calculate_observed_LF = [0, 0, 0] # Determines whether we want to account for dust extinction when calculating the luminosity function of each model.
+
+    paper_plots = 1
 
     ## If we are running in Mode 1, we want to specifically do the quasar prescription with the constants defined by the inputs ##
     if (mode == 1):
@@ -2886,6 +2827,7 @@ if __name__ == '__main__':
     N_galaxy_array = [] # Number of galaxies as a function of stellar mass.
     mean_BHmass_galaxy_array = [] # Black hole mass as a function of stellar mass.
     std_BHmass_galaxy_array = [] # Same as above but standard deviation. 
+    mergers_galaxy_array = [] # Number of mergers as a function of halo mass. 
 
     ## Arrays for functions of halo mass. ##
     mean_ejected_halo_array = [] # Mean ejected fractions as a function of halo mass.
@@ -2924,7 +2866,8 @@ if __name__ == '__main__':
         N_galaxy_array.append([])
         mean_BHmass_galaxy_array.append([])
         std_BHmass_galaxy_array.append([])
- 
+        mergers_galaxy_array.append([]) 
+
         ## Halo arrays. ##
         mean_ejected_halo_array.append([])
         std_ejected_halo_array.append([])
@@ -2967,6 +2910,7 @@ if __name__ == '__main__':
             N_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
             mean_BHmass_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
             std_BHmass_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
+            mergers_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32))
 
             ## Function of halo mass arrays. ##
             mean_ejected_halo_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
@@ -3063,7 +3007,7 @@ if __name__ == '__main__':
                     current_snap = SnapList[current_model_number][snapshot_idx] # Get rid of some clutter.
 
                     w_gal = np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut) & (G.GridSFR[:, current_snap] >= 0.0) & (G.GridCentralGalaxyMass[:, current_snap] >= 0.0))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate. Ensure the galaxies also resides in a halo that is sufficiently resolved.
-                    w_merged_gal = np.where((G_Merged.GridHistory[:, current_snap] != -1) & (G_Merged.GridStellarMass[:, current_snap] > 0.0) & (G_Merged.LenHistory[:, current_snap] > current_halo_cut) & (G_Merged.GridSFR[:, current_snap] >= 0.0) & (G_Merged.GridCentralGalaxyMass[:, current_snap] >= 0.0))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate. Ensure the galaxies also resides in a halo that is sufficiently resolved.
+                    w_merged_gal = np.where((G_Merged.GridHistory[:, current_snap] != -1) & (G_Merged.GridStellarMass[:, current_snap] > 0.0) & (G_Merged.LenHistory[:, current_snap] > current_halo_cut) & (G_Merged.GridSFR[:, current_snap] >= 0.0) & (G_Merged.GridCentralGalaxyMass[:, current_snap] >= 0.0) & (G_Merged.LenMergerGal[:,current_snap] > current_halo_cut))[0] 
               
                     print("There were {0} galaxies for snapshot {1} (Redshift {2:.3f}) model {3}.".format(len(w_gal), current_snap, AllVars.SnapZ[current_snap], current_model_number))
                    
@@ -3085,6 +3029,7 @@ if __name__ == '__main__':
                     merge_flag = G_Merged.mergeType[w_merged_gal]
                     merge_flag[merge_flag >= 1] = 1.0 
                     merge_mass_central = np.log10(G_Merged.GridCentralGalaxyMass[w_merged_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
+                    merge_mass_galaxy = np.log10(G_Merged.GridStellarMass[w_merged_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
                                         
                     L_UV = SFR_gal + 39.927 # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
                     M_UV = AllVars.Luminosity_to_ABMag(L_UV, 1600)
@@ -3118,15 +3063,15 @@ if __name__ == '__main__':
                     ionizing_photons = np.multiply(photons_HI_gal_nonlog, fesc_local) # Then get the number that actually escape.
 
                     '''
-                    print(w_gal[0:10]) 
-                    print(SFR_gal[0:10])
-                    print(photons_HI_gal[0:10])
-                    print(photons_HI_gal_nonlog[0:10])
-                    print(sum(photons_HI_gal_nonlog[0:10]))
-                    print(sum(ionizing_photons))
+                    print("Gal Idx {0}".format(w_gal[0:10])) 
+                    print("SFR {0}".format(SFR_gal[0:10].astype(float)))
+                    print("Log Photons {0}".format(photons_HI_gal[0:10]))
+                    print("Non-log Photons {0}".format(photons_HI_gal_nonlog[0:10]))
+                    print("Sum {0}".format(sum(photons_HI_gal_nonlog[0:10])))
+                    print("fesc Sum {0}".format(sum(ionizing_photons[0:10])))
                     print("The total number of ionizing photons is {0:.4e}.".format(sum(ionizing_photons)))
                     exit()
-                    '''                   
+                    '''
  
                     ###########################################                     
                     ######## BASE PROPERTIES CALCULATED #######
@@ -3166,6 +3111,9 @@ if __name__ == '__main__':
                     if (len(merge_flag) > 0):
                         (_, _, _, merger_counts_local, _) = AllVars.Calculate_2D_Mean(merge_mass_central, merge_flag, bin_width, m_low, m_high)
                         mergers_halo_array[model_number][snapshot_idx] += merger_counts_local
+
+                        (_, _, _, merger_counts_local_galaxy, _) = AllVars.Calculate_2D_Mean(merge_mass_galaxy, merge_flag, bin_width, m_gal_low, m_gal_high)
+                        mergers_galaxy_array[model_number][snapshot_idx] += merger_counts_local_galaxy
                                         
                     N_halo_array[current_model_number][snapshot_idx] += N_local                         
 
@@ -3181,11 +3129,11 @@ if __name__ == '__main__':
                     keep_files =  same_files[current_model_number] # Decide if we want to keep the files loaded or throw them out. 
                     current_model_number += 1 # Update the inner loop model number.
 
-    StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, 0, save_tags, model_tags, 1, 1, "Kali_starburst_quasarwind_SF0.01_NoFractional_BHGrowthStarburstQuasar")
+    #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, 0, save_tags, model_tags, 1, paper_plots, "Kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.02_CorrectDiskInstability_adjustedObs")
     #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, std_BHmass_galaxy_array, N_galaxy_array, model_tags, "StellarMass_BHMass")
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 
-    #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_starburst_quasarwind_mediumquasar")
+    plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_starburst_quasarwind_QuasarEff0.02_withcut")
     #plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_Kali_aspen", 1, save_tags)
     #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_Kali_aspen_tuesday") ## PARALELL COMPATIBLE
     #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 

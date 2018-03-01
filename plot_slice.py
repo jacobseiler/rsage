@@ -1916,7 +1916,7 @@ def plot_combined_global_nion(ZZ, total_nion, volume_frac, labels, OutputDir, ou
 ##########
 
 
-def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, output_tag):	
+def plot_nine_panel_slices(ZZ, filepaths, GridSizes, precision, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, output_tag):	
     ## TODO: Update the function header string.
 
     fig = plt.figure(figsize = (16, 12))
@@ -1928,7 +1928,7 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
         model_index = int((i-1) % len(filepaths)) # Every 3rd step it flips back to the first model.
         count_index = int(floor((i-1)/len(filepaths))) # Every 3rd step it increments to the next fraction we're plotting.	
         snapshot_index = int(MC_Snaps[model_index, count_index]) # Corresponding snapshot that we are loading for this model and HI fraction.
-              
+             
         if(simulation_norm[model_index] == 0):
             cosmo = AllVars.Set_Params_Mysim()
         elif(simulation_norm[model_index] == 2):
@@ -1940,36 +1940,28 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, simulation_norm, MC_Snaps, 
         else:
             print("Normalization should be < 6 and should have been caught during initialization instead of here (plot_nine_panel_slices).")
             exit()
-	
-        if (snapshot_index < 10):
-            number_tag_anne = '_0%d' %(snapshot_index)
-            number_tag_mine = '_00%d' %(snapshot_index)
-        else:
-            number_tag_anne = '_%d' %(snapshot_index)
-            number_tag_mine = '_0%d' %(snapshot_index)
 
-        if snapshot_index < 0 or snapshot_index > len(ZZ):	
+        print(snapshot_index)
+        print(ZZ)
+        print(len(ZZ))	
+        if snapshot_index < 0 or snapshot_index > len(AllVars.SnapZ):	
             ionized_cells = np.zeros((GridSizes[model_index], GridSizes[model_index], GridSizes[model_index]))
             redshift = 0.00
-        elif ZZ[snapshot_index] < 5 or ZZ[snapshot_index] > 20:
+        elif AllVars.SnapZ[snapshot_index] < 5 or AllVars.SnapZ[snapshot_index] > 20:
             ionized_cells = np.zeros((GridSizes[model_index], GridSizes[model_index], GridSizes[model_index]))
             redshift = 0.00
         else:
-            fname = filepaths[model_index] + "_%02d" %(snapshot_index) 
+            fname = "{0}_{1:03d}".format(filepaths[model_index], snapshot_index) 
             print("")
-            print("Loading in data for {0} Model from file {1}".format(model_tags[model_index], fname))
-            fd = open(fname, 'rb')
-            ionized_cells = np.fromfile(fd, count = GridSizes[model_index]*GridSizes[model_index]*GridSizes[model_index], dtype = np.float64)	
-            ionized_cells.shape = (GridSizes[model_index], GridSizes[model_index], GridSizes[model_index])
-            fd.close()
-
+            ionized_cells = ReadScripts.read_binary_grid(fname, GridSizes[model_index], precision[model_index]) 
+            
             if len(ionized_cells[ionized_cells == 1]):
                 raise ValueError("Arghhh")
 			
             ionized_cells = np.log10(1 - ionized_cells)
 
             #ionized_cells = np.log10(ionized_cells)
-            redshift = ZZ[snapshot_index]
+            redshift = AllVars.SnapZ[snapshot_index]
 
         index_cut = int(cut_slice * (AllVars.BoxSize/100.0)*(GridSizes[model_index]/GridSizes[0])) # Wish to cut the box at the same spatial point for all models.  So normalize the index that this corresponds to to model1.
         thickness_cut = int(np.ceil(1 * (AllVars.BoxSize/100.0)*(GridSizes[model_index]/GridSizes[0]))) # We will take a thickness of 1 cell for model1 and then normalize the number of cells we need to get the same thickness for the other models.
@@ -2379,25 +2371,11 @@ if __name__ == '__main__':
     PlotScripts.Set_Params_Plot()
 
     ## Kali ## 
+   
+    model_tags = [r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$", r"$f_\mathrm{esc} = 0.20$"]
 
-    #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$"]
-    #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$"]
-    #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$df_\mathrm{esc} / dM_\mathrm{H} > 0$"]
-    #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
-    model_tags = [r"$\mathrm{Kali \: Reionization \: On}$", r"$\mathrm{Kali \: Reionization \: Off}$"]
-    #model_tags = [r"$f_\mathrm{esc} = \mathrm{Constant}$", r"$\mathrm{Quasar \: Hot \: Cold}$", r"$\mathrm{Quasar \: Cold}$"]
-    #model_tags = [r"Ejectd", r"Anne MHPos", r"Anne MHNeg"]
-    #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
-    #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$",r"$\mathrm{Quasar}$", r"$f_\mathrm{esc} = 0.4f_\mathrm{ej} + 0.2$"]
-    #model_tags = [r"$f_\mathrm{esc} = 0.35$", r"$f_\mathrm{esc} \: \propto \: M_\mathrm{H}$",r"$\mathrm{Quasar}$"]
+    output_tags = [r"Constant", r"Quasar"]
 
-    output_tags = [r"Constant", r"Ejected", "MHPos"]
-#    output_tags = [r"Delayed_Constant", r"Delayed_Quasar", r"Delayed_fej"]
-#    output_tags = [r"Delayed_Constant", r"Delayed_MHneg", r"Delayed_MHPos", r"Delayed_Quasar", r"Delayed_fej"]
-#    output_tags = [r"Constant", r"MHPos", r"Quasar"]
-#    output_tags = [r"Densfield_full_Snap20"]
-#    output_tags = [r"densgrid_snapshot020_full"]
- 
     number_models = 2
 
     simulation_model1 = 6 # Which simulation are we using?
@@ -2407,94 +2385,31 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'Kali_reionization_comp'
+    model = 'paper_Kali'
 
     GridSize_model1 = 256
         
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
-
-    ## IRA
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_photHI1_sphere_fesc0.35"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_photHI1_fescMHneg"  
-    filepath_model3 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_photHI1_fescMHpos_sphere"
-    filepath_model4 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_photHI1_fescquasar_sphere"
-    filepath_model5 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_photHI1_sphere_fej"
-
-    ## Delayed
-    filepath_model6 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_sphere_fesc0.35"
-    filepath_model7 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescMHneg_sphere"  
-    filepath_model8 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescMHpos_sphere"
-    filepath_model9 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescquasar_sphere"
-    filepath_model10 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_sphere_fej"
-
-    ## Anne
-    filepath_model12 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescMHpos_anne_sphere"
-    filepath_model13 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_ejected_new_sphere"
-    filepath_model14 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescquasar5DynTime_sphere" 
-
-    ## Correct Box
-    filepath_model15 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescquasar5DynTime_sphere_correctbox" 
-    filepath_model16 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_sphere_fesc0.35_correctbox" 
-    filepath_model17 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_ejected_new_sphere_correctbox" 
-
-    ## Corrext Box, Lower Ionizing Emissivity
-    filepath_model18 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_ejected_alpha0.7beta0.0"
-    filepath_model19 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_fescquasr_0.15_1.00_1.00"
-    filepath_model20 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_photHI1_sphere_fesc0.30"
-
-    filepath_model22 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/XHII_delayed_noreionization_photHI1_sphere_fesc0.30"
+   
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_fesc0.20/XHII"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_quasar_0.10_1.00_2.50/XHII"
     
- 
-    ## IRA        
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_fesc0.35_HaloPartCut32_nionHI"    
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/Galaxies_kali_fiducial_grid256_densfieldgridding_MH_1.000e+08_0.70_1.000e+12_0.20_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_MH_1.000e+08_0.20_1.000e+12_0.70_nionHI"
-    filepath_nion_model4 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_quasar_0.20_1.00_1_nion_HI"
-    filepath_nion_model5 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_densfieldgridding_Ejected_alpha0.400beta0.200_nionHI"
-
-    ## Delayed
-    filepath_nion_model6 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_fesc0.35_HaloPartCut32_nionHI"    
-    filepath_nion_model7 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_MH_1.000e+08_0.70_1.000e+12_0.20_nionHI"
-    filepath_nion_model8 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_MH_1.000e+08_0.20_1.000e+12_0.70_nionHI"
-    filepath_nion_model9 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_quasar_0.20_1.00_1_nion_HI"
-    filepath_nion_model10 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_Ejected_alpha0.400beta0.200_nionHI"
-
-    ## Anne
-    filepath_nion_model11 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_Anne_MH_6.310e+09_0.99_3.160e+11_0.05_nionHI"
-    filepath_nion_model12 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_Anne_MH_3.960e+09_0.00_3.160e+11_0.95_nionHI"
-    filepath_nion_model13 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_Ejected_alpha1.000beta0.000_nionHI"
-
-
-    filepath_nion_model14 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_quasar_0.20_1.00_5_nion_HI"
-
-    ## Corrext Box, Lower Ionizing Emissivity
-
-    filepath_nion_model18 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_Ejected_alpha0.700beta0.000_nionHI"    
-    filepath_nion_model19 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_quasar_0.15_1.00_1.00_nion_HI"    
-    filepath_nion_model20 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_delayedSN_grid256_densfieldgridding_fesc0.30_HaloPartCut32_nionHI"
-
-    filepath_nion_model21 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_coldhot_quasar_0.15_1.00_1.00_nion_HI"
-
-    filepath_nion_model22 = "/lustre/projects/p004_swin/jseiler/kali/grids/kali_fiducial_grid256_noreionization_fesc0.30_HaloPartCut32_nionHI" 
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_fesc0.20/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_nionHI" 
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_quasar_0.10_1.00_2.50/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI"
   
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
+    filepath_density_model2 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
         
-    filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/photHI_photHI1_fesc0.35"
-    filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/photHI_photHI1_fescMHneg"  
+    #filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/photHI_photHI1_fesc0.35"
+    #filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/photHI_photHI1_fescMHneg"  
     
-
     simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1, simulation_model1]
     precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
-    ionized_cells_filepath_array = [filepath_model20, filepath_model22]
-    #ionized_cells_filepath_array = [filepath_model1, filepath_model2, filepath_model3, filepath_model4, filepath_model5]
-    #ionized_cells_filepath_array = [filepath_model6, filepath_model7, filepath_model8, filepath_model9, filepath_model10]
-    #nion_filepath_array = [filepath_nion_model6, filepath_nion_model7, filepath_nion_model8, filepath_nion_model9, filepath_nion_model10] 
-    nion_filepath_array = [filepath_nion_model20, filepath_nion_model22]
-    #nion_filepath_array = [filepath_nion_model1, filepath_nion_model3, filepath_nion_model4, filepath_nion_model5] 
-    #nion_filepath_array = [filepath_nion_model1, filepath_nion_model2, filepath_nion_model3, filepath_nion_model4, filepath_nion_model5] 
+    ionized_cells_filepath_array = [filepath_model1, filepath_model2]    
+    nion_filepath_array = [filepath_nion_model1, filepath_nion_model2]
     density_filepath_array = [filepath_density_model1, filepath_density_model1, filepath_density_model1]
-    photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2]
+    #photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2]
     
     ###########################      
     
@@ -2506,24 +2421,17 @@ if __name__ == '__main__':
 
     #snaplist = np.arange(0, len(AllVars.SnapZ)) 
     #snaplist = np.arange(0, 70)
-    snaplist = np.arange(27, 94) 
+    snaplist = np.arange(28, 94) 
     #snaplist = np.arange(20, 50)
 
-    ZZ = np.empty(len(snaplist))
-    
-    for i in range(0, len(snaplist)):
-        ZZ[i] = AllVars.SnapZ[snaplist[i]]  
     z_index = 0 
 
-    lowerZ = 0 
-    upperZ = len(ZZ) 
-
-    volume_frac_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64) 
-    mass_frac_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
-    nion_total_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64) 
-    photo_mean_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
-    photo_std_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
-    hoshen_array = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
+    volume_frac_array = np.zeros((number_models, len(snaplist)), dtype = np.float64) 
+    mass_frac_array = np.zeros((number_models, len(snaplist)), dtype = np.float64)
+    nion_total_array = np.zeros((number_models, len(snaplist)), dtype = np.float64) 
+    photo_mean_array = np.zeros((number_models, len(snaplist)), dtype = np.float64)
+    photo_std_array = np.zeros((number_models, len(snaplist)), dtype = np.float64)
+    hoshen_array = np.zeros((number_models, len(snaplist)), dtype = np.float64)
 
     wavenumber_array = [] 
     powerspectra_array = [] 
@@ -2555,8 +2463,8 @@ if __name__ == '__main__':
     #fractions_HI = [0.75, 0.50, 0.25]
     #delta_HI = [0.03, 0.03, 0.03]
 
-    fractions_HI = [0.75, 0.25]
-    delta_HI = [0.03, 0.03]
+    fractions_HI = [0.75, 0.50, 0.25]
+    delta_HI = [0.03, 0.03, 0.03]
 
     HI_fraction_high = np.add(fractions_HI, delta_HI) 
     HI_fraction_low= np.subtract(fractions_HI, delta_HI) 
@@ -2567,14 +2475,14 @@ if __name__ == '__main__':
     do_MC = 0 
     calculate_MC = 0 # 0 to NOT calculate the MC bubbles, 1 to calculate them at the HI fractions specified by fractions_HI, 2 to calculate them at the snapshots given by calculate_MC_snaps. 
     plot_MC = 0 # 0 is nothing, 1 to plot bubble properties at specified HI fractions, 2 to plot them at specified snapshots.
-    calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
-    MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
+    #calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
+    #MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
  
     calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calculate it. 
 
     do_hoshen = 0
     
-    for snapshot_idx in range(lowerZ+rank, upperZ, size):
+    for count, snapshot_idx in enumerate(snaplist):
 
         do_power_array = np.zeros((number_models))	
         ionized_cells_array = []
@@ -2583,15 +2491,8 @@ if __name__ == '__main__':
         photofield_array = [] 
 
         print("==============================")
-        print("REDSHIFT {0:.2f}".format(ZZ[snapshot_idx]))	
+        print("REDSHIFT {0:.2f}".format(AllVars.SnapZ[snapshot_idx]))	
         print("==============================")
-
-        if (snapshot_idx < 10):
-            number_tag_anne = '_0%d' %(snapshot_idx)
-            number_tag_mine = '_00%d' %(snapshot_idx)
-        else:
-            number_tag_anne = '_%d' %(snapshot_idx)
-            number_tag_mine = '_0%d' %(snapshot_idx)
 
         ##########################################################################
 
@@ -2618,66 +2519,62 @@ if __name__ == '__main__':
                 #######################################
                 ##### Reading in all the files. ####### 
                 #######################################
-
-            if (model_number == 0):
-                ionized_cells_path = ionized_cells_filepath_array[model_number] + "_%02d" %(snapshot_idx)
-            else: 
-                ionized_cells_path = "{0}_{1:03d}".format(ionized_cells_filepath_array[model_number], snaplist[snapshot_idx]) 
+            
+            ionized_cells_path = "{0}_{1:03d}".format(ionized_cells_filepath_array[model_number], snapshot_idx) 
             ionized_cells_array.append(ReadScripts.read_binary_grid(ionized_cells_path, GridSize_model, precision_model)) 
 
-            nion_path = "{0}_{1:03d}".format(nion_filepath_array[model_number], snaplist[snapshot_idx])
+            nion_path = "{0}_{1:03d}".format(nion_filepath_array[model_number], snapshot_idx)
             nion_array.append(ReadScripts.read_binary_grid(nion_path, GridSize_model, 1) * 1.0e50) 
 
-            density_path = "{0}snap{1:03d}.dens.dat".format(density_filepath_array[model_number], snaplist[snapshot_idx])  
+            density_path = "{0}snap{1:03d}.dens.dat".format(density_filepath_array[model_number], snapshot_idx)  
             #density_path = "{0}.dens.dat".format(density_filepath_array[model_number])  
             density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))
             
-            #photofield_path = "{0}_{1:02d}".format(photofield_filepath_array[model_number], snaplist[snapshot_idx]) 
+            #photofield_path = "{0}_{1:02d}".format(photofield_filepath_array[model_number], snapshot_idx) 
             #photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
 
-            tag = "{0}_{1:03d}".format(output_tags[model_number], snaplist[snapshot_idx])                  
+            tag = "{0}_{1:03d}".format(output_tags[model_number], snapshot_idx)
             #plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, tag) 
 
-            volume_frac_array[model_number][snapshot_idx] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
-            mass_frac_array[model_number][snapshot_idx] = calculate_mass_frac(ionized_cells_array[model_number], density_array[model_number]) 
-            nion_total_array[model_number][snapshot_idx] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
-            volume_frac_model = volume_frac_array[model_number][snapshot_idx]	
+            volume_frac_array[model_number][count] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
+            mass_frac_array[model_number][count] = calculate_mass_frac(ionized_cells_array[model_number], density_array[model_number]) 
+            nion_total_array[model_number][count] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
+            volume_frac_model = volume_frac_array[model_number][count]	
 
             if(do_hoshen == 1):
-                hoshen_array[model_number][snapshot_idx] = hoshen_kopelman(ionized_cells_array[model_number])	
+                hoshen_array[model_number][count] = hoshen_kopelman(ionized_cells_array[model_number])	
         
-            #plot_nionfield(ZZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snaplist[snapshot_idx]))
+            #plot_nionfield(AllVars.SnapZ[snapshot_idx], nion_array[model_number], OutputDir, "Nion_" + output_tags[model_number] + '_' + str(snapshot_idx))
             #density_array[model_number] = density_array[model_number] + 1
-            #plot_density(ZZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snaplist[snapshot_idx]))
+            #plot_density(AllVars.SnapZ[snapshot_idx], density_array[model_number], OutputDir, "Density_" + output_tags[model_number] + '_' + str(snapshot_idx))
             #plot_density_numbers(ZZ[i], density_array[model_number], OutputDir, "DensityNumbers" + str(i))
 
             fraction_idx = check_fractions(volume_frac_model, HI_fraction_high, HI_fraction_low) # Checks the current ionization fraction with the fractions that we wanted to do extra stuff at.
-            
 
             if(fraction_idx != -1): 
                 if(MC_ZZ[model_number, fraction_idx] == -1):	
-                    MC_ZZ[model_number, fraction_idx] = ZZ[snapshot_idx]
+                    MC_ZZ[model_number, fraction_idx] = AllVars.SnapZ[snapshot_idx]
                     MC_Snaps[model_number, fraction_idx] = snapshot_idx
 
-                    print("Model {0} reached x_HI = {1:.3f} at z = {2:.2f}".format(model_number, 1 - fractions_HI[fraction_idx], ZZ[snapshot_idx]))
+                    print("Model {0} reached x_HI = {1:.3f} at Snapshot {2} (z = {3:.2f})".format(model_number, 1 - fractions_HI[fraction_idx], snapshot_idx, AllVars.SnapZ[snapshot_idx]))
 
                     do_MC = 1
                     do_power_array[model_number] = 1
           
-            if((do_MC == 1 and calculate_MC == 1) or (calculate_MC == 2 and snapshot_idx == calculate_MC_snaps[snapshot_idx])):
+            if((do_MC == 1 and calculate_MC == 1)): 
          
                 print("snapshot_idx {0}".format(snapshot_idx))
                 print("Model_number {0}".format(model_number))
-                print("ZZ[snapshot_idx {0}".format(ZZ[snapshot_idx]))
+                print("SnapZ[snapshot_idx {0}".format(AllVars.SnapZ[snapshot_idx]))
                 #print("ionized_cells_array[model_number] {0}".format(ionized_cells_array[model_number]))
                 print("GridSize_array[model_number] {0}".format(GridSize_array[model_number]))	
         
-                calculate_bubble_MC(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number])
+                calculate_bubble_MC(AllVars.SnapZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], OutputDir, output_tags[model_number])
                 do_MC = 0
 
             if(do_power_array[model_number] == 1 and calculate_power == 1):
             
-                T0 = T_naught(ZZ[snapshot_idx], AllVars.Omega_b, AllVars.Hubble_h, AllVars.Omega_m)
+                T0 = T_naught(AllVars.SnapZ[snapshot_idx], AllVars.Omega_b, AllVars.Hubble_h, AllVars.Omega_m)
                 #tmp_k, tmp_PowSpec, tmp_Error, Mean_Brightness = calculate_power_spectrum(ionized_cells_array[model_number], density_array[model_number], GridSize_array[model_number])
                 tmp_k, tmp_PowSpec, tmp_Error = calculate_power_spectrum(ionized_cells_array[model_number], density_array[model_number], GridSize_array[model_number], 0)
                 wavenumber_array[model_number].append(tmp_k)
@@ -2695,8 +2592,8 @@ if __name__ == '__main__':
 
             #plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
 
-            #photo_mean_array[model_number][snapshot_idx] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
-            #photo_std_array[model_number][snapshot_idx] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
+            #photo_mean_array[model_number][count] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
+            #photo_std_array[model_number][count] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
          
         #print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
 
@@ -2705,50 +2602,22 @@ if __name__ == '__main__':
     #    if (MC_ZZ[model_number][-1] < 5 or MC_ZZ[model_number][-1] > 1000):
     #        MC_ZZ[model_number][-1] = ZZ[-1]
 
-
-    volume_frac_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64) 
-    comm.Reduce([volume_frac_array, MPI.DOUBLE], [volume_frac_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
-
-    mass_frac_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
-    comm.Reduce([mass_frac_array, MPI.DOUBLE], [mass_frac_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
-   
-    nion_total_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
-    comm.Reduce([nion_total_array, MPI.DOUBLE], [nion_total_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
-
-    photo_mean_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
-    comm.Reduce([photo_mean_array, MPI.DOUBLE], [photo_mean_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
-
-    photo_std_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
-    comm.Reduce([photo_std_array, MPI.DOUBLE], [photo_std_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
-    
-    hoshen_array_final = np.zeros((number_models, upperZ - lowerZ), dtype = np.float64)
-    comm.Reduce([hoshen_array, MPI.DOUBLE], [hoshen_array_final, MPI.DOUBLE], op = MPI.SUM, root = 0)
-
-    MC_Snaps_final = np.zeros((number_models, len(fractions_HI)))
-    comm.Reduce([MC_Snaps, MPI.DOUBLE], [MC_Snaps_final, MPI.DOUBLE], op = MPI.MAX, root = 0)
-
-    MC_Snaps_final = np.zeros((number_models, len(fractions_HI)))
-    comm.Reduce([MC_Snaps, MPI.DOUBLE], [MC_Snaps_final, MPI.DOUBLE], op = MPI.MAX, root = 0)
-   
-    MC_ZZ_final = np.zeros((number_models, len(fractions_HI)))
-    comm.Reduce([MC_ZZ, MPI.DOUBLE], [MC_ZZ_final, MPI.DOUBLE], op = MPI.MAX, root = 0)
-
     if (rank == 0): 
-        plot_global_frac(ZZ, mass_frac_array_final, volume_frac_array_final, 1, model_tags, OutputDir, "GlobalFraction_time")
-        plot_total_nion(ZZ, nion_total_array_final, simulation_norm, 1, model_tags, OutputDir, "QuasarCold_Paper")
-        plot_optical_depth(ZZ, volume_frac_array_final, model_tags, OutputDir, "OpticalDepth")
+        plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction_time")
+        plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array, simulation_norm, 1, model_tags, OutputDir, "QuasarCold_Paper")
+        plot_optical_depth(AllVars.SnapZ[snaplist], volume_frac_array, model_tags, OutputDir, "OpticalDepth")
 
-        #plot_nine_panel_slices(ZZ, ionized_cells_filepath_array, GridSize_array, simulation_norm, MC_Snaps_final, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+        plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
 
         if(plot_MC == 1):
-            plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ_final))
+            plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ))
             plotting_HI = np.zeros(np.shape(fractions_HI))
             for i in range((number_models)):
-                for j in range(1, len(MC_ZZ_final)+1):
+                for j in range(1, len(MC_ZZ)+1):
                     print(plotting_MC_ZZ)
-                    print(MC_ZZ_final[i][-j%len(MC_ZZ_final)])
-                    plotting_MC_ZZ[i][j-1] = MC_ZZ_final[i][-j%len(MC_ZZ_final)]
-#            plotting_MC_ZZ = MC_ZZ_final
+                    print(MC_ZZ[i][-j%len(MC_ZZ)])
+                    plotting_MC_ZZ[i][j-1] = MC_ZZ[i][-j%len(MC_ZZ)]
+#            plotting_MC_ZZ = MC_ZZ
             plotting_HI = fractions_HI
         elif(plot_MC == 2):
             plotting_MC_ZZ = MC_ZZ_snaps 
