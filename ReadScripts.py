@@ -396,7 +396,6 @@ def read_SAGE_ini(fname):
          ('NumOutputs', np.int32),
          ('LowSnap', np.int32),
          ('HighSnap', np.int32),
-         ('OutputSnap', np.int32),
          ('TreeName', '<U1024'),
          ('SimulationDir', '<U1024'),
          ('FileWithSnapList', '<U1024'),
