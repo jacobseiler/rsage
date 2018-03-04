@@ -42,3 +42,7 @@ void calculate_halomass(void);
 
 void *mymalloc(size_t n);
 void myfree(void *p);
+
+#ifdef MPI
+struct GRID_STRUCT *MPI_sum_grids(void);
+#endif

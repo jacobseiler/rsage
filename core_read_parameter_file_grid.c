@@ -24,6 +24,9 @@ void read_parameter_file(char *fname)
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
+#ifdef MPI
+  if(ThisTask == 0)
+#endif
   printf("\nreading parameter file:\n\n");
 
   strcpy(tag[nt], "GridOutputDir"); 
@@ -100,6 +103,10 @@ void read_parameter_file(char *fname)
 
   strcpy(tag[nt], "GridSize");
   addr[nt] = &GridSize;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "self_consistent");
+  addr[nt] = &self_consistent;
   id[nt++] = INT;
 
   strcpy(tag[nt], "FeedbackReheatingEpsilon");
@@ -191,6 +198,9 @@ void read_parameter_file(char *fname)
 
       if(j >= 0)
       {
+#ifdef MPI
+        if(ThisTask == 0)
+#endif
         printf("%35s\t%10s\n", buf1, buf2);
 
         switch (id[j])
@@ -240,13 +250,22 @@ void read_parameter_file(char *fname)
 	MAXSNAPS = LastSnapShotNr + 1; 
 
 	XASSERT(LowSnap <= HighSnap, "LowSnap must be less than HighSnap\n");
-	
-	// read in the output snapshot list
-  printf("Selecting sequential snapshots from Snapshot %d to %d.\n", LowSnap, HighSnap);
-  for (i = HighSnap; i > LowSnap - 1; --i)
-  {
-    ListOutputGrid[HighSnap - i] = i;
+
+  if (self_consistent == 0)
+  {	
+    printf("Selecting sequential snapshots from Snapshot %d to %d.\n", LowSnap, HighSnap);
+    for (i = HighSnap; i > LowSnap - 1; --i)
+    {
+      ListOutputGrid[HighSnap - i] = i;
+    }
+    NGrid = HighSnap - LowSnap + 1;
   }
-  NGrid = HighSnap - LowSnap + 1;
-  
+  else
+  {
+    printf("Running in self-consistent mode, only building grids for HighSnap (%d)\n", HighSnap);
+    ListOutputGrid[0] = HighSnap;
+    NGrid = 1;
+  }
+ 
+ 
 }

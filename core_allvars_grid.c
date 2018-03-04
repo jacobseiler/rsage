@@ -62,11 +62,17 @@ int *FirstHaloInSnap;
 int *TreeNHalos;
 int *TreeFirstHalo;
 
+#ifdef MPI
+extern int ThisTask, NTask, nodeNameLen;
+extern char *ThisNode;
+#endif
+
 double Omega;
 double OmegaLambda;
 double PartMass;
 double BoxSize;
 int GridSize;
+int self_consistent;
 int GridSnap;
 int NGrid;
 

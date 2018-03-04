@@ -14,48 +14,47 @@ int32_t save_grid(struct GRID_STRUCT *save_grid)
 {
   char name_HI[MAXLEN], name_HeI[MAXLEN], name_HeII[MAXLEN];
 
-  int32_t snapshot_idx, grid_num_idx;
+  int32_t grid_num_idx;
 
   FILE* file_HI; 
   FILE* file_HeI;
   FILE* file_HeII;
 
-  for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
-  { 
-    grid_num_idx = snapshot_idx - LowSnap; // The grid indexing goes from 0 to NumGrids.
-  
+  for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx)  
+  {    
+ 
     if (fescPrescription == 0)
     {
-      snprintf(name_HI, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, snapshot_idx);
-      snprintf(name_HeI, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, snapshot_idx); 
+      snprintf(name_HI, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, ListOutputGrid[grid_num_idx]);
+      snprintf(name_HeI, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, ListOutputGrid[grid_num_idx]); 
     } else if (fescPrescription == 1)
     {
-      snprintf(name_HI, MAXLEN, "%s/%s_fesc%.2f_KimmFiducial_nionHI_%03d", GridOutputDir, FileNameGalaxies, fesc, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/%s_fesc%.2f_KimmFiducial_nionHeI_%03d", GridOutputDir, FileNameGalaxies, fesc, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_fesc%.2f_KimmFiducial_nionHeII_%03d", GridOutputDir, FileNameGalaxies, fesc, snapshot_idx); 
+      snprintf(name_HI, MAXLEN, "%s/%s_fesc%.2f_KimmFiducial_nionHI_%03d", GridOutputDir, FileNameGalaxies, fesc, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_fesc%.2f_KimmFiducial_nionHeI_%03d", GridOutputDir, FileNameGalaxies, fesc, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_fesc%.2f_KimmFiducial_nionHeII_%03d", GridOutputDir, FileNameGalaxies, fesc, ListOutputGrid[grid_num_idx]); 
     } else if (fescPrescription == 2)
     {
-      snprintf(name_HI, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, snapshot_idx); 
+      snprintf(name_HI, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, ListOutputGrid[grid_num_idx]); 
     } else if (fescPrescription == 3)
     { 
-      snprintf(name_HI, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, snapshot_idx); 
+      snprintf(name_HI, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
     } 
     else if (fescPrescription == 4)
     {
-      snprintf(name_HI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, snapshot_idx); 
+      snprintf(name_HI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
     }
     else if (fescPrescription == 5 || fescPrescription == 6)
     {
-      snprintf(name_HI, MAXLEN, "%s/%s_Anne_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, snapshot_idx); 
-      snprintf(name_HeI, MAXLEN, "%s/%s_Anne_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, snapshot_idx); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_Anne_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, snapshot_idx);       
+      snprintf(name_HI, MAXLEN, "%s/%s_Anne_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_Anne_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_Anne_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, ListOutputGrid[grid_num_idx]);       
     }
 
     file_HI = fopen(name_HI, "w"); 
@@ -67,6 +66,7 @@ int32_t save_grid(struct GRID_STRUCT *save_grid)
     fwrite(save_grid->GridProperties[grid_num_idx].Nion_HI, sizeof(*(save_grid->GridProperties[grid_num_idx].Nion_HI)) * save_grid->NumCellsTotal, 1, file_HI);
     fclose(file_HI);
 
+    printf("Saved to %s\n", name_HI);
     /*
     file_HeI = fopen(name_HeI, "w");
     if (file_HeI == NULL)

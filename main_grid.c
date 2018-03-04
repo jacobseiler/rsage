@@ -8,6 +8,10 @@
 #include <sys/stat.h>
 #include <assert.h>
 
+#ifdef MPI
+#include <mpi.h>
+#endif
+
 #include "core_allvars_grid.h"
 #include "core_proto_grid.h"
 
@@ -25,6 +29,32 @@ void termination_handler(int signum)
     (*saveaction_XCPU.sa_handler) (signum);
 }
 
+void myexit(int signum)
+{
+#ifdef MPI
+  printf("Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
+#else
+  printf("We're exiting\n\n\n");
+#endif    
+  exit(signum);
+}
+
+void bye()
+{
+#ifdef MPI
+  MPI_Finalize();
+  free(ThisNode);
+#endif
+
+  if(exitfail)
+  {
+#ifdef MPI
+    if(ThisTask == 0 && gotXCPU == 1)
+      printf("Received XCPU, exiting. But we'll be back.\n");
+#endif
+  }
+}
+
 
 int main(int argc, char **argv)
 {
@@ -38,6 +68,23 @@ int main(int argc, char **argv)
   current_XCPU.sa_handler = termination_handler;
   sigaction(SIGXCPU, &current_XCPU, NULL);
 
+#ifdef MPI
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &ThisTask);
+  MPI_Comm_size(MPI_COMM_WORLD, &NTask);
+
+  ThisNode = malloc(MPI_MAX_PROCESSOR_NAME * sizeof(char));
+
+  MPI_Get_processor_name(ThisNode, &nodeNameLen);
+  if (nodeNameLen >= MPI_MAX_PROCESSOR_NAME)
+  {
+    printf("Node name string not long enough!...\n");
+    ABORT(0);
+  }
+#endif
+
+  atexit(bye);
+
 
   int filenr, i;
 
@@ -49,9 +96,16 @@ int main(int argc, char **argv)
   {
     exit(EXIT_FAILURE);
   } 
- 
+
+#ifdef MPI
+  for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
+#else 
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
+#endif
   { 
+#ifdef MPI     
+    printf("I am Task %d and I'm doing file %d.\n", ThisTask, filenr);
+#endif 
     for (i = 0; i < 2; ++i) // i = 0 does the normal galaxies, i = 1 does the merged galaxies.
     {
       if(i == 0)      
@@ -99,20 +153,47 @@ int main(int argc, char **argv)
 
   } // File Loop.
 
-  printf("There were %d quasar activity events in which the merged gal was above the halo part cut compared to %d below.\n", QuasarEventsAbovePartCut, QuasarEventsBelowPartCut); 
+  //printf("There were %d quasar activity events in which the merged gal was above the halo part cut compared to %d below.\n", QuasarEventsAbovePartCut, QuasarEventsBelowPartCut); 
+
+#ifdef MPI
   
+  struct GRID_STRUCT *master_grid;
+
+  master_grid = MPI_sum_grids();
+
+  printf("Rank %d out of sum_grids\n", ThisTask); 
+
+  if (ThisTask == 0 && master_grid == NULL)
+  {
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE); 
+  }
+
+  printf("Rank %d continuing\n", ThisTask); 
+  if (ThisTask == 0)
+  {
+    count_grid_properties(master_grid); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
+    status = save_grid(master_grid); // Saves grid.
+  }
+  printf("Rank %d freeing\n", ThisTask); 
+#else  
+ 
   count_grid_properties(Grid); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
   status = save_grid(Grid); // Saves grid.
 
   if (status == EXIT_FAILURE)
   {
     exit(EXIT_FAILURE);
-  }
- 
+  }  
+#endif
+
+  
   free_grid();
 
   exitfail = 0;
-  gsl_rng_free(random_generator); 
+  gsl_rng_free(random_generator);
+#ifdef MPI 
+  printf("Rank %d exiting\n", ThisTask); 
+#endif
   return 0;
 
 } 

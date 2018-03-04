@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <assert.h>
+#ifdef MPI
+#include <mpi.h>
+#endif
 
 #include "core_allvars_grid.h"
 #include "core_proto_grid.h"
@@ -21,12 +24,12 @@ int32_t update_grid_properties(int32_t filenr)
   int32_t count = 0;
   float sum = 0;;
 
-  for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
+  for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx)
   {
     good_gals = 0;
     bad_gals = 0;
 
-    grid_num_idx = snapshot_idx - LowSnap; // The grid indexing goes from 0 to NumGrids.
+    snapshot_idx = ListOutputGrid[grid_num_idx]; 
 
     for (gal_idx = 0; gal_idx < NtotGals; ++gal_idx)
     {
@@ -140,12 +143,14 @@ void count_grid_properties(struct GRID_STRUCT *count_grid) // Count number of ga
 
   int32_t snapshot_idx, grid_num_idx;
 
-  for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
+  for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx)
   {
+
+    snapshot_idx = ListOutputGrid[grid_num_idx];     
+    
     int64_t GlobalGalCount = 0, SourcesCount = 0, cell_idx;
     float totPhotons_HI = 0, totPhotons_HeI = 0, totPhotons_HeII = 0;
 
-    grid_num_idx = snapshot_idx - LowSnap; // The grid indexing goes from 0 to NumGrids.
     for (cell_idx = 0; cell_idx < count_grid->NumCellsTotal; ++cell_idx)
     {
       GlobalGalCount += count_grid->GridProperties[grid_num_idx].GalCount[cell_idx];
@@ -462,3 +467,47 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
   return EXIT_SUCCESS;
 
 }
+
+#ifdef MPI
+struct GRID_STRUCT *MPI_sum_grids(void)
+{
+
+  int32_t status, grid_num_idx;
+  struct GRID_STRUCT *master_grid;
+  
+  master_grid = malloc(sizeof(struct GRID_STRUCT));
+
+  if (ThisTask == 0)
+  {
+    printf("Trying to initialize the master grid\n");
+    status = init_grid(master_grid);
+    if (status == EXIT_FAILURE)
+    { 
+      return NULL;
+    }
+  }
+
+  for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx)
+  {
+    if (ThisTask == 0)
+    {
+      printf("Reducing grid %d\n", grid_num_idx);
+    }
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].SFR, master_grid->GridProperties[grid_num_idx].SFR, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HI, master_grid->GridProperties[grid_num_idx].Nion_HI, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeI, master_grid->GridProperties[grid_num_idx].Nion_HeI, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeII, master_grid->GridProperties[grid_num_idx].Nion_HeII, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+
+    MPI_Reduce(Grid->GridProperties[grid_num_idx].GalCount, master_grid->GridProperties[grid_num_idx].GalCount, Grid->NumCellsTotal, MPI_UINT64_T, MPI_SUM, 0, MPI_COMM_WORLD); 
+    
+  }
+
+  if (ThisTask == 0)  
+    return master_grid;
+  else
+    return NULL;
+}
+#endif
+
+
+
