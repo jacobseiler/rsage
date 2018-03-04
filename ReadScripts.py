@@ -384,3 +384,97 @@ def load_data(fname):
     else:           
         print("") 
         return data['arr_0']
+
+def read_SAGE_ini(fname):
+
+    SAGE_params_full = [ 
+         ('FileNameGalaxies', '<U1024'),
+         ('OutputDir', '<U1024'),
+         ('GridOutputDir', '<U1024'),
+         ('FirstFile', np.int32),
+         ('LastFile', np.int32),
+         ('NumOutputs', np.int32),
+         ('LowSnap', np.int32),
+         ('HighSnap', np.int32),
+         ('OutputSnap', np.int32),
+         ('TreeName', '<U1024'),
+         ('SimulationDir', '<U1024'),
+         ('FileWithSnapList', '<U1024'),
+         ('LastSnapshotNr', '<U1024'),
+         ('Omega_m', np.float64),
+         ('Omega_Lambda', np.float64),
+         ('BaryonFrac', np.float64),
+         ('Hubble_h', np.float64),
+         ('PartMass', np.float64),
+         ('BoxSize', np.float64),
+         ('GridSize', np.int64),
+         ('use_tiamat', np.int64),
+         ('SFPrescription', np.int64),
+         ('AGNrecipeOn', np.int64),
+         ('SupernovaRecipeOn', np.int64),
+         ('ReionizationOn', np.int64),
+         ('DiskInstabilityOn', np.int64),
+         ('SfrEfficiency', np.float64),
+         ('FeedbackReheatingEpsilon', np.float64),
+         ('FeedbackReheatingEfficiency', np.float64),
+         ('IRA', np.int64),
+         ('TimeResolutionSN', np.float64),
+         ('ReincorporationFactor', np.float64),
+         ('RadioModeEfficiency', np.float64),
+         ('QuasarModeEfficiency', np.float64),
+         ('BlackHoleGrowthRate', np.float64),
+         ('ThreshMajorMerger', np.float64),
+         ('ThresholdSatDisruption', np.float64),
+         ('Yield', np.float64),
+         ('RecycleFraction', np.float64),
+         ('FracZleaveDisk', np.float64),
+         ('Reionization_z0', np.float64),
+         ('Reionization_zr', np.float64),
+         ('EnergySN', np.float64),
+         ('RescaleSN', np.float64),
+         ('IMF', np.int32),         
+         ('PhotoionDir', '<U1024'),
+         ('PhotoionName', '<U1024'),
+         ('ReionRedshiftName', '<U1024'),
+         ('ReionSnap', np.int32),
+         ('PhotonPrescription', np.int32),
+         ('Verbose', np.int32),
+         ('fescPrescription', np.int32),            
+         ('MH_low', np.float64),
+         ('fesc_low', np.float64),
+         ('MH_high', np.float64),
+         ('fesc_high', np.float64),
+         ('alpha', np.float64),
+         ('beta', np.float64),
+         ('fesc', np.float64),
+         ('quasar_baseline', np.float64),
+         ('quasar_boosted', np.float64),
+         ('N_dyntime', np.float64),
+         ('HaloPartCut', np.int32),
+         ('UnitLength_in_cm', np.float64),
+         ('UnitMass_in_g', np.float64),
+         ('UnitVelocity_in_cm_per_s', np.float64)
+         ]
+    
+                            
+    print("Reading in SAGE ini file") 
+
+    names = [SAGE_params_full[i][0] for i in range(len(SAGE_params_full))]
+    formats = [SAGE_params_full[i][1] for i in range(len(SAGE_params_full))]
+    SAGE_desc = np.empty(1, dtype = {'names':names, 'formats':formats}) 
+    
+    try:
+        with open (fname, "r") as SAGE_file:
+            data = SAGE_file.readlines()
+            count = 0
+            for line in range(len(data)):
+
+                if (data[line][0] == "%" or data[line][0] == "\n"):                
+                    continue
+                SAGE_desc[names[count]] = (data[line].split())[1]
+                count += 1
+        return SAGE_desc, names
+
+    except FileNotFoundError:
+        print("Could not file SAGE ini file {0}".format(fname))
+ 
