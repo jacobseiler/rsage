@@ -18,7 +18,7 @@ int32_t read_parameter_file(char *fname)
 {
   FILE *fd;
   char buf[400], buf1[400], buf2[400], buf3[400];
-  int i, j, nt = 0, done;
+  int i, j, nt = 0;
   int id[MAXTAGS];
   void *addr[MAXTAGS];
   char tag[MAXTAGS][50];
@@ -319,30 +319,10 @@ int32_t read_parameter_file(char *fname)
 		printf("%i snapshots selected for output: ", NOUT);
 		// reopen the parameter file
 		fd = fopen(fname, "r");
-
-		done = 0;
-		while(!feof(fd) && !done)
-		{
-			// scan down to find the line with the snapshots
-			fscanf(fd, "%s", buf);
-			if(strcmp(buf, "->") == 0)
-			{
-				// read the snapshots into ListOutputSnaps
-				for (i=0; i<NOUT; i++)
-				{
-					fscanf(fd, "%d", &ListOutputSnaps[i]);
-					printf("%i ", ListOutputSnaps[i]);
-					if(i > 0)
-						XASSERT(ListOutputSnaps[i] < ListOutputSnaps[i-1], "The output snapshots must be in descending order. Go back and check your .ini file!\n");
-				}
-							
-				
-				done = 1;
-			}
-		}
-
+		
+    ListOutputSnaps[0] = LastSnapShotNr;
 		fclose(fd);
-		assert(done);
+	
 		printf("\n");
 	}
 
