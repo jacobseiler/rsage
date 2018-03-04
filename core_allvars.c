@@ -133,8 +133,6 @@ int lowmass_halo;
 
 double smallest_mass;
 
-double count;
-
 double IMF_norm;
 double IMF_slope;
 double Eta_SNII;

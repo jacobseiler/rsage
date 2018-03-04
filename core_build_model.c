@@ -61,7 +61,7 @@ void construct_galaxies(int halonr, int tree, int filenr)
 
     while(fofhalo >= 0)
     {
-      ngal = join_galaxies_of_progenitors(fofhalo, ngal);
+      ngal = join_galaxies_of_progenitors(tree, fofhalo, ngal);
       fofhalo = Halo[fofhalo].NextHaloInFOFgroup;
     }
 
@@ -72,7 +72,7 @@ void construct_galaxies(int halonr, int tree, int filenr)
 
 
 
-int join_galaxies_of_progenitors(int halonr, int ngalstart)
+int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
 {
   int ngal, prog, i, j, first_occupied, lenmax, lenoccmax, centralgal;
   double previousMvir, previousVvir, previousVmax;
@@ -245,7 +245,7 @@ int join_galaxies_of_progenitors(int halonr, int ngalstart)
   if(ngal == 0)
   {
     // We have no progenitors with galaxies. This means we create a new galaxy. 
-    init_galaxy(ngal, halonr);
+    init_galaxy(treenr, ngal, halonr);
     ngal++;
   }
 

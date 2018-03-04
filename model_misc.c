@@ -11,15 +11,15 @@
 
 
 
-void init_galaxy(int p, int halonr)
+void init_galaxy(int p, int halonr, int treenr)
 {
   int j, step;
   
   ++count_gal;
 	assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
 
-//  printf("GALAXY INITIALIZED p = %d Halonr = %d\n", p, halonr);
   Gal[p].Type = 0;
+  Gal[p].TreeNr = treenr;
 
   Gal[p].GalaxyNr = GalaxyCounter;
   GalaxyCounter++;

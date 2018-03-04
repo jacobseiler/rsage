@@ -238,8 +238,6 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 
   int j;  
   size_t nwritten;
-
-  ++count;
   
   nwritten = fwrite(&g->HaloNr, sizeof(g->HaloNr), 1, fp);
 

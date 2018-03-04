@@ -144,6 +144,7 @@ struct GALAXY
   int   GalaxyNr;
   int   CentralGal;
   int   HaloNr;
+  int   TreeNr; 
   long long  MostBoundID;
 
   int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
@@ -407,8 +408,6 @@ extern int previous_tree;
 extern int lowmass_halo;
 
 extern double smallest_mass;
-
-extern double count;
 
 extern double IMF_norm;
 extern double IMF_slope;

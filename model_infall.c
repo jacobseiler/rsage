@@ -58,8 +58,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
   }
   else if (ReionizationOn == 3)
   {
-    //reionization_modifier = read_reion_list
-    reionization_modifier = 1.0;
+    reionization_modifier = do_self_consistent_reionization(centralgal, halonr);       
   }
   else
   {
@@ -117,7 +116,7 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
   }
   else if (ReionizationOn == 3)
   {
-    reionization_modifier = 1.0;
+    reionization_modifier = do_self_consistent_reionization(centralgal, halonr);
   }
 
   else
@@ -299,5 +298,84 @@ void add_infall_to_hot(int gal, double infallingGas, double dt)
     Gal[gal].HotGas = 0.0; 
     Gal[gal].MetalsHotGas = 0.0;
   }
+}
+
+double search_for_modifier(int64_t match_HaloID, int32_t SnapNum)
+{
+
+  int32_t is_found;
+  int64_t count, search_idx, search_HaloID;
+  int32_t number_search_IDs;
+  double reionization_modifier;
+
+  is_found = 0;
+  count = 0;
+  number_search_IDs = ReionList->ReionMod_List[SnapNum].NHalos_Ionized; // This is the numbers of IDs that we are searching through. 
+
+  search_idx = ceil(number_search_IDs / 2.0); 
+  while (is_found == 0)
+  {
+    ++count;
+    search_HaloID = ReionList->ReionMod_List[SnapNum].HaloID[search_idx];
+    if (match_HaloID == search_HaloID) 
+    {
+      is_found = 1;
+    }
+    else if (number_search_IDs / pow(2, count) < 1.0) // The smallest index movement is less than 1.  The HaloID isn't in the list. 
+    {
+      break;
+    }
+    else if (match_HaloID > search_HaloID) // The HaloID we are trying to match is larger than the ID we're currently comparing against. 
+    {
+      search_idx = search_idx + ceil(number_search_IDs / pow(2, count + 1)); // Move up the list.
+    }
+    else // Otherwise the HaloID we are trying to match is smaller than the ID we're currently comparing against.
+    {
+      search_idx = search_idx - ceil(number_search_IDs / pow(2, count + 1)); // Move down the list. 
+    }
+
+    if (search_idx >= number_search_IDs) // Fix edge case.
+    {
+      search_idx = number_search_IDs -1;
+    }
+
+  }
+
+  if (is_found == 1)
+  {
+    reionization_modifier = ReionList->ReionMod_List[SnapNum].ReionMod[search_idx];
+    printf("Found unique HaloID %ld which had modifier %.4f\n", (long) match_HaloID, reionization_modifier);
+  }
+  else
+  {
+    reionization_modifier = 1.0;
+  }
+
+  return reionization_modifier;
+
+}
+
+double do_self_consistent_reionization(int p, int halonr)
+{
+
+  int32_t treenr; 
+  int64_t HaloID;
+  double reionization_modifier;
+
+  if ((Halo[halonr].SnapNum > ReionSnap) || (ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized == 0)) // We have yet to do reionization for this snapshot or if there are no halos within ionized regions for this snapshot.
+  {
+    return 1.0; // Reionization hasn't happened yet for this halo.
+  } 
+  
+  ReionList->NumLists = ReionSnap; 
+
+  treenr = Gal[p].TreeNr;
+
+  HaloID = (int64_t) treenr << 32 | halonr; // Generates the unique ID for each halo within this file. 
+
+  reionization_modifier = search_for_modifier(HaloID, Halo[halonr].SnapNum);
+
+  return reionization_modifier; 
+
 }
 

@@ -47,8 +47,6 @@ void init(void)
   smallest_mass = 100000;
   lowmass_halo = 0;
 
-  count = 0;
-
   outside_box = 0;
   inside_box = 0;
 
@@ -259,8 +257,6 @@ int32_t init_reion_lists(int32_t filenr)
   ReionList->NumLists = ReionSnap; 
 
   ReionList->ReionMod_List = malloc(sizeof(struct REIONMOD_LIST) * ReionList->NumLists);
-
-
 
   for (SnapNum = 0; SnapNum < ReionList->NumLists; ++SnapNum)
   {
