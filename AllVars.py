@@ -701,8 +701,8 @@ def Calculate_2D_Mean(data_x, data_y, bin_width, min_hist_x = None, max_hist_x =
 
     Returns
     -------
-    mean_data_y, std_data_y : array-like 
-        Arrays that contain the mean and standard deviation for the y-data as binned by the x-data.
+    mean_data_y, std_data_y, sum_data_y : array-like 
+        Arrays that contain the mean, standard deviation and sum for the y-data as binned by the x-data.
     N_data_y : array-like 
         Array that contains the number of data points in each x-bin.    
     bins_mid : array-like 

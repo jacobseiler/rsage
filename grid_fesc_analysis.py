@@ -23,33 +23,22 @@ from matplotlib.colors import LogNorm
 from mpl_toolkits.axes_grid1 import AxesGrid
 from astropy import units as u
 from astropy import cosmology
+from matplotlib import gridspec
 
 import matplotlib.ticker as mtick
 import PlotScripts
 import ReadScripts
 import AllVars
 
-from mpi4py import MPI
-from tqdm import tqdm
-
-from hmf import MassFunction
-from hmf import cosmo
-from astropy.cosmology import FlatLambdaCDM
-
-import h5py 
 import matplotlib.cm as cm
-
-from Corrfunc.theory.xi import xi
-
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-from scipy.integrate import quad
 
 m_low = 7.0 # We only sum the photons coming from halos within the mass range m_low < Halo Mass < m_high
 m_high = 15.0
 
 m_gal_low = 5.0 
 m_gal_high = 15.0
+
+bin_width = 0.2
 
 output_format = ".pdf"
 
@@ -183,11 +172,16 @@ def plot_fescNgamma_z(filename_base, PlotSnapshot, model_tags, output_tag):
    
 def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
 
+
+    norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * bin_width 
+
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
 
-    fig2 = plt.figure()
-    ax2 = fig2.add_subplot(111)
+    fig2 = plt.figure(figsize=(8,8))
+    gs = gridspec.GridSpec(2, 1, height_ratios=[1,2])
+    ax2 = plt.subplot(gs[0])
+    ax3 = plt.subplot(gs[1])
 
     for model_number in range(len(filename_base)):
         count = 0
@@ -198,8 +192,8 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
 
             print("There are {0} galaxies at Snapshot {1}".format(len(Mvir), snapshot_idx))
                                           
-            mean_Mvir, std_Mvir, N_Mvir, sum_fesc_Mvir, bins_mid_Mvir = AllVars.Calculate_2D_Mean(Mvir, fesc, 0.2, m_low, m_high)             
-            mean_Mstar, std_Mstar, N_Mstar, sum_fesc_Mstar, bins_mid_Mstar = AllVars.Calculate_2D_Mean(Mstar, fesc, 0.2, m_gal_low, m_gal_high)
+            mean_Mvir, std_Mvir, N_Mvir, sum_fesc_Mvir, bins_mid_Mvir = AllVars.Calculate_2D_Mean(Mvir, fesc, bin_width, m_low, m_high)             
+            mean_Mstar, std_Mstar, N_Mstar, sum_fesc_Mstar, bins_mid_Mstar = AllVars.Calculate_2D_Mean(Mstar, fesc, bin_width, m_gal_low, m_gal_high)
 
             w_halo = np.where((N_Mvir > 0.0))
             w_gal = np.where((N_Mstar > 0.0))
@@ -207,8 +201,14 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
                 label = "z = {0:d}".format(int(round(AllVars.SnapZ[snapshot_idx])))
             else:
                 label = ""
-            ax1.plot(bins_mid_Mvir[w_halo], mean_Mvir[w_halo], color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)                        
-            ax2.plot(bins_mid_Mstar[w_gal], mean_Mstar[w_gal], color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)
+            ax1.plot(bins_mid_Mvir[w_halo], mean_Mvir[w_halo], color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)
+            ax2.plot(bins_mid_Mstar[w_gal], N_Mstar[w_gal] / norm, color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], lw = PlotScripts.global_linewidth)
+            ax3.plot(bins_mid_Mstar[w_gal], mean_Mstar[w_gal], color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)
+
+            #w_mass = np.where((bins_mid_Mstar > 6.8))[0] 
+            #mean_mass = np.sum(N_Mstar[w_mass] * 10**bins_mid_Mstar[w_mass]) / np.sum(N_Mstar[w_mass])
+            #print("Mean mass is {0:.3e}Msun".format(mean_mass))
+
             #ax1.fill_between(bins_mid[w], np.subtract(mean[w],std[w]), np.add(mean[w],std[w]), color = PlotScripts.colors[count], alpha = 0.25)
 
         #ax1.plot(np.nan, np.nan, color = 'k', ls = PlotScripts.linestyles[model_number], lw = PlotScripts.global_linewidth, label = model_tags[model_number])
@@ -218,44 +218,54 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
     ax1.axhline(0.20, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '--')
     ax1.axhline(0.10, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')
 
-    ax2.axhline(0.20, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '--')
-    ax2.axhline(0.10, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')
+    ax3.axhline(0.20, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '--')
+    ax3.axhline(0.10, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')
 
     #ax1.axvline(resolution, color = 'k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')   
     ax1.text(11.0, 0.22, r"$f_\mathrm{esc} = 0.20$", color = 'k', size = PlotScripts.global_fontsize - 2)
     ax1.text(9.25, 0.11, r"$f_\mathrm{esc, \: base}$", color = 'k', size = PlotScripts.global_fontsize - 2)
 
-    ax2.text(7.6, 0.21, r"$f_\mathrm{esc} = 0.20$", color = 'k', size = PlotScripts.global_fontsize - 2)
-    ax2.text(7.6, 0.11, r"$f_\mathrm{esc, \: base}$", color = 'k', size = PlotScripts.global_fontsize - 2)
+    ax3.text(7.6, 0.21, r"$f_\mathrm{esc} = 0.20$", color = 'k', size = PlotScripts.global_fontsize - 2)
+    ax3.text(7.6, 0.11, r"$f_\mathrm{esc, \: base}$", color = 'k', size = PlotScripts.global_fontsize - 2)
 
     ax1.set_xlabel(r'$\log_{10}\ \mathrm{M}_\mathrm{vir}\ [\mathrm{M}_{\odot}]$', size = PlotScripts.global_fontsize) 
-    ax1.set_ylabel(r'$\mathrm{Mean} \: f_\mathrm{esc}$', size = PlotScripts.global_fontsize)
+    ax1.set_ylabel(r'$\langle f_\mathrm{esc}\rangle_\mathrm{M_{vir}}$', size = PlotScripts.global_fontsize)
     ax1.set_xlim([resolution, 11.75])
     ax1.set_ylim([-0.01, 0.50])
 
-    ax2.set_xlabel(r'$\log_{10}\ \mathrm{M}_\mathrm{*}\ [\mathrm{M}_{\odot}]$', size = PlotScripts.global_fontsize) 
-    ax2.set_ylabel(r'$\mathrm{Mean} \: f_\mathrm{esc}$', size = PlotScripts.global_fontsize)
+    ax2.set_yscale('log', nonposy='clip') 
+    
+    ax2.set_ylim([1e-5, 1e0])
+    ax2.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = PlotScripts.global_fontsize) 
+    ax2.tick_params(which = 'both', direction='in')   
+ 
+    ax3.tick_params(which = 'both', direction='in')   
+    ax3.set_xlabel(r'$\log_{10}\ \mathrm{M}_\mathrm{*}\ [\mathrm{M}_{\odot}]$', size = PlotScripts.global_fontsize) 
+    ax3.set_ylabel(r'$\langle f_\mathrm{esc}\rangle_\mathrm{M_{*}}$', size = PlotScripts.global_fontsize)
+
     #ax2.set_xlim([resolution, 11.75])
-    ax2.set_ylim([0.05, 0.46])   
+    ax3.set_ylim([0.05, 0.46])   
 
     ax1.set_xticks(np.arange(9.0, 12.0))  
     ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
     ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
 
-    ax2.set_xlim([6.8, 9.8])
-    ax2.set_xticks(np.arange(7.0, 11.0))  
-    ax2.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
-    ax2.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+    ax3.set_xlim([6.8, 9.8])
+    ax3.set_xticks(np.arange(7.0, 11.0))  
+    ax3.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+    ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
    
     leg = ax1.legend(loc='upper left', bbox_to_anchor=(0.3, 1.02), numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(PlotScripts.global_legendsize)
 
-    leg = ax2.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg = ax3.legend(loc='upper right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(PlotScripts.global_legendsize)
+
+    fig2.subplots_adjust(left=0.125, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.0)
  
     outputFile1 = './{0}_halo{1}'.format(output_tag, output_format)
     outputFile2 = './{0}_galaxy{1}'.format(output_tag, output_format)
@@ -381,6 +391,10 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
     ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
     ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
 
+    ax1.tick_params(which = 'both', direction='in')   
+    ax2.tick_params(which = 'both', direction='in')   
+    ax3.tick_params(which = 'both', direction='in')   
+
     leg = ax1.legend(loc='lower right', numpoints=1,
                      labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
@@ -407,23 +421,6 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
         
     plt.close()	
 
-def grid_output_to_binary(SnapList, filename_base, filename_out):
-
-    for snapshot in SnapList:
-
-        fname = "{0}_{1}.txt".format(filename_base[0], snapshot)        
-        print("Opening {0}".format(fname))
-        snap, fesc, Mvir, Ngamma, Ngamma_fesc = np.loadtxt(fname, unpack=True)
-               
-        fname_out = "{0}snapshot_{1}".format(filename_out, snapshot)
-        np.savez(fname_out, Mvir=Mvir, Ngamma=Ngamma)
-        
-        name = "{0}.npz".format(fname_out)
-        test = np.load(name)
-        print(test['Mvir'][0])
-
-        print("Wrote to {0}.npz".format(fname_out))    
-
 if __name__ == '__main__':
 
     AllVars.Set_Params_Kali()
@@ -444,17 +441,17 @@ if __name__ == '__main__':
     #model_tags = [r"$Useless$", r"$f_\mathrm{esc} = 0.15, \: \mathrm{SF 0.03}$"]
     #model_tags = [model_tags[0]]
  
-    fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.00_HaloPartCut32_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_fescproperties"]     
+    fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_quasar_0.10_1.00_2.50/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_fescproperties"]     
     fname = [fname[0]]
 
     #nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_fesc0.10_HaloPartCut32_nionHI"]
-    nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.00_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_nionHI"] 
+    nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_quasar_0.10_1.00_2.50/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_fesc0.20/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_nionHI"] 
     #nion_fname = [nion_fname[0]]   
  
     simulation_norm = [6, 6]
 
-    #plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1, model_tags, "nion_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.00_fesc0.20")
+    #plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1, model_tags, "nion_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.50_fesc0.20")
 
-    plot_fesc_z(fname, PlotSnapshot, model_tags, "grid_fesc_QuasarEff0.02_quasar_0.10_1.00_2.00")
+    plot_fesc_z(fname, PlotSnapshot, model_tags, "grid_fesc_QuasarEff0.02_quasar_0.10_1.00_2.50")
 
     #plot_fescNgamma_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_paper_Ngammafesc_allz_starburst_medium_quasarwind_fesc0.10_fboosted1.00_HaloPartCut32_1DynTime")

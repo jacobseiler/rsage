@@ -2131,7 +2131,8 @@ def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
         else:
             label = label_planck
         tau *= n_HI(0, AllVars.Hubble_h, AllVars.Omega_b, AllVars.Y) * AllVars.c_in_ms * AllVars.Sigmat
-    
+   
+        print("Tau = {0}".format(tau)) 
         ax.plot(ZZ, tau, label = label, color = PlotScripts.colors[p], ls = PlotScripts.linestyles[p], lw = paper_lineweight)	
 
     ax.set_xlabel(r"$z$")
@@ -2372,7 +2373,7 @@ if __name__ == '__main__':
 
     ## Kali ## 
    
-    model_tags = [r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$", r"$f_\mathrm{esc} = 0.20$"]
+    model_tags = [r"$f_\mathrm{esc} = 0.20$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
 
     output_tags = [r"Constant", r"Quasar"]
 
@@ -2478,7 +2479,7 @@ if __name__ == '__main__':
     #calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
     #MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
  
-    calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calculate it. 
+    calculate_power = 0 # 0 to NOT calculate the power spectra, 1 to calculate it. 
 
     do_hoshen = 0
     
@@ -2603,11 +2604,11 @@ if __name__ == '__main__':
     #        MC_ZZ[model_number][-1] = ZZ[-1]
 
     if (rank == 0): 
-        plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction_time")
-        plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array, simulation_norm, 1, model_tags, OutputDir, "QuasarCold_Paper")
+        #plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction_time")
+        #plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array, simulation_norm, 1, model_tags, OutputDir, "QuasarCold_Paper")
         plot_optical_depth(AllVars.SnapZ[snaplist], volume_frac_array, model_tags, OutputDir, "OpticalDepth")
 
-        plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+        #plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
 
         if(plot_MC == 1):
             plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ))
@@ -2624,7 +2625,7 @@ if __name__ == '__main__':
             plotting_HI = volume_frac_array 
 
     #plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
-    plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
+    #plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)

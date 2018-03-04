@@ -44,7 +44,7 @@ AllVars.Set_Constants()
 PlotScripts.Set_Params_Plot()
 
 
-output_format = ".png"
+output_format = ".pdf"
 
 # For the Tiamat extended results there is a weird hump when calculating the escape fraction.
 # This hump occurs at a halo mass of approximately 10.3. 
@@ -482,41 +482,27 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
 
         if (paper_plot == 1):
 
-            fig, ax = plt.subplots(nrows=1, ncols=3, sharex=False, sharey=True, figsize=(12, 8))
+            fig, ax = plt.subplots(nrows=1, ncols=3, sharex=False, sharey=True, figsize=(14, 8))
 
             delta_fontsize = 0
             caps = 5
             ewidth = 1.5
 
             for model_number in range(0, len(SnapList)):
-                ax[0].plot(bin_middle_array[model_number][0], counts_array[model_number][0] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = "SAGE", linewidth = PlotScripts.global_linewidth)            
-                ax[1].plot(bin_middle_array[model_number][1], counts_array[model_number][1] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, linewidth = PlotScripts.global_linewidth, label = "SAGE")
-                ax[2].plot(bin_middle_array[model_number][2], counts_array[model_number][2] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, linewidth = PlotScripts.global_linewidth, label = "SAGE")
-                #ax[1,1].axis('off')
+                for count in range(len(SnapList[model_number])):
+                    w = np.where((counts_array[model_number][count] > 0))[0]
+                    ax[count].plot(bin_middle_array[model_number][count][w], counts_array[model_number][count][w] / normalization_array[model_number], color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = "SAGE", linewidth = PlotScripts.global_linewidth)
 
-                #Obs.Get_Data_SMF()
-                ax[0].set_yscale('log', nonposy='clip')
+                    ax[count].tick_params(which = 'both', direction='in')
+                    ax[count].set_xlabel(r'$\log_{10}\ \mathrm{M}_{\mathrm{*}} \:[\mathrm{M}_{\odot}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                    ax[count].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
+                    ax[count].set_xticks(np.arange(6.0, 12.0))
+                    ax[count].set_xlim([6.8, 10.3])
 
-                ax[0].set_xlabel(r'$\log_{10}\ \mathrm{M}_{\mathrm{*}} \:[\mathrm{M}_{\odot}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                ax[1].set_xlabel(r'$\log_{10}\ \mathrm{M}_{\mathrm{*}} \:[\mathrm{M}_{\odot}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                ax[2].set_xlabel(r'$\log_{10}\ \mathrm{M}_{\mathrm{*}} \:[\mathrm{M}_{\odot}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize)
-
-                ax[0].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
-                ax[1].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
-                ax[2].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
-                ax[0].set_xticks(np.arange(6.0, 12.0))
-                ax[1].set_xticks(np.arange(6.0, 12.0))
-                ax[2].set_xticks(np.arange(6.0, 12.0))
-
-                ax[0].set_xlim([6.8, 10.3])
-                ax[1].set_xlim([6.8, 10.3])
-                ax[2].set_xlim([6.8, 10.3])
-
-                ax[0].set_ylim([1e-6, 1e-0])
-                #for tk in ax[0,1].get_xticklabels():
-                #    tk.set_visible(True)
- 
-                ax[0].set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize) 
+                # Since y-axis is shared, only need to do this once.
+                ax[0].set_yscale('log', nonposy='clip')              
+                ax[0].set_ylim([1e-5, 1e-1]) 
+                ax[0].set_ylabel(r'$\log_{10} \Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = PlotScripts.global_fontsize - delta_fontsize) 
 
                 Obs.Get_Data_SMF()
 
@@ -531,10 +517,10 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
                 ax[2].text(0.7, 0.95, r"z = 8", transform = ax[2].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
                                            
                 #leg = ax[0,0].legend(loc=2, bbox_to_anchor = (0.2, -0.5), numpoints=1, labelspacing=0.1)
-                leg = ax[1].legend(loc=2, bbox_to_anchor = (0.0, -0.1), numpoints=1, labelspacing=0.1)
-                leg.draw_frame(True)  # Don't want a box frame
+                leg = ax[0].legend(loc='lower left', numpoints=1, labelspacing=0.1)
+                leg.draw_frame(False)  # Don't want a box frame
                 for t in leg.get_texts():  # Reduce the size of the text
-                    t.set_fontsize(PlotScripts.global_legendsize + 6)
+                    t.set_fontsize(PlotScripts.global_legendsize - 2)
 
                 plt.tight_layout()
                 #adjustprops = dict(left=0.15, bottom=0.1, right=0.97, top=0.93, wspace=0.05, hspace=0.05)
@@ -1852,7 +1838,8 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
                 print("For Snapshot {0} at t {3} there were {1} total mergers compared to {2} total galaxies.".format(snapshot_idx, np.sum(merger_counts_galaxy_array[model_number][snapshot_idx]), np.sum(gal_count_total[snapshot_idx]), t[snapshot_idx]))
                 if (np.sum(gal_count_total[snapshot_idx]) > 0.0 and np.sum(merger_counts_galaxy_array[model_number][snapshot_idx]) > 0.0):
                     
-                    ax56.scatter(t[snapshot_idx], np.sum(merger_counts_galaxy_array[model_number][snapshot_idx]) / np.sum(gal_count_total[snapshot_idx]), color = 'r', rasterized = True)
+                    #ax56.scatter(t[snapshot_idx], np.sum(merger_counts_galaxy_array[model_number][snapshot_idx]) / np.sum(gal_count_total[snapshot_idx]), color = 'r', rasterized = True)
+                    ax56.scatter(t[snapshot_idx], quasars_total[snapshot_idx] / np.sum(gal_count_total[snapshot_idx]), color = 'r', rasterized = True)
             ax1.plot(t, quasars_total / norm, color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[0], rasterized = True, linewidth = PlotScripts.global_linewidth)
            
             p = np.where((ZZ < 15))[0] 
@@ -1883,7 +1870,8 @@ def plot_quasars_count(SnapList, PlotList, N_quasars_z, N_quasars_boost_z, N_gal
             ax55.set_ylabel(r'$\mathrm{Number \: Galaxies \: Undergoing \: Merger}$', size = PlotScripts.global_fontsize)
 
             ax56.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_labelsize)             
-            ax56.set_ylabel(r'$\mathrm{Fraction \: Galaxies \: Undergoing \: Merger}$', size = PlotScripts.global_fontsize)
+            #ax56.set_ylabel(r'$\mathrm{Fraction \: Galaxies \: Undergoing \: Merger}$', size = PlotScripts.global_fontsize)
+            ax56.set_ylabel(r'$\mathrm{Fraction \: Galaxies \: Quasar \: Activity}$', size = PlotScripts.global_fontsize)
             ax56.set_yscale('log', nonposy='clip')
 
             ax50.axvline(np.log10(32.0*AllVars.PartMass / AllVars.Hubble_h), color = 'k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')   
@@ -2747,9 +2735,9 @@ if __name__ == '__main__':
    
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
-    SnapList = [np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
-    #SnapList = [[93, 76, 64]] 
-    PlotSnapList = [[93, 76, 64]] 
+    #SnapList = [np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
+    SnapList = [[93, 76, 64]] 
+    PlotSnapList = [[93, 76, 64]]
    
     #PlotSnapList = [[29, 40, 49, 76, 93]] # For plots that contain properties plotted at specific redshifts, this specifies which snapshots we should plot at. 
 
@@ -2765,7 +2753,7 @@ if __name__ == '__main__':
     stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
     calculate_observed_LF = [0, 0, 0] # Determines whether we want to account for dust extinction when calculating the luminosity function of each model.
 
-    paper_plots = 1
+    paper_plots = 1 
 
     ## If we are running in Mode 1, we want to specifically do the quasar prescription with the constants defined by the inputs ##
     if (mode == 1):
@@ -3129,11 +3117,11 @@ if __name__ == '__main__':
                     keep_files =  same_files[current_model_number] # Decide if we want to keep the files loaded or throw them out. 
                     current_model_number += 1 # Update the inner loop model number.
 
-    #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, 0, save_tags, model_tags, 1, paper_plots, "Kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.02_CorrectDiskInstability_adjustedObs")
+    StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, 0, save_tags, model_tags, 1, paper_plots, "Kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.02_CorrectDiskInstability_adjustedObs")
     #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, std_BHmass_galaxy_array, N_galaxy_array, model_tags, "StellarMass_BHMass")
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 
-    plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_starburst_quasarwind_QuasarEff0.02_withcut")
+    #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_starburst_quasarwind_QuasarEff0.02_withcut")
     #plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_Kali_aspen", 1, save_tags)
     #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_Kali_aspen_tuesday") ## PARALELL COMPATIBLE
     #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 

@@ -158,16 +158,17 @@ def Plot_SMF_z6(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
                 yerr= (10**(Obs.Gonzalez_SMF_z6[:,3])/h_converter_y(0.6999999, AllVars.Hubble_h), 10**(Obs.Gonzalez_SMF_z6[:,2])/h_converter_y(0.6999999, AllVars.Hubble_h)),\
                 alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[0], ls='none', label = 'Gonzalez et al. 2011', color = Obs.SMF_colors[0], capsize = capsize) 
 
-    ax.errorbar(Obs.Song_SMF_z6[:,0]+h_converter_x(0.7, AllVars.Hubble_h)-np.log10(Chabrier_to_Salpeter),\
-                10**(Obs.Song_SMF_z6[:,1])/h_converter_y(0.7, AllVars.Hubble_h),\
-                yerr= (10**(Obs.Song_SMF_z6[:,1])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z6[:,3])/h_converter_y(0.7, AllVars.Hubble_h), 10**(Obs.Song_SMF_z6[:,2])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z6[:,1])/h_converter_y(0.7, AllVars.Hubble_h)),\
-                xerr = 0.25,\
-                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2015', color = Obs.SMF_colors[1], rasterized=True) 
-
     ax.errorbar(Obs.Duncan_SMF_z6[:,0]+h_converter_x(0.7, AllVars.Hubble_h),\
                 Obs.Duncan_SMF_z6[:,1]/h_converter_y(0.7, AllVars.Hubble_h),\
                 yerr = [Obs.Duncan_SMF_z6[:,2], Obs.Duncan_SMF_z6[:,3]],\
                 capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[2], ls='none', label = 'Duncan et al. 2014', color = Obs.SMF_colors[2], rasterized=True) 
+
+    ax.errorbar(Obs.Song_SMF_z6[:,0]+h_converter_x(0.7, AllVars.Hubble_h)-np.log10(Chabrier_to_Salpeter),\
+                10**(Obs.Song_SMF_z6[:,1])/h_converter_y(0.7, AllVars.Hubble_h),\
+                yerr= (10**(Obs.Song_SMF_z6[:,1])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z6[:,3])/h_converter_y(0.7, AllVars.Hubble_h), 10**(Obs.Song_SMF_z6[:,2])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z6[:,1])/h_converter_y(0.7, AllVars.Hubble_h)),\
+                xerr = 0.25,\
+                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2016', color = Obs.SMF_colors[1], rasterized=True) 
+
 
 def Plot_SMF_z7(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
 
@@ -176,16 +177,16 @@ def Plot_SMF_z7(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
                 yerr= (10**(Obs.Gonzalez_SMF_z7[:,3])/h_converter_y(0.6999999, AllVars.Hubble_h), 10**(Obs.Gonzalez_SMF_z7[:,2])/h_converter_y(0.6999999, AllVars.Hubble_h)),\
                 alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[0], ls='none', label = 'Gonzalez et al. 2011', color = Obs.SMF_colors[0], capsize = capsize) 
 
-    ax.errorbar(Obs.Song_SMF_z7[:,0]+h_converter_x(0.7, AllVars.Hubble_h)-np.log10(Chabrier_to_Salpeter),\
-                10**(Obs.Song_SMF_z7[:,1])/h_converter_y(0.7, AllVars.Hubble_h),\
-                yerr= (10**(Obs.Song_SMF_z7[:,1])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z7[:,3])/h_converter_y(0.7, AllVars.Hubble_h), 10**(Obs.Song_SMF_z7[:,2])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z7[:,1])/h_converter_y(0.7, AllVars.Hubble_h)),\
-                xerr = 0.25,\
-                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2015', color = Obs.SMF_colors[1], rasterized=True) 
-
     ax.errorbar(Obs.Duncan_SMF_z7[:,0]+h_converter_x(0.7, AllVars.Hubble_h),\
                 Obs.Duncan_SMF_z7[:,1]/(h_converter_y(0.7, AllVars.Hubble_h)),\
                 yerr = [Obs.Duncan_SMF_z7[:,2], Obs.Duncan_SMF_z7[:,3]],\
                 capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[2], ls='none', label = 'Duncan et al. 2014', color = Obs.SMF_colors[2], rasterized=True) 
+
+    ax.errorbar(Obs.Song_SMF_z7[:,0]+h_converter_x(0.7, AllVars.Hubble_h)-np.log10(Chabrier_to_Salpeter),\
+                10**(Obs.Song_SMF_z7[:,1])/h_converter_y(0.7, AllVars.Hubble_h),\
+                yerr= (10**(Obs.Song_SMF_z7[:,1])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z7[:,3])/h_converter_y(0.7, AllVars.Hubble_h), 10**(Obs.Song_SMF_z7[:,2])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z7[:,1])/h_converter_y(0.7, AllVars.Hubble_h)),\
+                xerr = 0.25,\
+                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2016', color = Obs.SMF_colors[1], rasterized=True) 
 
 def Plot_SMF_z8(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
 
@@ -193,7 +194,7 @@ def Plot_SMF_z8(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
                 10**(Obs.Song_SMF_z8[:,1])/h_converter_y(0.7, AllVars.Hubble_h),\
                 yerr= (10**(Obs.Song_SMF_z8[:,1])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z8[:,3])/h_converter_y(0.7, AllVars.Hubble_h), 10**(Obs.Song_SMF_z8[:,2])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z8[:,1]/h_converter_y(0.7, AllVars.Hubble_h))),\
                 xerr = 0.25,\
-                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2015', color = Obs.SMF_colors[1], rasterized=True) 
+                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2016', color = Obs.SMF_colors[1], rasterized=True) 
   
 def plot_SMBH_z8(ax, linewidth = 1.0):
   
