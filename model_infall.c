@@ -58,7 +58,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
   }
   else if (ReionizationOn == 3)
   {
-    reionization_modifier = do_self_consistent_reionization(centralgal, halonr);       
+    reionization_modifier = do_self_consistent_reionization(centralgal, halonr, 1);
   }
   else
   {
@@ -116,7 +116,7 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
   }
   else if (ReionizationOn == 3)
   {
-    reionization_modifier = do_self_consistent_reionization(centralgal, halonr);
+    reionization_modifier = do_self_consistent_reionization(centralgal, halonr, 0);
   }
 
   else
@@ -300,7 +300,7 @@ void add_infall_to_hot(int gal, double infallingGas, double dt)
   }
 }
 
-double search_for_modifier(int64_t match_HaloID, int32_t SnapNum)
+double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t infall)
 {
 
   int32_t is_found;
@@ -312,11 +312,12 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum)
   count = 0;
   number_search_IDs = ReionList->ReionMod_List[SnapNum].NHalos_Ionized; // This is the numbers of IDs that we are searching through. 
 
-  search_idx = ceil(number_search_IDs / 2.0); 
+  search_idx = ceil(number_search_IDs / 2.0) - 1; 
   while (is_found == 0)
   {
     ++count;
     search_HaloID = ReionList->ReionMod_List[SnapNum].HaloID[search_idx];
+
     if (match_HaloID == search_HaloID) 
     {
       is_found = 1;
@@ -344,7 +345,11 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum)
   if (is_found == 1)
   {
     reionization_modifier = ReionList->ReionMod_List[SnapNum].ReionMod[search_idx];
-    printf("Found unique HaloID %ld which had modifier %.4f\n", (long) match_HaloID, reionization_modifier);
+    if (infall == 1) // Only want to increment our counters once. Let's do this for the infall recipe (because it will always be called).
+    {
+      ++ReionList->ReionMod_List[SnapNum].NHalos_Found;
+      printf("Found unique HaloID %ld with modifier %.4f\n", match_HaloID, reionization_modifier); 
+    }
   }
   else
   {
@@ -355,7 +360,7 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum)
 
 }
 
-double do_self_consistent_reionization(int p, int halonr)
+double do_self_consistent_reionization(int p, int halonr, int infall)
 {
 
   int32_t treenr; 
@@ -373,7 +378,7 @@ double do_self_consistent_reionization(int p, int halonr)
 
   HaloID = (int64_t) treenr << 32 | halonr; // Generates the unique ID for each halo within this file. 
 
-  reionization_modifier = search_for_modifier(HaloID, Halo[halonr].SnapNum);
+  reionization_modifier = search_for_modifier(HaloID, Halo[halonr].SnapNum, infall);
 
   return reionization_modifier; 
 

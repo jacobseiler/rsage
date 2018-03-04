@@ -407,6 +407,12 @@ int32_t free_reion_lists()
       continue;
     }
 
+    if (ReionList->ReionMod_List[SnapNum].NHalos_Found != ReionList->ReionMod_List[SnapNum].NHalos_Ionized)
+    {
+      fprintf(stderr, "After processing the entire file we only matched %d Halos to the reionization list.  The list contained %d Halos; these Halos MUST be in the tree file.\n", ReionList->ReionMod_List[SnapNum].NHalos_Found, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
+      return EXIT_FAILURE;
+    }
+
     free(ReionList->ReionMod_List[SnapNum].ReionMod);
     free(ReionList->ReionMod_List[SnapNum].HaloID);
   }

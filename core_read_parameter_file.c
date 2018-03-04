@@ -154,10 +154,6 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &EnergySN;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "EtaSN");
-  addr[nt] = &EtaSN;
-  id[nt++] = DOUBLE;
-
   strcpy(tag[nt], "IRA");
   addr[nt] = &IRA;
   id[nt++] = INT;

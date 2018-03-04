@@ -254,7 +254,7 @@ int32_t init_reion_lists(int32_t filenr)
     return EXIT_FAILURE;
   }
 
-  ReionList->NumLists = ReionSnap; 
+  ReionList->NumLists = ReionSnap + 1; 
 
   ReionList->ReionMod_List = malloc(sizeof(struct REIONMOD_LIST) * ReionList->NumLists);
 
@@ -271,6 +271,8 @@ int32_t init_reion_lists(int32_t filenr)
       fprintf(stderr, "When attempting to read the reionization modifier lists, the read file had a snapshot number %d when we expected a number %d\n", SnapNum_Read, SnapNum);
       return EXIT_FAILURE;
     }
+
+    ReionList->ReionMod_List[SnapNum].NHalos_Found = 0;
  
     if (ReionList->ReionMod_List[SnapNum].NHalos_Ionized == 0) // There were no halos within ionized regions for this snapshot, reionization hasn't started or is in the beginning.
     {
@@ -316,7 +318,6 @@ void set_units(void)
   UnitEnergy_in_cgs = UnitMass_in_g * pow(UnitLength_in_cm, 2) / pow(UnitTime_in_s, 2);
 
   EnergySNcode = EnergySN / UnitEnergy_in_cgs * Hubble_h;
-  EtaSNcode = EtaSN * (UnitMass_in_g / SOLAR_MASS) / Hubble_h;
 
   // convert some physical input parameters to internal units 
   Hubble = HUBBLE * UnitTime_in_s;

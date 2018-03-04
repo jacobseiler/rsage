@@ -205,6 +205,10 @@ int main(int argc, char **argv)
     if (ReionizationOn == 3)
     {
       status = free_reion_lists();
+      if (status == EXIT_FAILURE)
+      {
+        exit(EXIT_FAILURE);
+      } 
     }
 
   } // filenr loop

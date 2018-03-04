@@ -52,8 +52,8 @@ double dmax(double x, double y);
 
 double do_reionization(int centralgal, double Zcurr, int ReturnMfilt);
 double do_myreionization(int centralgal, double Zcurr, double *Mfilt);
-double do_self_consistent_reionization(int p, int halonr);
-double search_for_modifier(int64_t match_HaloID, int32_t SnapNum);
+double do_self_consistent_reionization(int p, int halonr, int infall);
+double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int infall);
 
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree, int ngal);

@@ -65,7 +65,6 @@ double PartMass;
 double BoxSize;
 int GridSize;
 double EnergySNcode, EnergySN;
-double EtaSNcode, EtaSN;
 
 // recipe flags 
 int ReionizationOn;

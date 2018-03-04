@@ -266,6 +266,7 @@ struct REIONMOD_STRUCT
   int32_t NumLists; // Will be reionization snapshot number.
   struct REIONMOD_LIST
   {
+    int32_t NHalos_Found; // Number of halos that have been matched.
     int32_t NHalos_Ionized; // Number of halos in the list.
     int64_t *HaloID; // This is a unique ID for each tree file.  The most significant 32 bits (left-most) is the tree number, and the least significant (right-most) bits is the halonr within the tree.
     float *ReionMod; // Reionization Modifer for each halo.
@@ -337,7 +338,6 @@ extern double BoxSize;
 extern int GridSize;
 extern double Hubble_h;
 extern double EnergySNcode, EnergySN;
-extern double EtaSNcode, EtaSN;
 
 // recipe flags 
 extern int    ReionizationOn;

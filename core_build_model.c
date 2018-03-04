@@ -245,7 +245,7 @@ int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
   if(ngal == 0)
   {
     // We have no progenitors with galaxies. This means we create a new galaxy. 
-    init_galaxy(treenr, ngal, halonr);
+    init_galaxy(ngal, halonr, treenr);
     ngal++;
   }
 
@@ -498,12 +498,12 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 	fprintf(stderr, "HaloGal realloced.\n");
       }
 */
-if(Gal[p].SnapNum == LastSnapShotNr && Halo[Gal[p].HaloNr].NextProgenitor == -1)
+      if(Gal[p].SnapNum == LastSnapShotNr && Halo[Gal[p].HaloNr].NextProgenitor == -1)
         fprintf(stderr, "ETHQTH\n");
         if(NumGals > MaxGals)
         {
-	  printf("ngal = %d \t MaxGals = %d\n", NumGals, MaxGals);
-			assert(NumGals < MaxGals);
+          printf("ngal = %d \t MaxGals = %d\n", NumGals, MaxGals);
+          assert(NumGals < MaxGals);
         }
 
       Gal[p].SnapNum = Halo[currenthalo].SnapNum;

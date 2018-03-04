@@ -356,7 +356,6 @@ double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax)
   {
     epsilon_energy = alpha_energy * (0.5 + pow(Vmax/V_energy, -beta_energy));
   }
-  //double reheated_energy = (Delta_Eta / 1.0e10 * Hubble_h) * stars * epsilon_energy * EnergySN * EtaSN; // Delta_Eta was in Msun so need to convert to 1e10/h Msun. 
 
   //if(N_SFH == 0)
   //    Delta_Eta = 1.0; 
