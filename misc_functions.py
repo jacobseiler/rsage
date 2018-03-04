@@ -18,6 +18,8 @@ import PlotScripts
 import ReadScripts
 import AllVars
 
+from optparse import OptionParser
+
 from random import sample, seed
 from os.path import getsize as getFileSize
 import math
@@ -37,11 +39,14 @@ from matplotlib import patches
 
 from mpi4py import MPI
 
-
 cut_slice = 40
 output_format = ".png"
 
-def create_redshift_grid(SnapList, GridSize, precision, xHII_base, redshift_output_base):
+def create_redshift_grid(SnapList, SAGE_params, precision):
+
+    GridSize = SAGE_params['GridSize'][0]
+    xHII_base = SAGE_params['PhotoionDir'][0] + "XHII_" + SAGE_params['FileNameGalaxies'][0]
+    redshift_output_base = SAGE_params['PhotoionDir'][0] + "ReionRedshift"
 
     reionization_redshift_grid = np.full((pow(GridSize, 3)), -1.0)
 
@@ -65,7 +70,10 @@ def create_redshift_grid(SnapList, GridSize, precision, xHII_base, redshift_outp
 
     print("Reionization redshift grid saved to file {0}".format(fname_out))
 
-def read_redshift_grid(SnapList,GridSize, precision, redshift_input_base, output_tag, output_dir="./"):
+def read_redshift_grid(SnapList, SAGE_params, precision, output_tag, output_dir="./"):
+
+    GridSize = SAGE_params['GridSize'][0]
+    redshift_input_base = SAGE_params['PhotoionDir'][0] + "ReionRedshift"
 
     fname_in = "{0}_{1}_{2}".format(redshift_input_base, SnapList[0], SnapList[-1])      
     reionization_redshift_grid = ReadScripts.read_binary_grid(fname_in, GridSize, precision, True)
@@ -90,29 +98,70 @@ def read_redshift_grid(SnapList,GridSize, precision, redshift_input_base, output
 
     plt.close()
 
+def create_SAGE_ini(SAGE_params, SAGE_params_names, increment_HighSnap, outputdir="./"):
+    fname = "{0}test.ini".format(outputdir)
+
+    if (increment_HighSnap == 1):
+        SAGE_params['HighSnap'] = [SAGE_params['HighSnap'][0] + 1] 
+        SAGE_params['ReionSnap'] = [SAGE_params['ReionSnap'][0] + 1] 
+    
+    with open (fname, "w+") as f:
+        for name in SAGE_params_names:
+            string = "{0} {1}\n".format(name, SAGE_params[name][0])
+            f.write(string)
+    print("Successfully wrote to {0}".format(fname))
+
 if __name__ == '__main__':
 
-    if (len(sys.argv) != 7):
-        print("Usage: python3 self_consistent_SAGE.py <SnapLow> <SnapHigh> <Ionization Field Base Name> <GridSize> <Precision> <Redshift Ionization Grid Output Base Name>")
+    parser = OptionParser()
+
+    parser.add_option("-r", "--reionredshift", dest="reionredshift", help="Set to 1 to generate the reionization redshift grid for the snapshot range specified. Default: 0.", default = 0, type = int)
+    parser.add_option("-n", "--snap_range", dest="snap_range", nargs = 2, help="Snapshot range of interest.  Range is inclusive.  Default: Range specified by the SAGE ini file (LowSnap to HighSnap inclusive).", default = (0, 0))
+    parser.add_option("-f", "--SAGE_fname", dest="SAGE_fname", help="Location of the SAGE ini file. REQUIRED")
+    parser.add_option("-p", "--precision", type = int, dest="precision", help="Precision of the grid files. 0 for int, 1 for float, 2 for double. Default: 2", default = 2) 
+    parser.add_option("-g", "--galaxy_name", dest="galaxy_name", help="Overwrites the name of the galaxies specified within the SAGE ini file.  Default: Specified by SAGE ini file.") 
+    parser.add_option("-d", "--galaxy_dir", dest="galaxy_dir", help="Overwrites the directory containing the galaxies specified within the SAGE ini file.  Default: Specified by SAGE ini file.") 
+    parser.add_option("-c", "--create_SAGE", dest="create_SAGE_ini", help="Set to 1 to generate a SAGE ini file with HighSnap incremented by 1.  Default: 0", default = 0, type = int)
+
+    (opt, args) = parser.parse_args()
+
+    if (opt.SAGE_fname == None):
+        parser.print_help()
+        exit()
+
+    if (opt.precision== None):
+        parser.print_help()
         exit()
 
     AllVars.Set_Params_Kali()
 
-    SnapLow = int(sys.argv[1])
-    SnapHigh = int(sys.argv[2])
+    precision = opt.precision
 
-    if (SnapLow > SnapHigh):
+    SAGE_params, SAGE_params_names = ReadScripts.read_SAGE_ini(opt.SAGE_fname)
+
+    if (opt.galaxy_name != None):
+        print("Overwriting the name of galaxies from the SAGE ini file.")
+        SAGE_params['FileNameGalaxies'] = opt.galaxy_name     
+
+    if (opt.galaxy_dir != None):
+        print("Overwriting the directory contain the galaxies from the SAGE ini file.") 
+        SAGE_params['OutputDir'] = opt.galaxy_name     
+
+    if (opt.snap_range[0] == 0 and opt.snap_range[1] == 0):
+        print("The snapshot range was not specified.  We are using the SnapLow and SnapHigh values specified in the SAGE ini file of ({0}, {1}).".format(SAGE_params['LowSnap'][0], SAGE_params['HighSnap'][0]))
+        LowSnap = SAGE_params['LowSnap'][0]
+        HighSnap = SAGE_params['HighSnap'][0]
+    else:
+        LowSnap = opt.snap_range[0]
+        HighSnap = opt.snap_range[1]
+
+    if (LowSnap > HighSnap):
         raise ValueError("SnapLow should be smaller (or equal) to SnapHigh")
-    SnapList = np.arange(SnapLow, SnapHigh + 1)    
+    SnapList = np.arange(LowSnap, HighSnap) 
+           
+    if opt.reionredshift:     
+        create_redshift_grid(SnapList, SAGE_params, precision)
 
-    xHII_base = sys.argv[3]
-    GridSize = int(sys.argv[4])
-    precision = int(sys.argv[5])
-
-    if (precision < 1 or precision > 2):
-        raise ValueError("Precision should either be 1 (float) or 2 (double)") 
-
-    redshift_output_base = sys.argv[6]
-
-    #create_redshift_grid(SnapList, GridSize, precision, xHII_base, redshift_output_base)
-    read_redshift_grid(SnapList, GridSize, precision, redshift_output_base, "test_reion_redshift") 
+    if opt.create_SAGE_ini:
+        create_SAGE_ini(SAGE_params, SAGE_params_names, 1)
+    #read_redshift_grid(SnapList, SAGE_params, precision, "test_reion_redshift") 

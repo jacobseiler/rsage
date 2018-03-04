@@ -1,3 +1,4 @@
 filter_mass/*.o
 create_filter_mass
 *.png
+test.ini
