@@ -150,6 +150,10 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &GridSize;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "self_consistent");
+  addr[nt] = &self_consistent;
+  id[nt++] = INT;
+
   strcpy(tag[nt], "EnergySN");
   addr[nt] = &EnergySN;
   id[nt++] = DOUBLE;
@@ -302,10 +306,9 @@ int32_t read_parameter_file(char *fname)
 	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
 	MAXSNAPS = LastSnapShotNr + 1;
 
-	if(!(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS)))
-		printf("NumOutputs must be -1 or between 1 and %i\n", ABSOLUTEMAXSNAPS);
-	assert(NOUT == -1 || (NOUT > 0 && NOUT <= ABSOLUTEMAXSNAPS));
-	
+
+  XASSERT(NOUT == 1, "The number of outputs must be 1.  The only output will be the galaxies at the final snapshot or the galaxies that have merged before this time.\n");
+		
 	// read in the output snapshot list
 	if(NOUT == -1)
 	{

@@ -336,6 +336,7 @@ extern double OmegaLambda;
 extern double PartMass;
 extern double BoxSize;
 extern int GridSize;
+extern int self_consistent;
 extern double Hubble_h;
 extern double EnergySNcode, EnergySN;
 

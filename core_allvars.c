@@ -64,6 +64,7 @@ double Hubble_h;
 double PartMass;
 double BoxSize;
 int GridSize;
+int self_consistent;
 double EnergySNcode, EnergySN;
 
 // recipe flags 
