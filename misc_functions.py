@@ -98,30 +98,45 @@ def read_redshift_grid(SnapList, SAGE_params, precision, output_tag, output_dir=
 
     plt.close()
 
-def create_SAGE_ini(SAGE_params, SAGE_params_names, increment_HighSnap, outputdir="./"):
-    fname = "{0}test.ini".format(outputdir)
+def increment_ini(SAGE_params, SAGE_params_names, cifog_params, cifog_params_names, cifog_headers, increment_snaps, outputdir="./ini_files"):
 
-    if (increment_HighSnap == 1):
+    if (increment_snaps == 1):
         SAGE_params['HighSnap'] = [SAGE_params['HighSnap'][0] + 1] 
         SAGE_params['ReionSnap'] = [SAGE_params['ReionSnap'][0] + 1] 
-    
-    with open (fname, "w+") as f:
+
+        cifog_params["stopSnapshot"] = [cifog_params["stopSnapshot"][0] + 1]
+ 
+    fname_SAGE = "{0}/SAGE_snap{1}.ini".format(outputdir, SAGE_params["HighSnap"][0])
+    fname_cifog = "{0}/cifog_snap{1}.ini".format(outputdir, cifog_params["stopSnapshot"][0])
+   
+    with open (fname_SAGE, "w+") as f:
         for name in SAGE_params_names:
             string = "{0} {1}\n".format(name, SAGE_params[name][0])
             f.write(string)
-    print("Successfully wrote to {0}".format(fname))
 
-if __name__ == '__main__':
+    with open (fname_cifog, "w+") as f:
+        for name in cifog_params_names:
+            if name in cifog_headers:
+                header_string = "{0}".format(cifog_headers[name])
+                f.write(header_string)
+            string = "{0} = {1}\n".format(name, cifog_params[name][0])
+            f.write(string)
+
+    print("Successfully wrote to {0}".format(fname_SAGE))
+    print("Successfully wrote to {0}".format(fname_cifog))
+
+def parse_input_arguments():
 
     parser = OptionParser()
 
+    parser.add_option("-f", "--SAGE_ini", dest="SAGE_fname", help="Location of the SAGE ini file.  Required.")
+    parser.add_option("-c", "--cifog_ini", dest="cifog_fname", help="Location of the cifog ini file.")
+    parser.add_option("-n", "--snap_range", dest="snap_range", nargs = 2, help="Snapshot range of interest.  Range is inclusive.  Default: Range specified by the SAGE ini file (LowSnap to HighSnap inclusive).", default = (0, 0)) 
+    parser.add_option("-p", "--precision", type = int, dest="precision", help="Precision of the grid files. 0 for int, 1 for float, 2 for double. Default: 2", default =2) 
     parser.add_option("-r", "--reionredshift", dest="reionredshift", help="Set to 1 to generate the reionization redshift grid for the snapshot range specified. Default: 0.", default = 0, type = int)
-    parser.add_option("-n", "--snap_range", dest="snap_range", nargs = 2, help="Snapshot range of interest.  Range is inclusive.  Default: Range specified by the SAGE ini file (LowSnap to HighSnap inclusive).", default = (0, 0))
-    parser.add_option("-f", "--SAGE_fname", dest="SAGE_fname", help="Location of the SAGE ini file. REQUIRED")
-    parser.add_option("-p", "--precision", type = int, dest="precision", help="Precision of the grid files. 0 for int, 1 for float, 2 for double. Default: 2", default = 2) 
     parser.add_option("-g", "--galaxy_name", dest="galaxy_name", help="Overwrites the name of the galaxies specified within the SAGE ini file.  Default: Specified by SAGE ini file.") 
     parser.add_option("-d", "--galaxy_dir", dest="galaxy_dir", help="Overwrites the directory containing the galaxies specified within the SAGE ini file.  Default: Specified by SAGE ini file.") 
-    parser.add_option("-c", "--create_SAGE", dest="create_SAGE_ini", help="Set to 1 to generate a SAGE ini file with HighSnap incremented by 1.  Default: 0", default = 0, type = int)
+    parser.add_option("-i", "--increment_ini", dest="increment_ini", help="Set to 1 to generate a SAGE and cifog ini file with HighSnap/stopSnapshot incremented by 1.  Default: 0", default = 0, type = int)
 
     (opt, args) = parser.parse_args()
 
@@ -129,39 +144,52 @@ if __name__ == '__main__':
         parser.print_help()
         exit()
 
-    if (opt.precision== None):
+    if (opt.precision == None):
         parser.print_help()
         exit()
 
+    if (opt.increment_ini == 1 and opt.cifog_fname == None):
+        print("To increment the ini files both a SAGE and cifog ini file must be specified.")
+        parser.print_help() 
+        exit()
+
+    return vars(opt) 
+
+if __name__ == '__main__':
+
+
+    opt = parse_input_arguments()
+
     AllVars.Set_Params_Kali()
 
-    precision = opt.precision
+    precision = opt["precision"]
 
-    SAGE_params, SAGE_params_names = ReadScripts.read_SAGE_ini(opt.SAGE_fname)
+    SAGE_params, SAGE_params_names = ReadScripts.read_SAGE_ini(opt["SAGE_fname"])
 
-    if (opt.galaxy_name != None):
+    if (opt["galaxy_name"] != None):
         print("Overwriting the name of galaxies from the SAGE ini file.")
-        SAGE_params['FileNameGalaxies'] = opt.galaxy_name     
+        SAGE_params['FileNameGalaxies'] = opt["galaxy_name"] 
 
-    if (opt.galaxy_dir != None):
+    if (opt["galaxy_dir"] != None):
         print("Overwriting the directory contain the galaxies from the SAGE ini file.") 
-        SAGE_params['OutputDir'] = opt.galaxy_name     
+        SAGE_params['OutputDir'] = opt["galaxy_name"] 
 
-    if (opt.snap_range[0] == 0 and opt.snap_range[1] == 0):
+    if (opt["snap_range"][0] == 0 and opt["snap_range"][1] == 0):
         print("The snapshot range was not specified.  We are using the SnapLow and SnapHigh values specified in the SAGE ini file of ({0}, {1}).".format(SAGE_params['LowSnap'][0], SAGE_params['HighSnap'][0]))
         LowSnap = SAGE_params['LowSnap'][0]
         HighSnap = SAGE_params['HighSnap'][0]
     else:
-        LowSnap = opt.snap_range[0]
-        HighSnap = opt.snap_range[1]
+        LowSnap = opt["snap_range"][0]
+        HighSnap = opt["snap_range"][1]
 
     if (LowSnap > HighSnap):
         raise ValueError("SnapLow should be smaller (or equal) to SnapHigh")
     SnapList = np.arange(LowSnap, HighSnap) 
            
-    if opt.reionredshift:     
+    if opt["reionredshift"]:
         create_redshift_grid(SnapList, SAGE_params, precision)
 
-    if opt.create_SAGE_ini:
-        create_SAGE_ini(SAGE_params, SAGE_params_names, 1)
+    if opt["increment_ini"]:
+        cifog_params, cifog_params_names, cifog_headers = ReadScripts.read_cifog_ini(opt["cifog_fname"])
+        increment_ini(SAGE_params, SAGE_params_names, cifog_params, cifog_params_names, cifog_headers, 1)
     #read_redshift_grid(SnapList, SAGE_params, precision, "test_reion_redshift") 
