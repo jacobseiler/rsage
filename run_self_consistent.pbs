@@ -9,13 +9,16 @@
 
 module load openmpi/x86_64/intel/1.8.6-psm
 module load gsl/x86_64/gnu/1.9
+module load python/x86_64/gnu/3.5.2
 
 SAGE_ini="/home/jseiler/self_consistent_SAGE/ini_files/SAGE_"
 log_dir="/home/jseiler/self_consistent_SAGE/logs/"
-cifog_ini="/home/jseiler/self_consistent_SAGE/ini_files/cifog__"
+cifog_ini="/home/jseiler/self_consistent_SAGE/ini_files/cifog_"
 
 LowSnap=27
 HighSnap=27
+
+NUMPROC=4
 
 for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
 {
@@ -24,24 +27,31 @@ for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
   ini_tag="snap${snap_idx}.ini"
 
   # Run SAGE
-  /home/jseiler/SAGE-stuff/post_processed_SAGE/sage ${SAGE_ini}${ini_tag} > ${log_dir}/SAGE_${snap_idx}.log
+  mpirun -np ${NUMPROC} /home/jseiler/SAGE-stuff/post_processed_SAGE/sage ${SAGE_ini}${ini_tag} > ${log_dir}/SAGE_${snap_idx}.log
 
   # Grid SAGE output
-  /home/jseiler/SAGE-stuff/post_processed_grid/grid_sage ${SAGE_ini}${ini_tag} > ${log_dir}/grid_${snap_idx}.log 
+  mpirun -np ${NUMPROC} /home/jseiler/SAGE-stuff/post_processed_grid/grid_sage ${SAGE_ini}${ini_tag} > ${log_dir}/grid_${snap_idx}.log 
 
   # Run cifog with -r -s for 1 snapshot
-  #/home/jseiler/grid-model/cifog ${cifog_ini}${ini_tag} > ${log_dir}/cifog_${snap_idx}.log
+  if ((snap_idx == LowSnap)) ; then
+    cifog_run_flag="-s"
+  else
+    cifog_run_flag="-r -s"
+  fi   
 
-  # Generate reionization modifiers + filter masses
-  #if ((snap_idx == LowSnap)) ; then
-    filter_mass_run_flag=1
-  #else
-    filter_mass_run_flag=0
-  #fi   
- 
-  #/home/jseiler/self_consistent_SAGE/create_filter_mass ${SAGE_ini}${ini_tag} > ${log_dir}/filtermass_${snap_idx}.log 
+  mpirun -np ${NUMPROC} /home/jseiler/grid-model/cifog ${cifog_ini}${ini_tag} ${cifog_run_flag} > ${log_dir}/cifog_${snap_idx}.log
+
 
   # Generate reionization redshift grid and increment SAGE+cifog ini
+  python3 /home/jseiler/self_consistent_SAGE/misc_functions.py -f ${SAGE_ini}${ini_tag} -c ${cifog_ini}${ini_tag} -r 1 -i 1
 
+  # Generate reionization modifiers + filter masses
+  if ((snap_idx == LowSnap)) ; then
+    filter_mass_run_flag=1
+  else
+    filter_mass_run_flag=0
+  fi   
+ 
+ mpirun -np ${NUMPROC} /home/jseiler/self_consistent_SAGE/create_filter_mass ${SAGE_ini}${ini_tag} ${snap_idx} ${filter_mass_run_flag} > ${log_dir}/filtermass_${snap_idx}.log 
 
 } 

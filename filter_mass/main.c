@@ -175,7 +175,7 @@ int main(int argc, char **argv)
     exit(EXIT_FAILURE);
   }
 
-  status = read_grid(ThisSnap, params, &Grid); // Read the reionization redshift and photoionization grid. 
+  status = read_grid(ThisSnap, first_run, params, &Grid); // Read the reionization redshift and photoionization grid. 
   if (status == EXIT_FAILURE)
   {
     exit(EXIT_FAILURE);
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
       }
 
       // Now time to go through all the halos in this tree, determine those at the Snapshot specified and the associate reionization modifier (if it's within an ionized cell).
-      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], ThisSnap, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
+      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], ThisSnap, first_run, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
       if (status == EXIT_FAILURE)
       {
         exit(EXIT_FAILURE);

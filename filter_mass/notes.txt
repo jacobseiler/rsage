@@ -4,7 +4,7 @@ The coupled SAGE/cifog pipeline will run in a number of steps.
 === Creation of Filtering Masses ===
 ====================================
 
-Since we have the photoionization rates at each redshift (or will have them), we cna pre-process the dark matter halos to create a list of filtering masses irrespective of the evolution of the resident galaxy population.
+Since we have the photoionization rates at each redshift (or will have them), we can pre-process the dark matter halos to create a list of filtering masses irrespective of the evolution of the resident galaxy population.
 
 This code will work in the following way:
 

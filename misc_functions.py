@@ -37,16 +37,16 @@ import matplotlib.ticker as mtick
 import itertools
 from matplotlib import patches
 
-from mpi4py import MPI
-
 cut_slice = 40
 output_format = ".png"
 
 def create_redshift_grid(SnapList, SAGE_params, precision):
 
-    GridSize = SAGE_params['GridSize'][0]
-    xHII_base = SAGE_params['PhotoionDir'][0] + "XHII_" + SAGE_params['FileNameGalaxies'][0]
-    redshift_output_base = SAGE_params['PhotoionDir'][0] + "ReionRedshift"
+    AllVars.Set_Params_Kali()
+
+    GridSize = SAGE_params["GridSize"][0]
+    xHII_base = SAGE_params["PhotoionDir"][0] + "/XHII" 
+    redshift_output_base = SAGE_params["PhotoionDir"][0] + "/" + SAGE_params["ReionRedshiftName"][0] 
 
     reionization_redshift_grid = np.full((pow(GridSize, 3)), -1.0)
 
@@ -65,7 +65,7 @@ def create_redshift_grid(SnapList, SAGE_params, precision):
         print("")
         reionization_redshift_grid[w_to_update] = AllVars.SnapZ[snapshot]
         
-    fname_out = "{0}_{1}_{2}".format(redshift_output_base, SnapList[0], SnapList[-1])  
+    fname_out = "{0}".format(redshift_output_base) 
     reionization_redshift_grid.tofile(fname_out)
 
     print("Reionization redshift grid saved to file {0}".format(fname_out))
@@ -159,9 +159,7 @@ if __name__ == '__main__':
 
 
     opt = parse_input_arguments()
-
-    AllVars.Set_Params_Kali()
-
+    
     precision = opt["precision"]
 
     SAGE_params, SAGE_params_names = ReadScripts.read_SAGE_ini(opt["SAGE_fname"])
@@ -176,15 +174,15 @@ if __name__ == '__main__':
 
     if (opt["snap_range"][0] == 0 and opt["snap_range"][1] == 0):
         print("The snapshot range was not specified.  We are using the SnapLow and SnapHigh values specified in the SAGE ini file of ({0}, {1}).".format(SAGE_params['LowSnap'][0], SAGE_params['HighSnap'][0]))
-        LowSnap = SAGE_params['LowSnap'][0]
-        HighSnap = SAGE_params['HighSnap'][0]
+        LowSnap = SAGE_params['LowSnap'][0] + 1 
+        HighSnap = SAGE_params['HighSnap'][0] + 1
     else:
-        LowSnap = opt["snap_range"][0]
-        HighSnap = opt["snap_range"][1]
+        LowSnap = opt["snap_range"][0] 
+        HighSnap = opt["snap_range"][1] 
 
     if (LowSnap > HighSnap):
         raise ValueError("SnapLow should be smaller (or equal) to SnapHigh")
-    SnapList = np.arange(LowSnap, HighSnap) 
+    SnapList = np.arange(LowSnap, HighSnap + 1) 
            
     if opt["reionredshift"]:
         create_redshift_grid(SnapList, SAGE_params, precision)

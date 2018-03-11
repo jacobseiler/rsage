@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -13,7 +13,11 @@
 #define	CUBE(x) (x*x*x)
 #define MAXLEN 1024
 
-int32_t read_grid(int32_t SnapNum, SAGE_params params, grid_t *Grid)
+// Local Proto-Type //
+
+int32_t count_ionized_cells(grid_t Grid);
+
+int32_t read_grid(int32_t SnapNum, int32_t first_run, SAGE_params params, grid_t *Grid)
 {
 
   FILE *ReionRedshiftFile, *PhotoionFile;
@@ -53,9 +57,10 @@ int32_t read_grid(int32_t SnapNum, SAGE_params params, grid_t *Grid)
 
   printf("Reading reionization redshift file.\n");
   fread((*Grid)->ReionRedshift, sizeof(*((*Grid)->ReionRedshift)), (*Grid)->NumCellsTotal, ReionRedshiftFile);
+  count_ionized_cells(*Grid);
   fclose(ReionRedshiftFile);
-
-  snprintf(PhotoionGridName, MAXLEN, "%s/%s_%03d", params->PhotoionDir, params->PhotoionName, SnapNum); 
+  
+  snprintf(PhotoionGridName, MAXLEN, "%s/%s_%03d", params->PhotoionDir, params->PhotoionName, SnapNum + 1); 
   if (!(PhotoionFile = fopen(PhotoionGridName, "rb")))
   { 
     fprintf(stderr, "Could not open file %s\n", PhotoionGridName);
@@ -65,6 +70,27 @@ int32_t read_grid(int32_t SnapNum, SAGE_params params, grid_t *Grid)
   printf("Reading photoionization rate.\n"); 
   fread((*Grid)->PhotoRate, sizeof(*((*Grid)->PhotoRate)), (*Grid)->NumCellsTotal, PhotoionFile);
   fclose(PhotoionFile);
+
+  return EXIT_SUCCESS;
+
+}
+
+int32_t count_ionized_cells(grid_t Grid)
+{
+
+  int32_t cell_idx, num_ionized_cells = 0;
+
+  for (cell_idx = 0; cell_idx < Grid->NumCellsTotal; ++cell_idx)
+  {
+  
+    if (Grid->ReionRedshift[cell_idx] > -1.0)
+    {
+      ++num_ionized_cells;
+    } 
+
+  }
+
+  printf("There were %d Cells marked as ionized from the reionization redshift grid.\n", num_ionized_cells);
 
   return EXIT_SUCCESS;
 
@@ -82,12 +108,17 @@ int32_t free_grid(grid_t *Grid)
 
 }
  
-int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, halo_t Halos, grid_t Grid, SAGE_params params, int64_t **HaloID, float **ReionMod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_ReionMod)
+int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, int32_t first_run, halo_t Halos, grid_t Grid, SAGE_params params, int64_t **HaloID, float **ReionMod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_ReionMod)
 {
 
   int32_t halonr, status;
   float ReionMod_tmp;
   int64_t unique_ID;
+
+  if (first_run == 1)
+  {
+    return EXIT_SUCCESS;
+  }
 
   for (halonr = 0; halonr < NHalos_ThisTree; ++halonr)
   {
