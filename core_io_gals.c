@@ -266,8 +266,6 @@ int32_t load_gals(char *fname)
       return EXIT_FAILURE;
     }
 
-
-
     Grid->GridProperties[i].NgammaGalaxy = malloc(sizeof(*(Grid->GridProperties[i].NgammaGalaxy)) * NtotGals);
     if (Grid->GridProperties[i].NgammaGalaxy == NULL)
     {
@@ -479,7 +477,7 @@ int load_meraxes_halos(int snapnum)
     num_halos++;
   }
   fclose(load_fd);
-  fprintf(stderr, "For snapshot %d there is %d halos.\n", snapnum, num_halos);  
+
   meraxes_Halo = mymalloc(sizeof(struct meraxes_halo_data) * (num_halos)); 
 
   int counter = 0; 
@@ -502,7 +500,7 @@ int load_meraxes_halos(int snapnum)
     counter++;
   } 
   fclose(load_fd);
-  fprintf(stderr, "Read in the SFR data.\n");
+  
   // Stellar Mass //
 
   counter = 0;
@@ -523,8 +521,7 @@ int load_meraxes_halos(int snapnum)
     counter++;
   } 
   fclose(load_fd);
-
-  fprintf(stderr, "Read in the StellarMass data.\n");
+  
   // Mvir //  
 
   counter = 0;
@@ -546,7 +543,6 @@ int load_meraxes_halos(int snapnum)
   } 
   fclose(load_fd);
 
-  fprintf(stderr, "Read in the Mvir data.\n");
   // ColdGas //  
 
   counter = 0;
@@ -568,7 +564,6 @@ int load_meraxes_halos(int snapnum)
   } 
   fclose(load_fd);
 
-  fprintf(stderr, "Read in the ColdGas data.\n");
   // HotGas //  
 
   counter = 0;
@@ -590,7 +585,6 @@ int load_meraxes_halos(int snapnum)
   } 
   fclose(load_fd);
 
-  fprintf(stderr, "Read in the HotGas data.\n");
   // EjectedGas // 
 
   counter = 0;
@@ -612,7 +606,6 @@ int load_meraxes_halos(int snapnum)
   } 
   fclose(load_fd);
 
-  fprintf(stderr, "Read in the EjectedGas data.\n");
   // Pos // 
 
   counter = 0;
@@ -638,8 +631,6 @@ int load_meraxes_halos(int snapnum)
   } 
   fclose(load_fd);
 
-  fprintf(stderr, "Read in the Pos data.\n");
-
   // Pos // 
 
   counter = 0;
@@ -662,7 +653,6 @@ int load_meraxes_halos(int snapnum)
   } 
   fclose(load_fd);
 
-  fprintf(stderr, "Read in the MetalsColdGas data.\n");
   return num_halos;
 }
 

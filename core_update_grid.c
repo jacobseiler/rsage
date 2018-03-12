@@ -440,8 +440,6 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
       fraction_into_snapshot = time_into_snapshot / dt; // Then what fraction of the snapshot time will this be?
       QuasarFractionalPhoton[gal_idx] = fraction_into_snapshot; 
 
-      //fprintf(stderr, "TargetQuasarTime = %.4f \tQuasarBoostActiveTime = %.4f\tdt = %.4f\ttime_into_snapshot = %.4f\tQuasarFractionalPhoton = %.4f\n", TargetQuasarTime[gal_idx], QuasarBoostActiveTime[gal_idx], dt, time_into_snapshot, QuasarFractionalPhoton[gal_idx]);
-
       // Reset toggles and trackers. //
       --QuasarActivityToggle[gal_idx];
       QuasarSnapshot[gal_idx] = -1;

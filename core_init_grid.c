@@ -37,7 +37,7 @@ int32_t init(void)
   
   if (fescPrescription == 0)
   {
-    fprintf(stderr, "\n\nUsing a constant escape fraction of %.4f\n", fesc); 
+    printf("\n\nUsing a constant escape fraction of %.4f\n", fesc); 
   }
   else if (fescPrescription == 1)
   {
@@ -46,32 +46,32 @@ int32_t init(void)
   } 
   else if (fescPrescription == 2)
   {
-    fprintf(stderr,"\n\nUsing an fesc prescription that scales with halo mass.\n\n");
+    printf("\n\nUsing an fesc prescription that scales with halo mass.\n\n");
     determine_fesc_constants();
   }
   else if (fescPrescription == 3)
   {
-    fprintf(stderr, "\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\n");
-    fprintf(stderr, "\nThis takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta); 
+    printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\n");
+    printf("\nThis takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta); 
   }
   else if (fescPrescription == 4)
   {
-    fprintf(stderr, "\n\nUsing an fesc prescription that depends upon quasar activity.\n");
-    fprintf(stderr, "\nFor a galaxy that had a quasar event within %.2f dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
+    printf("\n\nUsing an fesc prescription that depends upon quasar activity.\n");
+    printf("\nFor a galaxy that had a quasar event within %.2f dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
   }
   else if (fescPrescription == 5)
   {
-    fprintf(stderr, "\n\nUsing Anne's functional form for an escape fraction that decreases for increasing halo mass.\n");
+    printf("\n\nUsing Anne's functional form for an escape fraction that decreases for increasing halo mass.\n");
     XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 5), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
   }
   else if (fescPrescription == 6)
   {
-    fprintf(stderr, "\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
+    printf("\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
     XASSERT(fesc_low < fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 6), we require fesc_low < fesc_high\n", fesc_low, fesc_high);
   }
   else
   {
-    fprintf(stderr, "\n\nOnly escape fraction prescriptions 0 to 6 (exlucding 1) are permitted.\n");
+    printf("\n\nOnly escape fraction prescriptions 0 to 6 (exlucding 1) are permitted.\n");
     return EXIT_FAILURE;
   }
 
