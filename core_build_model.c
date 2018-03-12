@@ -112,10 +112,9 @@ int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
     for(i = 0; i < HaloAux[prog].NGalaxies; i++)
     {
 
-      //fprintf(stderr, "ngal = %d, FoF_MaxGals = %d.\n", ngal, FoF_MaxGals);
       if(ngal == (FoF_MaxGals-1)) 
       {
-	fprintf(stderr, "Current FoF_MaxGals = %d. Reallocing.\n", FoF_MaxGals);
+        printf(stderr, "Current FoF_MaxGals = %d. Reallocing.\n", FoF_MaxGals);
         FoF_MaxGals += 10000;
         Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY));
       }
@@ -281,7 +280,6 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 {
   int p, i, step, centralgal, merger_centralgal, currenthalo, offset;
   double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;
-//  fprintf(stderr, "Evolve galaxies has been called with ngal = %d tree = %d halonr = %d\n", ngal, tree, halonr);
   
   centralgal = Gal[0].CentralGal;
  
@@ -363,17 +361,11 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
             merger_centralgal = centralgal;
           else
             merger_centralgal = Gal[p].CentralGal;
-          //fprintf(stderr, "galaxyBaryons = %.4e \t currentMvir = %.4e \t ThesholdSatDisruption = %.4e\n", galaxyBaryons, currentMvir, ThresholdSatDisruption); 
-          //fprintf(stderr, "Before p = %d \t Gal[p].Type = %d \t Gal[merger_centralgal].mergeType = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d\n", p, Gal[p].Type, Gal[merger_centralgal].mergeType, merger_centralgal, Gal[merger_centralgal].Type);
           if(Gal[merger_centralgal].mergeType > 0)
-//          while(Gal[merger_centralgal].mergeType > 0)
           {         
             merger_centralgal = Gal[merger_centralgal].CentralGal;
-//           XASSERT(Gal[merger_centralgal].mergeType == 0, "We have the case where are galaxy (galaxy C) is trying to merge into a galaxy (galaxy B) that is merging itself into a central galaxy (galaxy A). We have attempted to tell galaxy C to merge into galaxy A directly but require that the mergeType of galaxy A is 0 (i.e. galaxy A is a central).\nInstead the mergeType of galaxy A = %d\n", Gal[merger_centralgal].mergeType);  
           }
-          //fprintf(stderr, "After p = %d \t Gal[p].Type = %d \t Gal[merger_centralgal].mergeType = %d \t merger_centralgal = %d \t Gal[merger_centralgal].Type = %d\n", p, Gal[p].Type, Gal[merger_centralgal].mergeType, merger_centralgal, Gal[merger_centralgal].Type);
-         
- 
+
           Gal[p].mergeIntoID = NumGals + merger_centralgal;  // position in output 
 
 
@@ -434,10 +426,6 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
   }
 
-
-//  for(p = 0; p < ngal; p++)
-//    fprintf(stderr, "halo %d \t gal %d\n", halonr, p);
-
   // Attach final galaxy list to halo 
   offset = 0;
   for(p = 0, currenthalo = -1; p < ngal; p++)
@@ -483,28 +471,11 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
     
     if(Gal[p].mergeType == 0)
     {
-      //fprintf(stderr, "NumGals = %d, ngal = %d\n", NumGals, ngal);
-
-    /*        
-      if(NumGals == (FoF_MaxGals-1)) 
+      if(NumGals > MaxGals)
       {
-	fprintf(stderr, "Current FoF_MaxGals = %d. Reallocing.\n", FoF_MaxGals);
-        FoF_MaxGals += 10000;
-	MergedGal = myrealloc(MergedGal, FoF_MaxGals * sizeof(struct GALAXY));
-	fprintf(stderr, "MergedGal realloced.\n");	
-        Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY));
-	fprintf(stderr, "Gal realloced.\n");
-	HaloGal = myrealloc(HaloGal, FoF_MaxGals * sizeof(struct GALAXY));
-	fprintf(stderr, "HaloGal realloced.\n");
+        printf("ngal = %d \t MaxGals = %d\n", NumGals, MaxGals);
+        assert(NumGals < MaxGals);
       }
-*/
-      if(Gal[p].SnapNum == LastSnapShotNr && Halo[Gal[p].HaloNr].NextProgenitor == -1)
-        fprintf(stderr, "ETHQTH\n");
-        if(NumGals > MaxGals)
-        {
-          printf("ngal = %d \t MaxGals = %d\n", NumGals, MaxGals);
-          assert(NumGals < MaxGals);
-        }
 
       Gal[p].SnapNum = Halo[currenthalo].SnapNum;
       HaloGal[NumGals++] = Gal[p];

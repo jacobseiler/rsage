@@ -312,11 +312,19 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 
  
     if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
-	Gal[p].EjectedFraction[SnapCurr] = 0.0;
-    else 
+    {
+      Gal[p].EjectedFraction[SnapCurr] = 0.0; // Check divide by 0 case.
+    }
+    else
+    { 
         Gal[p].EjectedFraction[SnapCurr] = Gal[p].EjectedMass/(Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass);
+        // EjectedFraction is the fraction of baryons in the ejected reservoir.
+    }
     if (Gal[p].EjectedFraction[SnapCurr] < 0.0 || Gal[p].EjectedFraction[SnapCurr] > 1.0)
-       fprintf(stderr, "Found ejected fraction = %.4e \t p = %d \t Gal[p].EjectedMass = %.4e \t Gal[p].HotGas = %.4e \t Gal[p].ColdGas = %.4e\n\n", Gal[p].EjectedFraction[SnapCurr], p, Gal[p].EjectedMass, Gal[p].HotGas, Gal[p].ColdGas); 
+    {
+      fprintf(stderr, "Found ejected fraction = %.4e \t p = %d \t Gal[p].EjectedMass = %.4e \t Gal[p].HotGas = %.4e \t Gal[p].ColdGas = %.4e\n\n", Gal[p].EjectedFraction[SnapCurr], p, Gal[p].EjectedMass, Gal[p].HotGas, Gal[p].ColdGas); 
+      return(EXIT_FAILURE);
+    }
 
     Gal[p].LenHistory[SnapCurr] = Gal[p].Len;
     if (Gal[p].LenHistory[SnapCurr] < 0)

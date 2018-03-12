@@ -367,6 +367,11 @@ double do_self_consistent_reionization(int p, int halonr, int infall)
   int64_t HaloID;
   double reionization_modifier;
 
+  if (ReionSnap == LowSnap)
+  {
+    return 1.0;
+  }
+
   if ((Halo[halonr].SnapNum > ReionSnap) || (ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized == 0)) // We have yet to do reionization for this snapshot or if there are no halos within ionized regions for this snapshot.
   {
     return 1.0; // Reionization hasn't happened yet for this halo.

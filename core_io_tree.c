@@ -25,7 +25,6 @@ void load_tree_table(int filenr)
   snprintf(buf, MAXLEN, "%s/%s_%03d.dat", SimulationDir, TreeName, filenr);
   //snprintf(buf, MAXLEN, "%s/%s.%d", SimulationDir, TreeName, filenr);
 
-  fprintf(stderr, "Reading file %s\n", buf);
   if(!(load_fd = fopen(buf, "r")))
   {
     printf("can't open file `%s'\n", buf);
@@ -66,7 +65,7 @@ void load_tree_table(int filenr)
     TotGalaxies[n] = 0;
   }
   TotMerged = 0;
-  fprintf(stderr, "Read the table\n");
+
 }
 
 
@@ -127,28 +126,13 @@ void load_tree(int filenr, int nr)
     Halo[i].Pos[1] = Halo[i].Pos[1] - 775.0;
     Halo[i].Pos[2] = Halo[i].Pos[2] - 775.0;
 #endif
-    //if(Halo[i].NextHaloInFOFgroup != -1)
-     // fprintf(stderr, "%d\n", nr);
   
-    //if(Halo[i].FirstProgenitor != -1)
-    //XASSERT(Halo[i].SnapNum != Halo[Halo[i].FirstProgenitor].SnapNum, "Halo[%d].SnapNum = %d, Halo[%d].FirstProgenitor = %d, Halo[Halo[%d].FirstProgenitor].SnapNum = %d\n", i, Halo[i].SnapNum, i, Halo[i].FirstProgenitor, i, Halo[Halo[i].FirstProgenitor].SnapNum);
-  /* 
-    if (Halo[i].FirstProgenitor== -1)
-    {
-      fprintf(stderr, "Halo: %d. FirstProg = %d, NextProg = %d, FirstHaloInFOFgroup = %d, NextHaloInFOFgroup = %d SnapNum = %d, Mvir = %.4e\n", i, Halo[i].FirstProgenitor, Halo[i].NextProgenitor, Halo[i].FirstHaloInFOFgroup, Halo[i].NextHaloInFOFgroup, Halo[i].SnapNum, Halo[i].Mvir);
-    }
-    */
     HaloAux[i].DoneFlag = 0;
     HaloAux[i].HaloFlag = 0;
     HaloAux[i].NGalaxies = 0;
-//    if (Halo[i].SnapNum != LastSnapShotNr && Halo[i].Descendant == -1)
-//fprintf(stderr, "STUPID TREES! Halo[%d].SnapNum = %d Halo[%d].Descendant = %d\n", i, Halo[i].SnapNum, i, Halo[i].Descendant); 
   }
-//fprintf(stderr, "Min_Halo = %.4f, Max_Halo = %.4f\n", Min_Halo, Max_Halo); 
-//  exit(EXIT_FAILURE);
+
 }
-
-
 
 void free_galaxies_and_tree(void)
 {
@@ -399,6 +383,11 @@ int32_t free_reion_lists()
 {
 
   int32_t SnapNum;
+
+  if (ReionSnap == LowSnap)
+  {
+    return EXIT_SUCCESS;
+  }
 
   for (SnapNum = 0; SnapNum < ReionList->NumLists; ++SnapNum)
   {

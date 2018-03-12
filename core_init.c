@@ -254,7 +254,7 @@ int32_t init_reion_lists(int32_t filenr)
     return EXIT_FAILURE;
   }
 
-  ReionList->NumLists = ReionSnap + 1; 
+  ReionList->NumLists = ReionSnap; 
 
   ReionList->ReionMod_List = malloc(sizeof(struct REIONMOD_LIST) * ReionList->NumLists);
 

@@ -257,22 +257,18 @@ void add_galaxies_together(int t, int p)
     Gal[t].SfrBulgeColdGasMetals[step] += Gal[p].SfrDiskColdGasMetals[step] + Gal[p].SfrBulgeColdGasMetals[step];
   }
 
-  //fprintf(stderr, "Gal[t].mergeType = %d Gal[p].mergeType = %d\n", Gal[t].mergeType, Gal[p].mergeType);
-
   XASSERT(t >= 0 && t < GalaxyCounter, "t is out of bounds.  t has a value of %d whereas it should be >= 0 and < GalaxyCounter (%d)\n", t, GalaxyCounter); 
   XASSERT(p >= 0 && p < GalaxyCounter, "p is out of bounds.  p has a value of %d whereas it should be >= 0 and < GalaxyCounter (%d)\n", p, GalaxyCounter); 
   XASSERT(Gal[p].IsMerged == -1, "Gal[p] has already been freed.  p = %d. Gal[p].MergeType = %d\n", p, Gal[p].mergeType);
   XASSERT(Gal[t].IsMerged == -1, "Gal[t] has already been freed.  t = %d. Gal[t].MergeType = %d\n", t, Gal[t].mergeType);
 
   // Our delayed SN scheme requires the stars formed by current galaxy and also its progenitors; so need to go back through the central galaxy of the merger and add all the stars from the merging galaxy.
-  //fprintf(stderr, "Adding merger stars\n");
+
   for(i = 0; i < SN_Array_Len; ++i) // Careful that we add up to the current snapshot number (inclusive) as we need to account for the stars just formed.
   {
-  //  fprintf(stderr, "i in add together mergers = %d\n", i); 
     Gal[t].Stars[i] += Gal[p].Stars[i];
 
   }
-  //fprintf(stderr, "Finished adding merger stars\n");   
  
   Gal[t].Total_Stars += Gal[p].Total_Stars;
  
@@ -385,39 +381,39 @@ void add_galaxy_to_merger_list(int p)
 {
   int j;
  
-    MergedGal[MergedNr] = Gal[p]; // This is a shallow copy and does not copy the memory the pointers are pointing to.
-    malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
-    ++mergedgal_mallocs;
-    for (j = 0; j < MAXSNAPS; ++j)
-    {
-      MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
-      MergedGal[MergedNr].GridStellarMass[j] = Gal[p].GridStellarMass[j];
-      MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
-      MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
-      MergedGal[MergedNr].GridCentralGalaxyMass[j] = Gal[p].GridCentralGalaxyMass[j];
-      MergedGal[MergedNr].MfiltGnedin[j] = Gal[p].MfiltGnedin[j];
-      MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
-      MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
-      MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
-      MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j];
-      MergedGal[MergedNr].GridInfallRate[j] = Gal[p].GridInfallRate[j];
-      MergedGal[MergedNr].GridEjectedMass[j] = Gal[p].GridEjectedMass[j];
-      MergedGal[MergedNr].QuasarActivity[j] = Gal[p].QuasarActivity[j];
-      MergedGal[MergedNr].DynamicalTime[j] = Gal[p].DynamicalTime[j];
-      MergedGal[MergedNr].QuasarSubstep[j] = Gal[p].QuasarSubstep[j];
-      MergedGal[MergedNr].GridColdGas[j] = Gal[p].GridColdGas[j];
-      MergedGal[MergedNr].LenMergerGal[j] = Gal[p].LenMergerGal[j];
-      MergedGal[MergedNr].GridBHMass[j] = Gal[p].GridBHMass[j];
-       
-    }
- 
-    for (j = 0; j < SN_Array_Len; ++j)
-    {
-      MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
-    }
-    ++MergedNr;  
-    Gal[p].IsMerged = 1;
-// fprintf(stderr, "Galaxy %d merged.\n", p); 
+  MergedGal[MergedNr] = Gal[p]; // This is a shallow copy and does not copy the memory the pointers are pointing to.
+  malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
+  ++mergedgal_mallocs;
+  for (j = 0; j < MAXSNAPS; ++j)
+  {
+    MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
+    MergedGal[MergedNr].GridStellarMass[j] = Gal[p].GridStellarMass[j];
+    MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
+    MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
+    MergedGal[MergedNr].GridCentralGalaxyMass[j] = Gal[p].GridCentralGalaxyMass[j];
+    MergedGal[MergedNr].MfiltGnedin[j] = Gal[p].MfiltGnedin[j];
+    MergedGal[MergedNr].MfiltSobacchi[j] = Gal[p].MfiltSobacchi[j];
+    MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
+    MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
+    MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j];
+    MergedGal[MergedNr].GridInfallRate[j] = Gal[p].GridInfallRate[j];
+    MergedGal[MergedNr].GridEjectedMass[j] = Gal[p].GridEjectedMass[j];
+    MergedGal[MergedNr].QuasarActivity[j] = Gal[p].QuasarActivity[j];
+    MergedGal[MergedNr].DynamicalTime[j] = Gal[p].DynamicalTime[j];
+    MergedGal[MergedNr].QuasarSubstep[j] = Gal[p].QuasarSubstep[j];
+    MergedGal[MergedNr].GridColdGas[j] = Gal[p].GridColdGas[j];
+    MergedGal[MergedNr].LenMergerGal[j] = Gal[p].LenMergerGal[j];
+    MergedGal[MergedNr].GridBHMass[j] = Gal[p].GridBHMass[j];
+     
+  }
+
+  for (j = 0; j < SN_Array_Len; ++j)
+  {
+    MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
+  }
+  ++MergedNr;  
+  Gal[p].IsMerged = 1;
+
   free_grid_arrays(&Gal[p]); 
   ++gal_frees;
 }
