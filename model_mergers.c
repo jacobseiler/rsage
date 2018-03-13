@@ -379,10 +379,15 @@ void disrupt_satellite_to_ICS(int centralgal, int gal, int tree)
 
 void add_galaxy_to_merger_list(int p)
 {
-  int j;
+  int32_t j, status;
  
   MergedGal[MergedNr] = Gal[p]; // This is a shallow copy and does not copy the memory the pointers are pointing to.
-  malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
+  status = malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
+  if (status == EXIT_FAILURE)
+  {
+    ABORT(EXIT_FAILURE);
+  }
+
   ++mergedgal_mallocs;
   for (j = 0; j < MAXSNAPS; ++j)
   {

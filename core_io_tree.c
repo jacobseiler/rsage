@@ -223,142 +223,145 @@ void free_grid_arrays(struct GALAXY *g)
   g->IsMalloced = 0;
 }
 
-void malloc_grid_arrays(struct GALAXY *g)
+int32_t malloc_grid_arrays(struct GALAXY *g)
 {
   g->GridHistory = malloc(sizeof(*(g->GridHistory)) * (MAXSNAPS));
   if(g->GridHistory == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridHistory.\n", sizeof(*(g->GridHistory))*MAXSNAPS); 
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->GridStellarMass = malloc(sizeof(*(g->GridStellarMass)) * (MAXSNAPS));
   if(g->GridStellarMass == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridStellarMass.\n", sizeof(*(g->GridStellarMass))*MAXSNAPS); 
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   } 
 
   g->GridSFR = malloc(sizeof(*(g->GridSFR)) * (MAXSNAPS));
   if(g->GridSFR == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR.\n", sizeof(*(g->GridSFR))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->GridZ = malloc(sizeof(*(g->GridZ)) * (MAXSNAPS));
   if (g->GridZ == NULL)
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR.\n", sizeof(*(g->GridZ))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
  
   g->GridCentralGalaxyMass = malloc(sizeof(*(g->GridCentralGalaxyMass)) * (MAXSNAPS));
   if (g->GridCentralGalaxyMass == NULL)
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridCentralGalaxyMass.\n", sizeof(*(g->GridCentralGalaxyMass))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->MfiltGnedin = malloc(sizeof(*(g->MfiltGnedin)) * (MAXSNAPS));
   if (g->MfiltGnedin == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltGnedin.\n", sizeof(*(g->MfiltGnedin))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->MfiltSobacchi = malloc(sizeof(*(g->MfiltSobacchi)) * (MAXSNAPS));
   if (g->MfiltSobacchi == NULL)
   {   
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi.\n", sizeof(*(g->MfiltSobacchi))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->EjectedFraction = malloc(sizeof(*(g->EjectedFraction)) * (MAXSNAPS));
   if (g->EjectedFraction == NULL)
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate EjectedFraction.\n", sizeof(*(g->EjectedFraction))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->LenHistory = malloc(sizeof(*(g->LenHistory)) * (MAXSNAPS));
   if (g->LenHistory == NULL)
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate LenHistory.\n", sizeof(*(g->LenHistory))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->Stars = malloc(sizeof(*(g->Stars)) * SN_Array_Len);
   if (g->Stars == NULL)
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate Stars.\n", sizeof(*(g->Stars))*SN_Array_Len);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->GridOutflowRate = malloc(sizeof(*(g->GridOutflowRate)) * (MAXSNAPS)); 
   if (g->GridOutflowRate == NULL)
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate OutflowRate.\n", sizeof(*(g->GridOutflowRate))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->GridInfallRate = malloc(sizeof(*(g->GridInfallRate)) * (MAXSNAPS)); 
   if (g->GridInfallRate == NULL)
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridInfallRate.\n", sizeof(*(g->GridInfallRate))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->GridEjectedMass = malloc(sizeof(*(g->GridEjectedMass)) * (MAXSNAPS)); 
   if (g->GridEjectedMass == NULL)
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridEjectedMass.\n", sizeof(*(g->GridEjectedMass))*MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->QuasarActivity = malloc(sizeof(*(g->QuasarActivity)) * (MAXSNAPS));
   if (g->QuasarActivity == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate QuasarActivity.\n", sizeof(*(g->QuasarActivity)) * MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->DynamicalTime = malloc(sizeof(*(g->DynamicalTime)) * (MAXSNAPS));
   if (g->DynamicalTime == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate DynamicalTime.\n", sizeof(*(g->DynamicalTime)) * MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->QuasarSubstep = malloc(sizeof(*(g->QuasarSubstep)) * (MAXSNAPS));
   if (g->QuasarSubstep == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate QuasarSubstep.\n", sizeof(*(g->QuasarSubstep)) * MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->GridColdGas= malloc(sizeof(*(g->GridColdGas)) * (MAXSNAPS));
   if (g->GridColdGas == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridColdGas.\n", sizeof(*(g->GridColdGas)) * MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->LenMergerGal= malloc(sizeof(*(g->LenMergerGal)) * (MAXSNAPS));
   if (g->LenMergerGal == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate LenMergerGal.\n", sizeof(*(g->LenMergerGal)) * MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->GridBHMass= malloc(sizeof(*(g->GridBHMass)) * (MAXSNAPS));
   if (g->GridBHMass == NULL)
   {
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridBHMass.\n", sizeof(*(g->GridBHMass)) * MAXSNAPS);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   g->IsMalloced = 1;
+
+  return EXIT_SUCCESS;
+
 }
 
 int32_t free_grid()

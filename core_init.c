@@ -104,7 +104,7 @@ void init(void)
   if(TimeResolutionSN > 50)
   {
     fprintf(stderr, "The selected time resolution for SN feedback (TimeResolutionSN) is set too high (%d Myr).  Using TimeResolutionSN > 50Myr is the same as using the instantaneous recycling approximation; set 'IRA' to 1 instead!\n", TimeResolutionSN); 
-    exit(EXIT_FAILURE);  
+    ABORT(EXIT_FAILURE);  
   } else if(TimeResolutionSN > 35)
   {
     fprintf(stderr, "Your selected time resolution for SN feedback (TimeResolutionSN) is quite high (%d Myr).  Beyond 50Myr the instantaneous recycling approximation is valid hence with your value it would likely be correct to set 'IRA' to 1.\n", TimeResolutionSN);

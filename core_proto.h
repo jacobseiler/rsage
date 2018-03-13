@@ -24,7 +24,7 @@ void free_grid_arrays(struct GALAXY *g);
 void free_tree_table(void);
 int32_t free_grid(void);
 int32_t free_reion_lists(void);
-void malloc_grid_arrays(struct GALAXY *g);
+int32_t malloc_grid_arrays(struct GALAXY *g);
 void print_allocated(void);
 
 int32_t read_parameter_file(char *fname);

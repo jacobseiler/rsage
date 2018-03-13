@@ -237,7 +237,7 @@ double do_myreionization(int gal, double Zcurr, double *Mfilt)
   status= determine_1D_idx(Gal[gal].Pos[0], Gal[gal].Pos[1], Gal[gal].Pos[2], &grid_position); 
   if (status == EXIT_FAILURE)
   {
-    exit(EXIT_FAILURE);
+    ABORT(EXIT_FAILURE);
   }
 
   z_reion = Grid->ReionRedshift[grid_position]; // This is the redshift the cell was ionized at. 

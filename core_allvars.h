@@ -46,7 +46,7 @@ do {                                                                \
             printf("Error in file: %s\tfunc: %s\tline: %d with expression `"#EXP"'\n", __FILE__, __FUNCTION__, __LINE__); \
             printf(__VA_ARGS__);                                        \
             fflush(stdout);                                             \
-            exit(EXIT_FAILURE);                                         \
+            ABORT(EXIT_FAILURE);                                         \
         } \
     } while (0)
 #endif

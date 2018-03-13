@@ -21,8 +21,6 @@ int exitfail = 1;
 struct sigaction saveaction_XCPU;
 volatile sig_atomic_t gotXCPU = 0;
 
-
-
 void termination_handler(int signum)
 {
   gotXCPU = 1;
@@ -31,19 +29,17 @@ void termination_handler(int signum)
     (*saveaction_XCPU.sa_handler) (signum);
 }
 
-
-
 void myexit(int signum)
 {
 #ifdef MPI
-  printf("Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
+  fprintf(stderr, "Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
+  MPI_Abort(MPI_COMM_WORLD, signum);
 #else
-  printf("We're exiting\n\n\n");
+  fprintf(stderr, "We're exiting\n\n\n");
+	exit(signum);
 #endif
-	  exit(signum);
+
 }
-
-
 
 void bye()
 {
@@ -60,8 +56,6 @@ void bye()
 #endif
 	  }
 }
-
-
 
 int main(int argc, char **argv)
 {
@@ -104,7 +98,7 @@ int main(int argc, char **argv)
   status = read_parameter_file(argv[1]);
   if (status == EXIT_FAILURE)
   {
-    exit(EXIT_FAILURE);
+    ABORT(EXIT_FAILURE);
   }
 
   init();
@@ -114,7 +108,7 @@ int main(int argc, char **argv)
     status = init_grid();
     if (status == EXIT_FAILURE)
     {
-      exit(EXIT_FAILURE);
+      ABORT(EXIT_FAILURE);
     }
   }
     
@@ -130,7 +124,7 @@ int main(int argc, char **argv)
       status = init_reion_lists(filenr);
       if (status == EXIT_FAILURE)
       {
-        exit(EXIT_FAILURE);
+        ABORT(EXIT_FAILURE);
       }
     }
         
@@ -207,7 +201,7 @@ int main(int argc, char **argv)
       status = free_reion_lists();
       if (status == EXIT_FAILURE)
       {
-        exit(EXIT_FAILURE);
+        ABORT(EXIT_FAILURE);
       } 
     }
 

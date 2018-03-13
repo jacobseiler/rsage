@@ -9,11 +9,9 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
-
-
 void init_galaxy(int p, int halonr, int treenr)
 {
-  int j, step;
+  int32_t j, step, status;
   
   ++count_gal;
 	assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
@@ -90,12 +88,13 @@ void init_galaxy(int p, int halonr, int treenr)
  
   Gal[p].IsMerged = -1;
 
-//  if(Gal[p].IsMalloced != 1)
-//  {
-  	malloc_grid_arrays(&Gal[p]);
+  status = malloc_grid_arrays(&Gal[p]);
+  if (status == EXIT_FAILURE)
+  {
+    ABORT(EXIT_FAILURE);
+  }
   ++gal_mallocs;	
-//  }
-  
+ 
   for (j = 0; j < MAXSNAPS; ++j)
   {
     Gal[p].GridHistory[j] = -1;
@@ -290,15 +289,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 
     Gal[p].GridZ[SnapCurr] = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas); // Metallicity at this snapshot.
     Gal[p].GridCentralGalaxyMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
-    //printf("Gal[p].Halonr = %d \t %.4e \t get_virial = %.4e \t Halo[halonr].Mvir = %.4e\n", halonr, Gal[p].GridCentralGalaxyMass[SnapCurr], get_virial_mass(halonr), Halo[halonr].Mvir);
-//    printf("Gal[p].Halonr = %d \t %.4e \t get_virial = %.4e \t Halo[halonr].Mvir = %.4e\n", halonr, Gal[p].GridCentralGalaxyMass[SnapCurr], get_virial_mass(halonr), Halo[halonr].Mvir);
-//    float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS;
-//    float Ngamma_HI, Ngamma_HeI, Ngamma_HeII; 
-//    calculate_photons(Gal[p].GridSFR[SnapCurr]*SFR_conversion, Gal[p].GridZ[SnapCurr], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
-//    Gal[p].GridPhotons_HI[SnapCurr] = Ngamma_HI; 
-//    Gal[p].GridPhotons_HeI[SnapCurr] = Ngamma_HeI; 
-//    Gal[p].GridPhotons_HeII[SnapCurr] = Ngamma_HeII; 
-//    Gal[p].MfiltGnedin[SnapCurr] = do_reionization(centralgal, ZZ[SnapCurr], 1);
+
     if (ReionizationOn == 2) 
     {  
       reionization_modifier = do_myreionization(centralgal, ZZ[SnapCurr], &MfiltSobacchi);
@@ -309,7 +300,6 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
       reionization_modifier = 0.0;
       Gal[p].MfiltSobacchi[SnapCurr] = 1.0;
     }
-
  
     if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
     {
@@ -323,14 +313,14 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     if (Gal[p].EjectedFraction[SnapCurr] < 0.0 || Gal[p].EjectedFraction[SnapCurr] > 1.0)
     {
       fprintf(stderr, "Found ejected fraction = %.4e \t p = %d \t Gal[p].EjectedMass = %.4e \t Gal[p].HotGas = %.4e \t Gal[p].ColdGas = %.4e\n\n", Gal[p].EjectedFraction[SnapCurr], p, Gal[p].EjectedMass, Gal[p].HotGas, Gal[p].ColdGas); 
-      return(EXIT_FAILURE);
+      ABORT(EXIT_FAILURE); 
     }
 
     Gal[p].LenHistory[SnapCurr] = Gal[p].Len;
     if (Gal[p].LenHistory[SnapCurr] < 0)
     {  
       fprintf(stderr, "Have a galaxy with Len < 0.  Galaxy number %d with Len %d.\n", p, Gal[p].Len);
-      exit(EXIT_FAILURE);
+      ABORT(EXIT_FAILURE);
     }
     if (Gal[p].EjectedMass > 0.0)
     {
