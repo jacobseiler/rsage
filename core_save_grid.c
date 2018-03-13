@@ -156,7 +156,7 @@ void save_redshift(void)
   if (!(file_redshift = fopen(name_redshift,"w")))
   {
     printf("can't open file `%s'\n", name_redshift);
-    exit(0);
+    ABORT(0);
   }
 
   for (j = 0; j < NGrid; ++j)

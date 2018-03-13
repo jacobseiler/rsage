@@ -21,8 +21,8 @@ int32_t update_grid_properties(int32_t filenr)
   int64_t grid_position, gal_idx, good_gals, bad_gals;
   float fesc_local, Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
 
-  int32_t count = 0;
-  float sum = 0;;
+  int32_t count = 0, status;
+  float sum = 0;
 
   for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx)
   {
@@ -61,7 +61,12 @@ int32_t update_grid_properties(int32_t filenr)
         if (PhotonPrescription == 1)
         {
           calculate_photons(GalGrid[gal_idx].SFR[snapshot_idx], GalGrid[gal_idx].Z[snapshot_idx], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII); // Base number of ionizing photons
-          fesc_local = calculate_fesc(gal_idx, snapshot_idx, filenr);          
+          status = calculate_fesc(gal_idx, snapshot_idx, filenr, &fesc_local);
+          if (status == EXIT_FAILURE)
+          {
+            return EXIT_FAILURE;
+          } 
+
         }
 
         if (Ngamma_HI > 0.0)
@@ -70,7 +75,6 @@ int32_t update_grid_properties(int32_t filenr)
           if (count < 10)
           {
             sum += pow(10, Ngamma_HI - 50.0);
-            //printf("gal_idx %ld\tsnapshot_idx %d\tSFR %.10f\tfesc %.4e\tNion %.10e\tSum %.10e\n", (long)gal_idx, snapshot_idx, log10(GalGrid[gal_idx].SFR[snapshot_idx]), fesc_local, Ngamma_HI, sum);
             ++count;
           }  
           Grid->GridProperties[grid_num_idx].Nion_HeI[grid_position] += pow(10, Ngamma_HeI - 50.0)*fesc_local;
@@ -106,8 +110,6 @@ int32_t update_grid_properties(int32_t filenr)
         ++bad_gals;
       }
     } // Galaxy loop.
-    //printf("For snapshot %d there were %ld galaxies meeting the gridding condition and %ld not.\n", snapshot_idx, (long)good_gals, (long)bad_gals); 
-    //printf("For snapshot %d there were a total of %.4e photons\n", snapshot_idx, sum*1.0e50); 
 
   } // Snapshot loop.
   
@@ -171,74 +173,6 @@ void count_grid_properties(struct GRID_STRUCT *count_grid) // Count number of ga
 
 }
 
-/*
-void normalize_photon(int GridNr)
-{
-
-  int i;
-  double totPhotons_HI_normgrid = 0, totPhotons_HI = 0;
-  char buf[MAXLEN], tag[MAXLEN];
-  double *NormGrid;
-  FILE *load_fd; 
-
-  if ((NGrid - 1 - GridNr) < 10)
-    snprintf(tag, MAXLEN, "%s", "00");
-  else if ((NGrid - 1 - GridNr) < 100 && (NGrid - 1 - GridNr) >= 10)
-    snprintf(tag, MAXLEN, "%s", "0");
-  else
-    snprintf(tag, MAXLEN, "%s", "");
-
-
-  NormGrid = malloc(CUBE(GridSize) * sizeof(double));
-
-  snprintf(buf, MAXLEN, "/lustre/projects/p004_swin/jseiler/SAGE_output/1024/grid/January_input/Galaxies_noreion_z5.000_fesc0.15_nionHI_%s%d", tag, (NGrid-1) - GridNr);
-  if(!(load_fd = fopen(buf, "r")))
-  {
-    printf("can't open file `%s'\n", buf);
-    exit(0); 
-  }
-
-  for (i = 0; i < CUBE(GridSize); ++i)
-  {
-    fread(&NormGrid[i], 1, sizeof(double), load_fd);
-    totPhotons_HI_normgrid += NormGrid[i];
-    totPhotons_HI += Grid[i].Nion_HI; 
-  }
-
-  double ratio = totPhotons_HI_normgrid/totPhotons_HI;
-
-  for (i = 0; i < CUBE(GridSize); ++i)
-  {  
-    Grid[i].Nion_HI = Grid[i].Nion_HI * ratio;
-  }
-
-  printf("Total photons from normalization grid is %.4e compared to the %.4e photons from fescPrescription %d giving a ratio of %.4e.\n", totPhotons_HI_normgrid, totPhotons_HI, fescPrescription, ratio); 
-
-}
-
-void normalize_slope_photons(int GridNr)
-{
-  
-   int i;
-   double totPhotons = 0, targetPhotons = pow(10,-0.8*ZZ[ListOutputGrid[GridNr]] + 64.3); 
-
-
-   for (i = 0; i < CUBE(GridSize); ++i)
-   {
-      totPhotons += Grid[i].Nion_HI;
-   }
-
-   double ratio = targetPhotons/totPhotons;
-
-   for (i = 0; i < CUBE(GridSize); ++i)
-   {
-     Grid[i].Nion_HI = Grid[i].Nion_HI * ratio;
-   }
-
-   printf("The total number of photons in the grid is %.4e.  We only want %.4e photons for redshift %.4e giving a ratio of %.4e.\n", totPhotons, targetPhotons, ZZ[ListOutputGrid[GridNr]], ratio);
-}
-*/
-
 // INPUT:
 // Star formation rate of the galaxy (in units of Msun/yr) (SFR).
 // Metallicity (NOT Solar Units) (Z).
@@ -296,85 +230,68 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
   }
 }
 
-// Here we calculate the escape fraction for a specific galaxy. 
-// The user defines a value (fescPrescription) that determines how to calculate fesc.
-// 0: Constant Escape fraction.  User defines the exact value.
-// 1: Scaling with Halo Mass using the functional form defined by Kimm et al (2016).
-// 2: Power Law as a function of halo mass. The user defines the smallest and largest halo mass in the simulation in addition to the escape fractions at these masses.
-// 3: Linear relationship as a function of the ejected fraction of a galaxy.  User defines the escape fraction for ejected fractions of 0 and 1.	
-//
-// The values of alpha/beta are determined within the 'core_init.c' module.
-//
-// INPUT: The galaxy index (p). 
-// 	: The snapshot index (i)
-// 	: The filenumber of the galaxy (filenr); useful for debugging. 
-//
-// OUTPUT: The escape fraction for the galaxy. 
-
-float calculate_fesc(int p, int i, int filenr)
+int32_t calculate_fesc(int p, int i, int filenr, float *fesc_local)
 {
 
-  float fesc_local, halomass, ejectedfraction, Mh;
+  float halomass, ejectedfraction, Mh;
 
   halomass = GalGrid[p].CentralGalaxyMass[i];
   ejectedfraction = GalGrid[p].EjectedFraction[i];
   
   if (fescPrescription == 0) 
   {
-    fesc_local = fesc;
+    *fesc_local = fesc;
   }
   else if (fescPrescription == 1)
   {
-    fesc_local = pow(10,1.0 - 0.2*log10(halomass * 1.0e10 / Hubble_h)); // Deprecated.
+    *fesc_local = pow(10,1.0 - 0.2*log10(halomass * 1.0e10 / Hubble_h)); // Deprecated.
   }
   else if (fescPrescription == 2)
   {
-    fesc_local = alpha * pow((halomass * 1.0e10 / Hubble_h), beta); 
+    *fesc_local = alpha * pow((halomass * 1.0e10 / Hubble_h), beta); 
   }
   else if (fescPrescription == 3)	
   {
-    fesc_local = alpha * ejectedfraction + beta; 
+    *fesc_local = alpha * ejectedfraction + beta; 
   }
   else if (fescPrescription == 4)
   {
-    fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p]; 
+    *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p]; 
   }
   else if (fescPrescription == 5)
   {
     Mh = halomass * 1.0e10 / Hubble_h;
-    fesc_local = pow(fesc_low * (fesc_low/fesc_high),(-log10(Mh/MH_low)/log10(MH_high/MH_low)));
-    if (fesc_local > fesc_low)
+    *fesc_local = pow(fesc_low * (fesc_low/fesc_high),(-log10(Mh/MH_low)/log10(MH_high/MH_low)));
+    if (*fesc_local > fesc_low)
     {
-      fesc_local = fesc_low;
+      *fesc_local = fesc_low;
     }
 
   } 
   else if (fescPrescription == 6)
   {
     Mh = halomass * 1.0e10 / Hubble_h;
-    fesc_local = 1. - pow((1.-fesc_low) * ((1.-fesc_low)/(1.-fesc_high)),(-log10(Mh/MH_low)/log10(MH_high/MH_low)));
-    if (fesc_local < fesc_low)
+    *fesc_local = 1. - pow((1.-fesc_low) * ((1.-fesc_low)/(1.-fesc_high)),(-log10(Mh/MH_low)/log10(MH_high/MH_low)));
+    if (*fesc_local < fesc_low)
     {
-      fesc_local = fesc_low;
+      *fesc_local = fesc_low;
     }
 
   } 
 	
-  if (fesc_local > 1.0)
+  if (*fesc_local > 1.0)
   {
-    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), ejectedfraction);
-    exit(EXIT_FAILURE);
-    fesc_local = 1.0; 
+    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", *fesc_local, p, filenr, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), ejectedfraction);
+    return EXIT_FAILURE; 
   }
    
-  if (fesc_local < 0.0)
+  if (*fesc_local < 0.0)
   {
-    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", fesc_local, p, filenr, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), GalGrid[p].EjectedFraction[i]);
-    exit(EXIT_FAILURE);
-    fesc_local = 0.0; 
+    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", *fesc_local, p, filenr, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), GalGrid[p].EjectedFraction[i]);
+    return EXIT_FAILURE; 
   }
 
-  return fesc_local;
+  return EXIT_SUCCESS;
 
 }
 

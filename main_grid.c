@@ -32,11 +32,13 @@ void termination_handler(int signum)
 void myexit(int signum)
 {
 #ifdef MPI
-  printf("Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
+  fprintf(stderr, "Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
+  MPI_Abort(MPI_COMM_WORLD, signum);
 #else
-  printf("We're exiting\n\n\n");
-#endif    
-  exit(signum);
+  fprintf(stderr, "We're exiting\n\n\n");
+	exit(signum);
+#endif
+
 }
 
 void bye()

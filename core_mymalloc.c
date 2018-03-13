@@ -27,7 +27,7 @@ void *mymalloc(size_t n)
   if(Nblocks >= MAXBLOCKS)
   {
     printf("No blocks left in mymalloc().\n");
-    exit(0); 
+    ABORT(0); 
   }
 
   SizeTable[Nblocks] = n;
@@ -45,7 +45,7 @@ void *mymalloc(size_t n)
   if(!(Table[Nblocks] = malloc(n)))
   {
     printf("Failed to allocate memory for %g MB\n",  n / (1024.0 * 1024.0) );
-    exit(0);
+    ABORT(0);
   }
 
   Nblocks += 1;
@@ -62,7 +62,7 @@ void myfree(void *p)
   if(p != Table[Nblocks - 1])
   {
     printf("Wrong call of myfree() - not the last allocated block!\n");
-    exit(0);
+    ABORT(0);
   }
 
   free(p);

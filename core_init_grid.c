@@ -240,7 +240,7 @@ void read_snap_list(void)
   if(!(fd = fopen(fname, "r")))
   {
     printf("can't read output list in file '%s'\n", fname);
-    exit(0);
+    ABORT(0);
   }
 
   Snaplistlen = 0;
