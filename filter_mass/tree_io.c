@@ -19,7 +19,7 @@ int32_t load_tree_table(int32_t filenr, SAGE_params params, int32_t *Ntrees, int
 
   snprintf(forestname, MAXLEN, "%s/%s_%03d.dat", params->TreeDir, params->TreeName, filenr);
 
-  fprintf(stderr, "Reading file %s\n", forestname);
+  printf("Reading file %s\n", forestname);
   if(!(forest_file= fopen(forestname, "rb")))
   {
     printf("can't open file `%s'\n", forestname);
@@ -37,8 +37,6 @@ int32_t load_tree_table(int32_t filenr, SAGE_params params, int32_t *Ntrees, int
   }
   
   fread(*TreeNHalos, (*Ntrees), sizeof(int), forest_file); 
-
-  fprintf(stderr, "Read the table\n");
     
   return EXIT_SUCCESS;
 

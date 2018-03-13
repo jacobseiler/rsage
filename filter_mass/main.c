@@ -36,6 +36,7 @@ char *ThisNode;
 
 int32_t parse_params(int32_t argc, char **argv, SAGE_params params);
 int32_t read_snap_list(SAGE_params params);
+void myexit(int signum);
 
 // Functions //
 
@@ -129,6 +130,18 @@ int32_t read_snap_list(SAGE_params params)
 
 }
 
+void myexit(int signum)
+{
+#ifdef MPI
+  fprintf(stderr, "Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
+  MPI_Abort(MPI_COMM_WORLD, signum);
+#else
+  fprintf(stderr, "We're exiting\n\n\n");
+	exit(signum);
+#endif
+
+}
+
 int main(int argc, char **argv)
 {
 
@@ -150,7 +163,7 @@ int main(int argc, char **argv)
   if (nodeNameLen >= MPI_MAX_PROCESSOR_NAME)
   {
     printf("Node name string not long enough!...\n");
-    exit(EXIT_FAILURE);
+    ABORT(EXIT_FAILURE);
   }
 #endif
 
@@ -160,29 +173,33 @@ int main(int argc, char **argv)
   if (params == NULL)
   {
     fprintf(stderr, "Cannot allocate memory for parameter struct.\n");
-    exit(EXIT_FAILURE); 
+    ABORT(EXIT_FAILURE); 
   }
  
   status = parse_params(argc, argv, params); // Set the input parameters.
   if (status == EXIT_FAILURE)
   {
-    exit(EXIT_FAILURE);
+    ABORT(EXIT_FAILURE);
   }
 
   status = read_snap_list(params); // Get the simulation redshifts.
   if (status == EXIT_FAILURE)
   {
-    exit(EXIT_FAILURE);
+    ABORT(EXIT_FAILURE);
   }
 
   status = read_grid(ThisSnap, first_run, params, &Grid); // Read the reionization redshift and photoionization grid. 
   if (status == EXIT_FAILURE)
   {
-    exit(EXIT_FAILURE);
+    ABORT(EXIT_FAILURE);
   }
    
-  params->LastFile = 0;
-#ifdef MPI  
+#ifdef MPI 
+  if (NTask < params->LastFile)
+  {
+    fprintf(stderr, "Attempted to run filter_mass with %d Tasks.  However the last file is %d.\n", NTask, params->LastFile);
+    ABORT(EXIT_FAILURE);
+  } 
   for(filenr = params->FirstFile + ThisTask; filenr < params->LastFile + 1 ; filenr += NTask)
 #else
   for(filenr = params->FirstFile; filenr < params->LastFile + 1; filenr++)
@@ -191,13 +208,13 @@ int main(int argc, char **argv)
     status = load_tree_table(filenr, params, &Ntrees, &totNHalos, &TreeNHalos); // Loads the table for this file.
     if (status == EXIT_FAILURE)
     {
-      exit(EXIT_FAILURE);
+      ABORT(EXIT_FAILURE);
     }       
 
     status = allocate_array_memory(totNHalos, &HaloID, &ReionMod); // Memory for the output arrays. 
     if (status == EXIT_FAILURE)
     {
-      exit(EXIT_FAILURE);
+      ABORT(EXIT_FAILURE);
     }
 
     for (treenr = 0; treenr < Ntrees; ++treenr)
@@ -208,20 +225,20 @@ int main(int argc, char **argv)
       if (Halos == NULL)
       {
         fprintf(stderr, "Could not allocate memory for Halos in tree %d\n", treenr);
-        exit(EXIT_FAILURE); 
+        ABORT(EXIT_FAILURE); 
       }
 
       status = load_halos(treenr, TreeNHalos[treenr], &Halos); // Loads the halos for this tree.
       if (status == EXIT_FAILURE)
       {
-        exit(EXIT_FAILURE);
+        ABORT(EXIT_FAILURE);
       }
 
       // Now time to go through all the halos in this tree, determine those at the Snapshot specified and the associate reionization modifier (if it's within an ionized cell).
       status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], ThisSnap, first_run, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
       if (status == EXIT_FAILURE)
       {
-        exit(EXIT_FAILURE);
+        ABORT(EXIT_FAILURE);
       }
 
       free(Halos);
@@ -232,14 +249,14 @@ int main(int argc, char **argv)
     status = save_arrays(HaloID, ReionMod, params, NHalos_Ionized, filenr, ThisSnap, first_run);
     if (status == EXIT_FAILURE)
     {
-      exit(EXIT_FAILURE);
+      ABORT(EXIT_FAILURE);
     }
 
 #ifdef DEBUG
     status = read_arrays(params, filenr, ThisSnap);
     if (status == EXIT_FAILURE)
     {
-      exit(EXIT_FAILURE);
+      ABORT(EXIT_FAILURE);
     }
 #endif
     free_memory(&TreeNHalos, &HaloID, &ReionMod);
@@ -252,7 +269,7 @@ int main(int argc, char **argv)
   status = free_grid(&Grid);
   if (status == EXIT_FAILURE)
   {
-    exit(EXIT_FAILURE);
+    ABORT(EXIT_FAILURE);
   }
 
   free(params); 

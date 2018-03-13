@@ -5,7 +5,14 @@
 
 #define ABSOLUTEMAXSNAPS 999
 
+#define ABORT(sigterm)                                                  \
+do {                                                                \
+  printf("Error in file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__); \
+  myexit(sigterm);                                                \
+} while(0)
+
 // Structs //
+
 struct SAGE_PARAMETERS
 {
 

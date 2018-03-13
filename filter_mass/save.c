@@ -23,9 +23,7 @@ int32_t save_arrays(int64_t *HaloID, float *ReionMod, SAGE_params params, int32_
   FILE *outfile;
   char outfile_name[MAXLEN];
   int32_t tmp_snap, tmp_NHalos, i;
-
-  printf("Saving the arrays now.\n");
-
+  
   snprintf(outfile_name, MAXLEN, "%s/reionization_modifiers/treefile_%03d", params->PhotoionDir, filenr);
 
   // If this is the first time the code is executed, need to create a new file. Otherwise append to the end.
@@ -65,8 +63,6 @@ int32_t save_arrays(int64_t *HaloID, float *ReionMod, SAGE_params params, int32_
   fwrite(ReionMod, sizeof(float), NHalos_Ionized, outfile);
 
   fclose(outfile);
-
-  printf("All saved!\n");
  
   return EXIT_SUCCESS;
 

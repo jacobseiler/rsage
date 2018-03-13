@@ -37,14 +37,14 @@ int32_t read_grid(int32_t SnapNum, int32_t first_run, SAGE_params params, grid_t
   (*Grid)->ReionRedshift = malloc(sizeof(*((*Grid)->ReionRedshift)) * (*Grid)->NumCellsTotal);   
   if ((*Grid)->ReionRedshift == NULL)
   {
-    fprintf(stderr, "Coult not allocate memory for the reionization redshift grid.\n");
+    fprintf(stderr, "Could not allocate memory for the reionization redshift grid.\n");
     return EXIT_FAILURE;
   }
 
   (*Grid)->PhotoRate = malloc(sizeof(*((*Grid)->PhotoRate)) * (*Grid)->NumCellsTotal);   
   if ((*Grid)->PhotoRate == NULL)
   {
-    fprintf(stderr, "Coult not allocate memory for the PhotoionFileization rate grid.\n");
+    fprintf(stderr, "Could not allocate memory for the PhotoionFileization rate grid.\n");
     return EXIT_FAILURE;
   }
 
@@ -139,7 +139,7 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
 
       unique_ID = (int64_t) treenr << 32 | halonr; // We create a unique ID for each halo within the file by generating a 64 bit number with the left-most 32 bits being the tree number and the right-most bits being the halo number.     
                                                    // As the tree number can only increase, this creates an ascending list without the need to sort. 
-      printf("Unique ID for tree number %d and halo number %d is %ld with ReionMod %.4f\n", treenr, halonr, (long)unique_ID, ReionMod_tmp); 
+      //printf("Unique ID for tree number %d and halo number %d is %ld with ReionMod %.4f\n", treenr, halonr, (long)unique_ID, ReionMod_tmp); 
       (*HaloID)[(*NHalos_Ionized)] = unique_ID;
       (*ReionMod)[(*NHalos_Ionized)] = ReionMod_tmp;
       (*sum_ReionMod) += ReionMod_tmp;
