@@ -98,7 +98,8 @@ def read_redshift_grid(SnapList, SAGE_params, precision, output_tag, output_dir=
 
     plt.close()
 
-def increment_ini(SAGE_params, SAGE_params_names, cifog_params, cifog_params_names, cifog_headers, increment_snaps, outputdir="./ini_files"):
+def increment_ini(SAGE_params, SAGE_params_names, cifog_params,
+                  cifog_params_names, cifog_headers, increment_snaps, opt):
 
     if (increment_snaps == 1):
         SAGE_params['HighSnap'] = [SAGE_params['HighSnap'][0] + 1] 
@@ -106,8 +107,10 @@ def increment_ini(SAGE_params, SAGE_params_names, cifog_params, cifog_params_nam
 
         cifog_params["stopSnapshot"] = [cifog_params["stopSnapshot"][0] + 1]
  
-    fname_SAGE = "{0}/SAGE_snap{1}.ini".format(outputdir, SAGE_params["HighSnap"][0])
-    fname_cifog = "{0}/cifog_snap{1}.ini".format(outputdir, cifog_params["stopSnapshot"][0])
+    fname_SAGE = "{0}/SAGE_snap{1}.ini".format(opt["ini_dir"],
+                                               SAGE_params["HighSnap"][0])
+    fname_cifog = "{0}/cifog_snap{1}.ini".format(opt["ini_dir"],
+                                                 cifog_params["stopSnapshot"][0])
    
     with open (fname_SAGE, "w+") as f:
         for name in SAGE_params_names:
@@ -136,7 +139,12 @@ def parse_input_arguments():
     parser.add_option("-r", "--reionredshift", dest="reionredshift", help="Set to 1 to generate the reionization redshift grid for the snapshot range specified. Default: 0.", default = 0, type = int)
     parser.add_option("-g", "--galaxy_name", dest="galaxy_name", help="Overwrites the name of the galaxies specified within the SAGE ini file.  Default: Specified by SAGE ini file.") 
     parser.add_option("-d", "--galaxy_dir", dest="galaxy_dir", help="Overwrites the directory containing the galaxies specified within the SAGE ini file.  Default: Specified by SAGE ini file.") 
-    parser.add_option("-i", "--increment_ini", dest="increment_ini", help="Set to 1 to generate a SAGE and cifog ini file with HighSnap/stopSnapshot incremented by 1.  Default: 0", default = 0, type = int)
+    parser.add_option("-i", "--ini_dir", dest="ini_dir", 
+                      help="Specifies the directory to create two new .ini "
+                      "files that are identical to the specified .ini files "
+                      "but with value of HighSnap and stopSnapshot "
+                      "incremented by 1.  Default: None", 
+                      default = None)
 
     (opt, args) = parser.parse_args()
 
@@ -148,7 +156,7 @@ def parse_input_arguments():
         parser.print_help()
         exit()
 
-    if (opt.increment_ini == 1 and opt.cifog_fname == None):
+    if (opt.ini_dir != None and opt.cifog_fname == None):
         print("To increment the ini files both a SAGE and cifog ini file must be specified.")
         parser.print_help() 
         exit()
@@ -187,7 +195,8 @@ if __name__ == '__main__':
     if opt["reionredshift"]:
         create_redshift_grid(SnapList, SAGE_params, precision)
 
-    if opt["increment_ini"]:
+    if opt["ini_dir"] != None:
         cifog_params, cifog_params_names, cifog_headers = ReadScripts.read_cifog_ini(opt["cifog_fname"])
-        increment_ini(SAGE_params, SAGE_params_names, cifog_params, cifog_params_names, cifog_headers, 1)
+        increment_ini(SAGE_params, SAGE_params_names, cifog_params,
+                      cifog_params_names, cifog_headers, 1, opt)
     #read_redshift_grid(SnapList, SAGE_params, precision, "test_reion_redshift") 

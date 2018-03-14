@@ -2,18 +2,18 @@
 # specify the queue name
 #PBS -q sstar
 # resource requests
-#PBS -l nodes=1:ppn=8
-#PBS -l walltime=00:10:00:00
-#PBS -N britton_delayed 
-#PBS -l pmem=4gb
+#PBS -l nodes=1:ppn=4
+#PBS -l walltime=00:30:00:00
+#PBS -N self_consistent_27_60 
+#PBS -l vmem=60gb
 
-module load openmpi/x86_64/intel/1.8.6-psm
+module load gcc/6.4.0
+module load fftw/x86_64/gnu/3.3.3-openmpi-psm
 module load gsl/x86_64/gnu/1.9
 module load python/x86_64/gnu/3.5.2
 
-SAGE_ini="/home/jseiler/self_consistent_SAGE/ini_files/SAGE_"
+ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/"
 log_dir="/home/jseiler/self_consistent_SAGE/logs/"
-cifog_ini="/home/jseiler/self_consistent_SAGE/ini_files/cifog_"
 
 LowSnap=27
 HighSnap=27
@@ -24,13 +24,26 @@ for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
 {
 
   echo "Running Snapshot ${snap_idx}"
-  ini_tag="snap${snap_idx}.ini"
+  SAGE_ini="${ini_dir}SAGE_snap${snap_idx}.ini"
+  cifog_ini="${ini_dir}cifog_snap${snap_idx}.ini"
 
   # Run SAGE
-  mpirun -np ${NUMPROC} /home/jseiler/SAGE-stuff/post_processed_SAGE/sage ${SAGE_ini}${ini_tag} > ${log_dir}/SAGE_${snap_idx}.log
+  echo "Running SAGE"
+  mpirun -np ${NUMPROC} /home/jseiler/SAGE-stuff/post_processed_SAGE/sage ${SAGE_ini} > ${log_dir}/SAGE_${snap_idx}.log
+  exit_code=$? 
+  if [ $exit_code -ne 0 ]; then
+    echo "SAGE exited with errorcode $exit_code"
+    exit $exit_code 
+  fi
 
   # Grid SAGE output
-  mpirun -np ${NUMPROC} /home/jseiler/SAGE-stuff/post_processed_grid/grid_sage ${SAGE_ini}${ini_tag} > ${log_dir}/grid_${snap_idx}.log 
+  echo "Gridding SAGE Output"
+  mpirun -np ${NUMPROC} /home/jseiler/SAGE-stuff/post_processed_grid/grid_sage ${SAGE_ini} > ${log_dir}/grid_${snap_idx}.log 
+  exit_code=$? 
+  if [ $exit_code -ne 0 ]; then
+    echo "The gridding code exited with errorcode $exit_code"
+    exit $exit_code 
+  fi
 
   # Run cifog with -r -s for 1 snapshot
   if ((snap_idx == LowSnap)) ; then
@@ -39,11 +52,23 @@ for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
     cifog_run_flag="-r -s"
   fi   
 
-  mpirun -np ${NUMPROC} /home/jseiler/grid-model/cifog ${cifog_ini}${ini_tag} ${cifog_run_flag} > ${log_dir}/cifog_${snap_idx}.log
-
+  echo "Running cifog"
+  mpirun -np ${NUMPROC} /home/jseiler/grid-model/cifog ${cifog_ini} ${cifog_run_flag} > ${log_dir}/cifog_${snap_idx}.log
+  exit_code=$? 
+  if [ $exit_code -ne 0 ]; then
+    echo "cifog exited with errorcode $exit_code"
+    exit $exit_code 
+  fi
 
   # Generate reionization redshift grid and increment SAGE+cifog ini
-  python3 /home/jseiler/self_consistent_SAGE/misc_functions.py -f ${SAGE_ini}${ini_tag} -c ${cifog_ini}${ini_tag} -r 1 -i 1
+  echo "Running Python script"
+  python3 /home/jseiler/self_consistent_SAGE/misc_functions.py -f ${SAGE_ini} -c ${cifog_ini} -r 1 -i ${ini_dir}
+  exit_code=$? 
+  if [ $exit_code -ne 0 ]; then
+    echo "The Python cleanup script exited with errorcode $exit_code"
+    exit $exit_code 
+  fi
+
 
   # Generate reionization modifiers + filter masses
   if ((snap_idx == LowSnap)) ; then
@@ -51,7 +76,13 @@ for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
   else
     filter_mass_run_flag=0
   fi   
- 
- mpirun -np ${NUMPROC} /home/jseiler/self_consistent_SAGE/create_filter_mass ${SAGE_ini}${ini_tag} ${snap_idx} ${filter_mass_run_flag} > ${log_dir}/filtermass_${snap_idx}.log 
+
+  echo "Generating filter mass" 
+  mpirun -np ${NUMPROC} /home/jseiler/self_consistent_SAGE/create_filter_mass ${SAGE_ini}${ini_tag} ${snap_idx} ${filter_mass_run_flag} > ${log_dir}/filtermass_${snap_idx}.log 
+  exit_code=$? 
+  if [ $exit_code -ne 0 ]; then
+    echo "create_filter_mass exited with errorcode $exit_code"
+    exit $exit_code 
+  fi
 
 } 
