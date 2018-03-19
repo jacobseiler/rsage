@@ -25,7 +25,7 @@
 
 // Local Variables //
 
-SAGE_params params;
+struct SAGE_PARAMETERS *params;
 int32_t ThisSnap, first_run;
 #ifdef MPI
 int ThisTask, NTask, nodeNameLen;
@@ -34,8 +34,8 @@ char *ThisNode;
 
 // Proto-types //
 
-int32_t parse_params(int32_t argc, char **argv, SAGE_params params);
-int32_t read_snap_list(SAGE_params params);
+int32_t parse_params(int32_t argc, char **argv, struct SAGE_PARAMETERS *params);
+int32_t read_snap_list(struct SAGE_PARAMETERS *params);
 void myexit(int signum);
 
 // Functions //
@@ -48,7 +48,7 @@ void bye()
 #endif
 }
 
-int32_t parse_params(int32_t argc, char **argv, SAGE_params params)
+int32_t parse_params(int32_t argc, char **argv, struct SAGE_PARAMETERS *params)
 {
 
   int32_t status;
@@ -64,7 +64,7 @@ int32_t parse_params(int32_t argc, char **argv, SAGE_params params)
     return EXIT_FAILURE; 
   }
   
-  status = read_parameter_file(argv[1], &params); 
+  status = read_parameter_file(argv[1], params); 
   if (status == EXIT_FAILURE)
   {
     return EXIT_FAILURE;
@@ -88,7 +88,7 @@ int32_t parse_params(int32_t argc, char **argv, SAGE_params params)
   return EXIT_SUCCESS;
 }
 
-int32_t read_snap_list(SAGE_params params) 
+int32_t read_snap_list(struct SAGE_PARAMETERS *params) 
 {
 
   FILE *fd;
@@ -117,10 +117,6 @@ int32_t read_snap_list(SAGE_params params)
 
   fclose(fd);
 
-#ifdef MPI
-  if(ThisTask == 0)
-#endif
-
   for (i = 0; i < Snaplistlen; ++i)
   {  
     params->ZZ[i] = 1 / AA[i] - 1;  
@@ -145,12 +141,12 @@ void myexit(int signum)
 int main(int argc, char **argv)
 {
 
-  int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_Ionized = 0, NHalos_In_Regions = 0, NHalos_ThisSnap = 0;
+  int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_Ionized, NHalos_In_Regions, NHalos_ThisSnap;
   int64_t *HaloID;
   float *ReionMod, sum_ReionMod; 
 
-  halo_t Halos;
-  grid_t Grid;
+  struct HALO_STRUCT *Halos; 
+  struct GRID_STRUCT *Grid;
 
 #ifdef MPI
   MPI_Init(&argc, &argv);
@@ -168,7 +164,6 @@ int main(int argc, char **argv)
 #endif
 
   atexit(bye);
-
   params = malloc(sizeof(struct SAGE_PARAMETERS));
   if (params == NULL)
   {
@@ -188,28 +183,53 @@ int main(int argc, char **argv)
     ABORT(EXIT_FAILURE);
   }
 
-  status = read_grid(ThisSnap, first_run, params, &Grid); // Read the reionization redshift and photoionization grid. 
+  Grid = malloc(sizeof(struct GRID_STRUCT));
+  if (Grid == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for Grid struct.\n");
+    ABORT(EXIT_FAILURE);
+  }
+
+  status = read_grid(ThisSnap, first_run, params, Grid); // Read the reionization redshift and photoionization grid. 
   if (status == EXIT_FAILURE)
   {
     ABORT(EXIT_FAILURE);
   }
    
 #ifdef MPI 
-  if (NTask < params->LastFile)
+  if (NTask > params->LastFile + 1)
   {
     fprintf(stderr, "Attempted to run filter_mass with %d Tasks.  However the last file is %d.\n", NTask, params->LastFile);
     ABORT(EXIT_FAILURE);
-  } 
+  }
+
   for(filenr = params->FirstFile + ThisTask; filenr < params->LastFile + 1 ; filenr += NTask)
 #else
   for(filenr = params->FirstFile; filenr < params->LastFile + 1; filenr++)
 #endif
-  { 
+  {
+    NHalos_Ionized = 0;
+    NHalos_In_Regions = 0;
+    NHalos_ThisSnap = 0;
+    
     status = load_tree_table(filenr, params, &Ntrees, &totNHalos, &TreeNHalos); // Loads the table for this file.
     if (status == EXIT_FAILURE)
     {
       ABORT(EXIT_FAILURE);
     }       
+
+    int32_t i;
+    int32_t maxhalos = -1, minhalos = 1e5;
+    for (i = 0; i < Ntrees; ++i)
+    {
+      if (TreeNHalos[i] > maxhalos)
+        maxhalos = TreeNHalos[i];
+    
+      if (TreeNHalos[i] < minhalos)
+        minhalos = TreeNHalos[i];
+    }
+    printf("The smallest tree had %d halos and the largest had %d halos\n", minhalos, maxhalos);
+
 
     status = allocate_array_memory(totNHalos, &HaloID, &ReionMod); // Memory for the output arrays. 
     if (status == EXIT_FAILURE)
@@ -219,8 +239,6 @@ int main(int argc, char **argv)
 
     for (treenr = 0; treenr < Ntrees; ++treenr)
     {
-
-
       Halos = malloc(sizeof(struct HALO_STRUCT) * TreeNHalos[treenr]); // Allocate the memory in main to keep consistency.
       if (Halos == NULL)
       {
@@ -228,11 +246,13 @@ int main(int argc, char **argv)
         ABORT(EXIT_FAILURE); 
       }
 
-      status = load_halos(treenr, TreeNHalos[treenr], &Halos); // Loads the halos for this tree.
+      status = load_halos(treenr, TreeNHalos[treenr], Halos); // Loads the halos for this tree.
       if (status == EXIT_FAILURE)
       {
         ABORT(EXIT_FAILURE);
       }
+
+
 
       // Now time to go through all the halos in this tree, determine those at the Snapshot specified and the associate reionization modifier (if it's within an ionized cell).
       status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], ThisSnap, first_run, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
@@ -252,13 +272,16 @@ int main(int argc, char **argv)
       ABORT(EXIT_FAILURE);
     }
 
-#ifdef DEBUG
-    status = read_arrays(params, filenr, ThisSnap);
-    if (status == EXIT_FAILURE)
+
+    if (ThisSnap == 29)
     {
-      ABORT(EXIT_FAILURE);
+      status = read_arrays(params, filenr, ThisSnap);
+      if (status == EXIT_FAILURE)
+      {
+        ABORT(EXIT_FAILURE);
+      }
     }
-#endif
+
     free_memory(&TreeNHalos, &HaloID, &ReionMod);
 
     printf("\n\n"); 
@@ -266,7 +289,7 @@ int main(int argc, char **argv)
 
   // Everything done, time to free!
 
-  status = free_grid(&Grid);
+  status = free_grid(Grid);
   if (status == EXIT_FAILURE)
   {
     ABORT(EXIT_FAILURE);

@@ -13,7 +13,7 @@
 
 #define MAXLEN 1024
 
-int32_t read_parameter_file(char *fname, SAGE_params *params) 
+int32_t read_parameter_file(char *fname, struct SAGE_PARAMETERS *params) 
 {
   FILE *fd;
   char buf[400], buf1[400], buf2[400], buf3[400];
@@ -27,9 +27,6 @@ int32_t read_parameter_file(char *fname, SAGE_params *params)
   int32_t FirstFile_tmp, LastFile_tmp, LastSnapshotNr_tmp, GridSize_tmp;
   double BoxSize_tmp, Hubble_h_tmp;
 
-#ifdef MPI
-  if(ThisTask == 0)
-#endif
   printf("\nreading parameter file:\n\n");
   
   strcpy(tag[nt], "TreeName");
@@ -102,9 +99,6 @@ int32_t read_parameter_file(char *fname, SAGE_params *params)
 
       if(j >= 0)
       {
-#ifdef MPI
-        if(ThisTask == 0)
-#endif  
         switch (id[j])
         {
           case DOUBLE:
@@ -146,21 +140,21 @@ int32_t read_parameter_file(char *fname, SAGE_params *params)
   }
 	printf("\n");
 
-  (*params)->TreeDir = TreeDir_tmp;
-  (*params)->TreeName = TreeName_tmp;
-  (*params)->PhotoionDir = PhotoionDir_tmp;
-  (*params)->SnapListFile = SnapListFile_tmp;
-  (*params)->PhotoionName = PhotoionName_tmp;
-  (*params)->ReionRedshiftName = ReionRedshiftName_tmp;
+  params->TreeDir = TreeDir_tmp;
+  params->TreeName = TreeName_tmp;
+  params->PhotoionDir = PhotoionDir_tmp;
+  params->SnapListFile = SnapListFile_tmp;
+  params->PhotoionName = PhotoionName_tmp;
+  params->ReionRedshiftName = ReionRedshiftName_tmp;
 
-  (*params)->FirstFile = FirstFile_tmp;
-  (*params)->LastFile = LastFile_tmp;
-  (*params)->LastSnapshotNr = LastSnapshotNr_tmp;
-  (*params)->TreeDir = TreeDir_tmp;
+  params->FirstFile = FirstFile_tmp;
+  params->LastFile = LastFile_tmp;
+  params->LastSnapshotNr = LastSnapshotNr_tmp;
+  params->TreeDir = TreeDir_tmp;
 
-  (*params)->GridSize = GridSize_tmp;
-  (*params)->BoxSize = BoxSize_tmp;
-  (*params)->Hubble_h = Hubble_h_tmp;
+  params->GridSize = GridSize_tmp;
+  params->BoxSize = BoxSize_tmp;
+  params->Hubble_h = Hubble_h_tmp;
 
   return EXIT_SUCCESS;
 

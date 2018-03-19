@@ -9,40 +9,36 @@
 #include <assert.h>
 
 #include "reionization.h"
+#include "main.h"
 
 #define	CUBE(x) (x*x*x)
 #define MAXLEN 1024
 
-// Local Proto-Type //
+// Local Proto-Types //
 
-int32_t count_ionized_cells(grid_t Grid);
+int32_t count_ionized_cells(struct GRID_STRUCT *Grid);
 
-int32_t read_grid(int32_t SnapNum, int32_t first_run, SAGE_params params, grid_t *Grid)
+// Local functions //
+
+int32_t read_grid(int32_t SnapNum, int32_t first_run, struct SAGE_PARAMETERS *params, struct GRID_STRUCT *Grid)
 {
 
   FILE *ReionRedshiftFile, *PhotoionFile;
   char RedshiftGridName[MAXLEN], PhotoionGridName[MAXLEN]; 
 
-  *Grid = malloc(sizeof(struct GRID_STRUCT));
-  if (*Grid == NULL)
-  {
-    fprintf(stderr, "Could not allocate memory for Grid struct.\n");
-    return EXIT_FAILURE;
-  }
+  Grid->GridSize = params->GridSize;
+  Grid->NumCellsTotal = CUBE(params->GridSize);
+  Grid->BoxSize = params->BoxSize;
 
-  (*Grid)->GridSize = params->GridSize;
-  (*Grid)->NumCellsTotal = CUBE(params->GridSize);
-  (*Grid)->BoxSize = params->BoxSize;
-
-  (*Grid)->ReionRedshift = malloc(sizeof(*((*Grid)->ReionRedshift)) * (*Grid)->NumCellsTotal);   
-  if ((*Grid)->ReionRedshift == NULL)
+  Grid->ReionRedshift = malloc(sizeof(*(Grid->ReionRedshift)) * Grid->NumCellsTotal);   
+  if (Grid->ReionRedshift == NULL)
   {
     fprintf(stderr, "Could not allocate memory for the reionization redshift grid.\n");
     return EXIT_FAILURE;
   }
 
-  (*Grid)->PhotoRate = malloc(sizeof(*((*Grid)->PhotoRate)) * (*Grid)->NumCellsTotal);   
-  if ((*Grid)->PhotoRate == NULL)
+  Grid->PhotoRate = malloc(sizeof(*(Grid->PhotoRate)) * Grid->NumCellsTotal);   
+  if (Grid->PhotoRate == NULL)
   {
     fprintf(stderr, "Could not allocate memory for the PhotoionFileization rate grid.\n");
     return EXIT_FAILURE;
@@ -56,8 +52,8 @@ int32_t read_grid(int32_t SnapNum, int32_t first_run, SAGE_params params, grid_t
   }
 
   printf("Reading reionization redshift file.\n");
-  fread((*Grid)->ReionRedshift, sizeof(*((*Grid)->ReionRedshift)), (*Grid)->NumCellsTotal, ReionRedshiftFile);
-  count_ionized_cells(*Grid);
+  fread(Grid->ReionRedshift, sizeof(*(Grid->ReionRedshift)), Grid->NumCellsTotal, ReionRedshiftFile);
+  count_ionized_cells(Grid);
   fclose(ReionRedshiftFile);
   
   snprintf(PhotoionGridName, MAXLEN, "%s/%s_%03d", params->PhotoionDir, params->PhotoionName, SnapNum + 1); 
@@ -68,14 +64,14 @@ int32_t read_grid(int32_t SnapNum, int32_t first_run, SAGE_params params, grid_t
   }
 
   printf("Reading photoionization rate.\n"); 
-  fread((*Grid)->PhotoRate, sizeof(*((*Grid)->PhotoRate)), (*Grid)->NumCellsTotal, PhotoionFile);
+  fread(Grid->PhotoRate, sizeof(*(Grid->PhotoRate)), Grid->NumCellsTotal, PhotoionFile);
   fclose(PhotoionFile);
 
   return EXIT_SUCCESS;
 
 }
 
-int32_t count_ionized_cells(grid_t Grid)
+int32_t count_ionized_cells(struct GRID_STRUCT *Grid)
 {
 
   int32_t cell_idx, num_ionized_cells = 0;
@@ -96,19 +92,19 @@ int32_t count_ionized_cells(grid_t Grid)
 
 }
 
-int32_t free_grid(grid_t *Grid)
+int32_t free_grid(struct GRID_STRUCT *Grid)
 {
 
-  free((*Grid)->PhotoRate);
-  free((*Grid)->ReionRedshift);
+  free(Grid->PhotoRate);
+  free(Grid->ReionRedshift);
 
-  free(*Grid);
+  free(Grid);
 
   return EXIT_SUCCESS;
 
 }
  
-int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, int32_t first_run, halo_t Halos, grid_t Grid, SAGE_params params, int64_t **HaloID, float **ReionMod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_ReionMod)
+int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, int32_t first_run, struct HALO_STRUCT *Halos, struct GRID_STRUCT *Grid, struct SAGE_PARAMETERS *params, int64_t **HaloID, float **ReionMod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_ReionMod)
 {
 
   int32_t halonr, status;
@@ -122,8 +118,10 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
 
   for (halonr = 0; halonr < NHalos_ThisTree; ++halonr)
   {
-    if (Halos[halonr].SnapNum == ThisSnap) // Only care about halos at the snapshot specified.
+    //if (Halos[halonr].SnapNum == ThisSnap && halonr == Halos[halonr].FirstHaloInFOFgroup) // Only care about CENTRAL halos at the snapshot specified. Only do centrals because baryons fall onto them, not satellites. 
+    if (Halos[halonr].SnapNum == ThisSnap) // Only care about CENTRAL halos at the snapshot specified. Only do centrals because baryons fall onto them, not satellites. 
     {
+
       ++(*NHalos_ThisSnap);
 
       status = determine_Mfilt(Halos[halonr], Grid, params, &ReionMod_tmp, NHalos_In_Regions); // Determine the reionization modifier for this halo.
@@ -137,7 +135,8 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
         continue;
       }
 
-      unique_ID = (int64_t) treenr << 32 | halonr; // We create a unique ID for each halo within the file by generating a 64 bit number with the left-most 32 bits being the tree number and the right-most bits being the halo number.     
+      printf("Halo %d from tree %d is within the region. It's ionization modifier is %.4f with a halo mass %.4e\n", halonr, treenr, ReionMod_tmp, Halos[halonr].Mvir);
+      unique_ID = ((int64_t)treenr << 32)  | halonr; // We create a unique ID for each halo within the file by generating a 64 bit number with the left-most 32 bits being the tree number and the right-most bits being the halo number.     
                                                    // As the tree number can only increase, this creates an ascending list without the need to sort. 
       //printf("Unique ID for tree number %d and halo number %d is %ld with ReionMod %.4f\n", treenr, halonr, (long)unique_ID, ReionMod_tmp); 
       (*HaloID)[(*NHalos_Ionized)] = unique_ID;
@@ -154,7 +153,7 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
 
 }
 
-int32_t determine_Mfilt(struct HALO_STRUCT Halo, grid_t Grid, SAGE_params params, float *reionization_modifier, int32_t *NHalos_In_Regions) 
+int32_t determine_Mfilt(struct HALO_STRUCT Halo, struct GRID_STRUCT *Grid, struct SAGE_PARAMETERS *params, float *reionization_modifier, int32_t *NHalos_In_Regions) 
 { 
 
   int32_t status, grid_idx;
@@ -186,6 +185,7 @@ int32_t determine_Mfilt(struct HALO_STRUCT Halo, grid_t Grid, SAGE_params params
     Mvir = Halo.Mvir * 1.0e10 / params->Hubble_h;
 
     *reionization_modifier = pow(2.0, -Mfilt/Mvir);
+    printf("z_reion = %.4f\tz_curr = %4.f\tphotHI = %.4f\tMvir = %.4e\treionization_modifier = %.4f\n", z_reion, Zcurr, PhotHI, Mvir, *reionization_modifier);
   }
   else
   {

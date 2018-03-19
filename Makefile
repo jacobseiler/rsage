@@ -15,9 +15,16 @@ INCL  := ./Makefile \
 		 filter_mass/reionization.h \
 		 filter_mass/save.h
 
-ECHO = /bin/echo
+USE-MPI = yes
 
-CC := cc  # sets the C-compiler
+ifdef USE-MPI
+    OPTS = -DMPI  #  This creates an MPI version that can be used to process files in parallel
+    CC = mpicc  # sets the C-compiler
+else
+    CC = gcc  # sets the C-compiler
+endif
+
+ECHO = /bin/echo
 
 GSL_DIR := $(shell gsl-config --prefix)
 GSL_INCL := $(shell gsl-config --cflags)

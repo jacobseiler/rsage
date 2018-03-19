@@ -34,7 +34,6 @@ struct SAGE_PARAMETERS
 
   double ZZ[ABSOLUTEMAXSNAPS];
  
-};
-typedef struct SAGE_PARAMETERS *SAGE_params;
+} *SAGE_params;
 
 #endif

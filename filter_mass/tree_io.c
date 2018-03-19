@@ -13,7 +13,7 @@
 FILE *forest_file = NULL;
 // keep a static file handle to remove the need to do constant seeking
 
-int32_t load_tree_table(int32_t filenr, SAGE_params params, int32_t *Ntrees, int32_t *totNHalos, int32_t **TreeNHalos)
+int32_t load_tree_table(int32_t filenr, struct SAGE_PARAMETERS *params, int32_t *Ntrees, int32_t *totNHalos, int32_t **TreeNHalos)
 {
   char forestname[MAXLEN]; 
 
@@ -30,22 +30,29 @@ int32_t load_tree_table(int32_t filenr, SAGE_params params, int32_t *Ntrees, int
   fread(totNHalos, 1, sizeof(int32_t), forest_file);
 
   *TreeNHalos = malloc(sizeof(int) * (*Ntrees));
-  if (*TreeNHalos == NULL)
+  if ((*TreeNHalos) == NULL)
   {
     fprintf(stderr, "Could not allocate memory for TreeNHalos.\n");
     return EXIT_FAILURE;
   }
   
   fread(*TreeNHalos, (*Ntrees), sizeof(int), forest_file); 
-    
+  
   return EXIT_SUCCESS;
 
 }
 
-int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, halo_t *Halos)
+int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, struct HALO_STRUCT *Halos)
 {
+  int32_t Halos_Read;
+ 
+  Halos_Read = fread(Halos, sizeof(struct HALO_STRUCT), NHalos_ThisTree, forest_file);  
+  if (NHalos_ThisTree != Halos_Read)
+  {
+    fprintf(stderr, "I tried to read %d halos but I only read %d\n", NHalos_ThisTree, Halos_Read);
+    return EXIT_FAILURE;
+  }
 
-  fread(*Halos, NHalos_ThisTree, sizeof(struct HALO_STRUCT), forest_file); 
   return EXIT_SUCCESS;
 
 } 
@@ -83,6 +90,7 @@ int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **ReionMod)
   {
     fclose(forest_file);
     forest_file = NULL;
+    printf("Closing forest file\n");
   }
     
 

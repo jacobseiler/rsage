@@ -6,5 +6,5 @@
 
 // Proto-Types //
 
-int32_t read_parameter_file(char *fname, SAGE_params *params); 
+int32_t read_parameter_file(char *fname, struct SAGE_PARAMETERS *params); 
 #endif
