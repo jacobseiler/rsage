@@ -98,22 +98,22 @@ int32_t save_fesc_properties(int filenr, int32_t merged_gal_flag)
 
   FILE *save_properties;
   char name_properties[MAXLEN];
-  int32_t i, j; 
+  int32_t grid_num_idx, j; 
 
   printf("Saving fesc properties\n");
-  for (i = 0; i < Grid->NumGrids; ++i)
+  for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx)
   {
     if (fescPrescription == 0)
     {
-      snprintf(name_properties, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_fescproperties_%d.txt", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, i + LowSnap);
+      snprintf(name_properties, MAXLEN, "%s/%s_fesc%.2f_HaloPartCut%d_fescproperties_%d.txt", GridOutputDir, FileNameGalaxies, fesc, HaloPartCut, ListOutputGrid[grid_num_idx]);
     }
     else if (fescPrescription == 3)
     {
-      snprintf(name_properties, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_fescproperties_%d.txt", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, i + LowSnap); 
+      snprintf(name_properties, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_fescproperties_%d.txt", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
     }
     else if (fescPrescription == 4)
     {
-      snprintf(name_properties, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_fescproperties_%d.txt", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, i + LowSnap);
+      snprintf(name_properties, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_fescproperties_%d.txt", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
     }
 
     if (filenr == 0 && merged_gal_flag == 0) // For the first grid want to open up a fresh file
@@ -132,9 +132,9 @@ int32_t save_fesc_properties(int filenr, int32_t merged_gal_flag)
 
     for (j = 0; j < NtotGals; ++j)
     {
-      if (Grid->GridProperties[i].SnapshotGalaxy[j] != -1)
+      if (Grid->GridProperties[grid_num_idx].SnapshotGalaxy[j] != -1)
       {
-        fprintf(save_properties, "%d %.4f %.4f %.4f %.4e %.4e\n", Grid->GridProperties[i].SnapshotGalaxy[j], Grid->GridProperties[i].fescGalaxy[j], Grid->GridProperties[i].MvirGalaxy[j], Grid->GridProperties[i].MstarGalaxy[j], Grid->GridProperties[i].NgammaGalaxy[j], Grid->GridProperties[i].NgammafescGalaxy[j]); 
+        fprintf(save_properties, "%d %.4f %.4f %.4f %.4e %.4e\n", Grid->GridProperties[grid_num_idx].SnapshotGalaxy[j], Grid->GridProperties[grid_num_idx].fescGalaxy[j], Grid->GridProperties[grid_num_idx].MvirGalaxy[j], Grid->GridProperties[grid_num_idx].MstarGalaxy[j], Grid->GridProperties[grid_num_idx].NgammaGalaxy[j], Grid->GridProperties[grid_num_idx].NgammafescGalaxy[j]); 
       }
     }
     fclose(save_properties);

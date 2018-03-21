@@ -87,16 +87,30 @@ int main(int argc, char **argv)
 
   atexit(bye);
 
-
   int filenr, i;
 
-  
+  if(argc != 2)
+  {
+    printf("\n  usage: grid_sage <parameterfile>\n\n");
+    ABORT(0);
+  }
+ 
+#ifdef MPI
+  if (self_consistent == 0)
+  {
+    fprintf(stderr, "You can only run in parallel for self-consistent SAGE.\nRecompile without MPI if you're not running iteratively.\n");
+    ABORT(EXIT_FAILURE);
+  }
+#endif
+ 
+  printf("Executing with %s %s\n", argv[0], argv[1]);
+
   read_parameter_file(argv[1]);
 
   status = init(); // Initialize all the parameters (set units, create scale factor/age arrays etc).  
   if (status == EXIT_FAILURE)
   {
-    exit(EXIT_FAILURE);
+    ABORT(EXIT_FAILURE);
   } 
 
 #ifdef MPI
@@ -118,7 +132,7 @@ int main(int argc, char **argv)
       if ( access(buf, F_OK ) == -1) // Sanity check.
       {
         printf("-- input for file %s does not exist, exiting now.\n", buf);
-        exit(EXIT_FAILURE); 
+        ABORT(EXIT_FAILURE); 
       }
       if (Verbose == 1)
       {
@@ -127,22 +141,22 @@ int main(int argc, char **argv)
       status = load_gals(buf);    
       if (status == EXIT_FAILURE)
       {
-        exit(EXIT_FAILURE);
+        ABORT(EXIT_FAILURE);
       }
 
       status = update_grid_properties(filenr); // Go through each galaxy and read it's grid history and grid the properties.
       if (status == EXIT_FAILURE)
       {
-        exit(EXIT_FAILURE);
+        ABORT(EXIT_FAILURE);
       }
   
 
-      if (fescPrescription != 1)
+      if (self_consistent == 0) // Don't want to save properties if we're running iteratively.
       {
         status = save_fesc_properties(filenr, i);
         if (status == EXIT_FAILURE)
         {
-          exit(EXIT_FAILURE);
+          ABORT(EXIT_FAILURE);
         }
       } 
 
@@ -154,8 +168,6 @@ int main(int argc, char **argv)
     printf("Done File %d.\n\n", filenr);
 
   } // File Loop.
-
-  //printf("There were %d quasar activity events in which the merged gal was above the halo part cut compared to %d below.\n", QuasarEventsAbovePartCut, QuasarEventsBelowPartCut); 
 
 #ifdef MPI
   
@@ -184,10 +196,9 @@ int main(int argc, char **argv)
 
   if (status == EXIT_FAILURE)
   {
-    exit(EXIT_FAILURE);
+    ABORT(EXIT_FAILURE);
   }  
 #endif
-
   
   free_grid();
 

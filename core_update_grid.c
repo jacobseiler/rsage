@@ -72,11 +72,6 @@ int32_t update_grid_properties(int32_t filenr)
         if (Ngamma_HI > 0.0)
         {
           Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] += pow(10, Ngamma_HI - 50.0)*fesc_local; // We keep these in units of 10^50 photons/s.
-          if (count < 10)
-          {
-            sum += pow(10, Ngamma_HI - 50.0);
-            ++count;
-          }  
           Grid->GridProperties[grid_num_idx].Nion_HeI[grid_position] += pow(10, Ngamma_HeI - 50.0)*fesc_local;
           Grid->GridProperties[grid_num_idx].Nion_HeII[grid_position] += pow(10, Ngamma_HeII - 50.0)*fesc_local;
         }
@@ -116,30 +111,6 @@ int32_t update_grid_properties(int32_t filenr)
   return EXIT_SUCCESS;
 }
 
-// Takes the number of halos loaded in memory (totNHalos) and maps the properties onto the grid. //
-/*
-void update_grid_nion_halo(int GridNr) // Calculates number of ionizing photons using the halos. 
-{
-  int i;
-  double evolve_time;
-
-  printf("Calculating number of photons using halo-based prescription.\n");
-  
- 
-  if (GridNr == NGrid - 1)
-	  evolve_time = (Age[ListOutputGrid[GridNr]-1] - Age[ListOutputGrid[GridNr]]) * UnitTime_in_Megayears;
-  else
-	  evolve_time = (Age[ListOutputGrid[GridNr+1]] - Age[ListOutputGrid[GridNr]]) * UnitTime_in_Megayears;
-
-  for (i = 0; i < CUBE(GridSize); ++i)
-  {
-    // Using Illiev 2012. 
-//    UnitConversion = SOLAR_MASS/0.53/PROTONMASS/SEC_PER_MEGAYEAR;
-    Grid[i].Nion_HI = Grid[i].HaloMass*1e10/Hubble_h*SOLAR_MASS*SourceEfficiency*BaryonFrac/0.53/PROTONMASS/evolve_time/SEC_PER_MEGAYEAR;
-  }
-  
-}
-*/
 void count_grid_properties(struct GRID_STRUCT *count_grid) // Count number of galaxies/halos in the grid.
 {
 
@@ -384,10 +355,10 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
 }
 
 #ifdef MPI
-struct GRID_STRUCT *MPI_sum_grids(void)
+struct GRID_STRUCT *MPI_sum_grids()
 {
 
-  int32_t status, grid_num_idx;
+  int32_t status, grid_num_idx, cell_idx;
   struct GRID_STRUCT *master_grid;
   
   master_grid = malloc(sizeof(struct GRID_STRUCT));
@@ -408,13 +379,30 @@ struct GRID_STRUCT *MPI_sum_grids(void)
     {
       printf("Reducing grid %d\n", grid_num_idx);
     }
+    MPI_Barrier(MPI_COMM_WORLD);
+  
+    XASSERT(Grid->NumCellsTotal == GridSize*GridSize*GridSize, "Rank %d has %ld grid cells\n", ThisTask, (long)Grid->NumCellsTotal);
+    for (cell_idx = 0; cell_idx < Grid->NumCellsTotal; ++cell_idx)
+    {
+      XASSERT(Grid->GridProperties[grid_num_idx].SFR[cell_idx] >= 0.0, "For Rank %d, cell index %d has a SFR value of %.4f\n", ThisTask, cell_idx, Grid->GridProperties[grid_num_idx].SFR[cell_idx]);
+    }
+
+    printf("I am rank %d, my grid_num_idx is %d and my NumCellsTotal is %ld\n", ThisTask, grid_num_idx, (long) Grid->NumCellsTotal);
     MPI_Reduce(Grid->GridProperties[grid_num_idx].SFR, master_grid->GridProperties[grid_num_idx].SFR, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    printf("SFR done\n");
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HI, master_grid->GridProperties[grid_num_idx].Nion_HI, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    printf("Nion_HI done\n");
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeI, master_grid->GridProperties[grid_num_idx].Nion_HeI, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    printf("Nion_HeI done\n");
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeII, master_grid->GridProperties[grid_num_idx].Nion_HeII, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+    printf("Nion_HeII done\n");
 
     MPI_Reduce(Grid->GridProperties[grid_num_idx].GalCount, master_grid->GridProperties[grid_num_idx].GalCount, Grid->NumCellsTotal, MPI_UINT64_T, MPI_SUM, 0, MPI_COMM_WORLD); 
-    
+    printf("GalCount done\n");
+   
   }
 
   if (ThisTask == 0)  
