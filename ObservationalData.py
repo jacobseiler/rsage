@@ -28,7 +28,8 @@ def Get_Data_SMF():
     global SMF_colors
     global SMF_markers
 
-    SMF_colors = ["b", "g", "c", "m"]
+    #SMF_colors = ["b", "g", "c", "m"]
+    SMF_colors = ["#31a354", "#2b8cbe", "#c51b8a", "m"]
     SMF_markers = ["o", "s", "D"]
  
     ## For Gonzalez and Song, Columns are redshift, mean value, lower bound, upper bound.##

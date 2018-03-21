@@ -38,7 +38,10 @@ def Set_Params_Plot():
     global global_legendsize
     global global_linewidth
     global global_tickinterval
+    global global_tickwidth
+    global global_ticklength
     global global_errorwidth
+    global global_axiswidth
 
     global colors
     global markers
@@ -48,17 +51,20 @@ def Set_Params_Plot():
     global time_xlim
     global time_tickinterval 
 
-    global_labelsize = 24
-    global_fontsize = 20
-    global_legendsize = 12
+    global_labelsize = 30
+    global_fontsize = 22
+    global_legendsize = 20
     global_linewidth = 3
     global_tickinterval = 0.25
+    global_tickwidth = 2
+    global_ticklength = 6
     global_errorwidth = 3
+    global_axiswidth = 2
 
     matplotlib.rcdefaults()
     plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
     plt.rc('lines', linewidth=global_linewidth)
-    # plt.rc('font', variant='monospace')
+    plt.rc('font', weight='bold') 
     plt.rc('legend', numpoints=1, fontsize='x-large')
     plt.rc('text', usetex=True)
 
@@ -68,9 +74,10 @@ def Set_Params_Plot():
 
     np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
 
+    colors = ["#f03b20", "#c51b8a", "#2b8cbe", "#31a354"]
     #colors = ['#1b9e77','#d95f02','#7570b3', '#f03b20', '#2c7fb8']
     #colors = ['#2c7fb8','#f03b20', '#f768a1', "r", "b", "m"]
-    colors = ['r', 'b', 'g', 'm', 'c', 'k']
+    #colors = ['k', 'r', 'b', 'g', 'm', 'c', 'k']
     markers = ['x', 'o', '^', 's', 'D']
     linestyles = ['-', '--', '-.', ':', '-']
     z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
@@ -149,54 +156,56 @@ def plot_xy(ax, x_data, y_data, y_std, snapshot_labels, model_labels):
 	return ax
 
 
-def Plot_SMF_z6(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
+def Plot_SMF_z6(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0, alpha = 1.0):
    
     #Obs.Get_Data_SMF()
       
     ax.errorbar(Obs.Gonzalez_SMF_z6[:,0]+h_converter_x(0.6999999, AllVars.Hubble_h)-np.log10(Chabrier_to_Salpeter),\
                 10**(Obs.Gonzalez_SMF_z6[:,1])/h_converter_y(0.6999999, AllVars.Hubble_h),\
                 yerr= (10**(Obs.Gonzalez_SMF_z6[:,3])/h_converter_y(0.6999999, AllVars.Hubble_h), 10**(Obs.Gonzalez_SMF_z6[:,2])/h_converter_y(0.6999999, AllVars.Hubble_h)),\
-                alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[0], ls='none', label = 'Gonzalez et al. 2011', color = Obs.SMF_colors[0], capsize = capsize) 
+                alpha=alpha, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[0], ls='none', 
+                label = r'$\mathbf{Gonzalez \: et \: al. \: 2011}$', color = Obs.SMF_colors[0], capsize = capsize) 
 
     ax.errorbar(Obs.Duncan_SMF_z6[:,0]+h_converter_x(0.7, AllVars.Hubble_h),\
                 Obs.Duncan_SMF_z6[:,1]/h_converter_y(0.7, AllVars.Hubble_h),\
                 yerr = [Obs.Duncan_SMF_z6[:,2], Obs.Duncan_SMF_z6[:,3]],\
-                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[2], ls='none', label = 'Duncan et al. 2014', color = Obs.SMF_colors[2], rasterized=True) 
+                capsize = capsize, alpha=alpha, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[2], 
+                ls='none', label = r'$\mathbf{Duncan \: et \: al. \: 2014}$', color = Obs.SMF_colors[2], rasterized=True) 
 
     ax.errorbar(Obs.Song_SMF_z6[:,0]+h_converter_x(0.7, AllVars.Hubble_h)-np.log10(Chabrier_to_Salpeter),\
                 10**(Obs.Song_SMF_z6[:,1])/h_converter_y(0.7, AllVars.Hubble_h),\
                 yerr= (10**(Obs.Song_SMF_z6[:,1])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z6[:,3])/h_converter_y(0.7, AllVars.Hubble_h), 10**(Obs.Song_SMF_z6[:,2])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z6[:,1])/h_converter_y(0.7, AllVars.Hubble_h)),\
                 xerr = 0.25,\
-                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2016', color = Obs.SMF_colors[1], rasterized=True) 
+                capsize = capsize, alpha=alpha, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', 
+                label = r'$\mathbf{Song \: et \: al. \: 2016}$', color = Obs.SMF_colors[1], rasterized=True) 
 
-
-def Plot_SMF_z7(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
+def Plot_SMF_z7(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0, alpha = 1.0):
 
     ax.errorbar(Obs.Gonzalez_SMF_z7[:,0]+h_converter_x(0.6999999, AllVars.Hubble_h)-np.log10(Chabrier_to_Salpeter),\
                 10**(Obs.Gonzalez_SMF_z7[:,1])/h_converter_y(0.6999999, AllVars.Hubble_h),\
                 yerr= (10**(Obs.Gonzalez_SMF_z7[:,3])/h_converter_y(0.6999999, AllVars.Hubble_h), 10**(Obs.Gonzalez_SMF_z7[:,2])/h_converter_y(0.6999999, AllVars.Hubble_h)),\
-                alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[0], ls='none', label = 'Gonzalez et al. 2011', color = Obs.SMF_colors[0], capsize = capsize) 
+                alpha=alpha, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[0], ls='none', label = 'Gonzalez et al. 2011', color = Obs.SMF_colors[0], capsize = capsize) 
 
     ax.errorbar(Obs.Duncan_SMF_z7[:,0]+h_converter_x(0.7, AllVars.Hubble_h),\
                 Obs.Duncan_SMF_z7[:,1]/(h_converter_y(0.7, AllVars.Hubble_h)),\
                 yerr = [Obs.Duncan_SMF_z7[:,2], Obs.Duncan_SMF_z7[:,3]],\
-                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[2], ls='none', label = 'Duncan et al. 2014', color = Obs.SMF_colors[2], rasterized=True) 
+                capsize = capsize, alpha=alpha, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[2], ls='none', label = 'Duncan et al. 2014', color = Obs.SMF_colors[2], rasterized=True) 
 
     ax.errorbar(Obs.Song_SMF_z7[:,0]+h_converter_x(0.7, AllVars.Hubble_h)-np.log10(Chabrier_to_Salpeter),\
                 10**(Obs.Song_SMF_z7[:,1])/h_converter_y(0.7, AllVars.Hubble_h),\
                 yerr= (10**(Obs.Song_SMF_z7[:,1])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z7[:,3])/h_converter_y(0.7, AllVars.Hubble_h), 10**(Obs.Song_SMF_z7[:,2])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z7[:,1])/h_converter_y(0.7, AllVars.Hubble_h)),\
                 xerr = 0.25,\
-                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2016', color = Obs.SMF_colors[1], rasterized=True) 
+                capsize = capsize, alpha=alpha, elinewidth = errorwidth, lw=1.0, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2016', color = Obs.SMF_colors[1], rasterized=True) 
 
-def Plot_SMF_z8(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0):
+def Plot_SMF_z8(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0, alpha = 1.0):
 
     ax.errorbar(Obs.Song_SMF_z8[:,0]+h_converter_x(0.7, AllVars.Hubble_h)-np.log10(Chabrier_to_Salpeter),\
                 10**(Obs.Song_SMF_z8[:,1])/h_converter_y(0.7, AllVars.Hubble_h),\
                 yerr= (10**(Obs.Song_SMF_z8[:,1])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z8[:,3])/h_converter_y(0.7, AllVars.Hubble_h), 10**(Obs.Song_SMF_z8[:,2])/h_converter_y(0.7, AllVars.Hubble_h) - 10**(Obs.Song_SMF_z8[:,1]/h_converter_y(0.7, AllVars.Hubble_h))),\
                 xerr = 0.25,\
-                capsize = capsize, alpha=0.75, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2016', color = Obs.SMF_colors[1], rasterized=True) 
+                capsize = capsize, alpha=alpha, elinewidth = errorwidth, lw=linewidth, marker=Obs.SMF_markers[1], ls='none', label = 'Song et al. 2016', color = Obs.SMF_colors[1], rasterized=True) 
   
-def plot_SMBH_z8(ax, linewidth = 1.0):
+def plot_SMBH_z8(ax, linewidth = 1.0, alpha = 1.0):
   
-    ax.plot(Obs.Mstar, Obs.Huang_z8_BHSM, alpha = 0.75, lw = linewidth, ls = '-.', label = "Huang et al. 2018", color = Obs.SMBH_colors[0], rasterized = True)
+    ax.plot(Obs.Mstar, Obs.Huang_z8_BHSM, alpha = alpha, lw = linewidth, ls = '-.', label = "Huang et al. 2018", color = Obs.SMBH_colors[0], rasterized = True)
    

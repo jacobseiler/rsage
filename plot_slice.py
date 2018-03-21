@@ -2373,9 +2373,9 @@ if __name__ == '__main__':
 
     ## Kali ## 
    
-    model_tags = [r"$f_\mathrm{esc} = 0.20$", r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$"]
+    model_tags = [r"$Base$", r"$Consistent$"]
 
-    output_tags = [r"Constant", r"Quasar"]
+    output_tags = [r"Base", r"Consistent"]
 
     number_models = 2
 
@@ -2386,17 +2386,17 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'paper_Kali'
+    model = 'self_consistent_kali'
 
     GridSize_model1 = 256
         
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
    
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_fesc0.20/XHII"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_quasar_0.10_1.00_2.50/XHII"
+    filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/cifog/XHII"
     
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_fesc0.20/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_nionHI" 
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_quasar_0.10_1.00_2.50/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/nion/test_fesc0.20_HaloPartCut32_nionHI"
   
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
     filepath_density_model2 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
@@ -2479,7 +2479,7 @@ if __name__ == '__main__':
     #calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
     #MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
  
-    calculate_power = 0 # 0 to NOT calculate the power spectra, 1 to calculate it. 
+    calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calculate it. 
 
     do_hoshen = 0
     
@@ -2604,11 +2604,11 @@ if __name__ == '__main__':
     #        MC_ZZ[model_number][-1] = ZZ[-1]
 
     if (rank == 0): 
-        #plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction_time")
-        #plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array, simulation_norm, 1, model_tags, OutputDir, "QuasarCold_Paper")
+        plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction_time")
+        plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array, simulation_norm, 1, model_tags, OutputDir, "QuasarCold_Paper")
         plot_optical_depth(AllVars.SnapZ[snaplist], volume_frac_array, model_tags, OutputDir, "OpticalDepth")
 
-        #plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+        plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
 
         if(plot_MC == 1):
             plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ))
@@ -2625,7 +2625,7 @@ if __name__ == '__main__':
             plotting_HI = volume_frac_array 
 
     #plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
-    #plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
+    plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)

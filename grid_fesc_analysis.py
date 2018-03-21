@@ -175,13 +175,11 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
 
     norm = pow(AllVars.BoxSize,3) / pow(AllVars.Hubble_h, 3) * bin_width 
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(8,8))
     ax1 = fig.add_subplot(111)
 
-    fig2 = plt.figure(figsize=(8,8))
-    gs = gridspec.GridSpec(2, 1, height_ratios=[1,2])
-    ax2 = plt.subplot(gs[0])
-    ax3 = plt.subplot(gs[1])
+    fig2 = plt.figure(figsize=(8,8))    
+    ax3 = fig2.add_subplot(111)
 
     for model_number in range(len(filename_base)):
         count = 0
@@ -198,11 +196,11 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
             w_halo = np.where((N_Mvir > 0.0))
             w_gal = np.where((N_Mstar > 0.0))
             if model_number == 0:
-                label = "z = {0:d}".format(int(round(AllVars.SnapZ[snapshot_idx])))
+                label = r"$\mathbf{z = " + str(int(round(AllVars.SnapZ[snapshot_idx]))) + "}$"                
             else:
                 label = ""
             ax1.plot(bins_mid_Mvir[w_halo], mean_Mvir[w_halo], color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)
-            ax2.plot(bins_mid_Mstar[w_gal], N_Mstar[w_gal] / norm, color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], lw = PlotScripts.global_linewidth)
+            #ax2.plot(bins_mid_Mstar[w_gal], N_Mstar[w_gal] / norm, color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], lw = PlotScripts.global_linewidth)
             ax3.plot(bins_mid_Mstar[w_gal], mean_Mstar[w_gal], color = PlotScripts.colors[count], ls = PlotScripts.linestyles[model_number], label = label, lw = PlotScripts.global_linewidth)
 
             #w_mass = np.where((bins_mid_Mstar > 6.8))[0] 
@@ -222,38 +220,53 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
     ax3.axhline(0.10, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')
 
     #ax1.axvline(resolution, color = 'k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')   
-    ax1.text(11.0, 0.22, r"$f_\mathrm{esc} = 0.20$", color = 'k', size = PlotScripts.global_fontsize - 2)
-    ax1.text(9.25, 0.11, r"$f_\mathrm{esc, \: base}$", color = 'k', size = PlotScripts.global_fontsize - 2)
+    ax1.text(11.0, 0.22, r"$f_\mathrm{esc} = 0.20$", color = 'k', size = PlotScripts.global_fontsize)
+    ax1.text(9.25, 0.11, r"$f_\mathrm{esc, \: base}$", color = 'k', size = PlotScripts.global_fontsize)
 
-    ax3.text(7.6, 0.21, r"$f_\mathrm{esc} = 0.20$", color = 'k', size = PlotScripts.global_fontsize - 2)
-    ax3.text(7.6, 0.11, r"$f_\mathrm{esc, \: base}$", color = 'k', size = PlotScripts.global_fontsize - 2)
+    ax3.text(7.6, 0.21, r"$f_\mathrm{esc} = 0.20$", color = 'k', size = PlotScripts.global_fontsize)
+    ax3.text(7.6, 0.11, r"$f_\mathrm{esc, \: base}$", color = 'k', size = PlotScripts.global_fontsize)
 
-    ax1.set_xlabel(r'$\log_{10}\ \mathrm{M}_\mathrm{vir}\ [\mathrm{M}_{\odot}]$', size = PlotScripts.global_fontsize) 
-    ax1.set_ylabel(r'$\langle f_\mathrm{esc}\rangle_\mathrm{M_{vir}}$', size = PlotScripts.global_fontsize)
-    ax1.set_xlim([resolution, 11.75])
-    ax1.set_ylim([-0.01, 0.50])
+    ax1.set_xlabel(r'$\log_{10}\: \mathrm{M}_\mathrm{vir}\ [\mathrm{M}_{\odot}]$', size = PlotScripts.global_labelsize) 
+    ax1.set_ylabel(r'$\langle f_\mathrm{esc}\rangle_\mathrm{M_{vir}}$', size = PlotScripts.global_labelsize)
 
-    ax2.set_yscale('log', nonposy='clip') 
+
+    #ax1.set_xlim([resolution, 11.75])
+    #ax1.set_ylim([-0.01, 0.50])
+
+    #ax2.set_yscale('log', nonposy='clip') 
     
-    ax2.set_ylim([1e-5, 1e0])
-    ax2.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = PlotScripts.global_fontsize) 
-    ax2.tick_params(which = 'both', direction='in')   
+    #ax2.set_ylim([1e-5, 1e0])
+    #ax2.set_ylabel(r'$\Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]$', fontsize = PlotScripts.global_fontsize) 
+    #ax2.tick_params(which = 'both', direction='in')   
  
-    ax3.tick_params(which = 'both', direction='in')   
-    ax3.set_xlabel(r'$\log_{10}\ \mathrm{M}_\mathrm{*}\ [\mathrm{M}_{\odot}]$', size = PlotScripts.global_fontsize) 
-    ax3.set_ylabel(r'$\langle f_\mathrm{esc}\rangle_\mathrm{M_{*}}$', size = PlotScripts.global_fontsize)
+    #ax3.tick_params(which = 'both', direction='in', width = PlotScripts.global_tickwidth)
+
+    #ax3.tick_params(which = 'major', length = PlotScripts.global_ticklength)
+    #ax3.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
+ 
+    ax3.set_xlabel(r'$\mathbf{log_{10} \: M_*\ [M_{\odot}]}$', size = PlotScripts.global_labelsize) 
+    ax3.set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', size = PlotScripts.global_labelsize)
+
+    for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+        ax3.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
 
     #ax2.set_xlim([resolution, 11.75])
-    ax3.set_ylim([0.05, 0.46])   
+    #ax3.set_ylim([0.05, 0.46])   
 
-    ax1.set_xticks(np.arange(9.0, 12.0))  
-    ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
-    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+    #ax1.set_xticks(np.arange(9.0, 12.0))  
+    #ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+    #ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
 
-    ax3.set_xlim([6.8, 9.8])
-    ax3.set_xticks(np.arange(7.0, 11.0))  
-    ax3.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
-    ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+    #ax3.set_xlim([6.8, 9.8])
+    #ax3.set_xticks(np.arange(7.0, 11.0))  
+    #ax3.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+    #ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+
+    #tick_locs = np.arange(7.0, 11.0)
+    #ax3.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], fontsize = PlotScripts.global_fontsize)
+
+    #tick_locs = np.arange(0.05, 0.50, 0.05)
+    #ax3.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], fontsize = PlotScripts.global_fontsize)
    
     leg = ax1.legend(loc='upper left', bbox_to_anchor=(0.3, 1.02), numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
@@ -282,11 +295,13 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
     print("")
     print("Plotting the total number of ionizing photons") 
 
-    fig = plt.figure()
+    fig = plt.figure(figsize = (8,8))
     ax1 = fig.add_subplot(111)
+    #ax1.set_aspect('equal')
 
-    fig2 = plt.figure()
+    fig2 = plt.figure(figsize = (8,8))
     ax3 = fig2.add_subplot(111)
+    #ax3.set_aspect('equal')
 
     nion = np.empty((len(base_grid_name), len(SnapList[0])))
     dt_nion = np.empty((len(base_grid_name), len(SnapList[0])-1))
@@ -329,22 +344,31 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
 
     if plot_time == 1:
         ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2)
-        ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+        ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.6, 
+                         label = r"$\mathbf{Bouwens \: et \: al. \: (2015)}$")
     else:
         ax1.fill_between(bouwens_z, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2)
-        ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.4, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
+        ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.6, 
+                         label = r"$\mathbf{Bouwens \: et \: al. \: (2015)}$")
 
     if plot_time == 1:
-        ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_labelsize)
-        ax1.set_xticks(np.arange(300.0, 1000.0, 100.0))  
+        ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", fontsize = PlotScripts.global_labelsize)
+        tick_locs = np.arange(200.0, 1000.0, 100.0)
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(PlotScripts.time_tickinterval))
+        tick_labels = [r"$\mathbf{%d}$" % x for x in tick_locs]
+        ax1.xaxis.set_major_locator(mtick.MultipleLocator(100))
+        ax1.set_xticklabels(tick_labels, fontsize = PlotScripts.global_fontsize)
+
         ax1.set_xlim(PlotScripts.time_xlim)
 
-        ax1.set_ylabel(r'$\sum f_\mathrm{esc}\dot{N}_\gamma \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$', fontsize = PlotScripts.global_fontsize)                 
+        ax1.set_ylabel(r'$\mathbf{log_{10} \sum f_{esc}\dot{N}_\gamma \: [s^{-1} Mpc^{-3}]}$', fontsize = PlotScripts.global_labelsize)                 
         ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.25))
-        ax1.set_ylim([48.5, 51.5])
+        
+        tick_locs = np.arange(48.0, 51.25, 0.5)
+        ax1.set_yticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs], fontsize = PlotScripts.global_fontsize)
+        ax1.set_ylim([48.4, 51.25])
 
-        ax3.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_labelsize)
+        ax3.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", size = PlotScripts.global_labelsize)        
         ax3.xaxis.set_minor_locator(mtick.MultipleLocator(PlotScripts.time_tickinterval))
         ax3.set_xlim(PlotScripts.time_xlim)
 
@@ -353,30 +377,32 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
         ax3.set_ylim([0.0, 1.0])
 
         ax2 = ax1.twiny()
+        #ax2.set_aspect('equal')
 
         t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
-        z_labels = ["$%d$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
+        z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
 
-        ax2.set_xlabel(r"$z$", fontsize = PlotScripts.global_labelsize)
+        ax2.set_xlabel(r"$\mathbf{z}$", fontsize = PlotScripts.global_labelsize)
         ax2.set_xlim(PlotScripts.time_xlim)
         ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
-        ax2.set_xticklabels(z_labels) # But label them as redshifts.
+        ax2.set_xticklabels(z_labels, fontsize = PlotScripts.global_fontsize) # But label them as redshifts.
 
         ax4 = ax3.twiny()
+        #ax4.set_aspect('equal')
 
         t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
-        z_labels = ["$%d$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
-
-        ax4.set_xlabel(r"$z$", fontsize = PlotScripts.global_labelsize)
+        z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
+        
+        ax4.set_xlabel(r"$\mathbf{z}$", fontsize = PlotScripts.global_labelsize)        
         ax4.set_xlim(PlotScripts.time_xlim)
         ax4.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
-        ax4.set_xticklabels(z_labels) # But label them as redshifts.
+        ax4.set_xticklabels(z_labels, fontsize = PlotScripts.global_fontsize) # But label them as redshifts.
         
     else:
         ax1.set_xlabel(r"$z$", size = PlotScripts.global_labelsize)
         ax1.set_ylabel(r"$\mathrm{log}_{10} \: \dot{N}_{\mathrm{HI}} \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$", fontsize = PlotScripts.global_labelsize)
         ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
-        ax1.set_ylim([48.5, 51.5])
+        ax1.set_ylim([48.5, 51.25])
 
         '''
         ax3.set_xlim(time_xlim)
@@ -389,11 +415,29 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
         tick.label.set_fontsize(label_size - 5)
         '''
     ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
-    ax1.text(350, 50.8, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
+    ax1.text(350, 50.5, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
 
-    ax1.tick_params(which = 'both', direction='in')   
-    ax2.tick_params(which = 'both', direction='in')   
-    ax3.tick_params(which = 'both', direction='in')   
+    for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+        ax1.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+
+    for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+        ax2.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+
+    for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+        ax3.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+
+    ax1.tick_params(which = 'both', direction='in', width = PlotScripts.global_tickwidth)
+    ax1.tick_params(which = 'major', length = PlotScripts.global_ticklength)
+    ax1.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
+
+    ax2.tick_params(which = 'both', direction='in', width = PlotScripts.global_tickwidth)
+    ax2.tick_params(which = 'major', length = PlotScripts.global_ticklength)
+    ax2.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
+
+    ax3.tick_params(which = 'both', direction='in', width = PlotScripts.global_tickwidth)
+    ax3.tick_params(which = 'major', length = PlotScripts.global_ticklength)
+    ax3.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
+
 
     leg = ax1.legend(loc='lower right', numpoints=1,
                      labelspacing=0.1)
@@ -425,33 +469,20 @@ if __name__ == '__main__':
 
     AllVars.Set_Params_Kali()
     PlotScripts.Set_Params_Plot()
-
-    #PlotSnapshot = [[35, 40, 45, 50], [35, 40, 45, 50]]
-    #PlotSnapshot = [[35, 40, 45, 50]]
-
-    #PlotSnapshot = [[64, 76, 80, 93], [64, 76, 80, 93]]
-    #PlotSnapshot = [[64, 76, 80, 93]]
        
-    PlotSnapshot = [[42, 64, 76, 93], [42, 64, 76, 93]]
-    #PlotSnapshot = [[27, 40, 49, 76, 93]]
+    PlotSnapshot = [[42, 64, 76, 93]] 
 
-    #model_tags = [r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar, 0.05,1.00,2.00}$", r"$f_\mathrm{esc} = 0.10$"]
-    model_tags = [r"$f_\mathrm{esc} \: \propto \: \mathrm{Quasar \: Activity}$", r"$f_\mathrm{esc} = 0.20$"]
-    #model_tags = [r"$f_\mathrm{esc} = 0.20$"]        
-    #model_tags = [r"$Useless$", r"$f_\mathrm{esc} = 0.15, \: \mathrm{SF 0.03}$"]
-    #model_tags = [model_tags[0]]
+    model_tags = [r"$\mathbf{f_{esc} \: \propto \: Quasar \: Activity}$", 
+                  r"$\mathbf{f_{esc} = 0.20}$"]
  
-    fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_quasar_0.10_1.00_2.50/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_fescproperties"]     
+    fname = ["/lustre/projects/p004_swin/jseiler/kali/kali_QuasarEff0.02/grids/nion_fields/kali_QuasarEff0.02_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties"]
     fname = [fname[0]]
 
-    #nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/grids/kali_starburst_quasarwind_SF0.01_NoFractional_fesc0.10_HaloPartCut32_nionHI"]
-    nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_quasar_0.10_1.00_2.50/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_fesc0.20/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_nionHI"] 
-    #nion_fname = [nion_fname[0]]   
  
     simulation_norm = [6, 6]
 
-    #plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1, model_tags, "nion_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.50_fesc0.20")
+    #plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1, model_tags, "nion_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.00_fesc0.20")
 
-    plot_fesc_z(fname, PlotSnapshot, model_tags, "grid_fesc_QuasarEff0.02_quasar_0.10_1.00_2.50")
+    plot_fesc_z(fname, PlotSnapshot, model_tags, "QuasarEff0.02_0.10_1.00_2.50")
 
     #plot_fescNgamma_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_paper_Ngammafesc_allz_starburst_medium_quasarwind_fesc0.10_fboosted1.00_HaloPartCut32_1DynTime")
