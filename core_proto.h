@@ -23,7 +23,7 @@ void free_galaxies_and_tree(void);
 void free_grid_arrays(struct GALAXY *g);
 void free_tree_table(void);
 int32_t free_grid(void);
-int32_t free_reion_lists(void);
+int32_t free_reion_lists(int32_t filenr);
 int32_t malloc_grid_arrays(struct GALAXY *g);
 void print_allocated(void);
 
@@ -40,7 +40,7 @@ void finalize_merged_galaxy_file(int filenr);
 void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal);
 void add_galaxies_together(int t, int p);
 void init_galaxy(int treenr, int p, int halonr);
-double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr);
+double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr, int32_t filenr);
 void add_infall_to_hot(int centralgal, double infallingGas, double dt);
 double cooling_recipe(int centralgal, double dt);
 void cool_gas_onto_galaxy(int centralgal, double coolingGas);
@@ -52,8 +52,8 @@ double dmax(double x, double y);
 
 double do_reionization(int centralgal, double Zcurr, int ReturnMfilt);
 double do_myreionization(int centralgal, double Zcurr, double *Mfilt);
-double do_self_consistent_reionization(int p, int halonr, int infall);
-double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int infall);
+int32_t do_self_consistent_reionization(int p, int halonr, int infall, int32_t filenr, double *reionization_modifier);
+double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t infall, int32_t filenr, int64_t *found_idx);
 
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree, int ngal);
@@ -63,7 +63,7 @@ void make_bulge_from_burst(int p);
 void grow_black_hole(int merger_centralgal, double mass_ratio, int32_t step);
 void check_disk_instability(int p, int centralgal, int halonr, double time, double dt, int step, int tree, int ngal);
 
-void strip_from_satellite(int halonr, int centralgal, int gal);
+void strip_from_satellite(int halonr, int centralgal, int gal, int32_t filenr, int32_t step);
 void disrupt_satellite_to_ICS(int centralgal, int gal, int tree);
 void quasar_mode_wind(int gal, float BHaccrete, int32_t step);
 

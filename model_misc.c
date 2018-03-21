@@ -23,6 +23,9 @@ void init_galaxy(int p, int halonr, int treenr)
   GalaxyCounter++;
   
   Gal[p].HaloNr = halonr;
+  if (halonr == 83 && treenr == 5)
+    printf("In init_galaxy, SnapNum = %d\thalonr = %d\ttreenr = %d\n", Halo[halonr].SnapNum - 1, halonr, treenr);
+   
   Gal[p].MostBoundID = Halo[halonr].MostBoundID;
   //Gal[p].MostBoundID = -1; 
   Gal[p].SnapNum = Halo[halonr].SnapNum - 1;
@@ -239,15 +242,26 @@ int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t *grid_1D
 
   int32_t x_grid, y_grid, z_grid;
 
-  x_grid = pos_x * GridSize/BoxSize;
-  y_grid = pos_y * GridSize/BoxSize;
-  z_grid = pos_z * GridSize/BoxSize;
+  x_grid = round(pos_x * GridSize/BoxSize);
+  if (x_grid == GridSize)
+    --x_grid;
+
+  y_grid = round(pos_y * GridSize/BoxSize);
+  if (y_grid == GridSize)
+    --y_grid;
+
+  z_grid = round(pos_z * GridSize/BoxSize);
+  if (z_grid == GridSize)
+    --z_grid;
+  
 
   *grid_1D = (z_grid*GridSize+y_grid)*GridSize+x_grid; // Convert the grid (x,y,z) to a 1D value.
 
   if(*grid_1D > CUBE(GridSize) || *grid_1D < 0) // Sanity check to ensure that no Grid Positions are outside the box.
   {
-    fprintf(stderr, "Found a Grid Position outside the bounds of the box or negative; grid_position = %d\nPos[0] = %.4f\t Pos[1] = %.4f\tPos[2] = %.4f", *grid_1D, pos_x, pos_y, pos_z); 
+    fprintf(stderr, "Found a Grid Position outside the bounds of the box or negative\nPos[0] = %.4f\tPos[1] = %.4f\tPos[2] = %.4f\n", pos_x, pos_y, pos_z);
+    fprintf(stderr, "Grid indices were x = %d\ty = %d\tz = %d\t1D = %d\tMaximum Allowed = %d\n", x_grid, y_grid, z_grid, *grid_1D, CUBE(GridSize) - 1);
+ 
     return EXIT_FAILURE;
   }
 

@@ -18,10 +18,32 @@ void construct_galaxies(int halonr, int tree, int filenr)
   static int halosdone = 0;
   int prog, fofhalo, ngal;
 
+  int64_t HaloID;
+  HaloID = ((int64_t)tree << 32) | halonr; // Generates the unique ID for each halo within this file. 
+
+
   HaloAux[halonr].DoneFlag = 1;
   halosdone++;
 
   prog = Halo[halonr].FirstProgenitor;
+
+  fofhalo = Halo[halonr].FirstHaloInFOFgroup;
+  if (tree == 0 && halonr == 110) 
+  {
+    printf("In construct_galaxies, treenr = %d\t halonr = %d\t ID = %ld\n", tree, halonr, (long)HaloID);
+    printf("Snapshot %d\tprog = %d\tfofhalo = %d\tprog snapshot = %d\tfof snapshot = %d\n", Halo[halonr].SnapNum, prog, Halo[halonr].FirstHaloInFOFgroup, Halo[prog].SnapNum, Halo[fofhalo].SnapNum); 
+    printf("Pos: x = %.4f\ty = %.4f\t z = %.4f\n", Halo[halonr].Pos[0], Halo[halonr].Pos[1], Halo[halonr].Pos[2]);
+    printf("FoF Pos: x = %.4f\ty = %.4f\t z = %.4f\n", Halo[fofhalo].Pos[0], Halo[fofhalo].Pos[1], Halo[fofhalo].Pos[2]);
+
+    int32_t idx, status;
+    status = determine_1D_idx(Halo[halonr].Pos[0], Halo[halonr].Pos[1], Halo[halonr].Pos[2], &idx);
+    printf("idx = %d\n", idx);
+
+    status = determine_1D_idx(Halo[fofhalo].Pos[0], Halo[fofhalo].Pos[1], Halo[fofhalo].Pos[2], &idx);
+    printf("fof idx = %d\n", idx);
+    
+  }
+
   while(prog >= 0)
   {
     if(HaloAux[prog].DoneFlag == 0)
@@ -243,6 +265,10 @@ int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
 
   if(ngal == 0)
   {
+    if (treenr == 5)
+    {
+    //  printf("Walking the tree and initing a galaxy: treenr = %d\thalonr = %d\tHalo_SnapNum = %d\n", treenr, halonr, Halo[halonr].SnapNum);
+    }
     // We have no progenitors with galaxies. This means we create a new galaxy. 
     init_galaxy(ngal, halonr, treenr);
     ngal++;
@@ -286,9 +312,21 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
   XASSERT(Gal[centralgal].Type == 0 && (Gal[centralgal].HaloNr == halonr), "We require that Gal[centralgal].Type = 0 and Gal[centralgal].HaloNr = halonr.\nWe have Gal[centralgal].Type = %d, Gal[centralgal].HaloNr = %d, halonr = %d, centralgal = %d\n", Gal[centralgal].Type, Gal[centralgal].HaloNr, halonr, centralgal);
   XASSERT(Gal[centralgal].mergeType == 0 || Gal[centralgal].Type == 1, "The central galaxy should not merge within this timestep (mergeType = 0) - if it does it is a satellite galaxy (Type = 1).\n The central galaxy is %d and has mergeType %d with Type %d\n", centralgal, Gal[centralgal].mergeType, Gal[centralgal].Type); 
 
-  infallingGas = infall_recipe(centralgal, ngal, ZZ[Halo[halonr].SnapNum], halonr);
+  infallingGas = infall_recipe(centralgal, ngal, ZZ[Halo[halonr].SnapNum], halonr, filenr);
 
   // We first want to determine how much delayed SN feedback needs to be applied for each galaxy over this evolution step.
+  int64_t HaloID;
+
+  HaloID = ((int64_t)tree << 32) | halonr; // Generates the unique ID for each halo within this file. 
+
+  /*
+  if (tree == 0 && halonr == 110) 
+  {
+    printf("In evolve_galaxies, treenr = %d\t halonr = %d\t ID = %ld\n", tree, halonr, (long)HaloID);
+    printf("Ngal = %d\n", ngal);
+    exit(0);
+  }
+  */ 
 
   for(p = 0; p < ngal; p++)
   {
@@ -329,7 +367,7 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
       }
 			else 
 				if(Gal[p].Type == 1 && Gal[p].HotGas > 0.0)
-					strip_from_satellite(halonr, centralgal, p);
+					strip_from_satellite(halonr, centralgal, p, filenr, 1);
 
       // Determine the cooling gas given the halo properties 
       coolingGas = cooling_recipe(p, deltaT / STEPS);

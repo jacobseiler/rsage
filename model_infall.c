@@ -9,7 +9,7 @@
 
 
 
-double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
+double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr, int32_t filenr)
 {
   int i;
   double tot_stellarMass, tot_BHMass, tot_coldMass, tot_hotMass, tot_ejected, tot_ICS;
@@ -17,6 +17,8 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
 	double tot_satBaryons; 
   double infallingMass, reionization_modifier;
   double dummy;
+
+  int32_t status;
  
   // need to add up all the baryonic mass asociated with the full halo 
   tot_stellarMass = tot_coldMass = tot_hotMass = tot_hotMetals = tot_ejected = tot_BHMass = tot_ejectedMetals = tot_ICS = tot_ICSMetals = tot_satBaryons = 0.0;
@@ -58,7 +60,11 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
   }
   else if (ReionizationOn == 3)
   {
-    reionization_modifier = do_self_consistent_reionization(centralgal, halonr, 1);
+    status = do_self_consistent_reionization(centralgal, halonr, 1, filenr, &reionization_modifier);
+    if (status == EXIT_FAILURE)
+    {
+      ABORT(EXIT_FAILURE);     
+    }
   }
   else
   {
@@ -102,10 +108,11 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
 
 
 
-void strip_from_satellite(int halonr, int centralgal, int gal)
+void strip_from_satellite(int halonr, int centralgal, int gal, int32_t filenr, int32_t step)
 {
   double reionization_modifier, strippedGas, strippedGasMetals, metallicity, dummy;
-  
+  int32_t status; 
+ 
   if(ReionizationOn == 1)
   {
     reionization_modifier = do_reionization(centralgal, ZZ[Halo[halonr].SnapNum], 0); 
@@ -116,7 +123,11 @@ void strip_from_satellite(int halonr, int centralgal, int gal)
   }
   else if (ReionizationOn == 3)
   {
-    reionization_modifier = do_self_consistent_reionization(centralgal, halonr, 0);
+    status = do_self_consistent_reionization(centralgal, halonr, step+1, filenr, &reionization_modifier);
+    if (status == EXIT_FAILURE)
+    {
+      ABORT(EXIT_FAILURE);
+    }
   }
 
   else
@@ -300,7 +311,7 @@ void add_infall_to_hot(int gal, double infallingGas, double dt)
   }
 }
 
-double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t infall)
+double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increment_counter, int32_t filenr, int64_t *found_idx)
 {
 
   int32_t is_found;
@@ -313,6 +324,14 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t infall
   number_search_IDs = ReionList->ReionMod_List[SnapNum].NHalos_Ionized; // This is the numbers of IDs that we are searching through. 
 
   search_idx = ceil(number_search_IDs / 2.0) - 1; 
+
+  /*
+  if (match_HaloID == 110)
+  {
+    printf("search_idx = %ld\t number_search_IDs = %d\n", (long)search_idx, number_search_IDs);
+  }
+  */
+
   while (is_found == 0)
   {
     ++count;
@@ -335,57 +354,124 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t infall
       search_idx = search_idx - ceil(number_search_IDs / pow(2, count + 1)); // Move down the list. 
     }
 
+    // When the HaloID we're trying to match is at idx 0 it can be tough to
+    // find.  For example, if we're at idx 1 then we try and move down the
+    // list, we will end up in negatives!  In this case, fix up the edge case.
+    if (search_idx < 0) 
+    {
+      search_idx = 0;
+    }
+
     if (search_idx >= number_search_IDs) // Fix edge case.
     {
       search_idx = number_search_IDs -1;
     }
+
+    /*
+    if (match_HaloID == 110)
+    {
+      printf("search_idx = %ld\t search_HaloID = %ld\tcount = %ld\n", (long)search_idx, (long)search_HaloID, (long)count);
+    }
+    */
 
   }
 
   if (is_found == 1)
   {
     reionization_modifier = ReionList->ReionMod_List[SnapNum].ReionMod[search_idx];
-    if (infall == 1) // Only want to increment our counters once. Let's do this for the infall recipe (because it will always be called).
+    *found_idx = search_idx;
+    if (increment_counter == 1) // Only want to increment our counters once as for satellite galaxies with a subhalo, strip_from_satellite is called multiple times. 
     {
       ++ReionList->ReionMod_List[SnapNum].NHalos_Found;
-      printf("Found unique HaloID %ld with modifier %.4f\n", match_HaloID, reionization_modifier); 
+      //printf("Filenr %d: Found unique HaloID %ld at index %ld with modifier %.4f\n", filenr, match_HaloID, *found_idx, reionization_modifier); 
     }
   }
   else
   {
     reionization_modifier = 1.0;
+    *found_idx = -1;
   }
 
   return reionization_modifier;
 
 }
 
-double do_self_consistent_reionization(int p, int halonr, int infall)
+int cmpfunc (const void * a, const void * b) 
+{
+   return ( *(int64_t*)a - *(int64_t*)b );
+}
+
+int32_t do_self_consistent_reionization(int32_t p, int32_t halonr, int32_t increment_counter, int32_t filenr, double *reionization_modifier)
 {
 
   int32_t treenr; 
-  int64_t HaloID;
-  double reionization_modifier;
+  int64_t HaloID, *bsearch_status, found_idx = -1;
 
   if (ReionSnap == LowSnap)
   {
-    return 1.0;
+    *reionization_modifier = 1.0;
+    return EXIT_SUCCESS; 
   }
 
   if ((Halo[halonr].SnapNum > ReionSnap) || (ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized == 0)) // We have yet to do reionization for this snapshot or if there are no halos within ionized regions for this snapshot.
   {
-    return 1.0; // Reionization hasn't happened yet for this halo.
+    *reionization_modifier = 1.0; // Reionization hasn't happened yet for this halo.
+    return EXIT_SUCCESS; 
   } 
   
   ReionList->NumLists = ReionSnap; 
 
   treenr = Gal[p].TreeNr;
 
-  HaloID = (int64_t) treenr << 32 | halonr; // Generates the unique ID for each halo within this file. 
+  HaloID = ((int64_t)treenr << 32) | (int64_t)halonr; // Generates the unique ID for each halo within this file. 
 
-  reionization_modifier = search_for_modifier(HaloID, Halo[halonr].SnapNum, infall);
+  /*
+  if (treenr == 0 && halonr == 110)
+  {
+    printf("In infall, treenr = %d\t halonr = %d\t ID = %ld\tSnapShot = %d\n", treenr, halonr, (long)HaloID, Halo[halonr].SnapNum);
+  }
+  */
 
-  return reionization_modifier; 
+  /*
+  bsearch_status = (long*)bsearch(&HaloID, ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID, ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized, sizeof(int64_t), cmpfunc);
+  //printf("Number of halos in ionized regions %d\n", ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized); 
+  if (bsearch_status != NULL)
+  {
+    int64_t found_idx;
+
+    printf("Filenr %d: Found unique HaloID %ld\n", filenr, HaloID);
+    found_idx = bsearch_status - ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID;
+    *reionization_modifier = ReionList->ReionMod_List[Halo[halonr].SnapNum].ReionMod[found_idx];
+
+    if (ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID[found_idx] != HaloID)
+    {
+      fprintf(stderr, "After searching for HaloID %ld (corresponding to tree number %d and halo number %d) within the reionization list, the found_idx was %ld.  However queuring the reionization list at snapshot %d, the HaloID at %ld index is %ld\n", (long)HaloID, treenr, halonr, (long)found_idx, Halo[halonr].SnapNum, (long)found_idx, ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID[found_idx]);
+
+      return EXIT_FAILURE; 
+    } 
+  }
+  else
+  {
+    *reionization_modifier = 1.0;
+  }
+  */
+  *reionization_modifier = search_for_modifier(HaloID, Halo[halonr].SnapNum, increment_counter, filenr, &found_idx); 
+
+  if (found_idx == -1)
+  {
+    *reionization_modifier = 1.0;
+    return EXIT_SUCCESS;
+  }
+
+  if (ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID[found_idx] != HaloID)
+  {
+    fprintf(stderr, "After searching for HaloID %ld (corresponding to tree number %d and halo number %d) within the reionization list, the found_idx was %ld.  However queuring the reionization list at snapshot %d, the HaloID at %ld index is %ld\n", (long)HaloID, treenr, halonr, (long)found_idx, Halo[halonr].SnapNum, (long)found_idx, ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID[found_idx]);
+
+    return EXIT_FAILURE; 
+  } 
+
+ 
+  return EXIT_SUCCESS; 
 
 }
 

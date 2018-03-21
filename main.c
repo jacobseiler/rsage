@@ -85,9 +85,10 @@ int main(int argc, char **argv)
   if(argc != 2)
   {
     printf("\n  usage: sage <parameterfile>\n\n");
-    ABORT(0);
+    ABORT(EXIT_FAILURE);
   }
 
+  printf("Executing with %s %s\n", argv[0], argv[1]);
   atexit(bye);
 
   sigaction(SIGXCPU, NULL, &saveaction_XCPU);
@@ -198,7 +199,7 @@ int main(int argc, char **argv)
 
     if (ReionizationOn == 3)
     {
-      status = free_reion_lists();
+      status = free_reion_lists(filenr);
       if (status == EXIT_FAILURE)
       {
         ABORT(EXIT_FAILURE);
@@ -215,7 +216,11 @@ int main(int argc, char **argv)
   {
     status = free_grid();
   } 
-  
+ 
+  char copy_command[MAXLEN];
+  snprintf(copy_command, MAXLEN-1, "cp %s %s", argv[1], OutputDir); 
+  system(copy_command);
+ 
   return 0;
   
 }

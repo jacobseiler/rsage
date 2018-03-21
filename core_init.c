@@ -264,7 +264,7 @@ int32_t init_reion_lists(int32_t filenr)
     fread(&SnapNum_Read, sizeof(int32_t), 1, ListFile);
 
     fread(&ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(int32_t), 1, ListFile);
-    printf("Snapshot %d has %d Halos in the list.\n", SnapNum_Read, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
+    //printf("Snapshot %d has %d Halos in the list.\n", SnapNum_Read, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
 
     if (SnapNum_Read != SnapNum)
     { 
@@ -287,6 +287,16 @@ int32_t init_reion_lists(int32_t filenr)
     }
 
     fread(ReionList->ReionMod_List[SnapNum].HaloID, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
+
+    /*
+    int32_t i;
+    for (i = 0; i < ReionList->ReionMod_List[SnapNum].NHalos_Ionized; ++i)
+    {
+      int64_t ID;
+      ID = ReionList->ReionMod_List[SnapNum].HaloID[i];
+      printf("File %d: HaloID %ld is in the list, corresponding to tree %d and Halo number %d\n", filenr, ID, (int32_t)(ID >> 32), (int32_t)ID); 
+    }
+    */
 
     ReionList->ReionMod_List[SnapNum].ReionMod = malloc(sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)) * ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
     if (ReionList->ReionMod_List[SnapNum].ReionMod == NULL)

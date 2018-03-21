@@ -120,6 +120,10 @@ void load_tree(int filenr, int nr)
       Max_Halo = Halo[i].Mvir;
     if(Halo[i].Mvir < Min_Halo)
       Min_Halo = Halo[i].Mvir;
+    if (nr == 5 && i == 83)
+    {
+      printf("After loading the tree, HaloNr %d\n", i); 
+    }
  
 #ifdef BRITTON_SIM     
     Halo[i].Pos[0] = Halo[i].Pos[0] - 775.0;
@@ -382,7 +386,7 @@ int32_t free_grid()
 
 } 
 
-int32_t free_reion_lists()
+int32_t free_reion_lists(int32_t filenr)
 {
 
   int32_t SnapNum;
@@ -401,7 +405,7 @@ int32_t free_reion_lists()
 
     if (ReionList->ReionMod_List[SnapNum].NHalos_Found != ReionList->ReionMod_List[SnapNum].NHalos_Ionized)
     {
-      fprintf(stderr, "After processing the entire file we only matched %d Halos to the reionization list.  The list contained %d Halos; these Halos MUST be in the tree file.\n", ReionList->ReionMod_List[SnapNum].NHalos_Found, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
+      fprintf(stderr, "After processing file %d we only matched %d Halos to the reionization list.  The list contained %d Halos; these Halos MUST be in the tree file.\n", filenr, ReionList->ReionMod_List[SnapNum].NHalos_Found, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
       return EXIT_FAILURE;
     }
 
