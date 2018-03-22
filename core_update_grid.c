@@ -23,12 +23,13 @@ int32_t update_grid_properties(int32_t filenr)
 
   int32_t status;
 
-  for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx)
+  // The outer loop needs to be over snapshots to properly work with the Quasar tracking.
+  for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
   {
     good_gals = 0;
     bad_gals = 0;
 
-    snapshot_idx = ListOutputGrid[grid_num_idx]; 
+    grid_num_idx = snapshot_idx - LowSnap; // The grid indexing goes from 0 to NumGrids.
 
     for (gal_idx = 0; gal_idx < NtotGals; ++gal_idx)
     {
