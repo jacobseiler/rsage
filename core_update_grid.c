@@ -21,8 +21,7 @@ int32_t update_grid_properties(int32_t filenr)
   int64_t grid_position, gal_idx, good_gals, bad_gals;
   float fesc_local, Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
 
-  int32_t count = 0, status;
-  float sum = 0;
+  int32_t status;
 
   for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx)
   {
@@ -288,7 +287,7 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
 
   float dt, substep_weight, time_into_snapshot, fraction_into_snapshot; 
 
-  if (GalGrid[gal_idx].QuasarActivity[snapshot_idx] == 1) // A quasar has gone off during this snapshot, time to update properties.
+ if (GalGrid[gal_idx].QuasarActivity[snapshot_idx] == 1) // A quasar has gone off during this snapshot, time to update properties.
   {
     if (GalGrid[gal_idx].LenMergerGal[snapshot_idx] > HaloPartCut)
     {
@@ -327,6 +326,8 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
       time_into_snapshot = TargetQuasarTime[gal_idx] - (QuasarBoostActiveTime[gal_idx] - dt); // How much extra time into the snapshot does the quasar need to go to reach its target?
       fraction_into_snapshot = time_into_snapshot / dt; // Then what fraction of the snapshot time will this be?
       QuasarFractionalPhoton[gal_idx] = fraction_into_snapshot; 
+
+      //fprintf(stderr, "TargetQuasarTime = %.4f \tQuasarBoostActiveTime = %.4f\tdt = %.4f\ttime_into_snapshot = %.4f\tQuasarFractionalPhoton = %.4f\n", TargetQuasarTime[gal_idx], QuasarBoostActiveTime[gal_idx], dt, time_into_snapshot, QuasarFractionalPhoton[gal_idx]);
 
       // Reset toggles and trackers. //
       --QuasarActivityToggle[gal_idx];
