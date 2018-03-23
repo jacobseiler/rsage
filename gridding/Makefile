@@ -47,5 +47,4 @@ tidy:
 
 all:  $(EXEC) 
 
-
 celan celna clena claen:clean
