@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 EXECS  := create_filter_mass 
 
 OBJS  := filter_mass/main.o \
@@ -24,6 +25,7 @@ else
     CC = gcc  # sets the C-compiler
 endif
 
+<<<<<<< HEAD
 ECHO = /bin/echo
 
 GSL_DIR := $(shell gsl-config --prefix)
