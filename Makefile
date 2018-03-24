@@ -1,51 +1,50 @@
-EXEC   = grid_sage 
+EXECS  := create_filter_mass 
 
-OBJS   = 	./main_grid.o \
-			./core_init_grid.o \
-			./core_allvars_grid.o \
-			./core_read_parameter_file_grid.o \
-			./core_io_gals.o \
-			./core_update_grid.o \
-			./core_save_grid.o \
-			./core_mymalloc.o
+OBJS  := filter_mass/main.o \
+		 filter_mass/read_parameter_file.o \
+		 filter_mass/tree_io.o \
+		 filter_mass/reionization.o \
+		 filter_mass/save.o
+ 	 
+EXECS_OBJS := filter_mass/create_filter_mass.o 
 
-INCL   =	./core_allvars_grid.h  \
-			./core_proto_grid.h \
-			./Makefile 
+INCL  := ./Makefile \
+		 filter_mass/main.h \
+		 filter_mass/read_parmater_file.h \
+		 filter_mass/tree_io.h \
+		 filter_mass/reionization.h \
+		 filter_mass/save.h
 
-#USE-MPI = YES
+USE-MPI = yes
 
 ifdef USE-MPI
-    OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
+    OPTS = -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 else
     CC = gcc  # sets the C-compiler
 endif
 
-#OPT += -DDEBUG_GALS 
+ECHO = /bin/echo
 
-GSL_INCL = -I/usr/local/include  # make sure your system knows where GSL_DIR is
-GSL_LIBS = -L/usr/local/lib
-OPTIMIZE = -g -O0 -Wall  # optimization and warning flags
+GSL_DIR := $(shell gsl-config --prefix)
+GSL_INCL := $(shell gsl-config --cflags)
+GSL_LIBS := $(shell gsl-config --libs)
+GSL_LIBDIR := $(GSL_DIR)/lib
 
-LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
+OPTIMIZE = -g -O0 -Wall -Werror # optimization and warning flags
+#OPTS = -DDEBUG
 
-CFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) $(GSL_INCL)
+CFLAGS = $(OPTIMIZE) $(GSL_INCL) $(OPTS) 
+LIBS  += -g -lm  $(GSL_LIBS) -lgsl -lgslcblas
 
-default: all
+all: $(EXECS)
 
-$(EXEC): $(OBJS) 
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC) 
-
-$(OBJS): $(INCL) 
+create_filter_mass: $(OBJS) filter_mass/main.o
+	$(CC) $(CFLAGS) $^ $(LIBS) -Xlinker -rpath -Xlinker $(GSL_LIBDIR) -o  $@
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(EXECS_OBJS) $(EXECS)
 
-tidy:
-	rm -f $(OBJS) ./$(EXEC)
-
-all:  $(EXEC) 
-
+.PHONY: all clean clena celan celna
 
 celan celna clena claen:clean
