@@ -253,12 +253,12 @@ void read_parameter_file(char *fname)
 
   if (self_consistent == 0)
   {	
-    printf("Selecting sequential snapshots from Snapshot %d to %d.\n", LowSnap, HighSnap);
-    for (i = HighSnap; i > LowSnap - 1; --i)
+    printf("Selecting sequential snapshots from Snapshot %d to %d.\n", LowSnap, HighSnap);  
+    for (i = LowSnap; i < HighSnap + 1; ++i) 
     {
-      ListOutputGrid[HighSnap - i] = i;
-      printf("ListOutputGrid[%d] = %d\n", HighSnap-i, ListOutputGrid[HighSnap-i]);
+      ListOutputGrid[i - LowSnap] = i;    
     }
+   
     NGrid = HighSnap - LowSnap + 1;
   }
   else

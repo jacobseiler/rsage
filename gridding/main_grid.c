@@ -94,7 +94,11 @@ int main(int argc, char **argv)
     printf("\n  usage: grid_sage <parameterfile>\n\n");
     ABORT(0);
   }
- 
+  
+  printf("Executing with %s %s\n", argv[0], argv[1]);
+
+  read_parameter_file(argv[1]);
+
 #ifdef MPI
   if (self_consistent == 0)
   {
@@ -102,10 +106,7 @@ int main(int argc, char **argv)
     ABORT(EXIT_FAILURE);
   }
 #endif
- 
-  printf("Executing with %s %s\n", argv[0], argv[1]);
 
-  read_parameter_file(argv[1]);
 
   status = init(); // Initialize all the parameters (set units, create scale factor/age arrays etc).  
   if (status == EXIT_FAILURE)
@@ -168,6 +169,8 @@ int main(int argc, char **argv)
     printf("Done File %d.\n\n", filenr);
 
   } // File Loop.
+
+  printf("Photon sum (units of 1e50 photons/s) %.10e\n", sum_photons);
 
 #ifdef MPI
   

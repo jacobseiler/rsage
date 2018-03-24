@@ -17,19 +17,19 @@
 int32_t update_grid_properties(int32_t filenr)
 {
 
-  int32_t snapshot_idx, grid_num_idx; 
+  int32_t snapshot_idx, grid_num_idx, status; 
   int64_t grid_position, gal_idx, good_gals, bad_gals;
   float fesc_local, Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
 
-  int32_t status;
+  int32_t count = 0;
 
   // The outer loop needs to be over snapshots to properly work with the Quasar tracking.
-  for (snapshot_idx = LowSnap; snapshot_idx < HighSnap + 1; ++snapshot_idx)
+  for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx) 
   {
     good_gals = 0;
     bad_gals = 0;
 
-    grid_num_idx = snapshot_idx - LowSnap; // The grid indexing goes from 0 to NumGrids.
+    snapshot_idx = ListOutputGrid[grid_num_idx];     
 
     for (gal_idx = 0; gal_idx < NtotGals; ++gal_idx)
     {
@@ -60,12 +60,19 @@ int32_t update_grid_properties(int32_t filenr)
  
         if (PhotonPrescription == 1)
         {
-          calculate_photons(GalGrid[gal_idx].SFR[snapshot_idx], GalGrid[gal_idx].Z[snapshot_idx], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII); // Base number of ionizing photons
+          calculate_photons(GalGrid[gal_idx].SFR[snapshot_idx], GalGrid[gal_idx].Z[snapshot_idx], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII); // Base number of ionizing photons.  Units are log10(Photons/s).
           status = calculate_fesc(gal_idx, snapshot_idx, filenr, &fesc_local);
           if (status == EXIT_FAILURE)
           {
             return EXIT_FAILURE;
           } 
+
+          if (count < 10)
+          {
+            printf("SFR %.10e\tStellar Mass %.10e\tPhotons %.10e\tfesc %.10e\n", GalGrid[gal_idx].SFR[snapshot_idx], log10(GalGrid[gal_idx].StellarMass[snapshot_idx] * 1.0e10 / Hubble_h), Ngamma_HI, fesc_local);
+            ++count;
+          }
+          sum_photons += pow(10, Ngamma_HI - 50.0);
 
         }
 
@@ -116,6 +123,7 @@ void count_grid_properties(struct GRID_STRUCT *count_grid) // Count number of ga
 
   int32_t snapshot_idx, grid_num_idx;
 
+  printf("counting!\n");
   for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx)
   {
 

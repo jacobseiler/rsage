@@ -18,7 +18,8 @@
 int32_t init(void)
 {
   int32_t i, status;
-  
+
+  sum_photons = 0.0;  
 
   random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
   gsl_rng_set(random_generator, 42);	 // start-up seed 

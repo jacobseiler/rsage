@@ -140,3 +140,5 @@ float *QuasarFractionalPhoton;
 
 int QuasarEventsAbovePartCut;
 int QuasarEventsBelowPartCut;
+
+float sum_photons;
