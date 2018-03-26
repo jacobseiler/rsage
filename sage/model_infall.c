@@ -325,12 +325,11 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increm
 
   search_idx = ceil(number_search_IDs / 2.0) - 1; 
 
-  /*
-  if (match_HaloID == 110)
+  if (match_HaloID == 38654705745)
   {
     printf("search_idx = %ld\t number_search_IDs = %d\n", (long)search_idx, number_search_IDs);
   }
-  */
+
 
   while (is_found == 0)
   {
@@ -367,12 +366,11 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increm
       search_idx = number_search_IDs -1;
     }
 
-    /*
-    if (match_HaloID == 110)
+
+    if (match_HaloID == 38654705745)
     {
       printf("search_idx = %ld\t search_HaloID = %ld\tcount = %ld\n", (long)search_idx, (long)search_HaloID, (long)count);
     }
-    */
 
   }
 
@@ -383,7 +381,9 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increm
     if (increment_counter == 1) // Only want to increment our counters once as for satellite galaxies with a subhalo, strip_from_satellite is called multiple times. 
     {
       ++ReionList->ReionMod_List[SnapNum].NHalos_Found;
-      //printf("Filenr %d: Found unique HaloID %ld at index %ld with modifier %.4f\n", filenr, match_HaloID, *found_idx, reionization_modifier); 
+#ifdef DEBUG_SELFCON
+      printf("Filenr %d: Found unique HaloID %ld at index %ld with modifier %.4f\n", filenr, match_HaloID, *found_idx, reionization_modifier);
+#endif 
     }
   }
   else
@@ -405,7 +405,7 @@ int32_t do_self_consistent_reionization(int32_t p, int32_t halonr, int32_t incre
 {
 
   int32_t treenr; 
-  int64_t HaloID, *bsearch_status, found_idx = -1;
+  int64_t HaloID, found_idx = -1;
 
   if (ReionSnap == LowSnap)
   {
@@ -425,12 +425,8 @@ int32_t do_self_consistent_reionization(int32_t p, int32_t halonr, int32_t incre
 
   HaloID = ((int64_t)treenr << 32) | (int64_t)halonr; // Generates the unique ID for each halo within this file. 
 
-  /*
-  if (treenr == 0 && halonr == 110)
-  {
-    printf("In infall, treenr = %d\t halonr = %d\t ID = %ld\tSnapShot = %d\n", treenr, halonr, (long)HaloID, Halo[halonr].SnapNum);
-  }
-  */
+  if (treenr == 9 && halonr == 81)
+    printf("ROEQJHORJQEROJQERJO\n");
 
   /*
   bsearch_status = (long*)bsearch(&HaloID, ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID, ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized, sizeof(int64_t), cmpfunc);
@@ -463,6 +459,7 @@ int32_t do_self_consistent_reionization(int32_t p, int32_t halonr, int32_t incre
     return EXIT_SUCCESS;
   }
 
+  //printf("Tree %d Halo %d\n", treenr, halonr);
   if (ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID[found_idx] != HaloID)
   {
     fprintf(stderr, "After searching for HaloID %ld (corresponding to tree number %d and halo number %d) within the reionization list, the found_idx was %ld.  However queuring the reionization list at snapshot %d, the HaloID at %ld index is %ld\n", (long)HaloID, treenr, halonr, (long)found_idx, Halo[halonr].SnapNum, (long)found_idx, ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID[found_idx]);

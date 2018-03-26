@@ -288,7 +288,7 @@ int32_t init_reion_lists(int32_t filenr)
 
     fread(ReionList->ReionMod_List[SnapNum].HaloID, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
 
-    /*
+#ifdef DEBUG_SELFCON    
     int32_t i;
     for (i = 0; i < ReionList->ReionMod_List[SnapNum].NHalos_Ionized; ++i)
     {
@@ -296,7 +296,7 @@ int32_t init_reion_lists(int32_t filenr)
       ID = ReionList->ReionMod_List[SnapNum].HaloID[i];
       printf("File %d: HaloID %ld is in the list, corresponding to tree %d and Halo number %d\n", filenr, ID, (int32_t)(ID >> 32), (int32_t)ID); 
     }
-    */
+#endif
 
     ReionList->ReionMod_List[SnapNum].ReionMod = malloc(sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)) * ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
     if (ReionList->ReionMod_List[SnapNum].ReionMod == NULL)

@@ -17,32 +17,20 @@ void construct_galaxies(int halonr, int tree, int filenr)
 {
   static int halosdone = 0;
   int prog, fofhalo, ngal;
-
-  int64_t HaloID;
-  HaloID = ((int64_t)tree << 32) | halonr; // Generates the unique ID for each halo within this file. 
-
-
+ 
   HaloAux[halonr].DoneFlag = 1;
   halosdone++;
 
   prog = Halo[halonr].FirstProgenitor;
 
-  fofhalo = Halo[halonr].FirstHaloInFOFgroup;
-  if (tree == 0 && halonr == 110) 
+/*
+  if (tree == 9 && halonr == 81)
   {
-    printf("In construct_galaxies, treenr = %d\t halonr = %d\t ID = %ld\n", tree, halonr, (long)HaloID);
-    printf("Snapshot %d\tprog = %d\tfofhalo = %d\tprog snapshot = %d\tfof snapshot = %d\n", Halo[halonr].SnapNum, prog, Halo[halonr].FirstHaloInFOFgroup, Halo[prog].SnapNum, Halo[fofhalo].SnapNum); 
-    printf("Pos: x = %.4f\ty = %.4f\t z = %.4f\n", Halo[halonr].Pos[0], Halo[halonr].Pos[1], Halo[halonr].Pos[2]);
-    printf("FoF Pos: x = %.4f\ty = %.4f\t z = %.4f\n", Halo[fofhalo].Pos[0], Halo[fofhalo].Pos[1], Halo[fofhalo].Pos[2]);
-
-    int32_t idx, status;
-    status = determine_1D_idx(Halo[halonr].Pos[0], Halo[halonr].Pos[1], Halo[halonr].Pos[2], &idx);
-    printf("idx = %d\n", idx);
-
-    status = determine_1D_idx(Halo[fofhalo].Pos[0], Halo[fofhalo].Pos[1], Halo[fofhalo].Pos[2], &idx);
-    printf("fof idx = %d\n", idx);
-    
+    printf("In construct, treenr = %d halonr = %d\n", tree, halonr);
+    printf("Fofhalo = %d\n", Halo[halonr].FirstHaloInFOFgroup);
+    exit(0);
   }
+*/
 
   while(prog >= 0)
   {
@@ -314,19 +302,10 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
 
   infallingGas = infall_recipe(centralgal, ngal, ZZ[Halo[halonr].SnapNum], halonr, filenr);
 
+  if (tree == 9 && halonr == 81)
+    printf("In evole, treenr = %d halonr = %d\n", tree, halonr);
+
   // We first want to determine how much delayed SN feedback needs to be applied for each galaxy over this evolution step.
-  int64_t HaloID;
-
-  HaloID = ((int64_t)tree << 32) | halonr; // Generates the unique ID for each halo within this file. 
-
-  /*
-  if (tree == 0 && halonr == 110) 
-  {
-    printf("In evolve_galaxies, treenr = %d\t halonr = %d\t ID = %ld\n", tree, halonr, (long)HaloID);
-    printf("Ngal = %d\n", ngal);
-    exit(0);
-  }
-  */ 
 
   for(p = 0; p < ngal; p++)
   {

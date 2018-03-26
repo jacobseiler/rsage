@@ -2,3 +2,10 @@ filter_mass/*.o
 create_filter_mass
 *.png
 test.ini
+gridding/*.o
+sage/*.o
+output/*.pdf
+*.o*
+*.e*
+gridding/grid_sage
+sage/sage

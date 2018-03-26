@@ -1,1 +1,0 @@
-This is the altered version of SAGE that tracks the temporal properties of galaxies to be later constructed into stellar mass/ionizing photon/etc grids.  The code that does this grid conversion can be found at 

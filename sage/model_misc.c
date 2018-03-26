@@ -23,8 +23,6 @@ void init_galaxy(int p, int halonr, int treenr)
   GalaxyCounter++;
   
   Gal[p].HaloNr = halonr;
-  if (halonr == 83 && treenr == 5)
-    printf("In init_galaxy, SnapNum = %d\thalonr = %d\ttreenr = %d\n", Halo[halonr].SnapNum - 1, halonr, treenr);
    
   Gal[p].MostBoundID = Halo[halonr].MostBoundID;
   //Gal[p].MostBoundID = -1; 

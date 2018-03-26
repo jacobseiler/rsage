@@ -359,4 +359,6 @@ extern float *QuasarFractionalPhoton;
 
 extern int QuasarEventsAbovePartCut;
 extern int QuasarEventsBelowPartCut;
+
+extern float sum_photons;
 #endif

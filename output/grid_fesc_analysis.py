@@ -251,22 +251,22 @@ def plot_fesc_z(filename_base, PlotSnapshot, model_tags, output_tag):
         ax3.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
 
     #ax2.set_xlim([resolution, 11.75])
-    #ax3.set_ylim([0.05, 0.46])   
+    ax3.set_ylim([0.05, 0.46])   
 
     #ax1.set_xticks(np.arange(9.0, 12.0))  
     #ax1.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
     #ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
 
-    #ax3.set_xlim([6.8, 9.8])
-    #ax3.set_xticks(np.arange(7.0, 11.0))  
-    #ax3.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
-    #ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+    ax3.set_xlim([6.8, 9.8])
+    ax3.set_xticks(np.arange(7.0, 11.0))  
+    ax3.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+    ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
 
-    #tick_locs = np.arange(7.0, 11.0)
-    #ax3.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], fontsize = PlotScripts.global_fontsize)
+    tick_locs = np.arange(7.0, 11.0)
+    ax3.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], fontsize = PlotScripts.global_fontsize)
 
-    #tick_locs = np.arange(0.05, 0.50, 0.05)
-    #ax3.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], fontsize = PlotScripts.global_fontsize)
+    tick_locs = np.arange(0.05, 0.50, 0.05)
+    ax3.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], fontsize = PlotScripts.global_fontsize)
    
     leg = ax1.legend(loc='upper left', bbox_to_anchor=(0.3, 1.02), numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
@@ -326,7 +326,8 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
                 dt_nion[model_number][count-1] = (nion[model_number][count] - nion[model_number][count-1]) / (AllVars.SnapZ[SnapList[model_number][count-1]] - AllVars.SnapZ[SnapList[model_number][count]]) 
                 t_dt[model_number][count-1] = (AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number][count]])*1.0e3
          
-        if plot_time == 1:            
+        if plot_time == 1:
+            print(nion[model_number])
             ax1.plot((AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number]])*1.0e3, nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
             ax3.plot(t_dt[model_number], dt_nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
                     
@@ -373,11 +374,11 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
         ax3.set_xlim(PlotScripts.time_xlim)
 
         ax3.set_ylabel(r'$d\sum f_\mathrm{esc}\dot{N}_\gamma / dz \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$', fontsize = PlotScripts.global_fontsize)                 
-        #ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+        ax3.yaxis.set_minor_locator(mtick.MultipleLocator(0.25))
         ax3.set_ylim([0.0, 1.0])
 
         ax2 = ax1.twiny()
-        #ax2.set_aspect('equal')
+
 
         t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
         z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
@@ -388,7 +389,7 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
         ax2.set_xticklabels(z_labels, fontsize = PlotScripts.global_fontsize) # But label them as redshifts.
 
         ax4 = ax3.twiny()
-        #ax4.set_aspect('equal')
+
 
         t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
         z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
@@ -475,14 +476,15 @@ if __name__ == '__main__':
     model_tags = [r"$\mathbf{f_{esc} \: \propto \: Quasar \: Activity}$", 
                   r"$\mathbf{f_{esc} = 0.20}$"]
  
-    fname = ["/lustre/projects/p004_swin/jseiler/kali/kali_QuasarEff0.02/grids/nion_fields/kali_QuasarEff0.02_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties"]
+    fname = ["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties"] 
     fname = [fname[0]]
 
+    nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"]
  
     simulation_norm = [6, 6]
 
-    #plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1, model_tags, "nion_QuasarEff0.01_CorrectDiskInstability_quasar_0.10_1.00_2.00_fesc0.20")
+    #plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1, model_tags, "test_base_nion")
 
-    plot_fesc_z(fname, PlotSnapshot, model_tags, "QuasarEff0.02_0.10_1.00_2.50")
+    plot_fesc_z(fname, PlotSnapshot, model_tags, "base")
 
     #plot_fescNgamma_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_paper_Ngammafesc_allz_starburst_medium_quasarwind_fesc0.10_fboosted1.00_HaloPartCut32_1DynTime")

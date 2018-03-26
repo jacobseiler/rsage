@@ -303,7 +303,7 @@ def calculate_pooled_stats(mean_pool, std_pool, N_pool, mean_local, std_local, N
         return mean_pool, std_pool, N_pool_function # Junk return because non-rank 0 doesn't care.
 ##
 
-def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, ResolutionLimit_mean, save_data, save_tags, model_tags, observations, paper_plot, output_tag):
+def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, ResolutionLimit_mean, model_tags, observations, paper_plot, output_tag):
     '''
     Calculates the stellar mass function for given galaxies with the option to overplot observations by Song et al. (2013) at z = 6, 7, 8 and/or Baldry et al. (2008) at z = 0.1. 
     Parallel compatible.
@@ -414,13 +414,6 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
             ax = plt.subplot(111)  
 
             for model_number in range(0, len(SnapList)):
-                if save_data == 1:   
-                    fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/halo_bins_SMF_{0}.txt".format(save_tags[model_number])
-                    np.savetxt(fname, bin_middle_array[model_number])
-
-                    fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/SMF_{0}.txt".format(save_tags[model_number])
-                    np.savetxt(fname, np.divide(counts_array[model_number], normalization_array[model_number]))
-
                 for snapshot_idx in range(0, len(SnapList[model_number])):
                     if model_number == 0: # We assume the redshifts for each model are the same, we only want to put a legend label for each redshift once.
                         title = redshift_labels[model_number][snapshot_idx]
@@ -513,40 +506,40 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
                     for axis in ['top','bottom','left','right']: # Adjust axis thickness.
                         ax[count].spines[axis].set_linewidth(PlotScripts.global_axiswidth)
 
-                # Since y-axis is shared, only need to do this once.
-                ax[0].set_yscale('log', nonposy='clip')
-                ax[0].set_yticklabels([r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-4}}$", r"$\mathbf{10^{-3}}$",
-                                       r"$\mathbf{10^{-2}}$",r"$\mathbf{10^{-1}}$"]) 
-                ax[0].set_ylim([1e-5, 1e-1])
-                #ax[0].set_ylabel(r'\mathbf{$\log_{10} \Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]}$', 
-                ax[0].set_ylabel(r'$\mathbf{log_{10} \: \Phi\ [Mpc^{-3}\: dex^{-1}]}$', 
-                                 fontsize = PlotScripts.global_labelsize - delta_fontsize) 
+            # Since y-axis is shared, only need to do this once.
+            ax[0].set_yscale('log', nonposy='clip')
+            ax[0].set_yticklabels([r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-4}}$", r"$\mathbf{10^{-3}}$",
+                                   r"$\mathbf{10^{-2}}$",r"$\mathbf{10^{-1}}$"]) 
+            ax[0].set_ylim([1e-5, 1e-1])
+            #ax[0].set_ylabel(r'\mathbf{$\log_{10} \Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]}$', 
+            ax[0].set_ylabel(r'$\mathbf{log_{10} \: \Phi\ [Mpc^{-3}\: dex^{-1}]}$', 
+                             fontsize = PlotScripts.global_labelsize - delta_fontsize) 
 
-                Obs.Get_Data_SMF()
+            Obs.Get_Data_SMF()
 
-                PlotScripts.Plot_SMF_z6(ax[0], errorwidth=ewidth, capsize=caps) 
-                PlotScripts.Plot_SMF_z7(ax[1], errorwidth=ewidth, capsize=caps) 
-                PlotScripts.Plot_SMF_z8(ax[2], errorwidth=ewidth, capsize=caps) 
-                
-                ####
- 
-                ax[0].text(0.7, 0.9, r"$\mathbf{z = 6}$", transform = ax[0].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                ax[1].text(0.7, 0.9, r"$\mathbf{z = 7}$", transform = ax[1].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                ax[2].text(0.7, 0.9, r"$\mathbf{z = 8}$", transform = ax[2].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
-                                           
-                #leg = ax[0,0].legend(loc=2, bbox_to_anchor = (0.2, -0.5), numpoints=1, labelspacing=0.1)
-                leg = ax[0].legend(loc='lower left', numpoints=1, labelspacing=0.1)
-                leg.draw_frame(False)  # Don't want a box frame
-                for t in leg.get_texts():  # Reduce the size of the text
-                    t.set_fontsize(PlotScripts.global_legendsize - 2)
+            PlotScripts.Plot_SMF_z6(ax[0], errorwidth=ewidth, capsize=caps) 
+            PlotScripts.Plot_SMF_z7(ax[1], errorwidth=ewidth, capsize=caps) 
+            PlotScripts.Plot_SMF_z8(ax[2], errorwidth=ewidth, capsize=caps) 
+            
+            ####
 
-                plt.tight_layout()
-                #adjustprops = dict(left=0.15, bottom=0.1, right=0.97, top=0.93, wspace=0.05, hspace=0.05)
-                #fig.subplots_adjust(**adjustprops)  
-                outputFile = "{0}_paper{1}".format(output_tag, output_format) 
-                plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
-                print('Saved file to {0}'.format(outputFile))
-                plt.close()
+            ax[0].text(0.7, 0.9, r"$\mathbf{z = 6}$", transform = ax[0].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+            ax[1].text(0.7, 0.9, r"$\mathbf{z = 7}$", transform = ax[1].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+            ax[2].text(0.7, 0.9, r"$\mathbf{z = 8}$", transform = ax[2].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+                                       
+            #leg = ax[0,0].legend(loc=2, bbox_to_anchor = (0.2, -0.5), numpoints=1, labelspacing=0.1)
+            leg = ax[0].legend(loc='lower left', numpoints=1, labelspacing=0.1)
+            leg.draw_frame(False)  # Don't want a box frame
+            for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize(PlotScripts.global_legendsize - 2)
+
+            plt.tight_layout()
+            #adjustprops = dict(left=0.15, bottom=0.1, right=0.97, top=0.93, wspace=0.05, hspace=0.05)
+            #fig.subplots_adjust(**adjustprops)  
+            outputFile = "{0}_paper{1}".format(output_tag, output_format) 
+            plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+            print('Saved file to {0}'.format(outputFile))
+            plt.close()
 
 
 ##
@@ -633,7 +626,7 @@ def plot_fesc(SnapList, mean_z_fesc, std_z_fesc, N_fesc, model_tags, output_tag)
 
 ##
 
-def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, mean_halo_fesc, std_halo_fesc, N_halo_fesc, ResolutionLimit_mean, model_tags, output_tag, save_data, save_tags):
+def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, mean_halo_fesc, std_halo_fesc, N_halo_fesc, ResolutionLimit_mean, model_tags, output_tag):
     """
     Plots the escape fraction as a function of stellar/halo mass.
     Parallel compatible.
@@ -759,17 +752,6 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, 
                 AllVars.Set_Params_Britton()       
             elif(simulation_norm[model_number] == 5):
                 AllVars.Set_Params_Kali()
-
-            if (save_data == 1):
-                fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/halo_bins_{0}.txt".format(save_tags[model_number])
-                np.savetxt(fname, bin_middle_halo_array[model_number])
-
-                fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/mean_fesc_halo_{0}.txt".format(save_tags[model_number])
-                np.savetxt(fname, mean_fesc_halo_array[model_number])
-
-                fname = "/lustre/projects/p004_swin/jseiler/kali_analysis/N_halo_{0}.txt".format(save_tags[model_number])
-                np.savetxt(fname, N_fesc_halo_array[model_number]) 
-
 
             plot_count = 0
             for snapshot_idx in range(0, len(SnapList[model_number])):
@@ -1407,15 +1389,15 @@ def plot_photoncount(SnapList, sum_nion, simulation_norm, FirstFile, LastFile, N
         for model_number in range(0, len(SnapList)):
 
             if(simulation_norm[model_number] == 0):
-                AllVars.Set_Params_Mysim()
+                cosmo = AllVars.Set_Params_Mysim()
             if(simulation_norm[model_number] == 1):
-                AllVars.Set_Params_MiniMill()
+                cosmo = AllVars.Set_Params_MiniMill()
             elif(simulation_norm[model_number] == 3):
-                AllVars.Set_Params_Tiamat_extended()
+                cosmo = AllVars.Set_Params_Tiamat_extended()
             elif(simulation_norm[model_number] == 4):
-                AllVars.Set_Params_Britton()
+                cosmo = AllVars.Set_Params_Britton()
             elif(simulation_norm[model_number] == 5):
-                AllVars.Set_Params_Kali()
+                cosmo = AllVars.Set_Params_Kali()
             else: 
                 print("Simulation norm was set to {0}.".format(simulation_norm[model_number]))
                 raise ValueError("This option has been implemented yet.  Get your head in the game Jacob!")
@@ -1423,14 +1405,14 @@ def plot_photoncount(SnapList, sum_nion, simulation_norm, FirstFile, LastFile, N
 
             t = np.empty(len(SnapList[model_number]))
             for snapshot_idx in range(0, len(SnapList[model_number])):
-                t[snapshot_idx] = (t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3     
+                t[snapshot_idx] = (AllVars.t_BigBang - cosmo.lookback_time(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]).value) * 1.0e3     
     
            
             t = [t for t, N in zip(t, sum_array[model_number]) if N > 1.0]
             sum_array[model_number] = [x for x in sum_array[model_number] if x > 1.0]
                      
-            print("The total number of ionizing photons for model {0} is {1} s^1 Mpc^-3".format(model_number, sum(sum_array[model_number]))) 
-            print(np.divide(sum_array[model_number],1e50)) 
+            print("The total number of ionizing photons for model {0} is {1} s^1 Mpc^-3".format(model_number, sum(sum_array[model_number])))    
+            print(np.log10(sum_array[model_number])) 
             ax1.plot(t, np.log10(sum_array[model_number]), color = PlotScripts.colors[model_number], linestyle = PlotScripts.linestyles[model_number], label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)  
             #ax1.fill_between(t, np.subtract(mean,std), np.add(mean,std), color = colors[model_number], alpha = 0.25)
 
@@ -1441,7 +1423,7 @@ def plot_photoncount(SnapList, sum_nion, simulation_norm, FirstFile, LastFile, N
 
         ax2 = ax1.twiny()
 
-        t_plot = (t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
+        t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
         z_labels = ["$%d$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
 
         ax2.set_xlabel(r"$z$", size = PlotScripts.global_labelsize)
@@ -2435,7 +2417,7 @@ def calculate_photons(SFR, Z):
         else:
             ngamma_HI_tmp = SFR[i] + 53.041  
         
-        ngamma_HI.append(ngamma_HI_tmp)
+        ngamma_HI.append(ngamma_HI_tmp.astype(np.float32))
     return ngamma_HI
 
 ##
@@ -2681,28 +2663,25 @@ if __name__ == '__main__':
         boosted_dynamicaltime = float(sys.argv[4])
    
     np.seterr(divide='ignore')
-    number_models = 1
+    number_models = 2
 
     galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_z5.782'
     merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_MergedGalaxies'
 
-    galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_z5.782'
-    merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/galaxies/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_MergedGalaxies'
+    galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_z5.782'
+    merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_MergedGalaxies'
 
-    galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/kali_QuasarEff0.02/galaxies/kali_QuasarEff0.02_z5.782'
-    merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/kali_QuasarEff0.02/galaxies/kali_QuasarEff0.02_MergedGalaxies'
-
-    galaxies_filepath_array = [galaxies_model3]
-    merged_galaxies_filepath_array = [merged_galaxies_model3]
+    galaxies_filepath_array = [galaxies_model2, galaxies_model1]
+    merged_galaxies_filepath_array = [merged_galaxies_model2, merged_galaxies_model1]
        
-    number_substeps = [10] # How many substeps does each model have (specified by STEPS variable within SAGE).
-    number_snapshots = [99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
+    number_substeps = [10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
+    number_snapshots = [99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
      
-    FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [63] # The last file number THAT WE ARE PLOTTING.
-    NumFile = [64] # The number of files for this simulation (plotting a subset of these files is allowed).     
-    same_files = [0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
+    FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
+    LastFile = [63, 63] # The last file number THAT WE ARE PLOTTING.
+    NumFile = [64, 64] # The number of files for this simulation (plotting a subset of these files is allowed).     
+    same_files = [0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
     # This array will tell us if we should keep the files for the next model or otherwise throw them away. 
     # The files will be kept until same_files[current_model_number] = 0.
     # For example if we had 5 models we were plotting and model 1, 2, 3 shared the same files and models 4, 5 shared different files,
@@ -2710,8 +2689,7 @@ if __name__ == '__main__':
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
     #model_tags = [r"$\mathrm{Self-Consistent}$", r"$\mathrm{Base}$"]
-    model_tags = [r"$\mathrm{Self-Consistent}$"]
-    save_tags = ["dummy"]
+    model_tags = [r"$\mathrm{Base}$", r"$\mathrm{Self-Consistent}$"]    
 
     ## Constants used for each model. ##
     # Need to add an entry for EACH model. #
@@ -2719,7 +2697,7 @@ if __name__ == '__main__':
     halo_cut = [32, 32, 32] # Only calculate properties for galaxies whose host halos have at least this many particles.
 
     ### fesc Stuff ###
-    fesc_prescription = [0] # This defines what escape fractions prescription we want to use for each mode. 
+    fesc_prescription = [0, 0] # This defines what escape fractions prescription we want to use for each mode. 
     # 0 is constant.
     # 1 is scaling with halo mass. 
     # 2 is scaling with ejected fraction. 
@@ -2727,7 +2705,7 @@ if __name__ == '__main__':
     # 4 is Anne's Functional form that scales inversely with halo mass (smaller fesc for higher halo mass).
     # 5 is Anne's function form that scales with halo mass (larger fesc for higher halo mass).
 
-    fesc_normalization = [0.20, 0.20] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
+    fesc_normalization = [0.2, 0.2] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
     #fesc_normalization = [0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
     # For prescription 0, requires a number that defines the constant fesc.
     # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
@@ -2739,13 +2717,13 @@ if __name__ == '__main__':
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
     #SnapList = [np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
-    SnapList = [[93, 76, 64]]
-    PlotSnapList = [[93, 76, 64]]
+    SnapList = [[93, 76, 64], [93, 76, 64]]
+    PlotSnapList = [[93, 76, 64], [93, 76, 64]]
     #PlotSnapList = [[64, 76, 93]]
    
     #PlotSnapList = [[29, 40, 49, 76, 93]] # For plots that contain properties plotted at specific redshifts, this specifies which snapshots we should plot at. 
 
-    simulation_norm = [5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
+    simulation_norm = [5, 5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
     # 0 for MySim (Manodeep's old one).
     # 1 for Mini-Millennium.
     # 2 for Tiamat (up to z =5).
@@ -2766,11 +2744,15 @@ if __name__ == '__main__':
             exit()
         fesc_prescription = [3]
         fesc_normalization = [[baseline_fesc, boosted_fesc, boosted_dynamicaltime]]        
-        
+    
+
+    sum_photons = np.float32(0.0) 
+       
+    
     ##############################################################################################################
     ## Do a few checks to ensure all the arrays were specified properly. ##
 
-    files = [galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, model_tags, SnapList, save_tags]
+    files = [galaxies_filepath_array, merged_galaxies_filepath_array, number_snapshots, model_tags, SnapList]
     goodness_check = [len(x) == len(y) for i,x in enumerate(files) for j,y in enumerate(files) if i != j] # This goes through the files array and checks to see if all the files have the same lengths.
 
     if False in goodness_check: # If any of the arrays had different lengths, throw an error.
@@ -3054,17 +3036,12 @@ if __name__ == '__main__':
                     photons_HI_gal_nonlog = [10**x for x in photons_HI_gal] # Turn to non-log.
                     ionizing_photons = np.multiply(photons_HI_gal_nonlog, fesc_local) # Then get the number that actually escape.
 
-                    '''
-                    print("Gal Idx {0}".format(w_gal[0:10])) 
-                    print("SFR {0}".format(SFR_gal[0:10].astype(float)))
-                    print("Log Photons {0}".format(photons_HI_gal[0:10]))
-                    print("Non-log Photons {0}".format(photons_HI_gal_nonlog[0:10]))
-                    print("Sum {0}".format(sum(photons_HI_gal_nonlog[0:10])))
-                    print("fesc Sum {0}".format(sum(ionizing_photons[0:10])))
-                    print("The total number of ionizing photons is {0:.4e}.".format(sum(ionizing_photons)))
-                    exit()
-                    '''
- 
+                    #for i in range(10):
+                    #    print("SFR {0} Mass {1} Photons {2} fesc {3}".format(10**SFR_gal[i], mass_gal[i], photons_HI_gal[i], fesc_local[i]))
+
+                    #sum_photons += sum(photons_HI_gal_nonlog) 
+                    
+
                     ###########################################                     
                     ######## BASE PROPERTIES CALCULATED #######
                     ###########################################
@@ -3121,12 +3098,15 @@ if __name__ == '__main__':
                     keep_files =  same_files[current_model_number] # Decide if we want to keep the files loaded or throw them out. 
                     current_model_number += 1 # Update the inner loop model number.
 
-    StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, 0, save_tags, model_tags, 1, paper_plots, "Kali_QuasarEff0.02")
+    print("Sum photons {0}".format(sum_photons))
+    
+
+    #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, paper_plots, "self_cons")
     #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, std_BHmass_galaxy_array, N_galaxy_array, model_tags, "StellarMass_BHMass")
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 
-    #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Kali_starburst_quasarwind_QuasarEff0.02_withcut")
-    #plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_Kali_aspen", 1, save_tags)
-    #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_Kali_aspen_tuesday") ## PARALELL COMPATIBLE
+    plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "SN_Prescription")
+    #plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_test") 
+    #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_test") ## PARALELL COMPATIBLE
     #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 
