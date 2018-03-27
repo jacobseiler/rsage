@@ -129,8 +129,7 @@ int main(int argc, char **argv)
       }
     }
         
-    snprintf(bufz0, MAXLEN, "%s/%s_%03d.dat", SimulationDir, TreeName, filenr);
-    //snprintf(bufz0, MAXLEN, "%s/%s.%d", SimulationDir, TreeName, filenr);
+    snprintf(bufz0, MAXLEN, "%s/%s_%03d%s", SimulationDir, TreeName, filenr, TreeExtension);
    
     if(!(fd = fopen(bufz0, "r")))
     {

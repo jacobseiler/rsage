@@ -307,6 +307,7 @@ extern int    LastSnapShotNr;
 extern char   OutputDir[512];
 extern char   FileNameGalaxies[512];
 extern char   TreeName[512];
+extern char   TreeExtension[512];
 extern char   SimulationDir[512];
 extern char   IonizationDir[512];
 extern char   FileWithSnapList[512];
