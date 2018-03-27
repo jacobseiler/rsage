@@ -20,3 +20,8 @@ gridding/*.o
 
 # Misc. 
 output/__pycache__
+
+# Test directory ignores.
+tests/trees*
+tests/millennium.a_list
+tests/tests_output/*
