@@ -42,6 +42,11 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = TreeName;
   id[nt++] = STRING;
 
+  strcpy(tag[nt], "TreeExtension");
+  addr[nt] = TreeExtension;
+  id[nt++] = STRING;
+
+
   strcpy(tag[nt], "SimulationDir");
   addr[nt] = SimulationDir;
   id[nt++] = STRING;
