@@ -1,11 +1,22 @@
+# Filter mass directory ignores.
 filter_mass/*.o
 create_filter_mass
+
+# Don't want to keep any plots.
 *.png
-test.ini
-gridding/*.o
-sage/*.o
 output/*.pdf
+
+# SAGE ignores.
+sage/sage
+sage/*.o
+
+# Grid code ignores.
+gridding/grid_sage
+gridding/*.o
+
+# PBS output/error files.
 *.o*
 *.e*
-gridding/grid_sage
-sage/sage
+
+# Misc. 
+output/__pycache__

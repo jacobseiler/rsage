@@ -496,13 +496,11 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
                                           width = PlotScripts.global_tickwidth)
                     ax[count].tick_params(which = 'major', length = PlotScripts.global_ticklength)
                     ax[count].tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
-                    #ax[count].set_xlabel(r'$\mathbf{\log_{10}\ \text{M}_{\text{*}} \:[\text{M}_{\odot}]}$', 
                     ax[count].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
                                          fontsize = PlotScripts.global_labelsize - delta_fontsize)
                     ax[count].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
                     #ax[count].set_xticks(np.arange(6.0, 12.0))
                     
-
                     for axis in ['top','bottom','left','right']: # Adjust axis thickness.
                         ax[count].spines[axis].set_linewidth(PlotScripts.global_axiswidth)
 
@@ -2665,14 +2663,18 @@ if __name__ == '__main__':
     np.seterr(divide='ignore')
     number_models = 2
 
-    galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_z5.782'
-    merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_MergedGalaxies'
+    galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on_IRA/galaxies/base_z5.782'
+    merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on_IRA/galaxies/base_MergedGalaxies'
 
     galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_z5.782'
     merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_MergedGalaxies'
 
-    galaxies_filepath_array = [galaxies_model2, galaxies_model1]
-    merged_galaxies_filepath_array = [merged_galaxies_model2, merged_galaxies_model1]
+    galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_z5.782'
+    merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_MergedGalaxies'
+
+
+    galaxies_filepath_array = [galaxies_model2, galaxies_model3]
+    merged_galaxies_filepath_array = [merged_galaxies_model2, merged_galaxies_model3]
        
     number_substeps = [10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
     number_snapshots = [99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
@@ -2688,8 +2690,8 @@ if __name__ == '__main__':
     # Then same_files = [1, 1, 0, 1, 0] would be the correct values.
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
-    #model_tags = [r"$\mathrm{Self-Consistent}$", r"$\mathrm{Base}$"]
-    model_tags = [r"$\mathrm{Base}$", r"$\mathrm{Self-Consistent}$"]    
+    model_tags = [r"$\mathrm{Base}$", r"$\mathrm{Self-Consistent}$"]
+    #model_tags = [r"$\mathrm{Delayed}$", r"$\mathrm{IRA}$"]    
 
     ## Constants used for each model. ##
     # Need to add an entry for EACH model. #
@@ -2705,8 +2707,8 @@ if __name__ == '__main__':
     # 4 is Anne's Functional form that scales inversely with halo mass (smaller fesc for higher halo mass).
     # 5 is Anne's function form that scales with halo mass (larger fesc for higher halo mass).
 
-    fesc_normalization = [0.2, 0.2] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
-    #fesc_normalization = [0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
+    #fesc_normalization = [[0.2, 1.0, 2.5], [0.2, 1.0, 2.5]] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
+    fesc_normalization = [0.3, 0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
     # For prescription 0, requires a number that defines the constant fesc.
     # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
     # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
@@ -2716,7 +2718,7 @@ if __name__ == '__main__':
    
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
-    #SnapList = [np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
+    #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
     SnapList = [[93, 76, 64], [93, 76, 64]]
     PlotSnapList = [[93, 76, 64], [93, 76, 64]]
     #PlotSnapList = [[64, 76, 93]]
@@ -3101,11 +3103,11 @@ if __name__ == '__main__':
     print("Sum photons {0}".format(sum_photons))
     
 
-    #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, paper_plots, "self_cons")
+    StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, paper_plots, "self_cons")
     #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, std_BHmass_galaxy_array, N_galaxy_array, model_tags, "StellarMass_BHMass")
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 
-    plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "SN_Prescription")
+    #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "SN_Prescription")
     #plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_fesc_galaxy_array, std_fesc_galaxy_array, N_galaxy_array, mean_fesc_halo_array, std_fesc_halo_array,  N_halo_array, galaxy_halo_mass_mean, model_tags, "fesc_test") 
     #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_test") ## PARALELL COMPATIBLE
     #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 

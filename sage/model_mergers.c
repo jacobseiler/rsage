@@ -129,16 +129,6 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
   cold_gas_energy = 0.5 * Gal[gal].ColdGas * Gal[gal].Vvir * Gal[gal].Vvir;
   hot_gas_energy = 0.5 * Gal[gal].HotGas * Gal[gal].Vvir * Gal[gal].Vvir;
 
-  /*
-  if (Halo[Gal[gal].HaloNr].SnapNum == 76)  
-  {
-    printf("BHaccrete = %.4e\tQuasar Energy = %.4e\tColdGas = %.4e\tCold Gas Energy = %.4e\tHotGas = %.4e\tHot Gas Energy = %.4e\tCold+Hot Energy = %.4e\n", BHaccrete, quasar_energy, Gal[gal].ColdGas, cold_gas_energy, Gal[gal].HotGas, hot_gas_energy, cold_gas_energy+hot_gas_energy);
-    if (quasar_energy > cold_gas_energy + hot_gas_energy)
-      printf("YES!\n");
-
-  }
-  */
-
   cold_energy_ratio = quasar_energy / cold_gas_energy;
 
   if (fractional_ejection == 1)
@@ -306,9 +296,6 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
 
   // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
   // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more accurate then previous. 
-
-//  if (Gal[merger_centralgal].LenMergerGal[Halo[Gal[merger_centralgal].HaloNr].SnapNum] < 32)
-//    return;
 
   // the bursting fraction 
   if(mode == 1)
