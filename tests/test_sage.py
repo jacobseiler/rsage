@@ -52,7 +52,7 @@ def get_trees():
     print("")
     print("Checking to see if we need to download the test tree file.")
 
-    tree_file = "{0}/trees_063.0".format(test_dir)
+    tree_file = "{0}/trees_063_000.dat".format(test_dir)
     if not os.path.isfile(tree_file):
         print("{0} does not exist, downloading the test_RSAGE repo and "
               "unzipping.".format(tree_file))
