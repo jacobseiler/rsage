@@ -103,8 +103,6 @@ void init_galaxy(int p, int halonr, int treenr)
     Gal[p].GridSFR[j] = 0.0;
     Gal[p].GridZ[j] = -1;
     Gal[p].GridCentralGalaxyMass[j] = -1.0;
-    Gal[p].MfiltGnedin[j] = 1.0;
-    Gal[p].MfiltSobacchi[j] = 1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
     Gal[p].GridOutflowRate[j] = 0.0;
@@ -116,6 +114,7 @@ void init_galaxy(int p, int halonr, int treenr)
     Gal[p].GridColdGas[j] = 0.0;
     Gal[p].LenMergerGal[j] = -1;
     Gal[p].GridBHMass[j] = 0.0;
+    Gal[p].GridReionMod[j] = -1.0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -279,7 +278,6 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 {
     int32_t grid_position, step, status;
     int32_t SnapCurr = Halo[halonr].SnapNum;
-    double MfiltSobacchi, reionization_modifier; 
 
     status = determine_1D_idx(Gal[p].Pos[0], Gal[p].Pos[1], Gal[p].Pos[2], &grid_position); 
     if (status == EXIT_FAILURE)
@@ -301,17 +299,6 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 
     Gal[p].GridZ[SnapCurr] = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas); // Metallicity at this snapshot.
     Gal[p].GridCentralGalaxyMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
-
-    if (ReionizationOn == 2) 
-    {  
-      reionization_modifier = do_myreionization(centralgal, ZZ[SnapCurr], &MfiltSobacchi);
-      Gal[p].MfiltSobacchi[SnapCurr] = MfiltSobacchi; 
-    }
-    else
-    {
-      reionization_modifier = 0.0;
-      Gal[p].MfiltSobacchi[SnapCurr] = 1.0;
-    }
  
     if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
     {

@@ -71,9 +71,6 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr, int32_t
     reionization_modifier = 1.0;
   }
 
-  //Gal[centralgal].MfiltGnedin[Gal[centralgal].SnapNum] = do_reionization(centralgal, Zcurr);
-  //Gal[centralgal].MfiltSobacchi[Gal[centralgal].SnapNum] = do_myreionization(centralgal, Zcurr); 
-  //
   infallingMass = reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
 
   ejectedmass_total = tot_ejected;

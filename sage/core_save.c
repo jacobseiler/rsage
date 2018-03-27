@@ -280,16 +280,6 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   XASSERT( nwritten == MAXSNAPS, "Error: While writing GridCentralGalaxyMass, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
 
-  XASSERT(g->MfiltGnedin != NULL, "MfiltGnedin has a NULL pointer.\n"); 
-  nwritten = fwrite(g->MfiltGnedin, sizeof(*(g->MfiltGnedin)), MAXSNAPS, fp);
-  XASSERT( nwritten == MAXSNAPS, "Error: While writing MfiltGnedin, expected to write %d times but wrote %zu times instead\n",
-	   MAXSNAPS, nwritten);
-
-  XASSERT(g->MfiltSobacchi != NULL, "MfilSobacchi has a NULL pointer.\n"); 
-  nwritten = fwrite(g->MfiltSobacchi, sizeof(*(g->MfiltSobacchi)), MAXSNAPS, fp);
-  XASSERT( nwritten == MAXSNAPS, "Error: While writing MfiltSobacchi, expected to write %d times but wrote %zu times instead\n",
-	   MAXSNAPS, nwritten);
-
   XASSERT(g->EjectedFraction != NULL, "EjectedFraction has a NULL pointer.\n"); 
   nwritten = fwrite(g->EjectedFraction, sizeof(*(g->EjectedFraction)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing EjectedFraction, expected to write %d times but wrote %zu times instead\n",
@@ -365,6 +355,11 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   XASSERT(g->GridBHMass != NULL, "GridBHMass has a NULL pointer.\n"); 
   nwritten = fwrite(g->GridBHMass, sizeof(*(g->GridBHMass)), MAXSNAPS, fp);
   XASSERT( nwritten == MAXSNAPS, "Error: While writing GridBHMass, expected to write %d times but wrote %zu times instead\n",
+	   MAXSNAPS, nwritten);
+
+  XASSERT(g->GridReionMod != NULL, "GridReionMod has a NULL pointer.\n"); 
+  nwritten = fwrite(g->GridReionMod, sizeof(*(g->GridReionMod)), MAXSNAPS, fp);
+  XASSERT( nwritten == MAXSNAPS, "Error: While writing GridReionMod, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
  
   ++times_written;

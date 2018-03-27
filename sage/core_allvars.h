@@ -211,8 +211,6 @@ struct GALAXY
   float *GridSFR;
   float *GridZ;
   float *GridCentralGalaxyMass;
-  float *MfiltGnedin;
-  float *MfiltSobacchi;
   float *EjectedFraction;
   int *LenHistory;
   double *Stars; 
@@ -225,6 +223,7 @@ struct GALAXY
   float *GridColdGas;
   int *LenMergerGal;
   float *GridBHMass;      
+  float *GridReionMod;
  
   double StellarAge_Numerator;
   double StellarAge_Denominator;

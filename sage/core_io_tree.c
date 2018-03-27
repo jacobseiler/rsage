@@ -209,8 +209,6 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->GridSFR);
   free(g->GridZ);
   free(g->GridCentralGalaxyMass);
-  free(g->MfiltGnedin);
-  free(g->MfiltSobacchi);
   free(g->EjectedFraction);
   free(g->LenHistory);
   free(g->Stars);
@@ -223,6 +221,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->GridColdGas);
   free(g->LenMergerGal);
   free(g->GridBHMass);
+  free(g->GridReionMod);
 
   g->IsMalloced = 0;
 }
@@ -261,20 +260,6 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
   if (g->GridCentralGalaxyMass == NULL)
   { 
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridCentralGalaxyMass.\n", sizeof(*(g->GridCentralGalaxyMass))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->MfiltGnedin = malloc(sizeof(*(g->MfiltGnedin)) * (MAXSNAPS));
-  if (g->MfiltGnedin == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltGnedin.\n", sizeof(*(g->MfiltGnedin))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->MfiltSobacchi = malloc(sizeof(*(g->MfiltSobacchi)) * (MAXSNAPS));
-  if (g->MfiltSobacchi == NULL)
-  {   
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate MfiltSobacchi.\n", sizeof(*(g->MfiltSobacchi))*MAXSNAPS);
     return EXIT_FAILURE;
   }
 
@@ -362,7 +347,14 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
     return EXIT_FAILURE;
   }
 
-  g->IsMalloced = 1;
+  g->GridReionMod= malloc(sizeof(*(g->GridReionMod)) * (MAXSNAPS));
+  if (g->GridReionMod == NULL)
+  {
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridReionMod.\n", sizeof(*(g->GridReionMod)) * MAXSNAPS);
+    return EXIT_FAILURE;
+  }
+
+  g->IsMalloced = 1; // This way we can check that we're not freeing memory that hasn't been allocated.
 
   return EXIT_SUCCESS;
 
