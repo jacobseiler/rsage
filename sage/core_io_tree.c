@@ -21,7 +21,7 @@ void load_tree_table(int filenr)
   int i, n, totNHalos;
   char buf[MAXLEN];
   FILE *fd;
-
+  
   snprintf(buf, MAXLEN, "%s/%s_%03d%s", SimulationDir, TreeName, filenr, TreeExtension);
 
   if(!(load_fd = fopen(buf, "r")))

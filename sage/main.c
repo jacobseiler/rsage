@@ -36,7 +36,7 @@ void myexit(int signum)
   MPI_Abort(MPI_COMM_WORLD, signum);
 #else
   fprintf(stderr, "We're exiting\n\n\n");
-	exit(signum);
+  exit(signum);
 #endif
 
 }

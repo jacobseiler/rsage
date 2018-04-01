@@ -12,7 +12,7 @@ matplotlib.use('Agg')
 
 import os
 import pylab as plt
-sys.path.append('/home/jseiler/SAGE-stuff/output/')
+sys.path.append('/home/jseiler/self_consistent_SAGE/output/')
 
 import PlotScripts
 import ReadScripts

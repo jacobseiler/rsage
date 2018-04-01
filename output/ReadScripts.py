@@ -488,7 +488,10 @@ def read_SAGE_ini(fname):
 
                 if (data[line][0] == "%" or data[line][0] == "\n"):                
                     continue
-                SAGE_desc[names[count]] = (data[line].split())[1]
+                try:
+                    SAGE_desc[names[count]] = (data[line].split())[1]
+                except ValueError: 
+                    print("Current SAGE_desc is {0}".format(SAGE_desc))
                 count += 1
         return SAGE_desc, names
 

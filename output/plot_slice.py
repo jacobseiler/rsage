@@ -2392,10 +2392,10 @@ if __name__ == '__main__':
         
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
    
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_fesc0.20/XHII"
+    filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/cifog/XHII"
     filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/cifog/XHII"
     
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/SF0.01_NoFractional_QuasarEff0.02_fesc0.20/nion_field/kali_starburst_quasarwind_SF0.01_NoFractional_QuasarEff0.01_CorrectDiskInstability_fesc0.20_HaloPartCut32_nionHI" 
+    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
     filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/nion/test_fesc0.20_HaloPartCut32_nionHI"
   
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
