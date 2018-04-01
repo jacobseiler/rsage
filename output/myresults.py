@@ -2721,7 +2721,7 @@ if __name__ == '__main__':
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
-    SnapList = [[93, 76, 64]]
+    SnapList = [[76, 76, 64]]
     #PlotSnapList = [[93, 76, 64], [93, 76, 64]]
     PlotSnapList = [[64, 76, 93]]
    
@@ -2999,6 +2999,13 @@ if __name__ == '__main__':
                     metallicity_tremonti_gal = np.log10(G.GridZ[w_gal, current_snap] / 0.02) + 9.0 # Using the Tremonti relationship for metallicity.
                     mass_central = np.log10(G.GridCentralGalaxyMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
                     ejected_fraction = G.EjectedFraction[w_gal, current_snap]
+                    reionmod = G.GridReionMod[w_gal, current_snap]
+                    w_reionmod = np.where((reionmod == -1))[0]
+                    print(G.mergeType[w_gal[w_reionmod]])
+                    print(len(reionmod[reionmod == -1]))
+                    exit()
+                    print(reionmod)
+                    print(np.mean(reionmod))
  
                     mass_BH = G.GridBHMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h # Msun. Not log units. 
                     

@@ -134,7 +134,14 @@ void strip_from_satellite(int halonr, int centralgal, int gal, int32_t filenr, i
     reionization_modifier = 1.0;
   }
 
-  Gal[centralgal].GridReionMod[Halo[halonr].SnapNum] = reionization_modifier;
+
+  if (Gal[gal].HaloNr == 2385)
+  {
+    printf("SnapNum %d\tReionMod %.4f\tGridHistory[76] %d\tGridHistory[77] %d\tGridHistory[98] %d\tReionMod[76] %.4f\n", Halo[Gal[gal].HaloNr].SnapNum, reionization_modifier, Gal[gal].GridHistory[76], Gal[gal].GridHistory[77], Gal[gal].GridHistory[98], Gal[gal].GridReionMod[76]); 
+    printf("%d\n",Gal[gal].IsMerged);
+  }
+
+  Gal[gal].GridReionMod[Halo[Gal[gal].HaloNr].SnapNum] = reionization_modifier;
   //strippedGas = -1.0 *
     //(reionization_modifier * BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;
 
