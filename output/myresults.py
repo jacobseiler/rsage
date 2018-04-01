@@ -2661,7 +2661,7 @@ if __name__ == '__main__':
         boosted_dynamicaltime = float(sys.argv[4])
    
     np.seterr(divide='ignore')
-    number_models = 2
+    number_models = 1
 
     galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on_IRA/galaxies/base_z5.782'
     merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on_IRA/galaxies/base_MergedGalaxies'
@@ -2672,25 +2672,27 @@ if __name__ == '__main__':
     galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_z5.782'
     merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_MergedGalaxies'
 
+    galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/tmp/galaxies/test_z5.782'
+    merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/tmp/galaxies/test_MergedGalaxies'
 
-    galaxies_filepath_array = [galaxies_model2, galaxies_model3]
-    merged_galaxies_filepath_array = [merged_galaxies_model2, merged_galaxies_model3]
+    galaxies_filepath_array = [galaxies_model4]
+    merged_galaxies_filepath_array = [merged_galaxies_model4]
        
-    number_substeps = [10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
-    number_snapshots = [99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
+    number_substeps = [10] # How many substeps does each model have (specified by STEPS variable within SAGE).
+    number_snapshots = [99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
      
-    FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [63, 63] # The last file number THAT WE ARE PLOTTING.
-    NumFile = [64, 64] # The number of files for this simulation (plotting a subset of these files is allowed).     
-    same_files = [0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
+    FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
+    LastFile = [63] # The last file number THAT WE ARE PLOTTING.
+    NumFile = [64] # The number of files for this simulation (plotting a subset of these files is allowed).     
+    same_files = [0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
     # This array will tell us if we should keep the files for the next model or otherwise throw them away. 
     # The files will be kept until same_files[current_model_number] = 0.
     # For example if we had 5 models we were plotting and model 1, 2, 3 shared the same files and models 4, 5 shared different files,
     # Then same_files = [1, 1, 0, 1, 0] would be the correct values.
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
-    model_tags = [r"$\mathrm{Base}$", r"$\mathrm{Self-Consistent}$"]
+    model_tags = [r"$\mathrm{Base}$"]
     #model_tags = [r"$\mathrm{Delayed}$", r"$\mathrm{IRA}$"]    
 
     ## Constants used for each model. ##
@@ -2699,7 +2701,7 @@ if __name__ == '__main__':
     halo_cut = [32, 32, 32] # Only calculate properties for galaxies whose host halos have at least this many particles.
 
     ### fesc Stuff ###
-    fesc_prescription = [0, 0] # This defines what escape fractions prescription we want to use for each mode. 
+    fesc_prescription = [0] # This defines what escape fractions prescription we want to use for each mode. 
     # 0 is constant.
     # 1 is scaling with halo mass. 
     # 2 is scaling with ejected fraction. 
@@ -2708,7 +2710,7 @@ if __name__ == '__main__':
     # 5 is Anne's function form that scales with halo mass (larger fesc for higher halo mass).
 
     #fesc_normalization = [[0.2, 1.0, 2.5], [0.2, 1.0, 2.5]] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
-    fesc_normalization = [0.3, 0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
+    fesc_normalization = [0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
     # For prescription 0, requires a number that defines the constant fesc.
     # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
     # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
@@ -2719,13 +2721,13 @@ if __name__ == '__main__':
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
-    SnapList = [[93, 76, 64], [93, 76, 64]]
-    PlotSnapList = [[93, 76, 64], [93, 76, 64]]
-    #PlotSnapList = [[64, 76, 93]]
+    SnapList = [[93, 76, 64]]
+    #PlotSnapList = [[93, 76, 64], [93, 76, 64]]
+    PlotSnapList = [[64, 76, 93]]
    
     #PlotSnapList = [[29, 40, 49, 76, 93]] # For plots that contain properties plotted at specific redshifts, this specifies which snapshots we should plot at. 
 
-    simulation_norm = [5, 5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
+    simulation_norm = [5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
     # 0 for MySim (Manodeep's old one).
     # 1 for Mini-Millennium.
     # 2 for Tiamat (up to z =5).
@@ -2996,8 +2998,6 @@ if __name__ == '__main__':
                     metallicity_gal = G.GridZ[w_gal, current_snap]  
                     metallicity_tremonti_gal = np.log10(G.GridZ[w_gal, current_snap] / 0.02) + 9.0 # Using the Tremonti relationship for metallicity.
                     mass_central = np.log10(G.GridCentralGalaxyMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
-                    Mfilt_gnedin = G.MfiltGnedin[w_gal, current_snap]
-                    Mfilt_sobacchi = G.MfiltSobacchi[w_gal, current_snap]
                     ejected_fraction = G.EjectedFraction[w_gal, current_snap]
  
                     mass_BH = G.GridBHMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h # Msun. Not log units. 
@@ -3103,7 +3103,7 @@ if __name__ == '__main__':
     print("Sum photons {0}".format(sum_photons))
     
 
-    StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, paper_plots, "self_cons")
+    StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, paper_plots, "grid_reion_test")
     #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, std_BHmass_galaxy_array, N_galaxy_array, model_tags, "StellarMass_BHMass")
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 

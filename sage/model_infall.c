@@ -71,6 +71,8 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr, int32_t
     reionization_modifier = 1.0;
   }
 
+  Gal[centralgal].GridReionMod[Halo[halonr].SnapNum] = reionization_modifier;
+
   infallingMass = reionization_modifier * BaryonFrac * Gal[centralgal].Mvir - (tot_stellarMass + tot_coldMass + tot_hotMass + tot_ejected + tot_BHMass + tot_ICS);
 
   ejectedmass_total = tot_ejected;
@@ -132,6 +134,7 @@ void strip_from_satellite(int halonr, int centralgal, int gal, int32_t filenr, i
     reionization_modifier = 1.0;
   }
 
+  Gal[centralgal].GridReionMod[Halo[halonr].SnapNum] = reionization_modifier;
   //strippedGas = -1.0 *
     //(reionization_modifier * BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;
 
