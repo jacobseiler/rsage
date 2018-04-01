@@ -146,8 +146,6 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
          ('GridSFR', (np.float32, MAXSNAPS)),
          ('GridZ', (np.float32, MAXSNAPS)),
          ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
-         ('MfiltGnedin', (np.float32, MAXSNAPS)),
-         ('MfiltSobacchi', (np.float32, MAXSNAPS)), 
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
          ('LenHistory', (np.int32, MAXSNAPS)),
          ('GridOutflowRate', (np.float32, MAXSNAPS)),
@@ -158,7 +156,8 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
          ('QuasarSubstep', (np.int32, MAXSNAPS)),
          ('GridColdGas', (np.float32, MAXSNAPS)),
          ('LenMergerGal', (np.int32, MAXSNAPS)),
-         ('GridBHMass', (np.float32, MAXSNAPS))
+         ('GridBHMass', (np.float32, MAXSNAPS)),
+         ('GridReionMod', (np.float32, MAXSNAPS))
          ]
     
                             

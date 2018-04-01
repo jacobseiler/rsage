@@ -145,8 +145,6 @@ struct GALAXY_GRID
   float *SFR; // Units of Msun yr^-1
   float *Z; // NOT solar metallicity, actual metallicity.
   float *CentralGalaxyMass; // Units of 1.0e10 Msun/h.
-  float *MfiltGnedin; // Units of 1.0e10 Msun/h.
-  float *MfiltSobacchi; // Units of 1.0e10 Msun/h.
   float *EjectedFraction; // Unitless (fraction).
   int *LenHistory; // Number of particles in FoF Halo.
   float *OutflowRate;
@@ -158,6 +156,7 @@ struct GALAXY_GRID
   float *ColdGas;
   int *LenMergerGal;
   float *BHMass;
+  float *ReionMod;
 
 }*GalGrid;
 
