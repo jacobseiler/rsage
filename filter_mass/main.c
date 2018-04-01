@@ -65,7 +65,7 @@ int32_t parse_params(int32_t argc, char **argv, struct SAGE_PARAMETERS *params)
   }
   
   status = read_parameter_file(argv[1], params); 
-  if (status == EXIT_FAILURE)
+  if (status != EXIT_SUCCESS)
   {
     return EXIT_FAILURE;
   } 
@@ -172,13 +172,13 @@ int main(int argc, char **argv)
   }
  
   status = parse_params(argc, argv, params); // Set the input parameters.
-  if (status == EXIT_FAILURE)
+  if (status != EXIT_SUCCESS)
   {
     ABORT(EXIT_FAILURE);
   }
 
   status = read_snap_list(params); // Get the simulation redshifts.
-  if (status == EXIT_FAILURE)
+  if (status != EXIT_SUCCESS)
   {
     ABORT(EXIT_FAILURE);
   }
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
   }
 
   status = read_grid(ThisSnap, first_run, params, Grid); // Read the reionization redshift and photoionization grid. 
-  if (status == EXIT_FAILURE)
+  if (status != EXIT_SUCCESS)
   {
     ABORT(EXIT_FAILURE);
   }
@@ -213,7 +213,7 @@ int main(int argc, char **argv)
     NHalos_ThisSnap = 0;
     
     status = load_tree_table(filenr, params, &Ntrees, &totNHalos, &TreeNHalos); // Loads the table for this file.
-    if (status == EXIT_FAILURE)
+    if (status != EXIT_SUCCESS)
     {
       ABORT(EXIT_FAILURE);
     }       
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 
 
     status = allocate_array_memory(totNHalos, &HaloID, &ReionMod); // Memory for the output arrays. 
-    if (status == EXIT_FAILURE)
+    if (status != EXIT_SUCCESS)
     {
       ABORT(EXIT_FAILURE);
     }
@@ -247,7 +247,7 @@ int main(int argc, char **argv)
       }
 
       status = load_halos(treenr, TreeNHalos[treenr], Halos); // Loads the halos for this tree.
-      if (status == EXIT_FAILURE)
+      if (status != EXIT_SUCCESS)
       {
         ABORT(EXIT_FAILURE);
       }
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 
       // Now time to go through all the halos in this tree, determine those at the Snapshot specified and the associate reionization modifier (if it's within an ionized cell).
       status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], ThisSnap, first_run, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
-      if (status == EXIT_FAILURE)
+      if (status != EXIT_SUCCESS)
       {
         ABORT(EXIT_FAILURE);
       }
@@ -267,19 +267,9 @@ int main(int argc, char **argv)
     printf("For file %d there were %d total halos within ionized regions (out of %d halos in this snapshot, a ratio of %.4f). There were %d total halos with a reionization modifier lower than 1.0 (a ratio of %.4f to the total number of halos in this snapshot). The average ionization modifier for these is %.4f\n", filenr, NHalos_In_Regions, NHalos_ThisSnap, (float)NHalos_In_Regions / (float)NHalos_ThisSnap, NHalos_Ionized, (float)NHalos_Ionized / (float)NHalos_ThisSnap, sum_ReionMod / NHalos_Ionized);
           
     status = save_arrays(HaloID, ReionMod, params, NHalos_Ionized, filenr, ThisSnap, first_run);
-    if (status == EXIT_FAILURE)
+    if (status != EXIT_SUCCESS)
     {
       ABORT(EXIT_FAILURE);
-    }
-
-
-    if (ThisSnap == 29)
-    {
-      status = read_arrays(params, filenr, ThisSnap);
-      if (status == EXIT_FAILURE)
-      {
-        ABORT(EXIT_FAILURE);
-      }
     }
 
     free_memory(&TreeNHalos, &HaloID, &ReionMod);
@@ -290,7 +280,7 @@ int main(int argc, char **argv)
   // Everything done, time to free!
 
   status = free_grid(Grid);
-  if (status == EXIT_FAILURE)
+  if (status != EXIT_SUCCESS)
   {
     ABORT(EXIT_FAILURE);
   }
