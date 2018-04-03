@@ -362,8 +362,8 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   XASSERT( nwritten == MAXSNAPS, "Error: While writing GridReionMod, expected to write %d times but wrote %zu times instead\n",
 	   MAXSNAPS, nwritten);
 
-  if (g->GridReionMod[76] == -1 && g->GridHistory[76] != -1 && g->mergeType == 0) 
-    printf("Tree %d\t Halo %d\n", g->TreeNr, g->HaloNr);
+//  if (g->GridReionMod[76] == -1 && g->GridHistory[76] != -1 && g->mergeType == 0) 
+//    printf("Tree %d\t Halo %d\n", g->TreeNr, g->HaloNr);
  
   ++times_written;
 

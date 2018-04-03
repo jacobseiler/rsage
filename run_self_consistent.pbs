@@ -12,9 +12,9 @@ module load fftw/x86_64/gnu/3.3.3-openmpi-psm
 module load gsl/x86_64/gnu/1.9
 module load python/x86_64/gnu/3.5.2
 
-ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/base_self_consistent"
-log_dir="/home/jseiler/self_consistent_SAGE/logs"
-log_prefix="32proc" # Attaches a prefix to each of the log files (useful for different parameter runs). 
+ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/self_consistent_GridReionMod"
+log_dir="/home/jseiler/self_consistent_SAGE/logs/self_consistent_GridReionMod"
+log_prefix="GridReionMod" # Attaches a prefix to each of the log files (useful for different parameter runs). 
 
 LowSnap=27
 HighSnap=98

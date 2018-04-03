@@ -202,7 +202,54 @@ def Std_Log(array, mean):
     std = np.sqrt(sum_total)
     return std
 
-##
+###
+
+
+def collect_across_tasks(mean_per_task, std_per_task, N_per_task, SnapList, BinSnapList, binned):
+
+    master_mean = []
+    master_std = []
+    master_N = []
+
+    master_bin_middle = []
+
+    for model_number in range(0, len(SnapList)): 
+
+        master_mean.append([])
+        master_std.append([])
+        master_N.append([])
+
+        master_bin_middle.append([])
+
+        # If we're collecting a binned statistic (e.g., binned across halo mass), then we need to perform the collecting per snapshot.
+        if binned:
+            count = 0 
+            for snapshot_idx in range(len(SnapList[model_number])):
+                if SnapList[model_number][snapshot_idx] == BinSnapList[model_number][count]:
+                    master_mean[model_number], master_std[model_number], master_N[model_number] = calculate_pooled_stats(master_mean[model_number], master_std[model_number], master_N[model_number], 
+                                                                                                                         mean_per_task[model_number][snapshot_idx], std_per_task[model_number][snapshot_idx], 
+                                                                                                                         N_per_task[model_number][snapshot_idx])
+                    master_bin_middle[model_number].append(np.arange(m_low, m_high+bin_width, bin_width)[:-1] + bin_width * 0.5)
+
+                    count += 1
+
+                    if count == len(BinSnapList[model_number]):
+                        break
+
+        else:
+            master_mean[model_number], master_std[model_number], master_N[model_number] = calculate_pooled_stats(master_mean[model_number], master_std[model_number], master_N[model_number], 
+                                                                                                                 mean_per_task[model_number], std_per_task[model_number], 
+                                                                                                                 N_per_task[model_number])
+
+            if rank == 0:
+                master_mean[model_number] = master_mean[model_number][0]
+                master_std[model_number] = master_std[model_number][0]
+                master_N[model_number] = master_N[model_number][0]
+                print(master_mean)
+    return master_mean, master_std, master_N, master_bin_middle
+
+###
+
 
 def calculate_pooled_stats(mean_pool, std_pool, N_pool, mean_local, std_local, N_local):
     '''
@@ -2033,6 +2080,7 @@ def plot_quasar_substep(snapshot, filenr, output_tag, substep):
     
     plt.close()
  
+###
 
 def plot_post_quasar_SFR(PlotSnapList, model_number, Gal, output_tag):
 
@@ -2114,6 +2162,7 @@ def plot_post_quasar_SFR(PlotSnapList, model_number, Gal, output_tag):
         plt.close()
         exit()
 
+###
 
 def plot_stellarmass_blackhole(SnapList, simulation_norm, mean_galaxy_BHmass, std_galaxy_BHmass, N_galaxy_BHmass, model_tags, output_tag):
 
@@ -2206,6 +2255,138 @@ def plot_stellarmass_blackhole(SnapList, simulation_norm, mean_galaxy_BHmass, st
         
         plt.close()
         exit()
+
+
+###
+
+def plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo, std_reionmod_halo, N_halo, mean_reionmod_z, std_reionmod_z, N_reionmod, model_tags, output_tag): 
+    """
+    Plot the reionization modifier as a function of halo mass and redshift.
+ 
+    Parameters
+    ----------
+
+    PlotSnapList, SnapList: 2D Nested arrays of integers. Outer length is equal to the number of models and inner length is number of snapshots we're plotting/calculated for. 
+        PlotSnapList contains the snapshots for each model we will plot for the halo mass figure. 
+        SnapList contains the snapshots for each model that we have performed calculations for.  These aren't equal because we don't want to plot halo curves for ALL redshifts.
+
+    simulation_norm: Array of integers. Length is equal to the number of models.
+        Contains the simulation identifier for each model. Used to set the parameters of each model.
+
+    mean_reionmod_halo, std_reionmod_halo: 3D Nested arrays of floats.  Most outer length is equal to the number of models, next length is number of snapshots for each model, then inner-most length is the number of halo mass-                                                       bins (given by NB).
+        Contains the mean/standard deviation values for the reionization modifier as a function of halo mass.   
+        NOTE: These are unique for each task.
+         
+    N_halo: 3D Nested arrays of floats.  Lengths are identical to mean_reionmod_halo.
+        Contains the number of halos in each halo mass bin.
+        NOTE: These are unique for each task.
+
+    mean_reionmod_z, std_reionmod_z: 2D Nested arrays of floats. Outer length is equal to the number of models, inner length is the number of snapshots for each model. NOTE: This inner length can be different to the length of                                                 PlotSnapList as we don't necessarily need to plot for every snapshot we calculate.
+        Contains the mean/standard deviation values for the rieonization modifier as a function of redshift. 
+        NOTE: These are unique for each task.
+
+    N_reionmod: 2D Nested arrays of floats. Lengths are identical to mean_reionmod_z.
+        Contains the number of galaxies at each redshift that have non-negative reionization modifier.  A negative reionization modifier is a galaxy who didn't have infall/stripping during the snapshot.
+        NOTE: These are unique for each task.
+
+    model_tags: Array of strings. Length is equal to the number of models.
+        Contains the legend labels for each model.
+
+    output_tag: String.
+        The prefix for the output file.
+
+    Returns
+    ----------
+    
+    None. Plot is saved in current directory as "./<output_tag>.<output_format>"
+
+    """
+
+    (master_mean_reionmod_halo, master_std_reionmod_halo, master_N_reionmod_halo, master_bin_middle) = collect_across_tasks(mean_reionmod_halo, std_reionmod_halo, N_halo, SnapList, PlotSnapList, True) 
+    (master_mean_reionmod_z, master_std_reionmod_z, master_N_reionmod_z, _) = collect_across_tasks(mean_reionmod_z, std_reionmod_z, N_reionmod, SnapList, [], False) 
+
+    if rank == 0:
+        fig1 = plt.figure()
+        ax1 = fig1.add_subplot(111)
+
+        fig2 = plt.figure()
+        ax10 = fig2.add_subplot(111)
+
+        for model_number in range(len(PlotSnapList)):        
+            if(simulation_norm[model_number] == 1):
+                cosmo = AllVars.Set_Params_MiniMill()
+            elif(simulation_norm[model_number] == 3):
+                cosmo = AllVars.Set_Params_Tiamat_extended()
+            elif(simulation_norm[model_number] == 4):
+                cosmo = AllVars.Set_Params_Britton()
+            elif(simulation_norm[model_number] == 5):
+                cosmo = AllVars.Set_Params_Kali()
+    
+            for snapshot_idx in range(len((PlotSnapList[model_number]))):
+                if snapshot_idx == 0:
+                    label = model_tags[model_number]
+                else:
+                    label = ""
+                ax1.plot(master_bin_middle[model_number][snapshot_idx], master_mean_reionmod_halo[model_number][snapshot_idx], label = label, ls = PlotScripts.linestyles[model_number], color = PlotScripts.colors[snapshot_idx]) 
+
+            ax10.plot((AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number]])*1.0e3, master_mean_reionmod_z[model_number], color = PlotScripts.colors[model_number], label = model_tags[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
+
+        for count, snapshot_idx in enumerate(PlotSnapList[model_number]):
+            #label = r"$\mathbf{z = " + str(int(round(AllVars.SnapZ[snapshot_idx]))) + "}$"                
+            label = r"$\mathbf{z = " + str(AllVars.SnapZ[snapshot_idx]) + "}$"                
+            ax1.plot(np.nan, np.nan, ls = PlotScripts.linestyles[0], color = 'k', label = label) 
+
+        ax1.set_xlim([8.5, 11.5])
+        ax1.set_ylim([0.0, 1.05])
+
+        ax1.set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', fontsize = PlotScripts.global_labelsize) 
+        ax1.set_ylabel(r'$\mathbf{Mean ReionMod}$', fontsize = PlotScripts.global_labelsize) 
+
+        ax10.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", fontsize = PlotScripts.global_labelsize)
+        tick_locs = np.arange(200.0, 1000.0, 100.0)
+        tick_labels = [r"$\mathbf{%d}$" % x for x in tick_locs]
+        ax10.xaxis.set_major_locator(mtick.MultipleLocator(100))
+        ax10.set_xticklabels(tick_labels, fontsize = PlotScripts.global_fontsize)
+        ax10.set_xlim(PlotScripts.time_xlim)
+
+        #ax10.set_ylabel(r'$\mathbf{Mean ReionMod}$', fontsize = PlotScripts.global_labelsize)                 
+        #ax10.yaxis.set_minor_locator(mtick.MultipleLocator(0.10))
+        
+        #tick_locs = np.arange(0.0, 1.0, 0.1)
+        #ax10.set_yticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs], fontsize = PlotScripts.global_fontsize)
+        #ax10.set_ylim([0.0, 1.05])
+
+        ax11 = ax10.twiny()
+
+        t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
+        z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
+
+        ax11.set_xlabel(r"$\mathbf{z}$", fontsize = PlotScripts.global_labelsize)
+        ax11.set_xlim(PlotScripts.time_xlim)
+        ax11.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
+        ax11.set_xticklabels(z_labels, fontsize = PlotScripts.global_fontsize) # But label them as redshifts.
+
+        leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(PlotScripts.global_legendsize)
+
+        leg = ax10.legend(loc='lower right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(PlotScripts.global_legendsize)
+
+        outputFile1 = "./{0}_halo{1}".format(output_tag, output_format) 
+        outputFile2 = "./{0}_z{1}".format(output_tag, output_format) 
+
+        fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+        fig2.savefig(outputFile2, bbox_inches='tight')  # Save the figure
+
+        print('Saved file to {0}'.format(outputFile1))
+        print('Saved file to {0}'.format(outputFile2))
+
+        plt.close(fig1)
+        plt.close(fig2)
 
  
 ### Here ends the plotting functions. ###
@@ -2661,38 +2842,33 @@ if __name__ == '__main__':
         boosted_dynamicaltime = float(sys.argv[4])
    
     np.seterr(divide='ignore')
-    number_models = 1
+    number_models = 2
 
-    galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on_IRA/galaxies/base_z5.782'
-    merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on_IRA/galaxies/base_MergedGalaxies'
+    galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent_GridReionMod/galaxies/base_z5.782'
+    merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent_GridReionMod/galaxies/base_MergedGalaxies'
 
     galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_z5.782'
     merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_MergedGalaxies'
 
-    galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_z5.782'
-    merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent/galaxies/test_MergedGalaxies'
 
-    galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/tmp/galaxies/test_z5.782'
-    merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/tmp/galaxies/test_MergedGalaxies'
-
-    galaxies_filepath_array = [galaxies_model4]
-    merged_galaxies_filepath_array = [merged_galaxies_model4]
+    galaxies_filepath_array = [galaxies_model1, galaxies_model2]
+    merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2]
        
-    number_substeps = [10] # How many substeps does each model have (specified by STEPS variable within SAGE).
-    number_snapshots = [99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
+    number_substeps = [10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
+    number_snapshots = [99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
      
-    FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [63] # The last file number THAT WE ARE PLOTTING.
-    NumFile = [64] # The number of files for this simulation (plotting a subset of these files is allowed).     
-    same_files = [0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
+    FirstFile = [0, 0] # The first file number THAT WE ARE PLOTTING.
+    LastFile = [63, 63] # The last file number THAT WE ARE PLOTTING.
+    NumFile = [64, 64] # The number of files for this simulation (plotting a subset of these files is allowed).     
+    same_files = [0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
     # This array will tell us if we should keep the files for the next model or otherwise throw them away. 
     # The files will be kept until same_files[current_model_number] = 0.
     # For example if we had 5 models we were plotting and model 1, 2, 3 shared the same files and models 4, 5 shared different files,
     # Then same_files = [1, 1, 0, 1, 0] would be the correct values.
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
-    model_tags = [r"$\mathrm{Base}$"]
+    model_tags = [r"$\mathrm{Self-Consistent}$", r"$\mathrm{Base}$"]
     #model_tags = [r"$\mathrm{Delayed}$", r"$\mathrm{IRA}$"]    
 
     ## Constants used for each model. ##
@@ -2701,7 +2877,7 @@ if __name__ == '__main__':
     halo_cut = [32, 32, 32] # Only calculate properties for galaxies whose host halos have at least this many particles.
 
     ### fesc Stuff ###
-    fesc_prescription = [0] # This defines what escape fractions prescription we want to use for each mode. 
+    fesc_prescription = [0, 0] # This defines what escape fractions prescription we want to use for each mode. 
     # 0 is constant.
     # 1 is scaling with halo mass. 
     # 2 is scaling with ejected fraction. 
@@ -2710,7 +2886,7 @@ if __name__ == '__main__':
     # 5 is Anne's function form that scales with halo mass (larger fesc for higher halo mass).
 
     #fesc_normalization = [[0.2, 1.0, 2.5], [0.2, 1.0, 2.5]] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
-    fesc_normalization = [0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
+    fesc_normalization = [0.3, 0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
     # For prescription 0, requires a number that defines the constant fesc.
     # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
     # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
@@ -2721,13 +2897,13 @@ if __name__ == '__main__':
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
-    SnapList = [[76, 76, 64]]
+    SnapList = [np.arange(20,99), np.arange(20, 99)]
     #PlotSnapList = [[93, 76, 64], [93, 76, 64]]
-    PlotSnapList = [[64, 76, 93]]
+    PlotSnapList = [[30, 50, 64, 76, 93], [30, 50, 64, 76, 93]]
    
     #PlotSnapList = [[29, 40, 49, 76, 93]] # For plots that contain properties plotted at specific redshifts, this specifies which snapshots we should plot at. 
 
-    simulation_norm = [5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
+    simulation_norm = [5, 5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
     # 0 for MySim (Manodeep's old one).
     # 1 for Mini-Millennium.
     # 2 for Tiamat (up to z =5).
@@ -2748,10 +2924,6 @@ if __name__ == '__main__':
             exit()
         fesc_prescription = [3]
         fesc_normalization = [[baseline_fesc, boosted_fesc, boosted_dynamicaltime]]        
-    
-
-    sum_photons = np.float32(0.0) 
-       
     
     ##############################################################################################################
     ## Do a few checks to ensure all the arrays were specified properly. ##
@@ -2821,18 +2993,27 @@ if __name__ == '__main__':
     mean_quasar_activity_array = [] # Mean fraction of galaxies that have quasar actvitity as a function of halo mas.
     std_quasar_activity_array = [] # Same as above but standard deviation.
 
+    mean_reionmod_halo_array = [] # Mean reionization modifier as a function of halo mass.
+    std_reionmod_halo_array = [] # Same as above but for standard deviation. 
+
     ## Arrays for functions of redshift. ##
     sum_Ngamma_z_array = [] # Total number of ionizing photons THAT ESCAPE as a functio of redshift. 
     mean_fesc_z_array = [] # Mean number of ionizing photons THAT ESCAPE as a function of redshift.
     std_fesc_z_array = [] # Same as above but standard deviation.
     N_z = [] # Number of galaxies as a function of redshift. 
-    galaxy_halo_mass_mean = [] # Mean galaxy mass as a function of redshift.    
+    galaxy_halo_mass_mean = [] # Mean galaxy mass as a function of redshift.
+
     N_quasars_z = [] # This tracks how many quasars went off during a specified snapshot.
     N_quasars_boost_z = [] # This tracks how many galaxies are having their escape fraction boosted by quasar activity.
+
     dynamicaltime_quasars_mean_z = [] # Mean dynamical time of galaxies that have a quasar event as a function of redshift.
     dynamicaltime_quasars_std_z = [] # Same as above but standard deviation.
     dynamicaltime_all_mean_z = [] # Mean dynamical time of all galaxies.
     dynamicaltime_all_std_z = [] # Same as above but standard deviation.
+
+    mean_reionmod_z = [] # Mean reionization modifier as a function of redshift.
+    std_reionmod_z = [] # Same as above but for standard deviation. 
+    N_reionmod_z = [] # Number of galaxies with a non-negative reionization modifier.
 
     ## Now the outer arrays have been defined, set up the next nest level for the number of models. ##
 
@@ -2860,6 +3041,9 @@ if __name__ == '__main__':
         mean_quasar_activity_array.append([])
         std_quasar_activity_array.append([])
 
+        mean_reionmod_halo_array.append([])
+        std_reionmod_halo_array.append([])
+
         ## Redshift arrays. ##
         sum_Ngamma_z_array.append([])
         mean_fesc_z_array.append([])
@@ -2869,10 +3053,15 @@ if __name__ == '__main__':
 
         N_quasars_z.append([])
         N_quasars_boost_z.append([])
+
         dynamicaltime_quasars_mean_z.append([])
         dynamicaltime_quasars_std_z.append([])
         dynamicaltime_all_mean_z.append([])
         dynamicaltime_all_std_z.append([])
+
+        mean_reionmod_z.append([])
+        std_reionmod_z.append([])
+        N_reionmod_z.append([])
 
         ## And then finally set up the inner most arrays ##
         ## NOTE: We do the counts as float so we can keep consistency when we're calling MPI operations (just use MPI.FLOAT rather than deciding if we need to use MPI.INT)
@@ -2903,19 +3092,28 @@ if __name__ == '__main__':
  
             mean_quasar_activity_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
             std_quasar_activity_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
-     
+    
+            mean_reionmod_halo_array[model_number].append(np.zeros((NB), dtype = np.float32))
+            std_reionmod_halo_array[model_number].append(np.zeros((NB), dtype = np.float32))
+ 
             ## Function of Redshift arrays. ##
             sum_Ngamma_z_array[model_number].append(0.0) 
             mean_fesc_z_array[model_number].append(0.0) 
             std_fesc_z_array[model_number].append(0.0)
             N_z[model_number].append(0.0) 
             galaxy_halo_mass_mean[model_number].append(0.0)
+
             N_quasars_z[model_number].append(0.0) 
             N_quasars_boost_z[model_number].append(0.0)
+
             dynamicaltime_quasars_mean_z[model_number].append(0.0)
             dynamicaltime_quasars_std_z[model_number].append(0.0)
             dynamicaltime_all_mean_z[model_number].append(0.0)
             dynamicaltime_all_std_z[model_number].append(0.0)
+
+            mean_reionmod_z[model_number].append(0.0)
+            std_reionmod_z[model_number].append(0.0)
+            N_reionmod_z[model_number].append(0.0)
 
     ## Define structured arrays ##
 
@@ -2987,7 +3185,7 @@ if __name__ == '__main__':
                     w_gal = np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut) & (G.GridSFR[:, current_snap] >= 0.0) & (G.GridCentralGalaxyMass[:, current_snap] >= 0.0))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate. Ensure the galaxies also resides in a halo that is sufficiently resolved.
                     w_merged_gal = np.where((G_Merged.GridHistory[:, current_snap] != -1) & (G_Merged.GridStellarMass[:, current_snap] > 0.0) & (G_Merged.LenHistory[:, current_snap] > current_halo_cut) & (G_Merged.GridSFR[:, current_snap] >= 0.0) & (G_Merged.GridCentralGalaxyMass[:, current_snap] >= 0.0) & (G_Merged.LenMergerGal[:,current_snap] > current_halo_cut))[0] 
               
-                    print("There were {0} galaxies for snapshot {1} (Redshift {2:.3f}) model {3}.".format(len(w_gal), current_snap, AllVars.SnapZ[current_snap], current_model_number))
+                    #print("There were {0} galaxies for snapshot {1} (Redshift {2:.3f}) model {3}.".format(len(w_gal), current_snap, AllVars.SnapZ[current_snap], current_model_number))
                    
                     if (len(w_gal) == 0): 
                         continue
@@ -2999,14 +3197,11 @@ if __name__ == '__main__':
                     metallicity_tremonti_gal = np.log10(G.GridZ[w_gal, current_snap] / 0.02) + 9.0 # Using the Tremonti relationship for metallicity.
                     mass_central = np.log10(G.GridCentralGalaxyMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
                     ejected_fraction = G.EjectedFraction[w_gal, current_snap]
+
                     reionmod = G.GridReionMod[w_gal, current_snap]
-                    w_reionmod = np.where((reionmod == -1))[0]
-                    print(G.mergeType[w_gal[w_reionmod]])
-                    print(len(reionmod[reionmod == -1]))
-                    exit()
-                    print(reionmod)
-                    print(np.mean(reionmod))
- 
+                    mass_reionmod_central = mass_central[reionmod > -1]
+                    reionmod = reionmod[reionmod > -1] # Some satellite galaxies that don't have HotGas and hence won't be stripped. As a result reionmod = -1 for these. Ignore them.        
+
                     mass_BH = G.GridBHMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h # Msun. Not log units. 
                     
                     merge_flag = G_Merged.mergeType[w_merged_gal]
@@ -3046,10 +3241,7 @@ if __name__ == '__main__':
                     ionizing_photons = np.multiply(photons_HI_gal_nonlog, fesc_local) # Then get the number that actually escape.
 
                     #for i in range(10):
-                    #    print("SFR {0} Mass {1} Photons {2} fesc {3}".format(10**SFR_gal[i], mass_gal[i], photons_HI_gal[i], fesc_local[i]))
-
-                    #sum_photons += sum(photons_HI_gal_nonlog) 
-                    
+                    #    print("SFR {0} Mass {1} Photons {2} fesc {3}".format(10**SFR_gal[i], mass_gal[i], photons_HI_gal[i], fesc_local[i]))                   
 
                     ###########################################                     
                     ######## BASE PROPERTIES CALCULATED #######
@@ -3070,21 +3262,37 @@ if __name__ == '__main__':
                     N_galaxy_array[current_model_number][snapshot_idx] += N_local 
 
                     ### Functions of Halos/Halo Mass ###
-                    (mean_ejected_halo_local, std_ejected_halo_local, N_local, sum_ejected_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_central, ejected_fraction, bin_width, m_low, m_high) # Calculate the ejected fraction as a function of halo mass. 
+
+                    ## Ejected Fraction ##
+
+                    (mean_ejected_halo_local, std_ejected_halo_local, N_local, sum_ejected_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_central, ejected_fraction, bin_width, m_low, m_high) 
                     (mean_ejected_halo_array[current_model_number][snapshot_idx], std_ejected_halo_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_ejected_halo_array[current_model_number][snapshot_idx], std_ejected_halo_array[current_model_number][snapshot_idx], N_halo_array[current_model_number][snapshot_idx], mean_ejected_halo_local, std_ejected_halo_local, N_local) # Then update the running total.
 
-                    (mean_quasar_activity_local, std_quasar_activity_local, N_local, sum_ejected_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_central, G.QuasarActivity[w_gal, current_snap], bin_width, m_low, m_high) # Calculate the fraction of galaxies that had a quasar event as a function of halo mass.
+                    ## Quasar Fraction ##
+
+                    (mean_quasar_activity_local, std_quasar_activity_local, N_local, sum_ejected_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_central, G.QuasarActivity[w_gal, current_snap], bin_width, m_low, m_high) 
                     (mean_quasar_activity_array[current_model_number][snapshot_idx], std_quasar_activity_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_quasar_activity_array[current_model_number][snapshot_idx], std_quasar_activity_array[current_model_number][snapshot_idx], N_halo_array[current_model_number][snapshot_idx], mean_quasar_activity_local, std_quasar_activity_local, N_local) # Then update the running total.
-                    
-                    (mean_fesc_halo_local, std_fesc_halo_local, N_local, sum_ejected_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_central, fesc_local, bin_width, m_low, m_high) # calculate the escape fraction as a function of halo mass. 
+                   
+                    ## fesc Value ##
+
+                    (mean_fesc_halo_local, std_fesc_halo_local, N_local, sum_ejected_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_central, fesc_local, bin_width, m_low, m_high) 
                     (mean_fesc_halo_array[current_model_number][snapshot_idx], std_fesc_halo_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_fesc_halo_array[current_model_number][snapshot_idx], std_fesc_halo_array[current_model_number][snapshot_idx], N_halo_array[current_model_number][snapshot_idx], mean_fesc_halo_local, std_fesc_halo_local, N_local) # Then update the running total. 
 
-                    (mean_Ngamma_halo_local, std_Ngamma_halo_local, N_local, sum_ejected_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_central, ionizing_photons, bin_width, m_low, m_high)  # Calculate the number of ionizing photons THAT ESCAPE as a function of halo mass.
+                    ## Ngamma ##
+
+                    (mean_Ngamma_halo_local, std_Ngamma_halo_local, N_local, sum_ejected_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_central, ionizing_photons, bin_width, m_low, m_high)  
 
                     mean_Ngamma_halo_local = np.divide(mean_Ngamma_halo_local, 1.0e50) ## Divide out a constant to keep the numbers manageable.
                     std_Ngamma_halo_local = np.divide(std_Ngamma_halo_local, 1.0e50)
 
                     (mean_Ngamma_halo_array[current_model_number][snapshot_idx], std_Ngamma_halo_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_Ngamma_halo_array[current_model_number][snapshot_idx], std_Ngamma_halo_array[current_model_number][snapshot_idx], N_halo_array[current_model_number][snapshot_idx], mean_Ngamma_halo_local, std_Ngamma_halo_local, N_local) # Then update the running total. 
+
+                    ## Reionization Modifier ##
+
+                    (mean_reionmod_halo_local, std_reionmod_halo_local, N_local, sum_reionmod_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_reionmod_central, reionmod, bin_width, m_low, m_high) 
+                    (mean_reionmod_halo_array[current_model_number][snapshot_idx], std_reionmod_halo_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_reionmod_halo_array[current_model_number][snapshot_idx], std_reionmod_halo_array[current_model_number][snapshot_idx], N_halo_array[current_model_number][snapshot_idx], mean_reionmod_halo_local, std_reionmod_halo_local, N_local) # Then update the running total. 
+
+                    ## Mergers ##
 
                     if (len(merge_flag) > 0):
                         (_, _, _, merger_counts_local, _) = AllVars.Calculate_2D_Mean(merge_mass_central, merge_flag, bin_width, m_low, m_high)
@@ -3096,9 +3304,17 @@ if __name__ == '__main__':
                     N_halo_array[current_model_number][snapshot_idx] += N_local                         
 
                     ### Functions of redshift ###
+
+                    ## Ngamma ##
+
                     sum_Ngamma_z_array[current_model_number][snapshot_idx] += np.sum(np.divide(ionizing_photons, 1.0e50)) # Remember that we're dividing out a constant! 
 
+                    ## fesc Value ## 
                     (mean_fesc_z_array[current_model_number][snapshot_idx], std_fesc_z_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_fesc_z_array[current_model_number][snapshot_idx], std_fesc_z_array[current_model_number][snapshot_idx], N_z[current_model_number][snapshot_idx], np.mean(fesc_local), np.std(fesc_local), len(w_gal)) # Updates the mean escape fraction for this redshift.
+
+                    ## Reionization Modifier ##
+                    (mean_reionmod_z[current_model_number][snapshot_idx], std_reionmod_z[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_reionmod_z[current_model_number][snapshot_idx], std_reionmod_z[current_model_number][snapshot_idx], N_reionmod_z[current_model_number][snapshot_idx], np.mean(reionmod), np.std(reionmod), len(reionmod))
+                    N_reionmod_z[current_model_number][snapshot_idx] += len(reionmod)
          
                     N_z[current_model_number][snapshot_idx] += len(w_gal)
                                 
@@ -3106,11 +3322,9 @@ if __name__ == '__main__':
                 if (current_model_number < number_models):                
                     keep_files =  same_files[current_model_number] # Decide if we want to keep the files loaded or throw them out. 
                     current_model_number += 1 # Update the inner loop model number.
-
-    print("Sum photons {0}".format(sum_photons))
-    
-
-    StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, paper_plots, "grid_reion_test")
+   
+    #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, paper_plots, "grid_reion_test")
+    plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo_array, std_reionmod_halo_array, N_halo_array, mean_reionmod_z, std_reionmod_z, N_reionmod_z, model_tags, "reionmod") 
     #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, std_BHmass_galaxy_array, N_galaxy_array, model_tags, "StellarMass_BHMass")
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 

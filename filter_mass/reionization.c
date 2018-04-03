@@ -115,7 +115,7 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
   {
     return EXIT_SUCCESS;
   }
-
+  
   for (halonr = 0; halonr < NHalos_ThisTree; ++halonr)
   {
     if (Halos[halonr].SnapNum == ThisSnap && halonr == Halos[halonr].FirstHaloInFOFgroup) // Only care about CENTRAL halos at the snapshot specified. Only do centrals because baryons fall onto them, not satellites. 

@@ -23,10 +23,10 @@ void construct_galaxies(int halonr, int tree, int filenr)
 
   prog = Halo[halonr].FirstProgenitor;
 
-    if (tree == 0 && halonr == 2385)
-    {
-      printf("SnapNum %d\n", Halo[halonr].SnapNum);
-    }
+//    if (tree == 0 && halonr == 2385)
+//    {
+//      printf("SnapNum %d\n", Halo[halonr].SnapNum);
+//    }
 
 
 /*
@@ -385,8 +385,8 @@ void evolve_galaxies(int halonr, int ngal, int tree, int filenr)	// Note: halonr
         currentMvir = Gal[p].Mvir - Gal[p].deltaMvir * (1.0 - ((double)step + 1.0) / (double)STEPS);
         galaxyBaryons = Gal[p].StellarMass + Gal[p].ColdGas;
 
-        if (Halo[Gal[p].HaloNr].SnapNum == 76)
-          printf("ReionMod %.4f\tType %d\tGalaxyBaryons = %.4e\tgreater than %.4f\tThresh %.4f\tHotGas = %.4e\n", Gal[p].GridReionMod[76],  Gal[p].Type, galaxyBaryons, currentMvir / galaxyBaryons, ThresholdSatDisruption, Gal[p].HotGas); 
+//        if (Halo[Gal[p].HaloNr].SnapNum == 76)
+//          printf("ReionMod %.4f\tType %d\tGalaxyBaryons = %.4e\tgreater than %.4f\tThresh %.4f\tHotGas = %.4e\n", Gal[p].GridReionMod[76],  Gal[p].Type, galaxyBaryons, currentMvir / galaxyBaryons, ThresholdSatDisruption, Gal[p].HotGas); 
 
 
         if((galaxyBaryons == 0.0) || (galaxyBaryons > 0.0 && (currentMvir / galaxyBaryons <= ThresholdSatDisruption)))        
