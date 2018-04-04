@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 #endif
   {
 
-    if (ReionizationOn == 3)
+    if (ReionizationOn == 3 || ReionizationOn == 4)
     {
       status = init_reion_lists(filenr);
       if (status == EXIT_FAILURE)
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
 
-    if (ReionizationOn == 3)
+    if (ReionizationOn == 3 || ReionizationOn == 4)
     {
       status = free_reion_lists(filenr);
       if (status == EXIT_FAILURE)

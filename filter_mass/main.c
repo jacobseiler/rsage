@@ -218,6 +218,7 @@ int main(int argc, char **argv)
       ABORT(EXIT_FAILURE);
     }       
 
+#ifdef DEBUG_TREES
     int32_t i;
     int32_t maxhalos = -1, minhalos = 1e5;
     for (i = 0; i < Ntrees; ++i)
@@ -229,7 +230,7 @@ int main(int argc, char **argv)
         minhalos = TreeNHalos[i];
     }
     printf("The smallest tree had %d halos and the largest had %d halos\n", minhalos, maxhalos);
-
+#endif
 
     status = allocate_array_memory(totNHalos, &HaloID, &ReionMod); // Memory for the output arrays. 
     if (status != EXIT_SUCCESS)

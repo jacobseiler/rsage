@@ -119,7 +119,6 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
   for (halonr = 0; halonr < NHalos_ThisTree; ++halonr)
   {
     if (Halos[halonr].SnapNum == ThisSnap && halonr == Halos[halonr].FirstHaloInFOFgroup) // Only care about CENTRAL halos at the snapshot specified. Only do centrals because baryons fall onto them, not satellites. 
-    //if (Halos[halonr].SnapNum == ThisSnap) // Only care about CENTRAL halos at the snapshot specified. Only do centrals because baryons fall onto them, not satellites. 
     {
 
       ++(*NHalos_ThisSnap);
@@ -135,10 +134,13 @@ int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_This
         continue;
       }
 
-      //printf("Halo %d from tree %d is within the region. It's ionization modifier is %.4f with a halo mass %.4e\n", halonr, treenr, ReionMod_tmp, Halos[halonr].Mvir);
       unique_ID = ((int64_t)treenr << 32)  | halonr; // We create a unique ID for each halo within the file by generating a 64 bit number with the left-most 32 bits being the tree number and the right-most bits being the halo number.     
                                                    // As the tree number can only increase, this creates an ascending list without the need to sort. 
-      //printf("Unique ID for tree number %d and halo number %d is %ld with ReionMod %.4f\n", treenr, halonr, (long)unique_ID, ReionMod_tmp); 
+
+#ifdef DEBUG
+      printf("Halo %d from tree %d is within the region. It's ionization modifier is %.4f with a halo mass %.4e\n", halonr, treenr, ReionMod_tmp, Halos[halonr].Mvir);
+      printf("Unique ID for tree number %d and halo number %d is %ld with ReionMod %.4f\n", treenr, halonr, (long)unique_ID, ReionMod_tmp); 
+#endif
       (*HaloID)[(*NHalos_Ionized)] = unique_ID;
       (*ReionMod)[(*NHalos_Ionized)] = ReionMod_tmp;
       (*sum_ReionMod) += ReionMod_tmp;
@@ -185,7 +187,12 @@ int32_t determine_Mfilt(struct HALO_STRUCT Halo, struct GRID_STRUCT *Grid, struc
     Mvir = Halo.Mvir * 1.0e10 / params->Hubble_h;
 
     *reionization_modifier = pow(2.0, -Mfilt/Mvir);
-    //printf("z_reion = %.4f\tz_curr = %4.f\tphotHI = %.4f\tMvir = %.4e\treionization_modifier = %.4f\n", z_reion, Zcurr, PhotHI, Mvir, *reionization_modifier);
+    *reionization_modifier = 0.5; // We want to implement a case where we use the analytic reionization modifier for halos that are in ionized regions dictated by cifog.
+                                  // So this is just a dummy number to ensure that all halos within ionized regions are output (regardless of their mass).
+#ifdef DEBUG
+    printf("z_reion = %.4f\tz_curr = %4.f\tphotHI = %.4f\tMvir = %.4e\treionization_modifier = %.4f\n", z_reion, Zcurr, PhotHI, Mvir, *reionization_modifier);
+#endif
+
   }
   else
   {

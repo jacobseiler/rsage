@@ -4,7 +4,7 @@
 # resource requests
 #PBS -l nodes=1:ppn=32
 #PBS -l walltime=00:20:00:00
-#PBS -N self_consistent_32_proc 
+#PBS -N self_consistent_analytic 
 #PBS -l vmem=500gb
 
 module load gcc/6.4.0
@@ -12,9 +12,9 @@ module load fftw/x86_64/gnu/3.3.3-openmpi-psm
 module load gsl/x86_64/gnu/1.9
 module load python/x86_64/gnu/3.5.2
 
-ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/self_consistent_GridReionMod"
-log_dir="/home/jseiler/self_consistent_SAGE/logs/self_consistent_GridReionMod"
-log_prefix="GridReionMod" # Attaches a prefix to each of the log files (useful for different parameter runs). 
+ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/self_consistent_use_analytic"
+log_dir="/home/jseiler/self_consistent_SAGE/logs/self_consistent_use_analytic"
+log_prefix="" # Attaches a prefix to each of the log files (useful for different parameter runs). 
 
 LowSnap=27
 HighSnap=98

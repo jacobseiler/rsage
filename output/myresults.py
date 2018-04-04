@@ -206,6 +206,43 @@ def Std_Log(array, mean):
 
 
 def collect_across_tasks(mean_per_task, std_per_task, N_per_task, SnapList, BinSnapList, binned):
+    """
+    Reduces arrays that are unique to each task onto the master task.
+
+    The dimensions of the input arrays will change slightly if we are collecting a statistics
+    that is binned across e.g., halo mass or galaxy stellar mass.
+
+    Parameters
+    ----------
+
+    mean_per_task, std_per_task, N_per_task: Nested 2D (or 3D if binned == True) arrays of floats.  
+                                             Outer length is equal to the number of models.
+                                             Inner length is equal to the number of snapshots the data has been calculated for.
+                                             Most inner length is equal to the number of bins.
+        Contains the mean/standard deviation/number of objects unique for each task.
+
+    SnapList: Nested 2D arrays of integers.  Outer length is equal to the number of models.
+        Contains the snapshot numbers the data has been calculated for each model. 
+
+    BinSnapList: Nested 2D arrays of integers. Outer length is equal to the number of models.
+        Often statistics are calculated for ALL snapshots but we only wish to plot for a subset of snapshots.
+        This variable allows the binned data to be collected for only a subset of the snapshots.
+
+    binned: Boolean.
+        Dictates whether the collected data is a 2D or 3D array with the inner-most array being binned across e.g., halo mass.
+
+    Returns
+    ----------
+
+    master_mean, master_std, master_N: Nested 2D (or 3D if binned == True) arrays of floats.
+                                       Shape is identical to the input mean_per_task etc.
+        If rank == 0 these contain the collected statistics.
+        Otherwise these will be none.
+
+    master_bin_middle: Array of floats.
+        Contains the location of the middle of the bins for the data.         
+    """
+
 
     master_mean = []
     master_std = []
@@ -245,7 +282,6 @@ def collect_across_tasks(mean_per_task, std_per_task, N_per_task, SnapList, BinS
                 master_mean[model_number] = master_mean[model_number][0]
                 master_std[model_number] = master_std[model_number][0]
                 master_N[model_number] = master_N[model_number][0]
-                print(master_mean)
     return master_mean, master_std, master_N, master_bin_middle
 
 ###
@@ -2897,7 +2933,8 @@ if __name__ == '__main__':
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
-    SnapList = [np.arange(20,99), np.arange(20, 99)]
+    #SnapList = [np.arange(20,99), np.arange(20, 99)]
+    SnapList = [[98], [98]]
     #PlotSnapList = [[93, 76, 64], [93, 76, 64]]
     PlotSnapList = [[30, 50, 64, 76, 93], [30, 50, 64, 76, 93]]
    
@@ -3185,7 +3222,7 @@ if __name__ == '__main__':
                     w_gal = np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut) & (G.GridSFR[:, current_snap] >= 0.0) & (G.GridCentralGalaxyMass[:, current_snap] >= 0.0))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate. Ensure the galaxies also resides in a halo that is sufficiently resolved.
                     w_merged_gal = np.where((G_Merged.GridHistory[:, current_snap] != -1) & (G_Merged.GridStellarMass[:, current_snap] > 0.0) & (G_Merged.LenHistory[:, current_snap] > current_halo_cut) & (G_Merged.GridSFR[:, current_snap] >= 0.0) & (G_Merged.GridCentralGalaxyMass[:, current_snap] >= 0.0) & (G_Merged.LenMergerGal[:,current_snap] > current_halo_cut))[0] 
               
-                    #print("There were {0} galaxies for snapshot {1} (Redshift {2:.3f}) model {3}.".format(len(w_gal), current_snap, AllVars.SnapZ[current_snap], current_model_number))
+                    print("There were {0} galaxies for snapshot {1} (Redshift {2:.3f}) model {3}.".format(len(w_gal), current_snap, AllVars.SnapZ[current_snap], current_model_number))
                    
                     if (len(w_gal) == 0): 
                         continue

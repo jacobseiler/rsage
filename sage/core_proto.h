@@ -52,7 +52,7 @@ double dmax(double x, double y);
 
 double do_reionization(int centralgal, double Zcurr, int ReturnMfilt);
 double do_myreionization(int centralgal, double Zcurr, double *Mfilt);
-int32_t do_self_consistent_reionization(int p, int halonr, int infall, int32_t filenr, double *reionization_modifier);
+int32_t do_self_consistent_reionization(int gal, int halonr, int infall, int32_t filenr, double *reionization_modifier);
 double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t infall, int32_t filenr, int64_t *found_idx);
 
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
