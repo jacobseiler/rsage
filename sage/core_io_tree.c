@@ -11,10 +11,8 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
-
 // keep a static file handle to remove the need to do constant seeking
 FILE* load_fd = NULL;
-
 
 void load_tree_table(int filenr)
 {
@@ -225,139 +223,45 @@ void free_grid_arrays(struct GALAXY *g)
   g->IsMalloced = 0;
 }
 
+#define ALLOCATE_GRID_MEMORY(name, length) \
+{                                          \
+  name = malloc(sizeof(*(name)) * length); \
+  if (name == NULL)                        \
+  {                                        \
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate"#name".\n", sizeof(*(name)* length)); \
+    return EXIT_FAILURE;                   \
+  }                                        \
+}
+
 int32_t malloc_grid_arrays(struct GALAXY *g)
 {
-  g->GridHistory = malloc(sizeof(*(g->GridHistory)) * (MAXSNAPS));
-  if(g->GridHistory == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridHistory.\n", sizeof(*(g->GridHistory))*MAXSNAPS); 
-    return EXIT_FAILURE;
-  }
 
-  g->GridStellarMass = malloc(sizeof(*(g->GridStellarMass)) * (MAXSNAPS));
-  if(g->GridStellarMass == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridStellarMass.\n", sizeof(*(g->GridStellarMass))*MAXSNAPS); 
-    return EXIT_FAILURE;
-  } 
-
-  g->GridSFR = malloc(sizeof(*(g->GridSFR)) * (MAXSNAPS));
-  if(g->GridSFR == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR.\n", sizeof(*(g->GridSFR))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->GridZ = malloc(sizeof(*(g->GridZ)) * (MAXSNAPS));
-  if (g->GridZ == NULL)
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridSFR.\n", sizeof(*(g->GridZ))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
- 
-  g->GridCentralGalaxyMass = malloc(sizeof(*(g->GridCentralGalaxyMass)) * (MAXSNAPS));
-  if (g->GridCentralGalaxyMass == NULL)
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridCentralGalaxyMass.\n", sizeof(*(g->GridCentralGalaxyMass))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->EjectedFraction = malloc(sizeof(*(g->EjectedFraction)) * (MAXSNAPS));
-  if (g->EjectedFraction == NULL)
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate EjectedFraction.\n", sizeof(*(g->EjectedFraction))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->LenHistory = malloc(sizeof(*(g->LenHistory)) * (MAXSNAPS));
-  if (g->LenHistory == NULL)
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate LenHistory.\n", sizeof(*(g->LenHistory))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->Stars = malloc(sizeof(*(g->Stars)) * SN_Array_Len);
-  if (g->Stars == NULL)
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate Stars.\n", sizeof(*(g->Stars))*SN_Array_Len);
-    return EXIT_FAILURE;
-  }
-
-  g->GridOutflowRate = malloc(sizeof(*(g->GridOutflowRate)) * (MAXSNAPS)); 
-  if (g->GridOutflowRate == NULL)
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate OutflowRate.\n", sizeof(*(g->GridOutflowRate))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->GridInfallRate = malloc(sizeof(*(g->GridInfallRate)) * (MAXSNAPS)); 
-  if (g->GridInfallRate == NULL)
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridInfallRate.\n", sizeof(*(g->GridInfallRate))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->GridEjectedMass = malloc(sizeof(*(g->GridEjectedMass)) * (MAXSNAPS)); 
-  if (g->GridEjectedMass == NULL)
-  { 
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridEjectedMass.\n", sizeof(*(g->GridEjectedMass))*MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->QuasarActivity = malloc(sizeof(*(g->QuasarActivity)) * (MAXSNAPS));
-  if (g->QuasarActivity == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate QuasarActivity.\n", sizeof(*(g->QuasarActivity)) * MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->DynamicalTime = malloc(sizeof(*(g->DynamicalTime)) * (MAXSNAPS));
-  if (g->DynamicalTime == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate DynamicalTime.\n", sizeof(*(g->DynamicalTime)) * MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->QuasarSubstep = malloc(sizeof(*(g->QuasarSubstep)) * (MAXSNAPS));
-  if (g->QuasarSubstep == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate QuasarSubstep.\n", sizeof(*(g->QuasarSubstep)) * MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->GridColdGas= malloc(sizeof(*(g->GridColdGas)) * (MAXSNAPS));
-  if (g->GridColdGas == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridColdGas.\n", sizeof(*(g->GridColdGas)) * MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->LenMergerGal= malloc(sizeof(*(g->LenMergerGal)) * (MAXSNAPS));
-  if (g->LenMergerGal == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate LenMergerGal.\n", sizeof(*(g->LenMergerGal)) * MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->GridBHMass= malloc(sizeof(*(g->GridBHMass)) * (MAXSNAPS));
-  if (g->GridBHMass == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridBHMass.\n", sizeof(*(g->GridBHMass)) * MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
-  g->GridReionMod= malloc(sizeof(*(g->GridReionMod)) * (MAXSNAPS));
-  if (g->GridReionMod == NULL)
-  {
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate GridReionMod.\n", sizeof(*(g->GridReionMod)) * MAXSNAPS);
-    return EXIT_FAILURE;
-  }
-
+  ALLOCATE_GRID_MEMORY(g->GridHistory, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridStellarMass, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridSFR, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridZ, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridCentralGalaxyMass, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->EjectedFraction, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->LenHistory, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->Stars, SN_Array_Len);
+  ALLOCATE_GRID_MEMORY(g->Stars, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridInfallRate, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridEjectedMass, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->QuasarActivity, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->DynamicalTime, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->QuasarSubstep, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridColdGas, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->LenMergerGal, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridBHMass, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridReionMod, MAXSNAPS);
+   
   g->IsMalloced = 1; // This way we can check that we're not freeing memory that hasn't been allocated.
 
   return EXIT_SUCCESS;
 
 }
+
+#undef ALLOCATE_GRID_MEMORY
 
 int32_t free_grid()
 {
