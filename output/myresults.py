@@ -2957,8 +2957,8 @@ if __name__ == '__main__':
         
         for fnr in range(FirstFile[model_number] + rank, LastFile[model_number]+1, size): # Divide up the input files across the processors.            
 
-            GG, Gal_Desc = ReadScripts.ReadGals_SAGE_DelayedSN(galaxies_filepath_array[model_number], fnr, number_snapshots[model_number], comm) # Read galaxies 
-            G_Merged, _ = ReadScripts.ReadGals_SAGE_DelayedSN(merged_galaxies_filepath_array[model_number], fnr, number_snapshots[model_number], comm) # Also need the merged galaxies.
+            GG, Gal_Desc = ReadScripts.ReadGals_SAGE(galaxies_filepath_array[model_number], fnr, number_snapshots[model_number], comm) # Read galaxies 
+            G_Merged, _ = ReadScripts.ReadGals_SAGE(merged_galaxies_filepath_array[model_number], fnr, number_snapshots[model_number], comm) # Also need the merged galaxies.
             G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc) # Then join them together for all galaxies. 
             
             #pp = "post_quasar_SFR_STARBURST_QUASARWIND_{0}_snap_{1}".format(fnr, PlotSnapList[0][0])

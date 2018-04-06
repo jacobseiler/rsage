@@ -29,9 +29,13 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
     TotNTrees = 0
     TotNHalos = 0
     FileIndexRanges = []
-    
-    rank = comm.Get_rank()
-    size = comm.Get_size()
+   
+    if comm is not None: 
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+    else:
+        rank = 0
+        size = 1
 
     print("Determining array storage requirements.")
     
@@ -136,7 +140,7 @@ def ReadHalos(DirName, First_File, Last_File):
     return Read_SAGE_Objects(DirName, Halo_Desc, 1, 1, First_File, Last_File)
     
 ## Using this one ##   
-def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
+def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
 
     Galdesc_full = [ 
          ('HaloNr', np.int32),
@@ -172,8 +176,7 @@ def ReadGals_SAGE_DelayedSN(DirName, fnr, MAXSNAPS, comm=None):
 
 def Join_Arrays(Array1, Array2, Desc):
     
-    print("Joining arrays.")
-
+   
     G = np.empty(len(Array1) + len(Array2), Desc) # Create an empty array with enough space to hold both arrays.
 
     G[0:len(Array1)] = Array1[0:len(Array1)].copy() # Slice in the first array.
