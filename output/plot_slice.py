@@ -2373,11 +2373,11 @@ if __name__ == '__main__':
 
     ## Kali ## 
    
-    model_tags = [r"$Base$", r"$Consistent$"]
+    model_tags = [r"SelfCons", r"AnalyticOn", r"Off"]
 
-    output_tags = [r"Base", r"Consistent"]
+    output_tags = [r"Base Reion On", r"Base Reion Off", r"Consistent"]
 
-    number_models = 2
+    number_models = 3
 
     simulation_model1 = 6 # Which simulation are we using?
     # 0 : Mysim (Manodeep's original simulation run).
@@ -2396,7 +2396,8 @@ if __name__ == '__main__':
     filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/cifog/XHII"
     
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/nion/test_fesc0.20_HaloPartCut32_nionHI"
+    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
+    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/nion/test_fesc0.20_HaloPartCut32_nionHI"
   
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
     filepath_density_model2 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/"
@@ -2407,8 +2408,12 @@ if __name__ == '__main__':
     simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1, simulation_model1]
     precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
-    ionized_cells_filepath_array = [filepath_model1, filepath_model2]    
-    nion_filepath_array = [filepath_nion_model1, filepath_nion_model2]
+    ionized_cells_filepath_array = [filepath_model1, 
+                                    filepath_model2,
+                                    filepath_model2]
+    nion_filepath_array = [filepath_nion_model3, 
+                           filepath_nion_model1,
+                           filepath_nion_model2]
     density_filepath_array = [filepath_density_model1, filepath_density_model1, filepath_density_model1]
     #photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2]
     
@@ -2604,11 +2609,11 @@ if __name__ == '__main__':
     #        MC_ZZ[model_number][-1] = ZZ[-1]
 
     if (rank == 0): 
-        plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction_time")
+        #plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction_time")
         plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array, simulation_norm, 1, model_tags, OutputDir, "QuasarCold_Paper")
-        plot_optical_depth(AllVars.SnapZ[snaplist], volume_frac_array, model_tags, OutputDir, "OpticalDepth")
+        #plot_optical_depth(AllVars.SnapZ[snaplist], volume_frac_array, model_tags, OutputDir, "OpticalDepth")
 
-        plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+        #plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
 
         if(plot_MC == 1):
             plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ))
@@ -2625,7 +2630,7 @@ if __name__ == '__main__':
             plotting_HI = volume_frac_array 
 
     #plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
-    plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
+    #plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)

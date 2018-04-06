@@ -2295,7 +2295,9 @@ def plot_stellarmass_blackhole(SnapList, simulation_norm, mean_galaxy_BHmass, st
 
 ###
 
-def plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo, std_reionmod_halo, N_halo, mean_reionmod_z, std_reionmod_z, N_reionmod, model_tags, output_tag): 
+def plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo, 
+                  std_reionmod_halo, N_halo, mean_reionmod_z, std_reionmod_z, 
+                  N_reionmod, plot_z, model_tags, output_tag): 
     """
     Plot the reionization modifier as a function of halo mass and redshift.
  
@@ -2325,6 +2327,12 @@ def plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo, s
         Contains the number of galaxies at each redshift that have non-negative reionization modifier.  A negative reionization modifier is a galaxy who didn't have infall/stripping during the snapshot.
         NOTE: These are unique for each task.
 
+    plot_z: Boolean.
+        Denotes whether we want to plot the reionization modifier as a function
+        of redshift. Useful because we often only calculate statistics for a
+        subset of the snapshots to decrease computation time. For these runs,
+        we don't want to plot for something that requires ALL snapshots. 
+
     model_tags: Array of strings. Length is equal to the number of models.
         Contains the legend labels for each model.
 
@@ -2338,15 +2346,20 @@ def plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo, s
 
     """
 
-    (master_mean_reionmod_halo, master_std_reionmod_halo, master_N_reionmod_halo, master_bin_middle) = collect_across_tasks(mean_reionmod_halo, std_reionmod_halo, N_halo, SnapList, PlotSnapList, True) 
-    (master_mean_reionmod_z, master_std_reionmod_z, master_N_reionmod_z, _) = collect_across_tasks(mean_reionmod_z, std_reionmod_z, N_reionmod, SnapList, [], False) 
+    master_mean_reionmod_halo, master_std_reionmod_halo, master_N_reionmod_halo, master_bin_middle = collect_across_tasks(mean_reionmod_halo, std_reionmod_halo, N_halo, SnapList, PlotSnapList, True)
+    if plot_z: 
+        master_mean_reionmod_z, master_std_reionmod_z, master_N_reionmod_z, _ = collect_across_tasks(mean_reionmod_z, 
+                                                                                                       std_reionmod_z, 
+                                                                                                       N_reionmod, 
+                                                                                                       SnapList, [], False) 
 
     if rank == 0:
         fig1 = plt.figure()
         ax1 = fig1.add_subplot(111)
 
-        fig2 = plt.figure()
-        ax10 = fig2.add_subplot(111)
+        if plot_z: 
+            fig2 = plt.figure()
+            ax10 = fig2.add_subplot(111)
 
         for model_number in range(len(PlotSnapList)):        
             if(simulation_norm[model_number] == 1):
@@ -2363,67 +2376,67 @@ def plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo, s
                     label = model_tags[model_number]
                 else:
                     label = ""
-                ax1.plot(master_bin_middle[model_number][snapshot_idx], master_mean_reionmod_halo[model_number][snapshot_idx], label = label, ls = PlotScripts.linestyles[model_number], color = PlotScripts.colors[snapshot_idx]) 
+                nonzero_bins = np.where(master_N_reionmod_halo[model_number][snapshot_idx] > 0.0)[0]
+                ax1.plot(master_bin_middle[model_number][snapshot_idx][nonzero_bins], 
+                         master_mean_reionmod_halo[model_number][snapshot_idx][nonzero_bins], 
+                         label = label, ls = PlotScripts.linestyles[model_number], 
+                         color = PlotScripts.colors[snapshot_idx]) 
 
-            ax10.plot((AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number]])*1.0e3, master_mean_reionmod_z[model_number], color = PlotScripts.colors[model_number], label = model_tags[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
+            if plot_z:
+                ax10.plot((AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number]])*1.0e3, master_mean_reionmod_z[model_number], color = PlotScripts.colors[model_number], label = model_tags[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
 
         for count, snapshot_idx in enumerate(PlotSnapList[model_number]):
             #label = r"$\mathbf{z = " + str(int(round(AllVars.SnapZ[snapshot_idx]))) + "}$"                
             label = r"$\mathbf{z = " + str(AllVars.SnapZ[snapshot_idx]) + "}$"                
-            ax1.plot(np.nan, np.nan, ls = PlotScripts.linestyles[0], color = 'k', label = label) 
+            ax1.plot(np.nan, np.nan, ls = PlotScripts.linestyles[0], color =
+                     PlotScripts.colors[count], label = label) 
 
         ax1.set_xlim([8.5, 11.5])
         ax1.set_ylim([0.0, 1.05])
 
-        ax1.set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', fontsize = PlotScripts.global_labelsize) 
+        ax1.set_xlabel(r'$\mathbf{log_{10} \: M_{vir} \:[M_{\odot}]}$', fontsize = PlotScripts.global_labelsize) 
         ax1.set_ylabel(r'$\mathbf{Mean ReionMod}$', fontsize = PlotScripts.global_labelsize) 
-
-        ax10.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", fontsize = PlotScripts.global_labelsize)
-        tick_locs = np.arange(200.0, 1000.0, 100.0)
-        tick_labels = [r"$\mathbf{%d}$" % x for x in tick_locs]
-        ax10.xaxis.set_major_locator(mtick.MultipleLocator(100))
-        ax10.set_xticklabels(tick_labels, fontsize = PlotScripts.global_fontsize)
-        ax10.set_xlim(PlotScripts.time_xlim)
-
-        #ax10.set_ylabel(r'$\mathbf{Mean ReionMod}$', fontsize = PlotScripts.global_labelsize)                 
-        #ax10.yaxis.set_minor_locator(mtick.MultipleLocator(0.10))
-        
-        #tick_locs = np.arange(0.0, 1.0, 0.1)
-        #ax10.set_yticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs], fontsize = PlotScripts.global_fontsize)
-        #ax10.set_ylim([0.0, 1.05])
-
-        ax11 = ax10.twiny()
-
-        t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
-        z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
-
-        ax11.set_xlabel(r"$\mathbf{z}$", fontsize = PlotScripts.global_labelsize)
-        ax11.set_xlim(PlotScripts.time_xlim)
-        ax11.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
-        ax11.set_xticklabels(z_labels, fontsize = PlotScripts.global_fontsize) # But label them as redshifts.
 
         leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
             t.set_fontsize(PlotScripts.global_legendsize)
 
-        leg = ax10.legend(loc='lower right', numpoints=1, labelspacing=0.1)
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
-            t.set_fontsize(PlotScripts.global_legendsize)
-
         outputFile1 = "./{0}_halo{1}".format(output_tag, output_format) 
-        outputFile2 = "./{0}_z{1}".format(output_tag, output_format) 
-
         fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
-        fig2.savefig(outputFile2, bbox_inches='tight')  # Save the figure
-
         print('Saved file to {0}'.format(outputFile1))
-        print('Saved file to {0}'.format(outputFile2))
-
         plt.close(fig1)
-        plt.close(fig2)
 
+
+        if plot_z:
+            ax10.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", fontsize = PlotScripts.global_labelsize)
+            tick_locs = np.arange(200.0, 1000.0, 100.0)
+            tick_labels = [r"$\mathbf{%d}$" % x for x in tick_locs]
+            ax10.xaxis.set_major_locator(mtick.MultipleLocator(100))
+            ax10.set_xticklabels(tick_labels, fontsize = PlotScripts.global_fontsize)
+            ax10.set_xlim(PlotScripts.time_xlim)
+
+            ax10.set_ylabel(r'$\mathbf{Mean ReionMod}$', fontsize = PlotScripts.global_labelsize)                 
+
+            ax11 = ax10.twiny()
+
+            t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
+            z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
+
+            ax11.set_xlabel(r"$\mathbf{z}$", fontsize = PlotScripts.global_labelsize)
+            ax11.set_xlim(PlotScripts.time_xlim)
+            ax11.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
+            ax11.set_xticklabels(z_labels, fontsize = PlotScripts.global_fontsize) # But label them as redshifts.
+
+            leg = ax10.legend(loc='lower right', numpoints=1, labelspacing=0.1)
+            leg.draw_frame(False)  # Don't want a box frame
+            for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize(PlotScripts.global_legendsize)
+
+            outputFile2 = "./{0}_z{1}".format(output_tag, output_format) 
+            fig2.savefig(outputFile2, bbox_inches='tight')  # Save the figure
+            print('Saved file to {0}'.format(outputFile2))
+            plt.close(fig2)
  
 ### Here ends the plotting functions. ###
 ### Here begins the functions that calculate various properties for the galaxies (fesc, Magnitude etc). ###
@@ -2883,12 +2896,17 @@ if __name__ == '__main__':
     galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent_GridReionMod/galaxies/base_z5.782'
     merged_galaxies_model1 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent_GridReionMod/galaxies/base_MergedGalaxies'
 
-    galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_z5.782'
-    merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_MergedGalaxies'
+    galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent_use_analytic/galaxies/base_z5.782'
+    merged_galaxies_model2 = '/lustre/projects/p004_swin/jseiler/kali/self_consistent_use_analytic/galaxies/base_MergedGalaxies'
+
+    galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_z5.782'
+    merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_MergedGalaxies'
 
 
-    galaxies_filepath_array = [galaxies_model1, galaxies_model2]
-    merged_galaxies_filepath_array = [merged_galaxies_model1, merged_galaxies_model2]
+    galaxies_filepath_array = [galaxies_model1, 
+                               galaxies_model3]                    
+    merged_galaxies_filepath_array = [merged_galaxies_model1, 
+                                      merged_galaxies_model3]
        
     number_substeps = [10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
     number_snapshots = [99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
@@ -2904,8 +2922,8 @@ if __name__ == '__main__':
     # Then same_files = [1, 1, 0, 1, 0] would be the correct values.
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
-    model_tags = [r"$\mathrm{Self-Consistent}$", r"$\mathrm{Base}$"]
-    #model_tags = [r"$\mathrm{Delayed}$", r"$\mathrm{IRA}$"]    
+    model_tags = [r"$\mathrm{SelfCons}$",
+                  r"$\mathrm{Analytic}$"]
 
     ## Constants used for each model. ##
     # Need to add an entry for EACH model. #
@@ -2933,12 +2951,11 @@ if __name__ == '__main__':
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
-    #SnapList = [np.arange(20,99), np.arange(20, 99)]
-    SnapList = [[98], [98]]
+    #SnapList = [np.arange(20,99), np.arange(20, 99), np.arange(20, 99)]    
+    SnapList = [[30, 50, 64, 76, 93], 
+                [30, 50, 64, 76, 93]]
     #PlotSnapList = [[93, 76, 64], [93, 76, 64]]
-    PlotSnapList = [[30, 50, 64, 76, 93], [30, 50, 64, 76, 93]]
-   
-    #PlotSnapList = [[29, 40, 49, 76, 93]] # For plots that contain properties plotted at specific redshifts, this specifies which snapshots we should plot at. 
+    PlotSnapList = SnapList 
 
     simulation_norm = [5, 5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
     # 0 for MySim (Manodeep's old one).
@@ -3361,7 +3378,10 @@ if __name__ == '__main__':
                     current_model_number += 1 # Update the inner loop model number.
    
     #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile, LastFile, NumFile, galaxy_halo_mass_mean, model_tags, 1, paper_plots, "grid_reion_test")
-    plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo_array, std_reionmod_halo_array, N_halo_array, mean_reionmod_z, std_reionmod_z, N_reionmod_z, model_tags, "reionmod") 
+    plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo_array, 
+                  std_reionmod_halo_array, N_halo_array, mean_reionmod_z, 
+                  std_reionmod_z, N_reionmod_z, False, model_tags,
+                  "reionmod_selfcon") 
     #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, std_BHmass_galaxy_array, N_galaxy_array, model_tags, "StellarMass_BHMass")
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 

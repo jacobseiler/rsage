@@ -225,7 +225,7 @@ void free_grid_arrays(struct GALAXY *g)
 
 #define ALLOCATE_GRID_MEMORY(name, length) \
 {                                          \
-  name = malloc(sizeof(*(name)) * length); \
+  name = calloc(length, sizeof(*(name)));  \
   if (name == NULL)                        \
   {                                        \
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate"#name".\n", sizeof(*(name)* length)); \
