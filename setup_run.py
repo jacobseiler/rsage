@@ -211,7 +211,7 @@ def get_nion_fname(SAGE_params):
 
     elif fesc_prescription == 4:
         nion_fname = "{0}_quasar_base{1:.2f}_boost{2:.2f}_dyntime{3:.2f}_HaloPartCut_nionHI" \
-                     format(SAGE_params["FileNameGalaxies"][0],
+                     .format(SAGE_params["FileNameGalaxies"][0],
                             SAGE_params["quasar_baseline"][0],
                             SAGE_params["quasar_boosted"][0],
                             SAGE_params["N_dyntime"][0],

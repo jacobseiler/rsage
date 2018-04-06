@@ -187,8 +187,11 @@ int32_t determine_Mfilt(struct HALO_STRUCT Halo, struct GRID_STRUCT *Grid, struc
     Mvir = Halo.Mvir * 1.0e10 / params->Hubble_h;
 
     *reionization_modifier = pow(2.0, -Mfilt/Mvir);
+#ifdef USE_ANALYTIC
     *reionization_modifier = 0.5; // We want to implement a case where we use the analytic reionization modifier for halos that are in ionized regions dictated by cifog.
                                   // So this is just a dummy number to ensure that all halos within ionized regions are output (regardless of their mass).
+#endif
+
 #ifdef DEBUG
     printf("z_reion = %.4f\tz_curr = %4.f\tphotHI = %.4f\tMvir = %.4e\treionization_modifier = %.4f\n", z_reion, Zcurr, PhotHI, Mvir, *reionization_modifier);
 #endif

@@ -223,6 +223,9 @@ void free_grid_arrays(struct GALAXY *g)
   g->IsMalloced = 0;
 }
 
+int32_t malloc_grid_arrays(struct GALAXY *g)
+{
+
 #define ALLOCATE_GRID_MEMORY(name, length) \
 {                                          \
   name = calloc(length, sizeof(*(name)));  \
@@ -233,9 +236,6 @@ void free_grid_arrays(struct GALAXY *g)
   }                                        \
 }
 
-int32_t malloc_grid_arrays(struct GALAXY *g)
-{
-
   ALLOCATE_GRID_MEMORY(g->GridHistory, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridStellarMass, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridSFR, MAXSNAPS);
@@ -244,7 +244,7 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
   ALLOCATE_GRID_MEMORY(g->EjectedFraction, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->LenHistory, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->Stars, SN_Array_Len);
-  ALLOCATE_GRID_MEMORY(g->Stars, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridOutflowRate, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridInfallRate, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridEjectedMass, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->QuasarActivity, MAXSNAPS);
