@@ -376,6 +376,7 @@ void add_galaxy_to_merger_list(int p)
   }
 
   ++mergedgal_mallocs;
+
   for (j = 0; j < MAXSNAPS; ++j)
   {
     MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];

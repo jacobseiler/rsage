@@ -536,7 +536,7 @@ def Set_Params_Kali():
     a = np.loadtxt("/lustre/projects/p134_swin/jseiler/kali/a_list.txt")
     a = a[:99]
     SnapZ = 1.0/a - 1
-       
+
     cosmo, t_BigBang = set_cosmology(Hubble_h, Omega_m)
 
     Lookback_Time = cosmo.lookback_time(SnapZ).value # In Gyr 

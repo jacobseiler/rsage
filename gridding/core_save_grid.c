@@ -40,15 +40,15 @@ int32_t save_grid(struct GRID_STRUCT *save_grid)
       snprintf(name_HeII, MAXLEN, "%s/%s_MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, MH_low, fesc_low, MH_high, fesc_high, HaloPartCut, ListOutputGrid[grid_num_idx]); 
     } else if (fescPrescription == 3)
     { 
-      snprintf(name_HI, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
-      snprintf(name_HeI, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_Ejected_alpha%.3fbeta%.3f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HI, MAXLEN, "%s/%s_ejected_alpha%.3f_beta%.3f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_ejected_alpha%.3f_beta%.3f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_ejected_alpha%.3f_beta%.3f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, alpha, beta, HaloPartCut, ListOutputGrid[grid_num_idx]); 
     } 
     else if (fescPrescription == 4)
     {
-      snprintf(name_HI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
-      snprintf(name_HeI, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
-      snprintf(name_HeII, MAXLEN, "%s/%s_quasar_%.2f_%.2f_%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HI, MAXLEN, "%s/%s_quasar_base%.2f_boost%.2f_dyntime%.2f_HaloPartCut%d_nionHI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeI, MAXLEN, "%s/%s_quasar_base%.2f_boost%.2f_dyntime%.2f_HaloPartCut%d_nionHeI_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
+      snprintf(name_HeII, MAXLEN, "%s/%s_quasar_base%.2f_boost%.2f_dyntime%.2f_HaloPartCut%d_nionHeII_%03d", GridOutputDir, FileNameGalaxies, quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut, ListOutputGrid[grid_num_idx]); 
     }
     else if (fescPrescription == 5 || fescPrescription == 6)
     {

@@ -7,7 +7,7 @@ OutputDir              /lustre/projects/p004_swin/jseiler/kali/tmp/galaxies
 GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/tmp/grids
 
 FirstFile         0 
-LastFile          63 
+LastFile          0 
 
 %------------------------------------------
 %----- Snapshot output list ---------------

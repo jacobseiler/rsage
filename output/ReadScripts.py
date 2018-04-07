@@ -416,7 +416,7 @@ def read_SAGE_ini(fname):
          ('LowSnap', np.int32),
          ('HighSnap', np.int32),
          ('TreeName', '<U1024'),
-         ('ExtensionName', '<U1024'),
+         ('TreeExtension', '<U1024'),
          ('SimulationDir', '<U1024'),
          ('FileWithSnapList', '<U1024'),
          ('LastSnapShotNr', '<U1024'),
