@@ -120,7 +120,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   {\
     ((type*)buffer)[j] = name[j] * conversion;\
   }\
-  nwritten = fwrite(buffer, sizeof(*(buffer)), length, fp); \
+  nwritten = fwrite(buffer, sizeof(type), length, fp); \
   XASSERT(nwritten == length, "While writing"#name", we expected to write %d times but wrote %zu times instead\n", \
           length, nwritten);                 \
   free(buffer); \
@@ -137,6 +137,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
  
   XASSERT(g->IsMalloced == 1, "We are trying to write out the grid arrays for a galaxies who has already been freed.\n");
  
+
   WRITE_GRID_PROPERTY(g->GridHistory, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridStellarMass, MAXSNAPS);
 
