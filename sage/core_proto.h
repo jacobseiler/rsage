@@ -68,6 +68,7 @@ void disrupt_satellite_to_ICS(int centralgal, int gal, int tree);
 void quasar_mode_wind(int gal, float BHaccrete, int32_t step);
 
 double get_metallicity(double gas, double metals);
+double get_dust_fraction(double gas, double dust);
 double get_virial_velocity(int halonr);
 double get_virial_radius(int halonr);
 double get_virial_mass(int halonr);
@@ -96,7 +97,7 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
 
 
 void do_previous_SN(int p, int centralgal, int halonr, double dt);
-void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
+void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass, double *NSN);
 void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
 void do_previous_recycling(int p, int centralgal, int step, double dt); 
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m);
@@ -104,5 +105,5 @@ double calculate_reheated_mass(double Delta_Eta, double stars, double Vmax);
 double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax);
 double calculate_ejected_mass(double *reheated_mass, double reheated_energy, double Vvir);
 double calculate_coreburning(double t);
-void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double dt);
+void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double NSN, double dt);
 void  update_stars_array(int p, double stars, double dt, int tree, int step, int ngal);

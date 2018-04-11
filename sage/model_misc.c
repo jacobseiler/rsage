@@ -115,6 +115,9 @@ void init_galaxy(int p, int halonr, int treenr)
     Gal[p].LenMergerGal[j] = -1;
     Gal[p].GridBHMass[j] = 0.0;
     Gal[p].GridReionMod[j] = -1.0;
+    Gal[p].GridDustColdGas[j] = 0.0;
+    Gal[p].GridDustHotGas[j] = 0.0;
+    Gal[p].GridEjectedMass[j] = 0.0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -134,7 +137,10 @@ void init_galaxy(int p, int halonr, int treenr)
   Gal[p].ejected_mass = 0.0;
   Gal[p].mass_stars_recycled = 0.0;
   Gal[p].mass_metals_new = 0.0; 
+  Gal[p].NSN = 0.0;
 
+  Gal[p].DustColdGas = 0.0;
+  Gal[p].DustHotGas = 0.0;
 
 }
 
@@ -175,7 +181,24 @@ double get_metallicity(double gas, double metals)
 
 }
 
+double get_dust_fraction(double gas, double dust)
+{
 
+  double dust_fraction;
+  if (gas > 0.0 && dust > 0.0)
+  {
+    dust_fraction = dust / gas;
+    if (dust_fraction < 1.0)
+      return dust_fraction;
+    else
+      return 1.0;
+  }
+  else
+  {
+    return 0.0;
+  }
+  
+}
 
 double dmax(double x, double y)
 {
@@ -329,5 +352,10 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     Gal[p].DynamicalTime[SnapCurr] = Gal[p].Rvir / Gal[p].Vvir; 
     Gal[p].GridColdGas[SnapCurr] = Gal[p].ColdGas;
     Gal[p].GridBHMass[SnapCurr] = Gal[p].BlackHoleMass;
+
+    Gal[p].GridDustColdGas[SnapCurr] = Gal[p].DustColdGas;
+    Gal[p].GridDustHotGas[SnapCurr] = Gal[p].DustHotGas;
+    Gal[p].GridDustEjectedMass[SnapCurr] = Gal[p].DustEjectedMass;
+
 }
 

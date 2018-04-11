@@ -219,6 +219,9 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->LenMergerGal);
   free(g->GridBHMass);
   free(g->GridReionMod);
+  free(g->GridDustColdGas);
+  free(g->GridDustHotGas);
+  free(g->GridDustEjectedMass);
 
   g->IsMalloced = 0;
 }
@@ -254,7 +257,10 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
   ALLOCATE_GRID_MEMORY(g->LenMergerGal, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridBHMass, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridReionMod, MAXSNAPS);
-   
+  ALLOCATE_GRID_MEMORY(g->GridDustColdGas, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridDustHotGas, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridDustEjectedMass, MAXSNAPS);
+
   g->IsMalloced = 1; // This way we can check that we're not freeing memory that hasn't been allocated.
 
   return EXIT_SUCCESS;

@@ -224,6 +224,9 @@ struct GALAXY
   int *LenMergerGal;
   float *GridBHMass;      
   float *GridReionMod;
+  float *GridDustColdGas;
+  float *GridDustHotGas;
+  float *GridDustEjectedMass;
  
   double StellarAge_Numerator;
   double StellarAge_Denominator;
@@ -239,7 +242,13 @@ struct GALAXY
   float ejected_mass;
   float mass_stars_recycled;
   float mass_metals_new; 
-  
+  float NSN; // Number of supernova within a time step.  Can be fractional. 
+ 
+  // Dust Properties
+  float DustColdGas;
+  float DustHotGas;
+  float DustEjectedMass;
+
 }
 *Gal, *HaloGal, *MergedGal;
 
