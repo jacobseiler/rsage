@@ -278,7 +278,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
 {
     int32_t grid_position, step, status;
     int32_t SnapCurr = Halo[halonr].SnapNum;
-
+ 
     status = determine_1D_idx(Gal[p].Pos[0], Gal[p].Pos[1], Gal[p].Pos[2], &grid_position); 
     if (status == EXIT_FAILURE)
     {

@@ -133,13 +133,30 @@ def check_smf():
     # Gals is now a recarray containing all galaxies at all snapshots. #
 
     w_gal = np.where((Gals.GridHistory[:, max_snap] != -1) & 
-                     (Gals.GridStellarMass[:, max_snap] > 1e-10))[0]
+                     (Gals.GridStellarMass[:, max_snap] > 0.0))[0]
+        
+    position = Gals.GridHistory[w_gal, max_snap]
+    w_wrong = np.where(position > pow(256,3))[0] 
+    if (len(w_wrong) > 0):
+        print("Found grid cells that had indices outside of the allowed "
+              "values.")
+        print("The indices must be between 0 and {0}".format(pow(256,3)))
+        print("Galaxies {0} had indices {1}.".format(w_gal[w_wrong],
+                                              position[w_wrong]))
+        raise RuntimeError
 
     mass = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / AllVars.Hubble_h)
-    print("The Stellar Mass for galaxies at snapshot {0} is {1}" \
-          .format(max_snap, mass))
+    w_wrong = np.where(mass <= 0.0)[0] 
+    if (len(w_wrong) > 0):
+        print("The mass of the acceptable galaxies must be greater than 0.0.")
+        print("Galaxies {0} had stellar mass {1}.".format(w_gal[w_wrong],
+                                                          mass[w_wrong]))
+        raise RuntimeError
 
-    print("Done")
+    print("")
+    print("================")
+    print("All tests passed")
+    print("================")
     print("")
 
 def test_run():

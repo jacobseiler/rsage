@@ -212,7 +212,7 @@ def read_binary_grid(filepath, GridSize, precision, reshape=True):
         Denotes the precision of the data being read in.
         0 : Integer (4 bytes)
         1 : Float (4 bytes)
-        2 : Double (4 bytes)
+        2 : Double (8 bytes)
     reshape : boolean
         Controls whether the array should be reshaped into a cubic array of shape (GridSize, GridSize, GridSize) or kepts as a 1D array.
         Default: True.

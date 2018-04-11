@@ -176,7 +176,9 @@ struct GRID_STRUCT
     float *Nion_HeII;
 
     uint64_t *GalCount;
- 
+
+    // TODO: Move these to their own struct.
+    /* These properties are per galaxy (not per grid cell) but I'm lazy. */
     int32_t *SnapshotGalaxy;
     float *fescGalaxy;
     float *MvirGalaxy;

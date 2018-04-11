@@ -49,14 +49,11 @@ int32_t update_grid_properties(int32_t filenr)
       if ((GalGrid[gal_idx].StellarMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].SFR[snapshot_idx] >= 0.0) & (GalGrid[gal_idx].CentralGalaxyMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].LenHistory[snapshot_idx] > HaloPartCut)) // Apply some requirements for the galaxy to be included.
       {
         ++good_gals;
-//        printf("Got to good gal\n");
+
         if (fescPrescription == 4)
         {
           update_quasar_tracking(gal_idx, snapshot_idx); 
         }
-
-        Grid->GridProperties[grid_num_idx].SFR[grid_position] += GalGrid[gal_idx].SFR[snapshot_idx];
-        Grid->GridProperties[grid_num_idx].StellarMass[grid_position] += GalGrid[gal_idx].StellarMass[snapshot_idx]; 
  
         if (PhotonPrescription == 1)
         {
@@ -79,8 +76,11 @@ int32_t update_grid_properties(int32_t filenr)
         if (Ngamma_HI > 0.0)
         {
           Grid->GridProperties[grid_num_idx].Nion_HI[grid_position] += pow(10, Ngamma_HI - 50.0)*fesc_local; // We keep these in units of 10^50 photons/s.
-          Grid->GridProperties[grid_num_idx].Nion_HeI[grid_position] += pow(10, Ngamma_HeI - 50.0)*fesc_local;
-          Grid->GridProperties[grid_num_idx].Nion_HeII[grid_position] += pow(10, Ngamma_HeII - 50.0)*fesc_local;
+          if (self_consistent == 0)
+          {
+            Grid->GridProperties[grid_num_idx].Nion_HeI[grid_position] += pow(10, Ngamma_HeI - 50.0)*fesc_local;
+            Grid->GridProperties[grid_num_idx].Nion_HeII[grid_position] += pow(10, Ngamma_HeII - 50.0)*fesc_local;
+          }
         }
 
         if (pow(10, Ngamma_HI - 50.0) * fesc_local < 0.0)
@@ -93,9 +93,16 @@ int32_t update_grid_properties(int32_t filenr)
           fprintf(stderr, "For galaxy %ld, cell %ld now has an error number of photons. This number is %.4f e50 photons/s\n", (long)gal_idx, (long)grid_position, Grid->GridProperties[grid_num_idx].Nion_HI[grid_position]);
           return EXIT_FAILURE;
         }
-      
-        ++Grid->GridProperties[grid_num_idx].GalCount[grid_position]; 
 
+        ++Grid->GridProperties[grid_num_idx].GalCount[grid_position];
+
+        if (self_consistent == 0)
+        {      
+          Grid->GridProperties[grid_num_idx].SFR[grid_position] += GalGrid[gal_idx].SFR[snapshot_idx];
+          Grid->GridProperties[grid_num_idx].StellarMass[grid_position] += GalGrid[gal_idx].StellarMass[snapshot_idx]; 
+        } 
+
+        /* These are properties for each galaxy but kept in the grid-struct cause I'm lazy. */
         Grid->GridProperties[grid_num_idx].SnapshotGalaxy[gal_idx] = snapshot_idx;          
         Grid->GridProperties[grid_num_idx].fescGalaxy[gal_idx] = fesc_local;
         Grid->GridProperties[grid_num_idx].MvirGalaxy[gal_idx] = GalGrid[gal_idx].CentralGalaxyMass[snapshot_idx];
@@ -133,12 +140,15 @@ void count_grid_properties(struct GRID_STRUCT *count_grid) // Count number of ga
     float totPhotons_HI = 0, totPhotons_HeI = 0, totPhotons_HeII = 0;
 
     for (cell_idx = 0; cell_idx < count_grid->NumCellsTotal; ++cell_idx)
-    {
-      GlobalGalCount += count_grid->GridProperties[grid_num_idx].GalCount[cell_idx];
-  
+    {  
       totPhotons_HI += count_grid->GridProperties[grid_num_idx].Nion_HI[cell_idx];
-      totPhotons_HeI += count_grid->GridProperties[grid_num_idx].Nion_HeI[cell_idx];
-      totPhotons_HeII += count_grid->GridProperties[grid_num_idx].Nion_HeII[cell_idx];
+      GlobalGalCount += count_grid->GridProperties[grid_num_idx].GalCount[cell_idx];
+
+      if (self_consistent == 0)
+      {
+        totPhotons_HeI += count_grid->GridProperties[grid_num_idx].Nion_HeI[cell_idx];
+        totPhotons_HeII += count_grid->GridProperties[grid_num_idx].Nion_HeII[cell_idx];
+      }
 
       if (count_grid->GridProperties[grid_num_idx].Nion_HI[cell_idx] > 0.0)
       {
@@ -368,7 +378,7 @@ int32_t update_quasar_tracking(int64_t gal_idx, int32_t snapshot_idx)
 struct GRID_STRUCT *MPI_sum_grids()
 {
 
-  int32_t status, grid_num_idx, cell_idx;
+  int32_t status, grid_num_idx;
   struct GRID_STRUCT *master_grid;
   
   master_grid = malloc(sizeof(struct GRID_STRUCT));
@@ -392,26 +402,16 @@ struct GRID_STRUCT *MPI_sum_grids()
     MPI_Barrier(MPI_COMM_WORLD);
   
     XASSERT(Grid->NumCellsTotal == GridSize*GridSize*GridSize, "Rank %d has %ld grid cells\n", ThisTask, (long)Grid->NumCellsTotal);
-    for (cell_idx = 0; cell_idx < Grid->NumCellsTotal; ++cell_idx)
-    {
-      XASSERT(Grid->GridProperties[grid_num_idx].SFR[cell_idx] >= 0.0, "For Rank %d, cell index %d has a SFR value of %.4f\n", ThisTask, cell_idx, Grid->GridProperties[grid_num_idx].SFR[cell_idx]);
-    }
 
-    printf("I am rank %d, my grid_num_idx is %d and my NumCellsTotal is %ld\n", ThisTask, grid_num_idx, (long) Grid->NumCellsTotal);
-    MPI_Reduce(Grid->GridProperties[grid_num_idx].SFR, master_grid->GridProperties[grid_num_idx].SFR, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
-    printf("SFR done\n");
-    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HI, master_grid->GridProperties[grid_num_idx].Nion_HI, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
-    printf("Nion_HI done\n");
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeI, master_grid->GridProperties[grid_num_idx].Nion_HeI, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
-    printf("Nion_HeI done\n");
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeII, master_grid->GridProperties[grid_num_idx].Nion_HeII, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
-    printf("Nion_HeII done\n");
 
+    if (self_consistent == 0)
+    {
+      MPI_Reduce(Grid->GridProperties[grid_num_idx].SFR, master_grid->GridProperties[grid_num_idx].SFR, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+      MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeI, master_grid->GridProperties[grid_num_idx].Nion_HeI, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce(Grid->GridProperties[grid_num_idx].Nion_HeII, master_grid->GridProperties[grid_num_idx].Nion_HeII, Grid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
     MPI_Reduce(Grid->GridProperties[grid_num_idx].GalCount, master_grid->GridProperties[grid_num_idx].GalCount, Grid->NumCellsTotal, MPI_UINT64_T, MPI_SUM, 0, MPI_COMM_WORLD); 
-    printf("GalCount done\n");
+    }
    
   }
 

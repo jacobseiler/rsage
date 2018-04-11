@@ -129,7 +129,7 @@ def update_ini_files(args):
     cifog_params, cifog_params_names, cifog_headers = ReadScripts.read_cifog_ini(args["cifog_fname"])
   
     SAGE_params["OutputDir"] = "{0}/galaxies".format(args["run_directory"])
-    SAGE_params["GridOutputDir"] = "{0}/galaxies/grids/nion".format(args["run_directory"])
+    SAGE_params["GridOutputDir"] = "{0}/grids/nion".format(args["run_directory"])
     SAGE_params["PhotoionDir"] = "{0}/galaxies/grids/cifog".format(args["run_directory"])
     SAGE_params["PhotoionName"] = "photHI"
     SAGE_params["ReionRedshiftName"] = "reionization_redshift"

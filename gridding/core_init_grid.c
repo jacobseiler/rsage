@@ -101,6 +101,16 @@ int32_t init(void)
 int32_t init_grid(struct GRID_STRUCT *grid)
 {
 
+#define ALLOCATE_GRID_MEMORY(name, length) \
+{                                          \
+  name = calloc(length, sizeof(*(name)));  \
+  if (name == NULL)                        \
+  {                                        \
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate"#name".\n", sizeof(*(name)* length)); \
+    return EXIT_FAILURE;                   \
+  }                                        \
+}
+
   int32_t i;
   uint64_t cell_idx;
 
@@ -125,47 +135,22 @@ int32_t init_grid(struct GRID_STRUCT *grid)
 
   for (i = 0; i < grid->NumGrids; ++i)
   {
-    printf("Allocating grid %d\n", i);
-    grid->GridProperties[i].SFR = malloc(sizeof(*(grid->GridProperties[i].SFR)) * grid->NumCellsTotal);
-    if (grid->GridProperties[i].SFR == NULL)
-    {
-      fprintf(stderr, "Could not allocate memory for the grid SFR for grid number %d\n", i);
-      return EXIT_FAILURE;
-    }
+    printf("Allocating grid %d on Task %d.\n", i, ThisTask);
 
-    grid->GridProperties[i].StellarMass = malloc(sizeof(*(grid->GridProperties[i].StellarMass)) * grid->NumCellsTotal);
-    if (grid->GridProperties[i].StellarMass == NULL)
-    {
-      fprintf(stderr, "Could not allocate memory for the grid StellarMass for grid number %d\n", i);
-      return EXIT_FAILURE;
-    }
 
-    grid->GridProperties[i].Nion_HI = malloc(sizeof(*(grid->GridProperties[i].Nion_HI)) * grid->NumCellsTotal);
-    if (grid->GridProperties[i].Nion_HI == NULL)
-    {
-      fprintf(stderr, "Could not allocate memory for the grid Nion_HI for grid number %d\n", i);
-      return EXIT_FAILURE;
-    }
+    /* For now the self-consistent model only using the number of ionizing photons. */
+    /* Also use the number of galaxies for sanity check. */
+    
+    ALLOCATE_GRID_MEMORY(grid->GridProperties[i].Nion_HI, grid->NumCellsTotal);
+    ALLOCATE_GRID_MEMORY(grid->GridProperties[i].GalCount, grid->NumCellsTotal);
 
-    grid->GridProperties[i].Nion_HeI = malloc(sizeof(*(grid->GridProperties[i].Nion_HeI)) * grid->NumCellsTotal);
-    if (grid->GridProperties[i].Nion_HeI == NULL)
+    if (self_consistent == 0)
     {
-      fprintf(stderr, "Could not allocate memory for the grid Nion_HeI for grid number %d\n", i);
-      return EXIT_FAILURE;
-    }
+      ALLOCATE_GRID_MEMORY(grid->GridProperties[i].SFR, grid->NumCellsTotal);
+      ALLOCATE_GRID_MEMORY(grid->GridProperties[i].StellarMass, grid->NumCellsTotal);
+      ALLOCATE_GRID_MEMORY(grid->GridProperties[i].Nion_HeI, grid->NumCellsTotal);
+      ALLOCATE_GRID_MEMORY(grid->GridProperties[i].Nion_HeII, grid->NumCellsTotal);
 
-    grid->GridProperties[i].Nion_HeII = malloc(sizeof(*(grid->GridProperties[i].Nion_HeII)) * grid->NumCellsTotal);
-    if (grid->GridProperties[i].Nion_HeII == NULL)
-    {
-      fprintf(stderr, "Could not allocate memory for the grid Nion_HeII for grid number %d\n", i);
-      return EXIT_FAILURE;
-    }
-
-    grid->GridProperties[i].GalCount = malloc(sizeof(*(grid->GridProperties[i].GalCount)) * grid->NumCellsTotal);
-    if (grid->GridProperties[i].GalCount == NULL)
-    {
-      fprintf(stderr, "Could not allocate memory for the grid GalCount for grid number %d\n", i);
-      return EXIT_FAILURE;
     }
 
     // All the memory has been allocated for the inner grid.
@@ -173,13 +158,17 @@ int32_t init_grid(struct GRID_STRUCT *grid)
 
     for (cell_idx = 0; cell_idx < Grid->NumCellsTotal; ++cell_idx)
     {
-      grid->GridProperties[i].SFR[cell_idx] = 0.0;  
-      grid->GridProperties[i].StellarMass[cell_idx] = 0.0;  
       grid->GridProperties[i].Nion_HI[cell_idx] = 0.0;  
-      grid->GridProperties[i].Nion_HeI[cell_idx] = 0.0;  
-      grid->GridProperties[i].Nion_HeII[cell_idx] = 0.0;  
-
       grid->GridProperties[i].GalCount[cell_idx] = 0; 
+
+      if (self_consistent == 0)
+      {
+        grid->GridProperties[i].SFR[cell_idx] = 0.0;  
+        grid->GridProperties[i].StellarMass[cell_idx] = 0.0;        
+        grid->GridProperties[i].Nion_HeI[cell_idx] = 0.0;  
+        grid->GridProperties[i].Nion_HeII[cell_idx] = 0.0;  
+        
+      }
     } 
 
   } 
@@ -195,13 +184,16 @@ int32_t free_grid(void)
 
   for (i = 0; i < Grid->NumGrids; ++i)
   {
+    free(Grid->GridProperties[i].Nion_HI);
     free(Grid->GridProperties[i].GalCount);
 
-    free(Grid->GridProperties[i].Nion_HeII);
-    free(Grid->GridProperties[i].Nion_HeI);
-    free(Grid->GridProperties[i].Nion_HI);
-    free(Grid->GridProperties[i].StellarMass);
-    free(Grid->GridProperties[i].SFR);
+    if (self_consistent == 0)
+    {
+      free(Grid->GridProperties[i].Nion_HeII);
+      free(Grid->GridProperties[i].Nion_HeI);
+      free(Grid->GridProperties[i].StellarMass);
+      free(Grid->GridProperties[i].SFR);
+    }
   }
 
   free(Grid->GridProperties);
