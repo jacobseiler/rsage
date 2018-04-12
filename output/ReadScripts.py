@@ -143,7 +143,7 @@ def ReadHalos(DirName, First_File, Last_File):
 def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
 
     Galdesc_full = [ 
-         ('HaloNr', np.int32),
+         ('TreeNr', np.int32),
          ('mergeType', np.int32),
          ('GridHistory', (np.int32, MAXSNAPS)), # Array index 48 
          ('GridStellarMass', (np.float32, MAXSNAPS)),
@@ -358,8 +358,6 @@ def load_data(fname):
         Array of the read data. Shape will be dependant upon how the file itself was saved.  
     """ 
 
-    print("")
-    print("Attempting to open {0}".format(fname))
     try:
         filename = "{0}.npz".format(fname)
         data = np.load(filename)
@@ -383,8 +381,7 @@ def load_data(fname):
 
             return load_data(fname) 
             
-    else:           
-        print("") 
+    else:               
         return data['arr_0']
 
 def read_SAGE_ini(fname):

@@ -23,7 +23,7 @@ HighSnap          98
 %------------------------------------------
 
 TreeName              subgroup_trees   ; assumes the trees are named TreeName.n where n is the file number
-TreeExtension         .dat
+TreeExtension         .dat 
 SimulationDir         /lustre/projects/p134_swin/jseiler/kali/subfind_results/trees/trees/vertical/ 
 FileWithSnapList      /lustre/projects/p134_swin/jseiler/kali/a_list.txt 
 LastSnapShotNr        98

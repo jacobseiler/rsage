@@ -6,7 +6,8 @@ matplotlib.use('Agg')
 import os
 import heapq
 import numpy as np
-import pylab as plt
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 from numpy import *
@@ -2546,25 +2547,47 @@ def plot_dust_scatter(SnapList, mass_gal, mass_halo, mass_dust, output_tag):
         fig2 = plt.figure()
         ax2 = fig2.add_subplot(111)
 
+        fig3 = plt.figure()
+        ax3 = fig3.add_subplot(111, projection='3d')
+
+        fig4 = plt.figure()
+        ax4 = fig4.add_subplot(111)
+
         ax1.scatter(mass_gal, mass_dust)
         ax2.scatter(mass_halo, mass_dust)
-         
+        #ax3.scatter(mass_gal, mass_halo, mass_dust)
+
+        hb = ax4.hexbin(mass_halo, mass_dust, bins='log', cmap='inferno')
         ax1.set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', fontsize = PlotScripts.global_labelsize) 
         ax1.set_ylabel(r'$\mathbf{log_{10} \: M_{Dust}}$', fontsize = PlotScripts.global_labelsize) 
 
         ax2.set_xlabel(r'$\mathbf{log_{10} \: M_{vir} \:[M_{\odot}]}$', fontsize = PlotScripts.global_labelsize) 
         ax2.set_ylabel(r'$\mathbf{log_{10} \: M_{Dust}}$', fontsize = PlotScripts.global_labelsize) 
 
+        ax4.set_xlabel(r'$\mathbf{log_{10} \: M_{vir} \:[M_{\odot}]}$', fontsize = PlotScripts.global_labelsize) 
+        ax4.set_ylabel(r'$\mathbf{log_{10} \: M_{Dust}}$', fontsize = PlotScripts.global_labelsize) 
+        cb = fig4.colorbar(hb, ax=ax4)
+        cb.set_label('log10(N)')
+
         outputFile1 = "./{0}_galaxy{1}".format(output_tag, output_format) 
         fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile1))
         plt.close(fig1)
 
-
         outputFile2 = "./{0}_halo{1}".format(output_tag, output_format) 
         fig2.savefig(outputFile2, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile2))
         plt.close(fig2)
+
+        #outputFile3 = "./{0}_3D{1}".format(output_tag, output_format) 
+        #fig3.savefig(outputFile3, bbox_inches='tight')  # Save the figure
+        #print('Saved file to {0}'.format(outputFile3))
+        #plt.close(fig3)
+
+        outputFile4 = "./{0}_hexbin{1}".format(output_tag, output_format) 
+        fig4.savefig(outputFile4, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile4))
+        plt.close(fig4)
 
 ### Here ends the plotting functions. ###
 ### Here begins the functions that calculate various properties for the galaxies (fesc, Magnitude etc). ###
@@ -3041,7 +3064,7 @@ if __name__ == '__main__':
     # Tiamat extended has 164 snapshots.
      
     FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [0] # The last file number THAT WE ARE PLOTTING.
+    LastFile = [63] # The last file number THAT WE ARE PLOTTING.
     NumFile = [64] # The number of files for this simulation (plotting a subset of these files is allowed).     
     same_files = [0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
     # This array will tell us if we should keep the files for the next model or otherwise throw them away. 
@@ -3413,13 +3436,28 @@ if __name__ == '__main__':
                     mass_centralgal_dust = np.log10(G.GridCentralGalaxyMass[w_gal[w_dust], current_snap] 
                                          * 1.0e10 / AllVars.Hubble_h)
 
-                    w_test = np.where(mass_centralgal_dust > 11.5)[0]
-                    print("Mass of Galaxy {0}".format(mass_gal_dust[w_test]))
-                    print("Mass of Halo {0}"\
-                          .format(mass_centralgal_dust[w_test]))
-                    print("Mass of Dust {0}".format(total_dust_gal[w_test]))
-                    exit()
+                    fname ="/lustre/projects/p004_swin/jseiler/kali/npz_files/stellarmass_dust_snap{0:03d}_{1}" \
+                            .format(current_snap, fnr)
+                    np.savez(fname, mass_gal_dust)
+
+
+                    fname="/lustre/projects/p004_swin/jseiler/kali/npz_files/halomass_dust_snap{0:03d}_{1}" \
+                            .format(current_snap, fnr)
+                    
+                    np.savez(fname, mass_centralgal_dust)
+
+                    fname="/lustre/projects/p004_swin/jseiler/kali/npz_files/dustmass_dust_snap{0:03d}_{1}" \
+                            .format(current_snap, fnr)
+                    np.savez(fname, total_dust_gal)
+
                    
+                    w_test = np.where(mass_centralgal_dust > 11.5)[0]
+                    #print("Mass of Galaxy {0}".format(mass_gal_dust[w_test]))
+                    #print("Mass of Halo {0}"\
+                    #      .format(mass_centralgal_dust[w_test]))
+                    #print("Mass of Dust {0}".format(total_dust_gal[w_test]))
+                    #print("TreeNr {0}".format(G.TreeNr[w_gal[w_test]]))
+                    #exit() 
                     reionmod = G.GridReionMod[w_gal, current_snap]
                     mass_reionmod_central = mass_central[reionmod > -1]
                     reionmod = reionmod[reionmod > -1] # Some satellite galaxies that don't have HotGas and hence won't be stripped. As a result reionmod = -1 for these. Ignore them.        
@@ -3594,8 +3632,8 @@ if __name__ == '__main__':
                   #std_reionmod_halo_array, N_halo_array, mean_reionmod_z, 
                   #std_reionmod_z, N_reionmod_z, False, model_tags,
                   #"reionmod_selfcon")
-    plot_dust_scatter(SnapList, mass_gal_dust, mass_centralgal_dust, total_dust_gal, 
-                      "dust_scatter") 
+    #plot_dust_scatter(SnapList, mass_gal_dust, mass_centralgal_dust, total_dust_gal, 
+    #                  "dust_scatter") 
     #plot_dust(PlotSnapList, SnapList, simulation_norm, mean_dust_galaxy_array,
     #          std_dust_galaxy_array, N_galaxy_array, mean_dust_halo_array,
     #          std_dust_halo_array, N_halo_array, False, model_tags,

@@ -138,7 +138,7 @@ struct GALAXY_INPUT
 
 struct GALAXY_GRID
 { 
-  int HaloNr; 
+  int TreeNr; 
   int mergeType;
   int *History; // Integers that describe the grid position at every redshift.
   float *StellarMass; // Units of 1.0e10 Msun/h.
