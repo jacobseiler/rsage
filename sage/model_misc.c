@@ -141,6 +141,7 @@ void init_galaxy(int p, int halonr, int treenr)
 
   Gal[p].DustColdGas = 0.0;
   Gal[p].DustHotGas = 0.0;
+  Gal[p].DustEjectedMass = 0.0;
 
 }
 
@@ -297,7 +298,7 @@ int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t *grid_1D
 // Tracks a number of properties that will be used by the gridding code.  
 // These properties are in the form of a length SNAPNUM array so only the values at the Galaxy redshift will be altered. 
 
-void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
+void update_grid_array(int p, int halonr, int steps_completed)
 {
     int32_t grid_position, step, status;
     int32_t SnapCurr = Halo[halonr].SnapNum;
@@ -353,9 +354,17 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     Gal[p].GridColdGas[SnapCurr] = Gal[p].ColdGas;
     Gal[p].GridBHMass[SnapCurr] = Gal[p].BlackHoleMass;
 
-    Gal[p].GridDustColdGas[SnapCurr] = Gal[p].DustColdGas;
+    //assert(Gal[p].DustColdGas == Gal[p].DustColdGas);
+    //assert(Gal[p].DustHotGas == Gal[p].DustHotGas);
+    //XASSERT(Gal[p].DustEjectedMass == Gal[p].DustEjectedMass, "Gal %d\tEjectedMass %.4e\tDustEjectedMass %.4e\n", p, Gal[p].EjectedMass, Gal[p].DustEjectedMass);
+
+    Gal[p].GridDustColdGas[SnapCurr] = Gal[p].DustColdGas;    
     Gal[p].GridDustHotGas[SnapCurr] = Gal[p].DustHotGas;
     Gal[p].GridDustEjectedMass[SnapCurr] = Gal[p].DustEjectedMass;
+
+  
+    //printf("Gal %d\tSnap %d\tColdDust %.4e\tHotDust %.4e\tEjectedDust %.4e\n", p, SnapCurr, Gal[p].DustColdGas, Gal[p].DustHotGas, Gal[p].DustEjectedMass);
+
 
 }
 

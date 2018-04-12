@@ -173,7 +173,7 @@ int main(int argc, char **argv)
       }
 
       TreeID = tree;
-      load_tree(filenr, tree);
+      load_tree(tree);
 
       gsl_rng_set(random_generator, filenr * 100000 + tree);
       NumGals = 0;
@@ -190,8 +190,8 @@ int main(int argc, char **argv)
       //break;
     }
 
-    finalize_galaxy_file(filenr);  
-    finalize_merged_galaxy_file(filenr);
+    finalize_galaxy_file();  
+    finalize_merged_galaxy_file();
     
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);

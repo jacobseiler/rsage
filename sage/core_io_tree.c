@@ -85,7 +85,7 @@ void free_tree_table(void)
 	}
 }
 
-void load_tree(int filenr, int nr)
+void load_tree(int nr)
 {
   int i;
 
@@ -117,10 +117,6 @@ void load_tree(int filenr, int nr)
       Max_Halo = Halo[i].Mvir;
     if(Halo[i].Mvir < Min_Halo)
       Min_Halo = Halo[i].Mvir;
-    if (nr == 5 && i == 83)
-    {
-      printf("After loading the tree, HaloNr %d\n", i); 
-    }
  
 #ifdef BRITTON_SIM     
     Halo[i].Pos[0] = Halo[i].Pos[0] - 775.0;

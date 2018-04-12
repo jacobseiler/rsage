@@ -29,16 +29,20 @@ void reincorporate_gas(int centralgal, double dt)
 
     metallicity = get_metallicity(Gal[centralgal].EjectedMass, Gal[centralgal].MetalsEjectedMass);
     dust_fraction_ejected = get_dust_fraction(Gal[centralgal].EjectedMass, Gal[centralgal].DustEjectedMass);
-
+    
+  
     Gal[centralgal].EjectedMass -= reincorporated;
     Gal[centralgal].MetalsEjectedMass -= metallicity * reincorporated;
     Gal[centralgal].DustEjectedMass -= dust_fraction_ejected * reincorporated;
     Gal[centralgal].HotGas += reincorporated;
     Gal[centralgal].MetalsHotGas += metallicity * reincorporated;
-    Gal[centralgal].DustEjectedMass += dust_fraction_ejected * reincorporated;
+    Gal[centralgal].DustHotGas += dust_fraction_ejected * reincorporated;
 
-    //Gal[centralgal].deltaEjectedMass[Gal[centralgal].SnapNum] -= reincorporated;
-    //Gal[centralgal].deltaMetalsEjectedMass[Gal[centralgal].SnapNum] -= reincorporated * metallicity;
+    if (Gal[centralgal].DustEjectedMass < 0.0)
+    {
+      Gal[centralgal].DustEjectedMass = 0.0;
+    } 
+    assert(Gal[centralgal].DustEjectedMass == Gal[centralgal].DustEjectedMass);
   }
 
 }

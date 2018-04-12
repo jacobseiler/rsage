@@ -9,7 +9,7 @@
 
 
 
-double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr, int32_t filenr)
+double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
 {
   int i;
   double tot_stellarMass, tot_BHMass, tot_coldMass, tot_hotMass, tot_ejected, tot_ICS;
@@ -60,7 +60,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr, int32_t
   }
   else if (ReionizationOn == 3 || ReionizationOn == 4)
   {
-    status = do_self_consistent_reionization(centralgal, halonr, 1, filenr, &reionization_modifier);
+    status = do_self_consistent_reionization(centralgal, halonr, 1, &reionization_modifier);
     if (status == EXIT_FAILURE)
     {
       ABORT(EXIT_FAILURE);     
@@ -107,7 +107,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr, int32_t
 
 
 
-void strip_from_satellite(int halonr, int centralgal, int gal, int32_t filenr, int32_t step)
+void strip_from_satellite(int halonr, int centralgal, int gal, int32_t step)
 {
   double reionization_modifier, strippedGas, strippedGasMetals, metallicity, dummy;
   int32_t status; 
@@ -122,7 +122,7 @@ void strip_from_satellite(int halonr, int centralgal, int gal, int32_t filenr, i
   }
   else if (ReionizationOn == 3 || ReionizationOn == 4)
   {
-    status = do_self_consistent_reionization(centralgal, halonr, step+1, filenr, &reionization_modifier);
+    status = do_self_consistent_reionization(centralgal, halonr, step+1, &reionization_modifier);
     if (status == EXIT_FAILURE)
     {
       ABORT(EXIT_FAILURE);
@@ -282,7 +282,7 @@ double do_myreionization(int gal, double Zcurr, double *Mfilt)
 }
 
 
-void add_infall_to_hot(int gal, double infallingGas, double dt)
+void add_infall_to_hot(int gal, double infallingGas)
 {
   float metallicity; 
 
@@ -319,7 +319,7 @@ void add_infall_to_hot(int gal, double infallingGas, double dt)
   }
 }
 
-double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increment_counter, int32_t filenr, int64_t *found_idx)
+double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increment_counter, int64_t *found_idx)
 {
 
   int32_t is_found;
@@ -403,7 +403,7 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increm
 
 }
 
-int32_t do_self_consistent_reionization(int32_t gal, int32_t halonr, int32_t increment_counter, int32_t filenr, double *reionization_modifier)
+int32_t do_self_consistent_reionization(int32_t gal, int32_t halonr, int32_t increment_counter, double *reionization_modifier)
 {
 
   int32_t treenr; 
@@ -427,7 +427,7 @@ int32_t do_self_consistent_reionization(int32_t gal, int32_t halonr, int32_t inc
 
   HaloID = ((int64_t)treenr << 32) | (int64_t)halonr; // Generates the unique ID for each halo within this file. 
 
-  *reionization_modifier = search_for_modifier(HaloID, Halo[halonr].SnapNum, increment_counter, filenr, &found_idx); 
+  *reionization_modifier = search_for_modifier(HaloID, Halo[halonr].SnapNum, increment_counter, &found_idx); 
 
   if (found_idx == -1)
   {

@@ -164,7 +164,7 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('GridReionMod', (np.float32, MAXSNAPS)),
          ('GridDustColdGas', (np.float32, MAXSNAPS)),
          ('GridDustHotGas', (np.float32, MAXSNAPS)),
-         ('GridDustEjectedMas', (np.float32, MAXSNAPS))
+         ('GridDustEjectedMass', (np.float32, MAXSNAPS))
          ]
     
                             

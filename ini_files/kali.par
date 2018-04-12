@@ -2,12 +2,12 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies       test
-OutputDir              /lustre/projects/p004_swin/jseiler/kali/tmp/galaxies
-GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/tmp/grids
+FileNameGalaxies       dust 
+OutputDir              /lustre/projects/p004_swin/jseiler/kali/dust/galaxies
+GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/dust/grids
 
 FirstFile         0 
-LastFile          0 
+LastFile          63 
 
 %------------------------------------------
 %----- Snapshot output list ---------------
@@ -59,7 +59,7 @@ SfrEfficiency           0.01  ;efficiency of SF (SFprescription=0)
 FeedbackReheatingEpsilon    3.0   ;mass of cold gas reheated due to SF (see Martin 1999) (SupernovaRecipeOn=1)
 FeedbackEjectionEfficiency  0.3   ;mixing efficiency of SN energy with hot gas to unbind and eject some (SupernovaRecipeOn=1)
 
-IRA 			    1     ; 1 to use instantaneous recycling approximation (SN), 0 to do delayed SN feedback.
+IRA 			    0     ; 1 to use instantaneous recycling approximation (SN), 0 to do delayed SN feedback.
 TimeResolutionSN	    10     ; Time (Myr) between elements used to calculate the delayed SN. 
 
 ReIncorporationFactor   0.15    ;fraction of ejected mass reincorporated per dynamical time to hot
