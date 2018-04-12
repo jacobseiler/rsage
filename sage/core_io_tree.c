@@ -71,12 +71,12 @@ void free_tree_table(void)
 {
   int n;
 
-  myfree(TreeNMergedgals); 
+  myfree(TreeNMergedgals, sizeof(*(TreeNMergedgals)) * Ntrees); 
   for(n = NOUT - 1; n >= 0; n--)
-    myfree(TreeNgals[n]);
+    myfree(TreeNgals[n], sizeof(*(TreeNgals[n])) * Ntrees);
 
-  myfree(TreeFirstHalo);
-  myfree(TreeNHalos);
+  myfree(TreeFirstHalo, sizeof(*(TreeFirstHalo)) * Ntrees);
+  myfree(TreeNHalos, sizeof(*(TreeNHalos)) * Ntrees);
 	
 	// Don't forget to free the open file handle
 	if(load_fd) {
@@ -103,7 +103,7 @@ void load_tree(int nr)
   MaxMergedGals = MaxGals;
   FoF_MaxGals = 10000; 
 
-  gal_to_free = malloc(sizeof(int) * MaxMergedGals);
+  gal_to_free = mymalloc(sizeof(int) * MaxMergedGals);
   HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[nr]);
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
   Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
@@ -113,6 +113,9 @@ void load_tree(int nr)
   double Max_Halo = 0.0; 
   for(i = 0; i < TreeNHalos[nr]; i++)
   {
+    if (Halo[i].FirstHaloInFOFgroup == -1)
+    exit(0);
+
     if(Halo[i].Mvir > Max_Halo)
       Max_Halo = Halo[i].Mvir;
     if(Halo[i].Mvir < Min_Halo)
@@ -128,10 +131,10 @@ void load_tree(int nr)
     HaloAux[i].HaloFlag = 0;
     HaloAux[i].NGalaxies = 0;
   }
-
+  
 }
 
-void free_galaxies_and_tree(void)
+void free_galaxies_and_tree(int32_t treenr)
 {
   int i, j, max_snap, count_frees = 0;
 
@@ -175,7 +178,7 @@ void free_galaxies_and_tree(void)
     free_grid_arrays(&HaloGal[gal_to_free[i]]);
     ++gal_frees; 
   }
-  free(gal_to_free);
+  myfree(gal_to_free, sizeof(*(gal_to_free)) * MaxMergedGals);
 
 
   // Now we just have to free the arrays for the galaxies that have merged.
@@ -188,11 +191,12 @@ void free_galaxies_and_tree(void)
   } 
 
   // All the inside pointers have now been freed, lets free the structs themselves now.
-  myfree(MergedGal);
-  myfree(Gal);
-  myfree(HaloGal);
-  myfree(HaloAux);
-  myfree(Halo);
+  myfree(MergedGal, sizeof(*(MergedGal)) * MaxMergedGals);
+  myfree(Gal, sizeof(*(Gal)) * FoF_MaxGals);
+  myfree(HaloGal, sizeof(*(HaloGal)) * MaxGals);
+  myfree(HaloAux, sizeof(*(HaloAux)) * TreeNHalos[treenr]);
+  myfree(Halo, sizeof(*(Halo)) * TreeNHalos[treenr]);
+
 }
 
 void free_grid_arrays(struct GALAXY *g)

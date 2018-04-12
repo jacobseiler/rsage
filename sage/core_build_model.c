@@ -117,7 +117,7 @@ int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
       {
         printf("Current FoF_MaxGals = %d. Reallocing.\n", FoF_MaxGals);
         FoF_MaxGals += 10000;
-        Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY));
+        Gal = myrealloc(Gal, FoF_MaxGals * sizeof(struct GALAXY), (FoF_MaxGals - 1000) * sizeof(struct GALAXY));
       }
 	
       assert(ngal < FoF_MaxGals);

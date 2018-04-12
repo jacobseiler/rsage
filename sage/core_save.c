@@ -131,7 +131,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   int32_t nwritten;
   void *buffer;
  
-  nwritten = fwrite(&g->HaloNr, sizeof(g->HaloNr), 1, fp);
+  nwritten = fwrite(&g->TreeNr, sizeof(g->TreeNr), 1, fp);
 
   fwrite(&g->mergeType, sizeof(g->mergeType), 1, fp);
  

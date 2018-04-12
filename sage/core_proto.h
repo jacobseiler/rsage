@@ -17,9 +17,7 @@ void load_tree(int nr);
 void save_galaxies(int filenr, int tree);
 void save_merged_galaxies(int MergedNr, int filenr);
 
-void prepare_galaxy_for_output(int filenr, int tree, struct GALAXY *g, struct GALAXY_OUTPUT *o);
-
-void free_galaxies_and_tree(void);
+void free_galaxies_and_tree(int32_t treenr);
 void free_grid_arrays(struct GALAXY *g);
 void free_tree_table(void);
 int32_t free_grid(void);
@@ -29,8 +27,8 @@ void print_allocated(void);
 
 int32_t read_parameter_file(char *fname);
 void *mymalloc(size_t n);
-void *myrealloc(void *p, size_t n); 
-void myfree(void *p);
+void *myrealloc(void *p, size_t new_n, size_t old_n); 
+void myfree(void *p, size_t n);
 void myexit(int signum);
 
 void finalize_galaxy_file(void);

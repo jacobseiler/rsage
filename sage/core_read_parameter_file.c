@@ -295,10 +295,17 @@ int32_t read_parameter_file(char *fname)
 
   for(i = 0; i < nt; i++)
   {
-    if(*tag[i])
+    if(*tag[i]) 
     {
-      printf("Error. I miss a value for tag '%s' in parameter file '%s'.\n", tag[i], fname);
-      errorFlag = 1;
+      if (strcmp(tag[i], "TreeExtension") != 1)
+      {
+        memset(tag[i], 0, 50); 
+      }
+      else
+      {
+        printf("Error. I miss a value for tag '%s' in parameter file '%s'.\n", tag[i], fname);
+        errorFlag = 1;
+      }
     }
   }
 	
