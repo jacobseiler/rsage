@@ -53,7 +53,8 @@ void save_galaxies(int filenr, int tree)
     {
       sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
-      if(!(save_fd[n] = fopen(buf, "r+")))
+      save_fd[n] = fopen(buf, "wb");
+      if (save_fd == NULL)
       {
 				printf("can't open file `%s'\n", buf);
 				ABORT(0);
@@ -219,7 +220,8 @@ void save_merged_galaxies(int filenr, int tree)
   { 
     sprintf(buf, "%s/%s_MergedGalaxies_%d", OutputDir, FileNameGalaxies, filenr);
 
-    if(!(save_fd2 = fopen(buf, "r+")))
+    save_fd2 = fopen(buf, "wb");
+    if (save_fd2 == NULL)
     {
       printf("can't open file `%s'\n", buf);		
       ABORT(0);

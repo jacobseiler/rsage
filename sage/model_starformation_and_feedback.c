@@ -31,7 +31,7 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   Gal[p].ColdGas += mass_stars_recycled; 
 
   Gal[p].DustColdGas += yd * NSN; // Dust is created by supernova (something) on cold gas. 
-  Gal[p].ColdGas -= yd * NSN; // Hence the created dust is subtracted from the cold gas reservoir.
+  //Gal[p].ColdGas -= yd * NSN; // Hence the created dust is subtracted from the cold gas reservoir.
 
   dust_added += yd * NSN;
 
@@ -295,7 +295,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
       do_contemporaneous_SN(p, centralgal, dt, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass, &NSN);  
     else if(IRA == 1)
     {
-      do_IRA_SN(p, centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
+      do_IRA_SN(p, centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass, &NSN); 
     } 
 
   } 
@@ -686,7 +686,7 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
 
 }
 
-void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass)
+void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass, double *NSN)
 {
 
   double fac;
@@ -696,7 +696,8 @@ void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, doub
   *ejected_mass = 0.0;
 
   *reheated_mass = calculate_reheated_mass(Eta_SNII, *stars, Gal[centralgal].Vmax);
-   
+  *NSN = Eta_SNII * (*stars);
+
   if((*stars + *reheated_mass) > Gal[p].ColdGas && (*stars + *reheated_mass) > 0.0)
   {
     fac = Gal[p].ColdGas / (*stars + *reheated_mass);

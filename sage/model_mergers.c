@@ -313,7 +313,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     if(IRA == 0)
       do_contemporaneous_SN(centralgal, merger_centralgal, dt, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass, &NSN); 
     else if(IRA == 1)
-      do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
+      do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass, &NSN); 
 
     //do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
    

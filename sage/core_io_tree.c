@@ -14,18 +14,25 @@
 // keep a static file handle to remove the need to do constant seeking
 FILE* load_fd = NULL;
 
-void load_tree_table(int filenr)
+void load_tree_table(int filenr, int32_t treestyle)
 {
   int i, n, totNHalos;
   char buf[MAXLEN];
   FILE *fd;
-  
-  snprintf(buf, MAXLEN, "%s/%s_%03d%s", SimulationDir, TreeName, filenr, TreeExtension);
 
-  if(!(load_fd = fopen(buf, "r")))
+  // Some tree files are padded to three digits whereas some are not (e.g., tree.4 vs tree.004)
+  // Try both styles to see if the tree can be located.  If not, skip this tree.
+
+  if (treestyle == 0)
+    snprintf(buf, MAXLEN, "%s/%s_%03d%s", SimulationDir, TreeName, filenr, TreeExtension);
+  else
+    snprintf(buf, MAXLEN, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+    
+  load_fd = fopen(buf, "r");
+  if (load_fd == NULL)
   {
-    printf("can't open file `%s'\n", buf);
-    ABORT(0);
+    printf("Could not locate %s\n", buf);
+    ABORT(EXIT_FAILURE);
   }
 
   myfread(&Ntrees, 1, sizeof(int), load_fd);

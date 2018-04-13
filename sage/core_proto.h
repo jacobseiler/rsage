@@ -12,7 +12,7 @@ int32_t init_grid(void);
 int32_t init_reion_lists(int32_t filenr);
 void set_units(void);
 
-void load_tree_table(int filenr);
+void load_tree_table(int filenr, int32_t treestyle);
 void load_tree(int nr);
 void save_galaxies(int filenr, int tree);
 void save_merged_galaxies(int MergedNr, int filenr);
@@ -96,7 +96,7 @@ void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, 
 
 void do_previous_SN(int p, int centralgal, double dt);
 void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass, double *NSN);
-void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass);
+void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass, double *NSN);
 void do_previous_recycling(int p, int centralgal, int step, double dt); 
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m);
 double calculate_reheated_mass(double Delta_Eta, double stars, double Vmax);
