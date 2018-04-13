@@ -476,7 +476,7 @@ if __name__ == '__main__':
     model_tags = [r"$\mathbf{f_{esc} \: \propto \: Quasar \: Activity}$", 
                   r"$\mathbf{f_{esc} = 0.20}$"]
  
-    fname = ["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties"] 
+    fname =["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties"] 
     fname = [fname[0]]
 
     nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"]

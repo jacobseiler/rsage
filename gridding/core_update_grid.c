@@ -19,9 +19,7 @@ int32_t update_grid_properties(int32_t filenr)
 
   int32_t snapshot_idx, grid_num_idx, status; 
   int64_t grid_position, gal_idx, good_gals, bad_gals;
-  float fesc_local, Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
-
-  int32_t count = 0;
+  float fesc_local, Ngamma_HI, Ngamma_HeI, Ngamma_HeII;  
 
   // The outer loop needs to be over snapshots to properly work with the Quasar tracking.
   for (grid_num_idx = 0; grid_num_idx < Grid->NumGrids; ++grid_num_idx) 
@@ -46,7 +44,7 @@ int32_t update_grid_properties(int32_t filenr)
         return EXIT_FAILURE;
       }
 
-      if ((GalGrid[gal_idx].StellarMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].SFR[snapshot_idx] >= 0.0) & (GalGrid[gal_idx].CentralGalaxyMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].LenHistory[snapshot_idx] > HaloPartCut)) // Apply some requirements for the galaxy to be included.
+      if ((GalGrid[gal_idx].StellarMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].SFR[snapshot_idx] >= 0.0) & (GalGrid[gal_idx].FoFMass[snapshot_idx] > 0.0) & (GalGrid[gal_idx].LenHistory[snapshot_idx] > HaloPartCut)) // Apply some requirements for the galaxy to be included.
       {
         ++good_gals;
 
@@ -64,11 +62,14 @@ int32_t update_grid_properties(int32_t filenr)
             return EXIT_FAILURE;
           } 
 
+#ifdef DEBUG_PYTHON_C
+          int32_t count = 0;
           if (count < 10)
           {
             printf("SFR %.10e\tStellar Mass %.10e\tPhotons %.10e\tfesc %.10e\n", GalGrid[gal_idx].SFR[snapshot_idx], log10(GalGrid[gal_idx].StellarMass[snapshot_idx] * 1.0e10 / Hubble_h), Ngamma_HI, fesc_local);
             ++count;
           }
+#endif
           sum_photons += pow(10, Ngamma_HI - 50.0);
 
         }
@@ -105,7 +106,7 @@ int32_t update_grid_properties(int32_t filenr)
         /* These are properties for each galaxy but kept in the grid-struct cause I'm lazy. */
         Grid->GridProperties[grid_num_idx].SnapshotGalaxy[gal_idx] = snapshot_idx;          
         Grid->GridProperties[grid_num_idx].fescGalaxy[gal_idx] = fesc_local;
-        Grid->GridProperties[grid_num_idx].MvirGalaxy[gal_idx] = GalGrid[gal_idx].CentralGalaxyMass[snapshot_idx];
+        Grid->GridProperties[grid_num_idx].MvirGalaxy[gal_idx] = GalGrid[gal_idx].FoFMass[snapshot_idx];
         Grid->GridProperties[grid_num_idx].MstarGalaxy[gal_idx] = GalGrid[gal_idx].StellarMass[snapshot_idx];
         if (Ngamma_HI > 0.0)
         {
@@ -224,7 +225,7 @@ int32_t calculate_fesc(int p, int i, int filenr, float *fesc_local)
 
   float halomass, ejectedfraction, Mh;
 
-  halomass = GalGrid[p].CentralGalaxyMass[i];
+  halomass = GalGrid[p].FoFMass[i];
   ejectedfraction = GalGrid[p].EjectedFraction[i];
   
   if (fescPrescription == 0) 
@@ -276,7 +277,7 @@ int32_t calculate_fesc(int p, int i, int filenr, float *fesc_local)
    
   if (*fesc_local < 0.0)
   {
-    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", *fesc_local, p, filenr, log10(GalGrid[p].CentralGalaxyMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), GalGrid[p].EjectedFraction[i]);
+    fprintf(stderr, "Had fesc_local = %.4f for galaxy %d in file %d with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", *fesc_local, p, filenr, log10(GalGrid[p].FoFMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].StellarMass[i] * 1.0e10 / Hubble_h), log10(GalGrid[p].SFR[i]), GalGrid[p].EjectedFraction[i]);
     return EXIT_FAILURE; 
   }
 

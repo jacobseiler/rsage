@@ -135,8 +135,9 @@ int32_t init_grid(struct GRID_STRUCT *grid)
 
   for (i = 0; i < grid->NumGrids; ++i)
   {
+#ifdef MPI
     printf("Allocating grid %d on Task %d.\n", i, ThisTask);
-
+#endif
 
     /* For now the self-consistent model only using the number of ionizing photons. */
     /* Also use the number of galaxies for sanity check. */
