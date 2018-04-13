@@ -14,18 +14,25 @@
 // keep a static file handle to remove the need to do constant seeking
 FILE* load_fd = NULL;
 
-void load_tree_table(int filenr)
+void load_tree_table(int filenr, int32_t treestyle)
 {
   int i, n, totNHalos;
   char buf[MAXLEN];
   FILE *fd;
-  
-  snprintf(buf, MAXLEN, "%s/%s_%03d%s", SimulationDir, TreeName, filenr, TreeExtension);
 
-  if(!(load_fd = fopen(buf, "r")))
+  // Some tree files are padded to three digits whereas some are not (e.g., tree.4 vs tree.004)
+  // Try both styles to see if the tree can be located.  If not, skip this tree.
+
+  if (treestyle == 0)
+    snprintf(buf, MAXLEN, "%s/%s_%03d%s", SimulationDir, TreeName, filenr, TreeExtension);
+  else
+    snprintf(buf, MAXLEN, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
+    
+  load_fd = fopen(buf, "r");
+  if (load_fd == NULL)
   {
-    printf("can't open file `%s'\n", buf);
-    ABORT(0);
+    printf("Could not locate %s\n", buf);
+    ABORT(EXIT_FAILURE);
   }
 
   myfread(&Ntrees, 1, sizeof(int), load_fd);
@@ -71,12 +78,12 @@ void free_tree_table(void)
 {
   int n;
 
-  myfree(TreeNMergedgals); 
+  myfree(TreeNMergedgals, sizeof(*(TreeNMergedgals)) * Ntrees); 
   for(n = NOUT - 1; n >= 0; n--)
-    myfree(TreeNgals[n]);
+    myfree(TreeNgals[n], sizeof(*(TreeNgals[n])) * Ntrees);
 
-  myfree(TreeFirstHalo);
-  myfree(TreeNHalos);
+  myfree(TreeFirstHalo, sizeof(*(TreeFirstHalo)) * Ntrees);
+  myfree(TreeNHalos, sizeof(*(TreeNHalos)) * Ntrees);
 	
 	// Don't forget to free the open file handle
 	if(load_fd) {
@@ -85,7 +92,7 @@ void free_tree_table(void)
 	}
 }
 
-void load_tree(int filenr, int nr)
+void load_tree(int nr)
 {
   int i;
 
@@ -103,7 +110,7 @@ void load_tree(int filenr, int nr)
   MaxMergedGals = MaxGals;
   FoF_MaxGals = 10000; 
 
-  gal_to_free = malloc(sizeof(int) * MaxMergedGals);
+  gal_to_free = mymalloc(sizeof(int) * MaxMergedGals);
   HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[nr]);
   HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
   Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
@@ -113,14 +120,13 @@ void load_tree(int filenr, int nr)
   double Max_Halo = 0.0; 
   for(i = 0; i < TreeNHalos[nr]; i++)
   {
+    if (Halo[i].FirstHaloInFOFgroup == -1)
+    exit(0);
+
     if(Halo[i].Mvir > Max_Halo)
       Max_Halo = Halo[i].Mvir;
     if(Halo[i].Mvir < Min_Halo)
       Min_Halo = Halo[i].Mvir;
-    if (nr == 5 && i == 83)
-    {
-      printf("After loading the tree, HaloNr %d\n", i); 
-    }
  
 #ifdef BRITTON_SIM     
     Halo[i].Pos[0] = Halo[i].Pos[0] - 775.0;
@@ -132,10 +138,10 @@ void load_tree(int filenr, int nr)
     HaloAux[i].HaloFlag = 0;
     HaloAux[i].NGalaxies = 0;
   }
-
+  
 }
 
-void free_galaxies_and_tree(void)
+void free_galaxies_and_tree(int32_t treenr)
 {
   int i, j, max_snap, count_frees = 0;
 
@@ -179,7 +185,7 @@ void free_galaxies_and_tree(void)
     free_grid_arrays(&HaloGal[gal_to_free[i]]);
     ++gal_frees; 
   }
-  free(gal_to_free);
+  myfree(gal_to_free, sizeof(*(gal_to_free)) * MaxMergedGals);
 
 
   // Now we just have to free the arrays for the galaxies that have merged.
@@ -192,11 +198,12 @@ void free_galaxies_and_tree(void)
   } 
 
   // All the inside pointers have now been freed, lets free the structs themselves now.
-  myfree(MergedGal);
-  myfree(Gal);
-  myfree(HaloGal);
-  myfree(HaloAux);
-  myfree(Halo);
+  myfree(MergedGal, sizeof(*(MergedGal)) * MaxMergedGals);
+  myfree(Gal, sizeof(*(Gal)) * FoF_MaxGals);
+  myfree(HaloGal, sizeof(*(HaloGal)) * MaxGals);
+  myfree(HaloAux, sizeof(*(HaloAux)) * TreeNHalos[treenr]);
+  myfree(Halo, sizeof(*(Halo)) * TreeNHalos[treenr]);
+
 }
 
 void free_grid_arrays(struct GALAXY *g)
@@ -205,7 +212,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->GridStellarMass);
   free(g->GridSFR);
   free(g->GridZ);
-  free(g->GridCentralGalaxyMass);
+  free(g->GridFoFMass);
   free(g->EjectedFraction);
   free(g->LenHistory);
   free(g->Stars);
@@ -219,6 +226,10 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->LenMergerGal);
   free(g->GridBHMass);
   free(g->GridReionMod);
+  free(g->GridDustColdGas);
+  free(g->GridDustHotGas);
+  free(g->GridDustEjectedMass);
+  free(g->GridType);
 
   g->IsMalloced = 0;
 }
@@ -240,7 +251,7 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
   ALLOCATE_GRID_MEMORY(g->GridStellarMass, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridSFR, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridZ, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridCentralGalaxyMass, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridFoFMass, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->EjectedFraction, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->LenHistory, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->Stars, SN_Array_Len);
@@ -254,7 +265,11 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
   ALLOCATE_GRID_MEMORY(g->LenMergerGal, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridBHMass, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridReionMod, MAXSNAPS);
-   
+  ALLOCATE_GRID_MEMORY(g->GridDustColdGas, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridDustHotGas, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridDustEjectedMass, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridType, MAXSNAPS);
+
   g->IsMalloced = 1; // This way we can check that we're not freeing memory that hasn't been allocated.
 
   return EXIT_SUCCESS;

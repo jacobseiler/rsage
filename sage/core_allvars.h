@@ -63,78 +63,6 @@ do {                                                                \
     } while (0)
 #endif
 
-
-struct GALAXY_OUTPUT
-{
-  int   SnapNum;
-  int   Type;
-
-  long long   GalaxyIndex;
-  long long   CentralGalaxyIndex;
-  int   SAGEHaloIndex;
-  int   SAGETreeIndex;
-  int   SimulationFOFHaloIndex;
-  
-  int   mergeType;  //0=none; 1=minor merger; 2=major merger; 3=disk instability; 4=disrupt to ICS
-  int   mergeIntoID;
-  int   mergeIntoSnapNum;
-  float dT;
-
-  // (sub)halo properties
-  float Pos[3];
-  float Vel[3];
-  float Spin[3];
-  int   Len;   
-  float Mvir;
-  float CentralMvir;
-  float Rvir;
-  float Vvir;
-  float Vmax;
-  float VelDisp;
-
-  // baryonic reservoirs 
-  float ColdGas;
-  float StellarMass;
-  float BulgeMass;
-  float HotGas;
-  float EjectedMass;
-  float BlackHoleMass;
-  float ICS;
-
-  // metals
-  float MetalsColdGas;
-  float MetalsStellarMass;
-  float MetalsBulgeMass;
-  float MetalsHotGas;
-  float MetalsEjectedMass;
-  float MetalsICS;
-
-  // to calculate magnitudes
-  float SfrDisk;
-  float SfrBulge;
-  float SfrDiskZ;
-  float SfrBulgeZ;
-
-  // misc 
-  float DiskScaleRadius;
-  float Cooling;
-  float Heating;
-  float QuasarModeBHaccretionMass;
-  float TimeOfLastMajorMerger;
-  float TimeOfLastMinorMerger;
-  float OutflowRate;
-
-  // infall properties
-  float infallMvir;
-  float infallVvir;
-  float infallVmax;
-
-  // NOTE: Because we have moved to pointers for the galaxy-grid parameters
-  // they are no longered stored explicitly in the galaxy output struct.
-  // Instead we have to write them out individually (otherwise we would just be writing out pointers and not their values).
-
-};
-
 // This structure contains the properties used within the code
 struct GALAXY
 {
@@ -210,7 +138,7 @@ struct GALAXY
   float *GridStellarMass;
   float *GridSFR;
   float *GridZ;
-  float *GridCentralGalaxyMass;
+  float *GridFoFMass;
   float *EjectedFraction;
   int *LenHistory;
   double *Stars; 
@@ -224,6 +152,10 @@ struct GALAXY
   int *LenMergerGal;
   float *GridBHMass;      
   float *GridReionMod;
+  float *GridDustColdGas;
+  float *GridDustHotGas;
+  float *GridDustEjectedMass;
+  int32_t *GridType;
  
   double StellarAge_Numerator;
   double StellarAge_Denominator;
@@ -239,7 +171,13 @@ struct GALAXY
   float ejected_mass;
   float mass_stars_recycled;
   float mass_metals_new; 
-  
+  float NSN; // Number of supernova within a time step.  Can be fractional. 
+ 
+  // Dust Properties
+  float DustColdGas;
+  float DustHotGas;
+  float DustEjectedMass;
+
 }
 *Gal, *HaloGal, *MergedGal;
 

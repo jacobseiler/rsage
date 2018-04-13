@@ -12,15 +12,28 @@
 #include "core_proto.h"
 
 
-void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double dt) 
+void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double NSN, double dt) 
 {
 
-  double metallicity, metallicityHot;
+  double metallicity, metallicityHot, dust_fraction_cold, dust_fraction_hot;
+  double dust_fraction_coldhot, dust_fraction_hotcold; // These are the dust fractions defined by M_colddust / (Mcold + Mhot) and M_hotdust / (Mcold + Mhot). 
+  // These second dust fractions are required because when we annihilate dust from SN we want the TOTAL amount to be NSN * eta * Ms.
+
+  // Dust constants, taken mainly from Dayal, Ferrara and Saro 2011.
+  double yd = 0.5 / 1.0e10 * Hubble_h; // Amount of dust mass created from each supernova event. Units of Msun.
+  double eta = 0.4; // Coupling between shock energy and annihilation of dust.
+  double Ms = 6.8e3 / 1.0e10 * Hubble_h; // Amount of mass that is accelerated to 100km/s by SN blastwave. Units of Msun. 
+  double dust_added = 0.0, dust_removed = 0.0;
 
   XASSERT((reheated_mass >= 0.0) && (ejected_mass >= 0.0) && (mass_stars_recycled >= 0.0) && (mass_metals_new >= 0.0), "When trying to update from the supernova feedback we got negative masses.\nReheated Mass = %.4e (1.0e10 Msun/h) \t Ejected Mass = %.4e (1.0e10 Msun/h) \t Mass of Stars Recycled = %.4e (1.0e10 Msun/h) \t Mass of Metals Added = %.4e (1.0e10 Msun/h)\n", reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
  
   Gal[p].StellarMass -= mass_stars_recycled; // The supernova remnants are instantly moved back into the cold ISM. 
   Gal[p].ColdGas += mass_stars_recycled; 
+
+  Gal[p].DustColdGas += yd * NSN; // Dust is created by supernova (something) on cold gas. 
+  Gal[p].ColdGas -= yd * NSN; // Hence the created dust is subtracted from the cold gas reservoir.
+
+  dust_added += yd * NSN;
 
   if(Gal[p].ColdGas > 1.0e-10)
       Gal[p].MetalsColdGas += mass_metals_new; // ISM is enriched by new metals.
@@ -36,19 +49,51 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
       ejected_mass = Gal[centralgal].HotGas; 
 
   metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
+  dust_fraction_cold = get_dust_fraction(Gal[p].ColdGas, Gal[p].DustColdGas);
+  dust_fraction_coldhot = get_dust_fraction(Gal[p].ColdGas + Gal[p].HotGas + Gal[p].EjectedMass, Gal[p].DustColdGas);
 
   Gal[p].ColdGas -= reheated_mass;
   Gal[p].MetalsColdGas -= reheated_mass * metallicity;
+  Gal[p].DustColdGas -= reheated_mass * dust_fraction_cold; // Dust that has been reheated to the hot reservoir.
+  Gal[p].DustColdGas -= NSN * eta * Ms * dust_fraction_coldhot; // Dust that has been annihilated by shocks.
+
+  dust_removed += NSN * eta * Ms * dust_fraction_coldhot;
+
+  //fprintf(stderr, "Dust added = %.4e\tCold Dust Removed Reheated= %4.e\tCold Dust Removed Annihilated = %4.e\n", yd * NSN, reheated_mass * dust_fraction_cold, NSN * eta * Ms* dust_fraction_coldhot); 
 
   Gal[centralgal].HotGas += reheated_mass;
   Gal[centralgal].MetalsHotGas += reheated_mass * metallicity;
+  Gal[centralgal].DustHotGas += reheated_mass * dust_fraction_cold; 
 
   metallicityHot = get_metallicity(Gal[centralgal].HotGas, Gal[centralgal].MetalsHotGas);
+  dust_fraction_hot = get_dust_fraction(Gal[p].HotGas, Gal[p].DustHotGas);
+  dust_fraction_hotcold = get_dust_fraction(Gal[p].ColdGas + Gal[p].HotGas + Gal[p].EjectedMass, Gal[p].DustHotGas);
 
   Gal[centralgal].HotGas -= ejected_mass;
   Gal[centralgal].MetalsHotGas -= ejected_mass * metallicityHot;
+  Gal[centralgal].DustHotGas -= ejected_mass * dust_fraction_hot; // Dust that has been ejected from the galaxy.
+  Gal[centralgal].DustHotGas -= NSN * eta * Ms * dust_fraction_hotcold; // Dust that has been annihilated by shocks.
+  dust_removed += NSN * eta * Ms * dust_fraction_hotcold;
+
+
+  //if( NSN * eta * Ms * dust_fraction_hotcold > 0.0) 
+  //printf("NSN = %.4e\tdust_fraction_hotcold = %.4e\tNSN*eta*Ms*dust_fraction_hotcold = %4e\n", NSN, dust_fraction_hotcold, NSN * eta * Ms * dust_fraction_hotcold);
+
+//if (dust_added > 0.0)
+//fprintf(stderr, "Dust added = %.4e\tDust removed = %.4e\n", dust_added, dust_removed);
+ 
   Gal[centralgal].EjectedMass += ejected_mass;
-  Gal[centralgal].MetalsEjectedMass += ejected_mass * metallicity;
+  Gal[centralgal].MetalsEjectedMass += ejected_mass * metallicityHot;
+
+  Gal[centralgal].DustEjectedMass += ejected_mass * dust_fraction_hot; 
+
+  //assert(ejected_mass == ejected_mass);
+  //assert(dust_fraction_hot == dust_fraction_hot);
+  // Both of these asserts pass.
+
+ 
+  //printf("ejected_mass %.4e\tdust_fraction_hot %.4e\tDustEjectedMass %.4e\n", ejected_mass, dust_fraction_hot, Gal[centralgal].DustEjectedMass);
+  XASSERT(Gal[centralgal].DustEjectedMass == Gal[centralgal].DustEjectedMass, "ejected_mass %.4e\tdust_fraction_hot %.4e\tDustEjectedMass %.4e\n", ejected_mass, dust_fraction_hot, Gal[centralgal].DustEjectedMass);
 
   Gal[p].GridOutflowRate[Halo[Gal[centralgal].HaloNr].SnapNum] += ejected_mass / dt; 
 
@@ -74,6 +119,9 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
 {
  
   double metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
+  double dust_fraction_cold = get_dust_fraction(Gal[p].ColdGas, Gal[p].DustColdGas);
+
+  // If the SF episode was from a merger the stars are placed in different reservoirs. 
   if(!ismerger)
   {
     Gal[p].SfrDisk[step] += stars / dt;
@@ -95,27 +143,20 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
   {
     if (ismerger == true)
     { 
-      update_stars_array(p, stars, 0.0, tree, step, ngal); // When we add the stars from a merger to the stars array, we don't want to increase the time spanned.
+      update_stars_array(p, stars, 0.0, tree, ngal); // When we add the stars from a merger to the stars array, we don't want to increase the time spanned.
     }
     else
     {
-      update_stars_array(p, stars, dt, tree, step, ngal);
+      update_stars_array(p, stars, dt, tree, ngal);
     }
   }
-
-
-  /*
-  if (update_stars == true)
-  {
-    update_stars_array(p, stars, dt, tree, step, ngal);
-  }
-  */
 
   // update gas and metals from star formation 
   Gal[p].ColdGas -= stars;
   Gal[p].MetalsColdGas -= metallicity * stars;
   Gal[p].StellarMass += stars;
   Gal[p].MetalsStellarMass += metallicity * stars;
+  Gal[p].DustColdGas -= dust_fraction_cold * stars; // When stars form they eat up dust. 
   if (Gal[p].ColdGas < 0.0)
     Gal[p].ColdGas = 0.0;
   if (Gal[p].MetalsColdGas < 0.0)
@@ -135,7 +176,7 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
 //
 // OUTPUT: None.
 
-void update_stars_array(int p, double stars, double dt, int tree, int step, int ngal)
+void update_stars_array(int p, double stars, double dt, int tree, int ngal)
 {
 
   double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
@@ -194,24 +235,30 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 {
   double reff, tdyn, strdot, stars;
   double cold_crit; 
-  double reheated_mass = 0.0, mass_metals_new = 0.0, mass_stars_recycled = 0.0, ejected_mass = 0.0;
+  double reheated_mass = 0.0, mass_metals_new = 0.0, mass_stars_recycled = 0.0, ejected_mass = 0.0, NSN = 0.0;
 
   // Initialise variables
   strdot = 0.0;
 
   // First we check to see if we need to do delayed supernova feedback.
-  // If this galaxy has evolved for the time defined by 'TimeResolutionSN' and 'IRA' is 0, then we perform the delayed SN feedback.
-  // i.e., the delayed prescription is only implemented every 'TimeResolutionSN' Megayears.
 
   if(IRA == 0)
   {
     do_previous_recycling(p, centralgal, step, dt); 
-    update_from_SN_feedback(p, centralgal, Gal[p].reheated_mass / (STEPS-step), Gal[p].ejected_mass / (STEPS-step), Gal[p].mass_stars_recycled / (STEPS-step), Gal[p].mass_metals_new / (STEPS-step), dt);
+
+    // The total amount that the reservoirs need to be adjusted by for this evolution step (i.e., ALL steps) has already been determined.
+    // Within each substep (i.e., each `step` iteration) we ask 'how many iterations are left?' and then adjusts the reservoirs by this amount.
+    // After the reservoirs have been updated, we subtract the amount of mass that we added from the running totals.
+    //
+    // These running totals are required because contemporaneous SN could cause extra mass to be added/removed within the next step iteration. 
+
+    update_from_SN_feedback(p, centralgal, Gal[p].reheated_mass / (STEPS-step), Gal[p].ejected_mass / (STEPS-step), Gal[p].mass_stars_recycled / (STEPS-step), Gal[p].mass_metals_new / (STEPS-step), Gal[p].NSN / (STEPS-step), dt);
 
     Gal[p].reheated_mass -= Gal[p].reheated_mass / (STEPS-step);
     Gal[p].ejected_mass -= Gal[p].ejected_mass / (STEPS-step);
     Gal[p].mass_stars_recycled -= Gal[p].mass_stars_recycled / (STEPS-step);
     Gal[p].mass_metals_new -= Gal[p].mass_metals_new / (STEPS-step);
+    Gal[p].NSN -= Gal[p].NSN / (STEPS-step);
 
   }
 
@@ -245,10 +292,10 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   if(SupernovaRecipeOn == 1)
   { 
     if(IRA == 0)
-      do_contemporaneous_SN(p, centralgal, dt, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass);  
+      do_contemporaneous_SN(p, centralgal, dt, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass, &NSN);  
     else if(IRA == 1)
     {
-      do_IRA_SN(p, centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
+      do_IRA_SN(p, centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass, &NSN); 
     } 
 
   } 
@@ -264,7 +311,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
   else
     update_from_star_formation(p, stars, dt, step, false, tree, ngal, true);
  
-  update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, dt);
+  update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, NSN, dt);
 
   // check for disk instability
   if(DiskInstabilityOn)
@@ -422,13 +469,14 @@ double calculate_ejected_mass(double *reheated_mass, double reheated_energy, dou
 // This function answers the question, "How many stars formed in the previous time steps will explode during the current supernova timestep."
 // Note: Since the time scale on which we calculate SN feedback is variable (defined by the user in 'TimeResolutionSN') we use the terminology 'supernova timestep'.
 // Double note: This function is different to "do_contemporaneous_SN" because that looks at the stars formed during the CURRENT STAR FORMATION time step, not previous ones.
-void do_previous_SN(int p, int centralgal, int halonr, double dt)
+void do_previous_SN(int p, int centralgal, double dt)
 {
   double reheated_mass = 0.0; 
   double reheated_energy = 0.0;
   double mass_stars_recycled = 0.0;
   double mass_metals_new = 0.0;
   double ejected_mass = 0.0;
+  double NSN = 0.0; // This is the number of supernova events during this time step.
 
   int i; 
   double m_low = -1.0, m_high = -1.0, t_low = -1.0, t_high = -1.0;
@@ -449,16 +497,13 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
       if(Gal[p].Stars[i] < 1e-10)
 	    continue;
 
-//      if((i+1) * TimeResolutionSN < 4) // The only stars that can go nova in less than 4 Myr are stars with mass >120Msun (which we don't care about).  
-//	continue;
-
       // First calculate the smallest star which would have expended its H and He and gone supernova. 
       // This defines the mass boundary below which a star will not go nova in the current SN step.
 
-      //t_low = (i * TimeResolutionSN) / 2.0 + time_until_next_SN; // (i * TimeResolutionSN) is the number of stars that were formed that many megayears ago.  time_until_next_SN allows us to ask how many of stars will explode in this SN step.
       t_low = (i * TimeResolutionSN) / 2.0 + time_until_next_SN; // (i * TimeResolutionSN) is the number of stars that were formed that many megayears ago.  time_until_next_SN allows us to ask how many of stars will explode in this SN step.
       if(t_low < 2)
-  	  t_low = 2; 
+  	    t_low = 2;
+ 
       m_low = calculate_coreburning(t_low);    
 
       if (m_low < 8.0) // We enforce that SN-II only occur in stars M > 8Msun. 
@@ -470,11 +515,10 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
       // Next we calculate the largest stellar mass which would have expended its H and He and gone supernova.
       // This defines the mass boundary beyond which a star would have gone nova BEFORE the current SN step. 
 
-      //t_high = (i * TimeResolutionSN) / 2.0; // (i * TimeResolutionSN) is the number of stars that were formed that many Megayears ago.  The / 2.0 factor arises from the fact that we assume stars were formed in a single co-eval burst in the middle of this period.
       t_high = (i * TimeResolutionSN) / 2.0; // (i * TimeResolutionSN) is the number of stars that were formed that many Megayears ago.  The / 2.0 factor arises from the fact that we assume stars were formed in a single co-eval burst in the middle of this period.
       if(t_high < 2)
         t_high = 2;
-//  	  t_high = 4;	
+
       m_high = calculate_coreburning(t_high);
 
 
@@ -490,6 +534,8 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
       reheated_energy += calculate_reheated_energy(Delta_Eta, Gal[p].Stars[i], Gal[centralgal].Vmax); // Update the energy injected from previous stars that have gone nova. 
       mass_stars_recycled += Delta_m * Gal[p].Stars[i]; // Update the amount of stellar mass recycled from previous stars that have gone nova.
       mass_metals_new += Delta_m / m_SNII * Yield * Gal[p].Stars[i]; // Update the amount of new metals that the supernova has enriched the ISM with.
+
+      NSN += Delta_Eta * Gal[p].Stars[i] * 1.0e10 / Hubble_h; // The number of supernova events will be simply given by the number fraction of stars that exploded times the mass of stars. 
  
       XASSERT(reheated_mass >= 0.0, "i = %d \t Reheated mass = %.4e \t t_low = %.4e Myr \t m_low = %.4e \t t_high = %.4e Myr \t m_high = %.4e\n", i, reheated_mass, t_low, m_low, t_high, m_high); // Just make sure we're doing this right.
 
@@ -512,6 +558,7 @@ void do_previous_SN(int p, int centralgal, int halonr, double dt)
   Gal[p].ejected_mass = ejected_mass;
   Gal[p].mass_stars_recycled = mass_stars_recycled;
   Gal[p].mass_metals_new = mass_metals_new;
+  Gal[p].NSN = NSN;
  
 }
 
@@ -564,8 +611,9 @@ void do_previous_recycling(int p, int centralgal, int step, double dt)
     double m_low, m_high;
     double Delta_Eta, Delta_m;
     double mass_stars_recycled;
-  
-    double mwmsa = Gal[p].StellarAge_Numerator / Gal[p].StellarAge_Denominator;
+    double NSN; 
+ 
+    double mwmsa = Gal[p].StellarAge_Numerator / Gal[p].StellarAge_Denominator; // The numerator is weighted by the age of the stars with the denominator simply being the number of stars.
     double time_into_snap = dt * step; 
 
 
@@ -575,15 +623,16 @@ void do_previous_recycling(int p, int centralgal, int step, double dt)
     m_low = calculate_coreburning(t_low);
     calculate_Delta_Eta(m_low, m_high, &Delta_Eta, &Delta_m); // Calculate the number and mass fraction of stars from snapshot i that go nova in the snapshot we are evolving FROM. 
     mass_stars_recycled = Delta_m * Gal[p].StellarAge_Denominator; // Update the amount of stellar mass recycled from previous stars that have gone nova.
+    NSN = Delta_Eta * Gal[p].StellarAge_Denominator * 1.0e10 / Hubble_h;
 
-    update_from_SN_feedback(p, centralgal, 0.0, 0.0, mass_stars_recycled, 0.0, dt);
+    update_from_SN_feedback(p, centralgal, 0.0, 0.0, mass_stars_recycled, 0.0, NSN, dt);
   } 
 }
 
 // In this function we answer the question, "How many stars formed in the current star formation time step will explode by the time we next calculate our supernova feedback?"
 // Note: This function only concerns itself with stars formed in the CURRENT STAR FORMATION time step, unlike "do_previous_SN" which focuses on calculated SN feedback from PREVIOUS STAR FORMATION time steps.
 
-void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass)
+void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass, double *NSN)
 {
 
   *reheated_mass = 0.0; 
@@ -627,6 +676,7 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
     *reheated_mass = Gal[p].ColdGas;
 
   *ejected_mass = calculate_ejected_mass(&(*reheated_mass), reheated_energy, Gal[centralgal].Vmax); // Calculate the amount of mass ejected from supernova events.    
+  *NSN = Delta_Eta * (*stars * 1.0e10 / Hubble_h);
 
   assert(*reheated_mass >= 0.0); // Just make sure we're doing this right.
   assert(reheated_energy >= 0.0);
@@ -636,7 +686,7 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
 
 }
 
-void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass)
+void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, double *mass_metals_new, double *mass_stars_recycled, double *ejected_mass, double *NSN)
 {
 
   double fac;
@@ -646,7 +696,8 @@ void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, doub
   *ejected_mass = 0.0;
 
   *reheated_mass = calculate_reheated_mass(Eta_SNII, *stars, Gal[centralgal].Vmax);
-   
+  *NSN = Eta_SNII * (*stars);
+
   if((*stars + *reheated_mass) > Gal[p].ColdGas && (*stars + *reheated_mass) > 0.0)
   {
     fac = Gal[p].ColdGas / (*stars + *reheated_mass);

@@ -143,13 +143,13 @@ def ReadHalos(DirName, First_File, Last_File):
 def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
 
     Galdesc_full = [ 
-         ('HaloNr', np.int32),
+         ('TreeNr', np.int32),
          ('mergeType', np.int32),
          ('GridHistory', (np.int32, MAXSNAPS)), # Array index 48 
          ('GridStellarMass', (np.float32, MAXSNAPS)),
          ('GridSFR', (np.float32, MAXSNAPS)),
          ('GridZ', (np.float32, MAXSNAPS)),
-         ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
+         ('GridFoFMass', (np.float32, MAXSNAPS)),
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
          ('LenHistory', (np.int32, MAXSNAPS)),
          ('GridOutflowRate', (np.float32, MAXSNAPS)),
@@ -161,10 +161,13 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('GridColdGas', (np.float32, MAXSNAPS)),
          ('LenMergerGal', (np.int32, MAXSNAPS)),
          ('GridBHMass', (np.float32, MAXSNAPS)),
-         ('GridReionMod', (np.float32, MAXSNAPS))
+         ('GridReionMod', (np.float32, MAXSNAPS)),
+         ('GridDustColdGas', (np.float32, MAXSNAPS)),
+         ('GridDustHotGas', (np.float32, MAXSNAPS)),
+         ('GridDustEjectedMass', (np.float32, MAXSNAPS)),
+         ('GridType', (np.int32, MAXSNAPS))
          ]
-    
-                            
+   
     print("Reading in SAGE files (Post STARBURST).")
 
     names = [Galdesc_full[i][0] for i in range(len(Galdesc_full))]
@@ -355,8 +358,6 @@ def load_data(fname):
         Array of the read data. Shape will be dependant upon how the file itself was saved.  
     """ 
 
-    print("")
-    print("Attempting to open {0}".format(fname))
     try:
         filename = "{0}.npz".format(fname)
         data = np.load(filename)
@@ -380,8 +381,7 @@ def load_data(fname):
 
             return load_data(fname) 
             
-    else:           
-        print("") 
+    else:               
         return data['arr_0']
 
 def read_SAGE_ini(fname):

@@ -53,7 +53,8 @@ void save_galaxies(int filenr, int tree)
     {
       sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
-      if(!(save_fd[n] = fopen(buf, "r+")))
+      save_fd[n] = fopen(buf, "wb");
+      if (save_fd == NULL)
       {
 				printf("can't open file `%s'\n", buf);
 				ABORT(0);
@@ -107,7 +108,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 {                                            \
   XASSERT(name != NULL, #name" has a NULL pointer.\n"); \
   nwritten = fwrite(name, sizeof(*(name)), length, fp); \
-  XASSERT(nwritten == length, "While writing "#name", we expected to write %d times but wrote %zu times instead\n", \
+  XASSERT(nwritten == length, "While writing "#name", we expected to write %d times but wrote %d times instead\n", \
           length, nwritten);                 \
 }
 
@@ -121,17 +122,17 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
     ((type*)buffer)[j] = name[j] * conversion;\
   }\
   nwritten = fwrite(buffer, sizeof(type), length, fp); \
-  XASSERT(nwritten == length, "While writing"#name", we expected to write %d times but wrote %zu times instead\n", \
+  XASSERT(nwritten == length, "While writing"#name", we expected to write %d times but wrote %d times instead\n", \
           length, nwritten);                 \
   free(buffer); \
 }
 
   float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
   int j;  
-  size_t nwritten;
+  int32_t nwritten;
   void *buffer;
  
-  nwritten = fwrite(&g->HaloNr, sizeof(g->HaloNr), 1, fp);
+  nwritten = fwrite(&g->TreeNr, sizeof(g->TreeNr), 1, fp);
 
   fwrite(&g->mergeType, sizeof(g->mergeType), 1, fp);
  
@@ -144,7 +145,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   WRITE_CONVERTED_GRID_PROPERTY(g->GridSFR, MAXSNAPS, SFR_conversion, typeof(*(g->GridSFR))); 
 
   WRITE_GRID_PROPERTY(g->GridZ, MAXSNAPS);
-  WRITE_GRID_PROPERTY(g->GridCentralGalaxyMass, MAXSNAPS);
+  WRITE_GRID_PROPERTY(g->GridFoFMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->EjectedFraction, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->LenHistory, MAXSNAPS);
 
@@ -161,6 +162,10 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   WRITE_GRID_PROPERTY(g->LenMergerGal, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridBHMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridReionMod, MAXSNAPS);
+  WRITE_GRID_PROPERTY(g->GridDustColdGas, MAXSNAPS);
+  WRITE_GRID_PROPERTY(g->GridDustHotGas, MAXSNAPS);
+  WRITE_GRID_PROPERTY(g->GridDustEjectedMass, MAXSNAPS);
+  WRITE_GRID_PROPERTY(g->GridType, MAXSNAPS);
 
 #undef WRITE_GRID_PROPERTY
 #undef WRITE_CONVERTED_GRID_PROPERTY
@@ -169,7 +174,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
 
 }
 
-void finalize_galaxy_file(int filenr)
+void finalize_galaxy_file(void)
 {
   int n;
 
@@ -216,7 +221,8 @@ void save_merged_galaxies(int filenr, int tree)
   { 
     sprintf(buf, "%s/%s_MergedGalaxies_%d", OutputDir, FileNameGalaxies, filenr);
 
-    if(!(save_fd2 = fopen(buf, "r+")))
+    save_fd2 = fopen(buf, "wb");
+    if (save_fd2 == NULL)
     {
       printf("can't open file `%s'\n", buf);		
       ABORT(0);
@@ -243,7 +249,7 @@ void save_merged_galaxies(int filenr, int tree)
 
 }
 
-void finalize_merged_galaxy_file(int filenr)
+void finalize_merged_galaxy_file(void)
 {
 
   // file must already be open.

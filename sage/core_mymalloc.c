@@ -9,110 +9,49 @@
 
 #define MAXBLOCKS 256
 
-static unsigned long Nblocks = 0;
-static void *Table[MAXBLOCKS];
-static size_t SizeTable[MAXBLOCKS];
-static size_t TotMem = 0, HighMarkMem = 0, OldPrintedHighMark = 0;
-
-
+static size_t TotMem = 0, HighMarkMem = 0;
 
 void *mymalloc(size_t n)
 {
-  if((n % 8) > 0)
-    n = (n / 8 + 1) * 8;
 
-  if(n == 0)
-    n = 8;
+  void *ptr;
 
-  if(Nblocks >= MAXBLOCKS)
+  ptr = malloc(n);
+  if (ptr == NULL)
   {
-    printf("No blocks left in mymalloc().\n");
-    ABORT(0);
+    fprintf(stderr, "Could not allocate %g MB of memory.\n", n / (1024.0 * 1024.0));
+    ABORT(EXIT_FAILURE);
   }
 
-  SizeTable[Nblocks] = n;
-  TotMem += n;
-  if(TotMem > HighMarkMem)
+  TotMem += n; 
+
+  if (TotMem > HighMarkMem)
   {
+    printf("New highmark memory: %g MB (was %g MB)\n", TotMem / (1024.0 * 1024.0), HighMarkMem / (1024.0 * 1024.0));
     HighMarkMem = TotMem;
-    if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
-    {
-      printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
-      OldPrintedHighMark = HighMarkMem;
-    }
-  }
+  } 
+  return ptr; 
+}
 
-  if(!(Table[Nblocks] = malloc(n)))
+void *myrealloc(void *p, size_t new_n, size_t old_n)
+{
+  
+  void *newp = realloc(p, new_n);
+  if(newp == NULL) 
   {
-    printf("Failed to allocate memory for %g MB\n",  n / (1024.0 * 1024.0) );
-    ABORT(0);
+    printf("Failed to re-allocate memory for %g MB (old memory size was %g MB).\n",  new_n / (1024.0 * 1024.0), old_n / (1024.0 * 1024.0));
+    ABORT(EXIT_FAILURE);
   }
 
-  Nblocks += 1;
+  TotMem += (new_n - old_n);
  
-  return Table[Nblocks - 1];
+  return newp; 
 }
 
-void *myrealloc(void *p, size_t n)
+void myfree(void *p, size_t n)
 {
-  if((n % 8) > 0)
-    n = (n / 8 + 1) * 8;
 
-  if(n == 0)
-    n = 8;
-
-   if(p != Table[Nblocks - 1])
-   {
-      printf("Wrong call of myrealloc() p = %p is not the last allocated block = %p!\n", p, Table[Nblocks-1]);
-      ABORT(0);
-  }
-  
-  void *newp = realloc(Table[Nblocks-1], n);
-  if(newp == NULL) {
-      printf("Failed to re-allocate memory for %g MB (old size = %g MB)\n",  n / (1024.0 * 1024.0), SizeTable[Nblocks-1]/ (1024.0 * 1024.0) );
-      ABORT(0);
-   }
-  Table[Nblocks-1] = newp;
-  
-  TotMem -= SizeTable[Nblocks-1];
-  TotMem += n;
-  SizeTable[Nblocks-1] = n;
-  
-  if(TotMem > HighMarkMem)
-  {
-    HighMarkMem = TotMem;
-    if(HighMarkMem > OldPrintedHighMark + 10 * 1024.0 * 1024.0)
-    {
-      printf("new high mark = %g MB\n", HighMarkMem / (1024.0 * 1024.0));
-      OldPrintedHighMark = HighMarkMem;
-    }
-  }
-
-  return Table[Nblocks - 1];
-}
-
-
-void myfree(void *p)
-{
-	assert(Nblocks > 0);
-
-  if(p != Table[Nblocks - 1])
-  {
-    printf("Wrong call of myfree() - not the last allocated block!\n");
-    ABORT(0);
-  }
-
+  TotMem -= n;
   free(p);
 
-  Nblocks -= 1;
-
-  TotMem -= SizeTable[Nblocks];
 }
-
-
-
-void print_allocated(void)
-{
-  printf("allocated = %g MB\n", TotMem / (1024.0 * 1024.0));
-}
-

@@ -102,7 +102,7 @@ void init_galaxy(int p, int halonr, int treenr)
     Gal[p].GridStellarMass[j] = 0.0;
     Gal[p].GridSFR[j] = 0.0;
     Gal[p].GridZ[j] = -1;
-    Gal[p].GridCentralGalaxyMass[j] = -1.0;
+    Gal[p].GridFoFMass[j] = -1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
     Gal[p].GridOutflowRate[j] = 0.0;
@@ -115,6 +115,10 @@ void init_galaxy(int p, int halonr, int treenr)
     Gal[p].LenMergerGal[j] = -1;
     Gal[p].GridBHMass[j] = 0.0;
     Gal[p].GridReionMod[j] = -1.0;
+    Gal[p].GridDustColdGas[j] = 0.0;
+    Gal[p].GridDustHotGas[j] = 0.0;
+    Gal[p].GridEjectedMass[j] = 0.0;
+    Gal[p].GridType[j] = 0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -134,7 +138,11 @@ void init_galaxy(int p, int halonr, int treenr)
   Gal[p].ejected_mass = 0.0;
   Gal[p].mass_stars_recycled = 0.0;
   Gal[p].mass_metals_new = 0.0; 
+  Gal[p].NSN = 0.0;
 
+  Gal[p].DustColdGas = 0.0;
+  Gal[p].DustHotGas = 0.0;
+  Gal[p].DustEjectedMass = 0.0;
 
 }
 
@@ -175,7 +183,24 @@ double get_metallicity(double gas, double metals)
 
 }
 
+double get_dust_fraction(double gas, double dust)
+{
 
+  double dust_fraction;
+  if (gas > 0.0 && dust > 0.0)
+  {
+    dust_fraction = dust / gas;
+    if (dust_fraction < 1.0)
+      return dust_fraction;
+    else
+      return 1.0;
+  }
+  else
+  {
+    return 0.0;
+  }
+  
+}
 
 double dmax(double x, double y)
 {
@@ -274,7 +299,7 @@ int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t *grid_1D
 // Tracks a number of properties that will be used by the gridding code.  
 // These properties are in the form of a length SNAPNUM array so only the values at the Galaxy redshift will be altered. 
 
-void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
+void update_grid_array(int p, int halonr, int steps_completed)
 {
     int32_t grid_position, step, status;
     int32_t SnapCurr = Halo[halonr].SnapNum;
@@ -288,7 +313,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     Gal[p].GridPos = grid_position; 
 
     // NOTE: We use the Snapshot number of the FOF-Halo (i.e. the main halo the galaxy belongs to) because the snapshot number of the galaxy has been shifted by -1. //
-    // This is self-consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. //
+    // This is consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. //
     Gal[p].GridHistory[SnapCurr] = grid_position; // Remember the grid history of the galaxy over the Snapshot range.
     Gal[p].GridStellarMass[SnapCurr] = Gal[p].StellarMass; // Stellar mass at this snapshot.
 
@@ -298,7 +323,7 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     }
 
     Gal[p].GridZ[SnapCurr] = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas); // Metallicity at this snapshot.
-    Gal[p].GridCentralGalaxyMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
+    Gal[p].GridFoFMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
  
     if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
     {
@@ -329,5 +354,11 @@ void update_grid_array(int p, int halonr, int steps_completed, int centralgal)
     Gal[p].DynamicalTime[SnapCurr] = Gal[p].Rvir / Gal[p].Vvir; 
     Gal[p].GridColdGas[SnapCurr] = Gal[p].ColdGas;
     Gal[p].GridBHMass[SnapCurr] = Gal[p].BlackHoleMass;
+
+    Gal[p].GridDustColdGas[SnapCurr] = Gal[p].DustColdGas;    
+    Gal[p].GridDustHotGas[SnapCurr] = Gal[p].DustHotGas;
+    Gal[p].GridDustEjectedMass[SnapCurr] = Gal[p].DustEjectedMass;
+    Gal[p].GridType[SnapCurr] = Gal[p].Type;
+
 }
 

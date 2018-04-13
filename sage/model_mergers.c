@@ -293,6 +293,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   double mass_metals_new = 0.0; 
   double mass_stars_recycled = 0.0; 
   double ejected_mass = 0.0;
+  double NSN = 0.0;
 
   // This is the major and minor merger starburst recipe of Somerville et al. 2001. 
   // The coefficients in eburst are taken from TJ Cox's PhD thesis and should be more accurate then previous. 
@@ -310,9 +311,9 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
   if(SupernovaRecipeOn == 1)
   {    
     if(IRA == 0)
-      do_contemporaneous_SN(centralgal, merger_centralgal, dt, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
+      do_contemporaneous_SN(centralgal, merger_centralgal, dt, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass, &NSN); 
     else if(IRA == 1)
-      do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
+      do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass, &NSN); 
 
     //do_IRA_SN(centralgal, merger_centralgal, &stars, &reheated_mass, &mass_metals_new, &mass_stars_recycled, &ejected_mass); 
    
@@ -331,7 +332,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
 
   //update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, false); 
  
-  update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, dt);
+  update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, NSN, dt);
 
   // check for disk instability
   if(DiskInstabilityOn && mode == 0)
@@ -383,7 +384,7 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].GridStellarMass[j] = Gal[p].GridStellarMass[j];
     MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
     MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
-    MergedGal[MergedNr].GridCentralGalaxyMass[j] = Gal[p].GridCentralGalaxyMass[j];
+    MergedGal[MergedNr].GridFoFMass[j] = Gal[p].GridFoFMass[j];
     MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
     MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
     MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j];
@@ -396,7 +397,10 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].LenMergerGal[j] = Gal[p].LenMergerGal[j];
     MergedGal[MergedNr].GridBHMass[j] = Gal[p].GridBHMass[j];
     MergedGal[MergedNr].GridReionMod[j] = Gal[p].GridReionMod[j];
-     
+    MergedGal[MergedNr].GridDustColdGas[j] = Gal[p].GridDustColdGas[j];
+    MergedGal[MergedNr].GridDustHotGas[j] = Gal[p].GridDustHotGas[j];
+    MergedGal[MergedNr].GridDustEjectedMass[j] = Gal[p].GridDustEjectedMass[j];
+    MergedGal[MergedNr].GridType[j] = Gal[p].GridType[j];
   }
 
   for (j = 0; j < SN_Array_Len; ++j)

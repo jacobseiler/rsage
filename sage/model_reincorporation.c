@@ -12,7 +12,7 @@
 
 void reincorporate_gas(int centralgal, double dt)
 {
-  double reincorporated, metallicity;
+  double reincorporated, metallicity, dust_fraction_ejected;
 
   // SN velocity is 630km/s, and the condition for reincorporation is that the 
   // halo has an escape velocity greater than this, i.e. V_SN/sqrt(2) = 445.48km/s
@@ -28,13 +28,21 @@ void reincorporate_gas(int centralgal, double dt)
       reincorporated = Gal[centralgal].EjectedMass;
 
     metallicity = get_metallicity(Gal[centralgal].EjectedMass, Gal[centralgal].MetalsEjectedMass);
+    dust_fraction_ejected = get_dust_fraction(Gal[centralgal].EjectedMass, Gal[centralgal].DustEjectedMass);
+    
+  
     Gal[centralgal].EjectedMass -= reincorporated;
     Gal[centralgal].MetalsEjectedMass -= metallicity * reincorporated;
+    Gal[centralgal].DustEjectedMass -= dust_fraction_ejected * reincorporated;
     Gal[centralgal].HotGas += reincorporated;
     Gal[centralgal].MetalsHotGas += metallicity * reincorporated;
+    Gal[centralgal].DustHotGas += dust_fraction_ejected * reincorporated;
 
-    //Gal[centralgal].deltaEjectedMass[Gal[centralgal].SnapNum] -= reincorporated;
-    //Gal[centralgal].deltaMetalsEjectedMass[Gal[centralgal].SnapNum] -= reincorporated * metallicity;
+    if (Gal[centralgal].DustEjectedMass < 0.0)
+    {
+      Gal[centralgal].DustEjectedMass = 0.0;
+    } 
+    assert(Gal[centralgal].DustEjectedMass == Gal[centralgal].DustEjectedMass);
   }
 
 }
