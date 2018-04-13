@@ -149,7 +149,7 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('GridStellarMass', (np.float32, MAXSNAPS)),
          ('GridSFR', (np.float32, MAXSNAPS)),
          ('GridZ', (np.float32, MAXSNAPS)),
-         ('GridCentralGalaxyMass', (np.float32, MAXSNAPS)),
+         ('GridFoFMass', (np.float32, MAXSNAPS)),
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
          ('LenHistory', (np.int32, MAXSNAPS)),
          ('GridOutflowRate', (np.float32, MAXSNAPS)),
@@ -164,10 +164,10 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('GridReionMod', (np.float32, MAXSNAPS)),
          ('GridDustColdGas', (np.float32, MAXSNAPS)),
          ('GridDustHotGas', (np.float32, MAXSNAPS)),
-         ('GridDustEjectedMass', (np.float32, MAXSNAPS))
+         ('GridDustEjectedMass', (np.float32, MAXSNAPS)),
+         ('GridType', (np.int32, MAXSNAPS))
          ]
-    
-                            
+   
     print("Reading in SAGE files (Post STARBURST).")
 
     names = [Galdesc_full[i][0] for i in range(len(Galdesc_full))]

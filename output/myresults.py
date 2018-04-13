@@ -1619,7 +1619,7 @@ def plot_singleSFR(galaxies_filepath_array, merged_galaxies_filepath_array, numb
  
        
         for snapshot_idx in range(0, number_snapshots[model_number]): 
-            w = np.where((G.GridHistory[:, snapshot_idx] != -1) & (G.GridStellarMass[:, snapshot_idx] > 0.0) & (G.GridStellarMass[:, snapshot_idx] < 1e5) & (G.GridCentralGalaxyMass[:, snapshot_idx] >= m_low_SAGE) & (G.GridCentralGalaxyMass[:, snapshot_idx] <=  m_high_SAGE))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
+            w = np.where((G.GridHistory[:, snapshot_idx] != -1) & (G.GridStellarMass[:, snapshot_idx] > 0.0) & (G.GridStellarMass[:, snapshot_idx] < 1e5) & (G.GridFoFMass[:, snapshot_idx] >= m_low_SAGE) & (G.GridFoFMass[:, snapshot_idx] <=  m_high_SAGE))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate.
             
             SFR_ensemble[model_number].append(np.mean(G.GridSFR[w,snapshot_idx]))
             ejected_ensemble[model_number].append(np.mean(G.GridOutflowRate[w, snapshot_idx]))
@@ -3053,8 +3053,17 @@ if __name__ == '__main__':
     galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_z5.782'
     merged_galaxies_model3 = '/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies/base_MergedGalaxies'
 
-    galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/dust/galaxies/dust_z5.782'
-    merged_galaxies_model4 = '/lustre/projects/p004_swin/jseiler/kali/dust/galaxies/dust_MergedGalaxies'
+    galaxies_model4='/lustre/projects/p004_swin/jseiler/kali/dust/galaxies/dust_z5.782'
+    merged_galaxies_model4='/lustre/projects/p004_swin/jseiler/kali/dust/galaxies/dust_MergedGalaxies'
+
+    galaxies_model5 ='/lustre/projects/p004_swin/jseiler/kali/lowquasar/galaxies/lowquasar_z5.782'
+    merged_galaxies_model5 ='/lustre/projects/p004_swin/jseiler/kali/lowquasar/galaxies/lowquasar_MergedGalaxies'
+
+    galaxies_model6='/lustre/projects/p004_swin/jseiler/kali/IRA/galaxies/IRA_z5.782'
+    merged_galaxies_model6='/lustre/projects/p004_swin/jseiler/kali/IRA/galaxies/IRA_MergedGalaxies'
+
+    galaxies_model7='/lustre/projects/p004_swin/jseiler/mini_millennium/dust/galaxies/dust_z0.000'
+    merged_galaxies_model7='/lustre/projects/p004_swin/jseiler/mini_millennium/dust/galaxies/dust_MergedGalaxies'
         
     galaxies_filepath_array = [galaxies_model4]
     merged_galaxies_filepath_array = [merged_galaxies_model4]
@@ -3102,9 +3111,8 @@ if __name__ == '__main__':
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
     #SnapList = [np.arange(20,99), np.arange(20, 99), np.arange(20, 99)]    
-    #SnapList = [[30, 50, 64, 76, 93]]
+    SnapList = [[30, 50, 64, 76, 93]]
     #SnapList = [[93, 76, 64]]
-    SnapList = [[93]]
     #PlotSnapList = [[93, 76, 64]]
     PlotSnapList = SnapList 
 
@@ -3405,8 +3413,8 @@ if __name__ == '__main__':
                 for snapshot_idx in range(0, len(SnapList[current_model_number])): # Now let's calculate stats for each required redshift.                
                     current_snap = SnapList[current_model_number][snapshot_idx] # Get rid of some clutter.
 
-                    w_gal = np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut) & (G.GridSFR[:, current_snap] >= 0.0) & (G.GridCentralGalaxyMass[:, current_snap] >= 0.0))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate. Ensure the galaxies also resides in a halo that is sufficiently resolved.
-                    w_merged_gal = np.where((G_Merged.GridHistory[:, current_snap] != -1) & (G_Merged.GridStellarMass[:, current_snap] > 0.0) & (G_Merged.LenHistory[:, current_snap] > current_halo_cut) & (G_Merged.GridSFR[:, current_snap] >= 0.0) & (G_Merged.GridCentralGalaxyMass[:, current_snap] >= 0.0) & (G_Merged.LenMergerGal[:,current_snap] > current_halo_cut))[0] 
+                    w_gal = np.where((G.GridHistory[:, current_snap] != -1) & (G.GridStellarMass[:, current_snap] > 0.0) & (G.LenHistory[:, current_snap] > current_halo_cut) & (G.GridSFR[:, current_snap] >= 0.0) & (G.GridFoFMass[:, current_snap] >= 0.0))[0] # Only include those galaxies that existed at the current snapshot, had positive (but not infinite) stellar/Halo mass and Star formation rate. Ensure the galaxies also resides in a halo that is sufficiently resolved.
+                    w_merged_gal = np.where((G_Merged.GridHistory[:, current_snap] != -1) & (G_Merged.GridStellarMass[:, current_snap] > 0.0) & (G_Merged.LenHistory[:, current_snap] > current_halo_cut) & (G_Merged.GridSFR[:, current_snap] >= 0.0) & (G_Merged.GridFoFMass[:, current_snap] >= 0.0) & (G_Merged.LenMergerGal[:,current_snap] > current_halo_cut))[0] 
               
                     print("There were {0} galaxies for snapshot {1} (Redshift {2:.3f}) model {3}.".format(len(w_gal), current_snap, AllVars.SnapZ[current_snap], current_model_number))
                    
@@ -3418,13 +3426,13 @@ if __name__ == '__main__':
                     halo_part_count = G.LenHistory[w_gal, current_snap]
                     metallicity_gal = G.GridZ[w_gal, current_snap]  
                     metallicity_tremonti_gal = np.log10(G.GridZ[w_gal, current_snap] / 0.02) + 9.0 # Using the Tremonti relationship for metallicity.
-                    mass_central = np.log10(G.GridCentralGalaxyMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
+                    mass_central = np.log10(G.GridFoFMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
                     ejected_fraction = G.EjectedFraction[w_gal, current_snap]
 
-                    w_dust = np.where((G.GridDustColdGas[w_gal, current_snap]
+                    w_dust = np.where(((G.GridDustColdGas[w_gal, current_snap]
                                       +G.GridDustHotGas[w_gal, current_snap]
-                                      +G.GridDustEjectedMass[w_gal, current_snap]) 
-                                      > 0.0)[0]
+                                      +G.GridDustEjectedMass[w_gal, current_snap]) > 0.0) 
+                                      & (G.GridType[w_gal, current_snap] == 0))[0]
         
                     total_dust_gal = np.log10((G.GridDustColdGas[w_gal[w_dust], current_snap] 
                                               +G.GridDustHotGas[w_gal[w_dust], current_snap]
@@ -3433,22 +3441,22 @@ if __name__ == '__main__':
                     mass_gal_dust = np.log10(G.GridStellarMass[w_gal[w_dust], current_snap] 
                                          * 1.0e10 / AllVars.Hubble_h)
 
-                    mass_centralgal_dust = np.log10(G.GridCentralGalaxyMass[w_gal[w_dust], current_snap] 
+                    mass_centralgal_dust = np.log10(G.GridFoFMass[w_gal[w_dust], current_snap] 
                                          * 1.0e10 / AllVars.Hubble_h)
 
-                    fname ="/lustre/projects/p004_swin/jseiler/kali/npz_files/stellarmass_dust_snap{0:03d}_{1}" \
+                    fname="/lustre/projects/p004_swin/jseiler/kali/dust/npz_files/stellarmass_dust_snap{0:03d}_{1}" \
                             .format(current_snap, fnr)
-                    np.savez(fname, mass_gal_dust)
+                    #np.savez(fname, mass_gal_dust)
 
 
-                    fname="/lustre/projects/p004_swin/jseiler/kali/npz_files/halomass_dust_snap{0:03d}_{1}" \
+                    fname="/lustre/projects/p004_swin/jseiler/kali/dust/npz_files/halomass_dust_snap{0:03d}_{1}" \
                             .format(current_snap, fnr)
                     
-                    np.savez(fname, mass_centralgal_dust)
+                    #np.savez(fname, mass_centralgal_dust)
 
-                    fname="/lustre/projects/p004_swin/jseiler/kali/npz_files/dustmass_dust_snap{0:03d}_{1}" \
+                    fname="/lustre/projects/p004_swin/jseiler/kali/dust/npz_files/dustmass_dust_snap{0:03d}_{1}" \
                             .format(current_snap, fnr)
-                    np.savez(fname, total_dust_gal)
+                    #np.savez(fname, total_dust_gal)
 
                    
                     w_test = np.where(mass_centralgal_dust > 11.5)[0]
@@ -3466,7 +3474,7 @@ if __name__ == '__main__':
                     
                     merge_flag = G_Merged.mergeType[w_merged_gal]
                     merge_flag[merge_flag >= 1] = 1.0 
-                    merge_mass_central = np.log10(G_Merged.GridCentralGalaxyMass[w_merged_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
+                    merge_mass_central = np.log10(G_Merged.GridFoFMass[w_merged_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
                     merge_mass_galaxy = np.log10(G_Merged.GridStellarMass[w_merged_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
                                         
                     L_UV = SFR_gal + 39.927 # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
@@ -3634,10 +3642,10 @@ if __name__ == '__main__':
                   #"reionmod_selfcon")
     #plot_dust_scatter(SnapList, mass_gal_dust, mass_centralgal_dust, total_dust_gal, 
     #                  "dust_scatter") 
-    #plot_dust(PlotSnapList, SnapList, simulation_norm, mean_dust_galaxy_array,
-    #          std_dust_galaxy_array, N_galaxy_array, mean_dust_halo_array,
-    #          std_dust_halo_array, N_halo_array, False, model_tags,
-    #          "dustmass_total")
+    plot_dust(PlotSnapList, SnapList, simulation_norm, mean_dust_galaxy_array,
+              std_dust_galaxy_array, N_galaxy_array, mean_dust_halo_array,
+              std_dust_halo_array, N_halo_array, False, model_tags,
+              "dustmass_total")
     #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, std_BHmass_galaxy_array, N_galaxy_array, model_tags, "StellarMass_BHMass")
     #plot_ejectedfraction(SnapList, mean_ejected_halo_array, std_ejected_halo_array, N_halo_array, model_tags, "tiamat_newDelayedComp_ejectedfract_highz") ## PARALELL COMPATIBLE # Ejected fraction as a function of Halo Mass 
     #plot_fesc(SnapList, mean_fesc_z_array, std_fesc_z_array, N_z, model_tags, "Quasarfesc_z_DynamicalTimes") ## PARALELL COMPATIBLE 

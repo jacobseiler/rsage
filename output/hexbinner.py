@@ -47,24 +47,29 @@ def plot_hex(x, y, xlabel, ylabel, output_tag):
 
 if __name__ == '__main__':
 
-    nfile = 63
-    filebase ="/lustre/projects/p004_swin/jseiler/kali/npz_files/stellarmass_dust_"
-    stellarmass = my_load_data(filebase, 93, nfile)
+    nfile = 64
+    directory = "kali/dust"
+    snapshot = 98
+    output_suff = "centrals_snap{0:03d}".format(snapshot)
+
+    filebase="/lustre/projects/p004_swin/jseiler/{0}/npz_files/stellarmass_dust_".format(directory)
+    stellarmass = my_load_data(filebase, snapshot, nfile)
 
     print("Successfully loaded array with length {0}".format(len(stellarmass)))
 
-    filebase ="/lustre/projects/p004_swin/jseiler/kali/npz_files/halomass_dust_"
-    halomass = my_load_data(filebase, 93, nfile)
+    filebase="/lustre/projects/p004_swin/jseiler/{0}/npz_files/halomass_dust_".format(directory)
+    halomass = my_load_data(filebase, snapshot, nfile)
 
  
-    filebase ="/lustre/projects/p004_swin/jseiler/kali/npz_files/dustmass_dust_"
-    dustmass = my_load_data(filebase, 93, nfile)
+    filebase="/lustre/projects/p004_swin/jseiler/{0}/npz_files/dustmass_dust_".format(directory)
+    dustmass = my_load_data(filebase, snapshot, nfile)
 
     xlabel = r'$\mathbf{log_{10} \: M_{vir} \:[M_{\odot}]}$'
     ylabel = r'$\mathbf{log_{10} \: M_{Dust}}$'
-    plot_hex(halomass, dustmass, xlabel, ylabel, "Halo_Dust") 
+    plot_hex(halomass, dustmass, xlabel, ylabel, "Halo_Dust_"+output_suff) 
 
     xlabel = r'$\mathbf{log_{10} \: M_{vir} \:[M_{\odot}]}$'
     ylabel = r'$\mathbf{log_{10} \: M_{*}}$'
-    plot_hex(halomass, stellarmass, xlabel, ylabel, "Halo_StellarMass") 
+    plot_hex(halomass, stellarmass, xlabel, ylabel,
+             "Halo_StellarMass_"+output_suff) 
 

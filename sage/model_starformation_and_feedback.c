@@ -31,7 +31,7 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   Gal[p].ColdGas += mass_stars_recycled; 
 
   Gal[p].DustColdGas += yd * NSN; // Dust is created by supernova (something) on cold gas. 
-  //Gal[p].ColdGas -= yd * NSN; // Hence the created dust is subtracted from the cold gas reservoir.
+  Gal[p].ColdGas -= yd * NSN; // Hence the created dust is subtracted from the cold gas reservoir.
 
   dust_added += yd * NSN;
 

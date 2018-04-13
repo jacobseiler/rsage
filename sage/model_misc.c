@@ -102,7 +102,7 @@ void init_galaxy(int p, int halonr, int treenr)
     Gal[p].GridStellarMass[j] = 0.0;
     Gal[p].GridSFR[j] = 0.0;
     Gal[p].GridZ[j] = -1;
-    Gal[p].GridCentralGalaxyMass[j] = -1.0;
+    Gal[p].GridFoFMass[j] = -1.0;
     Gal[p].EjectedFraction[j] = -1.0;
     Gal[p].LenHistory[j] = -1;
     Gal[p].GridOutflowRate[j] = 0.0;
@@ -118,6 +118,7 @@ void init_galaxy(int p, int halonr, int treenr)
     Gal[p].GridDustColdGas[j] = 0.0;
     Gal[p].GridDustHotGas[j] = 0.0;
     Gal[p].GridEjectedMass[j] = 0.0;
+    Gal[p].GridType[j] = 0;
   }
 
   for (j = 0; j < SN_Array_Len; ++j)
@@ -312,7 +313,7 @@ void update_grid_array(int p, int halonr, int steps_completed)
     Gal[p].GridPos = grid_position; 
 
     // NOTE: We use the Snapshot number of the FOF-Halo (i.e. the main halo the galaxy belongs to) because the snapshot number of the galaxy has been shifted by -1. //
-    // This is self-consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. //
+    // This is consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. //
     Gal[p].GridHistory[SnapCurr] = grid_position; // Remember the grid history of the galaxy over the Snapshot range.
     Gal[p].GridStellarMass[SnapCurr] = Gal[p].StellarMass; // Stellar mass at this snapshot.
 
@@ -322,7 +323,7 @@ void update_grid_array(int p, int halonr, int steps_completed)
     }
 
     Gal[p].GridZ[SnapCurr] = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas); // Metallicity at this snapshot.
-    Gal[p].GridCentralGalaxyMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
+    Gal[p].GridFoFMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
  
     if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
     {
@@ -354,17 +355,10 @@ void update_grid_array(int p, int halonr, int steps_completed)
     Gal[p].GridColdGas[SnapCurr] = Gal[p].ColdGas;
     Gal[p].GridBHMass[SnapCurr] = Gal[p].BlackHoleMass;
 
-    //assert(Gal[p].DustColdGas == Gal[p].DustColdGas);
-    //assert(Gal[p].DustHotGas == Gal[p].DustHotGas);
-    //XASSERT(Gal[p].DustEjectedMass == Gal[p].DustEjectedMass, "Gal %d\tEjectedMass %.4e\tDustEjectedMass %.4e\n", p, Gal[p].EjectedMass, Gal[p].DustEjectedMass);
-
     Gal[p].GridDustColdGas[SnapCurr] = Gal[p].DustColdGas;    
     Gal[p].GridDustHotGas[SnapCurr] = Gal[p].DustHotGas;
     Gal[p].GridDustEjectedMass[SnapCurr] = Gal[p].DustEjectedMass;
-
-  
-    //printf("Gal %d\tSnap %d\tColdDust %.4e\tHotDust %.4e\tEjectedDust %.4e\n", p, SnapCurr, Gal[p].DustColdGas, Gal[p].DustHotGas, Gal[p].DustEjectedMass);
-
+    Gal[p].GridType[SnapCurr] = Gal[p].Type;
 
 }
 

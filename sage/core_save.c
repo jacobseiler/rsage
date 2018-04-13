@@ -145,7 +145,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   WRITE_CONVERTED_GRID_PROPERTY(g->GridSFR, MAXSNAPS, SFR_conversion, typeof(*(g->GridSFR))); 
 
   WRITE_GRID_PROPERTY(g->GridZ, MAXSNAPS);
-  WRITE_GRID_PROPERTY(g->GridCentralGalaxyMass, MAXSNAPS);
+  WRITE_GRID_PROPERTY(g->GridFoFMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->EjectedFraction, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->LenHistory, MAXSNAPS);
 
@@ -165,6 +165,7 @@ void write_gridarray(struct GALAXY *g, FILE *fp)
   WRITE_GRID_PROPERTY(g->GridDustColdGas, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridDustHotGas, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridDustEjectedMass, MAXSNAPS);
+  WRITE_GRID_PROPERTY(g->GridType, MAXSNAPS);
 
 #undef WRITE_GRID_PROPERTY
 #undef WRITE_CONVERTED_GRID_PROPERTY

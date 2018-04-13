@@ -212,7 +212,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->GridStellarMass);
   free(g->GridSFR);
   free(g->GridZ);
-  free(g->GridCentralGalaxyMass);
+  free(g->GridFoFMass);
   free(g->EjectedFraction);
   free(g->LenHistory);
   free(g->Stars);
@@ -229,6 +229,7 @@ void free_grid_arrays(struct GALAXY *g)
   free(g->GridDustColdGas);
   free(g->GridDustHotGas);
   free(g->GridDustEjectedMass);
+  free(g->GridType);
 
   g->IsMalloced = 0;
 }
@@ -250,7 +251,7 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
   ALLOCATE_GRID_MEMORY(g->GridStellarMass, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridSFR, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridZ, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridCentralGalaxyMass, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridFoFMass, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->EjectedFraction, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->LenHistory, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->Stars, SN_Array_Len);
@@ -267,6 +268,7 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
   ALLOCATE_GRID_MEMORY(g->GridDustColdGas, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridDustHotGas, MAXSNAPS);
   ALLOCATE_GRID_MEMORY(g->GridDustEjectedMass, MAXSNAPS);
+  ALLOCATE_GRID_MEMORY(g->GridType, MAXSNAPS);
 
   g->IsMalloced = 1; // This way we can check that we're not freeing memory that hasn't been allocated.
 

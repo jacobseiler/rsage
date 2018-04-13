@@ -157,6 +157,10 @@ struct GALAXY_GRID
   int *LenMergerGal;
   float *BHMass;
   float *ReionMod;
+  float *ColdDustMass;
+  float *HotDustMass;
+  float *EjectedDustMass;
+  int32_t *Type;
 
 }*GalGrid;
 
