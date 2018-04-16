@@ -146,7 +146,7 @@ int32_t init_grid()
   char buf[MAXLEN];
 
   printf("Reading in the data for the reionization feedback using cifog.\n");
-  Grid = mymalloc(sizeof(struct GRID_STRUCT));
+  Grid = mycalloc(1, sizeof(struct GRID_STRUCT));
   if (Grid == NULL)
   {
     fprintf(stderr, "Cannot allocate memory for the high level grid struct.\n");
@@ -185,13 +185,7 @@ int32_t init_grid()
 
   for (i = 0; i < Grid->NumGrids; ++i)
   {
-    Grid->PhotoGrid[i].PhotoRate = malloc(sizeof(*(Grid->PhotoGrid[i].PhotoRate)) * Grid->NumCellsTotal); // Then allocate memory for each photoionization grid.
-    if (Grid->PhotoGrid[i].PhotoRate == NULL)
-    {
-      fprintf(stderr, "Cannot allocate memory for the photoionization grid.\n");
-      return EXIT_FAILURE;
-    }
-
+    Grid->PhotoGrid[i].PhotoRate = mycalloc(sizeof(*(Grid->PhotoGrid[i].PhotoRate)), Grid->NumCellsTotal); // Then allocate memory for each photoionization grid.
  
     // For some of the early snapshots we don't have photoionization grids (because ionization hasn't started yet at z=100).  
     // Let's put a flag to know whether we have any valid data for this snapshot so we don't have to create empty grids.
@@ -279,12 +273,7 @@ int32_t init_reion_lists(int32_t filenr)
       continue;
     }
    
-    ReionList->ReionMod_List[SnapNum].HaloID = malloc(sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID)) * ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
-    if (ReionList->ReionMod_List[SnapNum].HaloID == NULL)
-    {
-      fprintf(stderr, "Cannot allocate memory for the HaloIDs for the Reionization Modifier lists for snapshot %d\n", SnapNum);
-      return EXIT_FAILURE;
-    }
+    ReionList->ReionMod_List[SnapNum].HaloID = mycalloc(ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID))); 
 
     fread(ReionList->ReionMod_List[SnapNum].HaloID, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
 
@@ -298,12 +287,7 @@ int32_t init_reion_lists(int32_t filenr)
     }
 #endif
 
-    ReionList->ReionMod_List[SnapNum].ReionMod = malloc(sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)) * ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
-    if (ReionList->ReionMod_List[SnapNum].ReionMod == NULL)
-    {
-      fprintf(stderr, "Cannot allocate memory for the ReionMods for the Reionization Modifier lists for snapshot %d\n", SnapNum);
-      return EXIT_FAILURE;
-    }
+    ReionList->ReionMod_List[SnapNum].ReionMod = mycalloc(ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod))); 
 
     fread(ReionList->ReionMod_List[SnapNum].ReionMod, sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
   

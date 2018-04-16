@@ -35,16 +35,16 @@ void load_tree_table(int filenr, int32_t treestyle)
     ABORT(EXIT_FAILURE);
   }
 
-  myfread(&Ntrees, 1, sizeof(int), load_fd);
-  myfread(&totNHalos, 1, sizeof(int), load_fd);
+  myfread(&Ntrees, 1, sizeof(Ntrees), load_fd);
+  myfread(&totNHalos, 1, sizeof(totNHalos), load_fd);
 
-  TreeNHalos = mymalloc(sizeof(int) * Ntrees);
-  TreeFirstHalo = mymalloc(sizeof(int) * Ntrees);
+  TreeNHalos = mycalloc(Ntrees, sizeof(*(TreeNHalos)));
+  TreeFirstHalo = mycalloc(Ntrees, sizeof(*(TreeFirstHalo)));
 
   for(n = 0; n < NOUT; n++)
-    TreeNgals[n] = mymalloc(sizeof(int) * Ntrees);
-  TreeNMergedgals = mymalloc(sizeof(int)* Ntrees);
-  myfread(TreeNHalos, Ntrees, sizeof(int), load_fd); 
+    TreeNgals[n] = mycalloc(Ntrees, sizeof(*(TreeNgals[n]))); 
+  TreeNMergedgals = mycalloc(Ntrees, sizeof(*(TreeNMergedgals)));
+  myfread(TreeNHalos, Ntrees, sizeof(*(TreeNHalos)), load_fd); 
 
   if(Ntrees)
     TreeFirstHalo[0] = 0;
@@ -99,8 +99,8 @@ void load_tree(int nr)
   // must have an FD
   assert( load_fd );
 
-  Halo = mymalloc(sizeof(struct halo_data) * TreeNHalos[nr]);  
-  myfread(Halo, TreeNHalos[nr], sizeof(struct halo_data), load_fd);
+  Halo = mycalloc(TreeNHalos[nr], sizeof(*(Halo))); 
+  myfread(Halo, TreeNHalos[nr], sizeof(*(Halo)), load_fd);
 
   MaxGals = (int)(MAXGALFAC * TreeNHalos[nr]);
 
@@ -110,11 +110,11 @@ void load_tree(int nr)
   MaxMergedGals = MaxGals;
   FoF_MaxGals = 10000; 
 
-  gal_to_free = mymalloc(sizeof(int) * MaxMergedGals);
-  HaloAux = mymalloc(sizeof(struct halo_aux_data) * TreeNHalos[nr]);
-  HaloGal = mymalloc(sizeof(struct GALAXY) * MaxGals);
-  Gal = mymalloc(sizeof(struct GALAXY) * FoF_MaxGals);
-  MergedGal = mymalloc(sizeof(struct GALAXY) * MaxMergedGals);   
+  gal_to_free = mycalloc(MaxMergedGals, sizeof(*(gal_to_free))); 
+  HaloAux = mycalloc(TreeNHalos[nr], sizeof(*(HaloAux))); 
+  HaloGal = mycalloc(MaxGals, sizeof(*(HaloGal))); 
+  Gal = mycalloc(FoF_MaxGals, sizeof(*(Gal))); 
+  MergedGal = mycalloc(MaxMergedGals, sizeof(*(MergedGal))); 
 
   double Min_Halo = 1e5;
   double Max_Halo = 0.0; 
@@ -208,28 +208,28 @@ void free_galaxies_and_tree(int32_t treenr)
 
 void free_grid_arrays(struct GALAXY *g)
 {
-  free(g->GridHistory);
-  free(g->GridStellarMass);
-  free(g->GridSFR);
-  free(g->GridZ);
-  free(g->GridFoFMass);
-  free(g->EjectedFraction);
-  free(g->LenHistory);
-  free(g->Stars);
-  free(g->GridOutflowRate);
-  free(g->GridInfallRate);
-  free(g->GridEjectedMass);
-  free(g->QuasarActivity);
-  free(g->DynamicalTime);
-  free(g->QuasarSubstep);
-  free(g->GridColdGas);
-  free(g->LenMergerGal);
-  free(g->GridBHMass);
-  free(g->GridReionMod);
-  free(g->GridDustColdGas);
-  free(g->GridDustHotGas);
-  free(g->GridDustEjectedMass);
-  free(g->GridType);
+  myfree(g->GridHistory,         sizeof(*(g->GridHistory)) * MAXSNAPS);
+  myfree(g->GridStellarMass,     sizeof(*(g->GridStellarMass)) * MAXSNAPS);
+  myfree(g->GridSFR,             sizeof(*(g->GridSFR)) * MAXSNAPS);
+  myfree(g->GridZ,               sizeof(*(g->GridZ)) * MAXSNAPS);
+  myfree(g->GridFoFMass,         sizeof(*(g->GridFoFMass)) * MAXSNAPS);
+  myfree(g->EjectedFraction,     sizeof(*(g->EjectedFraction)) * MAXSNAPS);
+  myfree(g->LenHistory,          sizeof(*(g->LenHistory)) * MAXSNAPS);
+  myfree(g->Stars,               sizeof(*(g->Stars)) * SN_Array_Len);
+  myfree(g->GridOutflowRate,     sizeof(*(g->GridOutflowRate)) * MAXSNAPS);
+  myfree(g->GridInfallRate,      sizeof(*(g->GridInfallRate)) * MAXSNAPS);
+  myfree(g->GridEjectedMass,     sizeof(*(g->GridEjectedMass)) * MAXSNAPS);
+  myfree(g->QuasarActivity,      sizeof(*(g->QuasarActivity)) * MAXSNAPS);
+  myfree(g->DynamicalTime,       sizeof(*(g->DynamicalTime)) * MAXSNAPS);
+  myfree(g->QuasarSubstep,       sizeof(*(g->QuasarSubstep)) * MAXSNAPS);
+  myfree(g->GridColdGas,         sizeof(*(g->GridColdGas)) * MAXSNAPS);
+  myfree(g->LenMergerGal,        sizeof(*(g->LenMergerGal)) * MAXSNAPS);
+  myfree(g->GridBHMass,          sizeof(*(g->GridBHMass)) * MAXSNAPS);
+  myfree(g->GridReionMod,        sizeof(*(g->GridReionMod)) * MAXSNAPS);
+  myfree(g->GridDustColdGas,     sizeof(*(g->GridDustColdGas)) * MAXSNAPS);
+  myfree(g->GridDustHotGas,      sizeof(*(g->GridDustHotGas)) * MAXSNAPS);
+  myfree(g->GridDustEjectedMass, sizeof(*(g->GridDustEjectedMass)) * MAXSNAPS);
+  myfree(g->GridType,            sizeof(*(g->GridType)) * MAXSNAPS);
 
   g->IsMalloced = 0;
 }
@@ -237,9 +237,9 @@ void free_grid_arrays(struct GALAXY *g)
 int32_t malloc_grid_arrays(struct GALAXY *g)
 {
 
-#define ALLOCATE_GRID_MEMORY(name, length) \
+#define ALLOCATE_ARRAY_MEMORY(name, length) \
 {                                          \
-  name = calloc(length, sizeof(*(name)));  \
+  name = mycalloc(length, sizeof(*(name)));  \
   if (name == NULL)                        \
   {                                        \
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate"#name".\n", sizeof(*(name)* length)); \
@@ -247,28 +247,28 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
   }                                        \
 }
 
-  ALLOCATE_GRID_MEMORY(g->GridHistory, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridStellarMass, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridSFR, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridZ, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridFoFMass, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->EjectedFraction, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->LenHistory, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->Stars, SN_Array_Len);
-  ALLOCATE_GRID_MEMORY(g->GridOutflowRate, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridInfallRate, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridEjectedMass, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->QuasarActivity, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->DynamicalTime, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->QuasarSubstep, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridColdGas, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->LenMergerGal, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridBHMass, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridReionMod, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridDustColdGas, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridDustHotGas, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridDustEjectedMass, MAXSNAPS);
-  ALLOCATE_GRID_MEMORY(g->GridType, MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridHistory,         MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridStellarMass,     MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridSFR,             MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridZ,               MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridFoFMass,         MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->EjectedFraction,     MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->LenHistory,          MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->Stars,               SN_Array_Len);
+  ALLOCATE_ARRAY_MEMORY(g->GridOutflowRate,     MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridInfallRate,      MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridEjectedMass,     MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->QuasarActivity,      MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->DynamicalTime,       MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->QuasarSubstep,       MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridColdGas,         MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->LenMergerGal,        MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridBHMass,          MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridReionMod,        MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridDustColdGas,     MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridDustHotGas,      MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridDustEjectedMass, MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridType,            MAXSNAPS);
 
   g->IsMalloced = 1; // This way we can check that we're not freeing memory that hasn't been allocated.
 
@@ -276,7 +276,7 @@ int32_t malloc_grid_arrays(struct GALAXY *g)
 
 }
 
-#undef ALLOCATE_GRID_MEMORY
+#undef ALLOCATE_ARRAY_MEMORY
 
 int32_t free_grid()
 {
@@ -285,7 +285,7 @@ int32_t free_grid()
 
   for (i = 0; i < Grid->NumGrids; ++i)
   {
-    free(Grid->PhotoGrid[i].PhotoRate);
+    myfree(Grid->PhotoGrid[i].PhotoRate, sizeof(*(Grid->PhotoGrid[i].PhotoRate)) * Grid->NumCellsTotal);
   }
 
   free(Grid->PhotoGrid);
@@ -319,8 +319,8 @@ int32_t free_reion_lists(int32_t filenr)
       return EXIT_FAILURE;
     }
 
-    free(ReionList->ReionMod_List[SnapNum].ReionMod);
-    free(ReionList->ReionMod_List[SnapNum].HaloID);
+    myfree(ReionList->ReionMod_List[SnapNum].ReionMod, sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)) * ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
+    myfree(ReionList->ReionMod_List[SnapNum].HaloID, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID)) * ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
   }
 
   free(ReionList->ReionMod_List);

@@ -2,12 +2,12 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies       base 
-OutputDir              /lustre/projects/p004_swin/jseiler/kali/base_reionization_on/galaxies
+FileNameGalaxies       tmp 
+OutputDir              /lustre/projects/p004_swin/jseiler/kali/tmp/galaxies
 GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion
 
 FirstFile         0 
-LastFile          63 
+LastFile          0 
 
 %------------------------------------------
 %----- Snapshot output list ---------------

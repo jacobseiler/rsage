@@ -223,7 +223,8 @@ int main(int argc, char **argv)
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree(tree);
-      //break;
+      if (tree > 1)
+        break;
     }
 
     finalize_galaxy_file();  
@@ -251,11 +252,14 @@ int main(int argc, char **argv)
   {
     status = free_grid();
   } 
- 
+
+  // Copy the parameter file to the output directory. 
   char copy_command[MAXLEN];
-  snprintf(copy_command, MAXLEN-1, "cp %s %s", argv[1], OutputDir); 
+  snprintf(copy_command, MAXLEN - 1, "cp %s %s", argv[1], OutputDir); 
   system(copy_command);
- 
+
+  print_final_memory();
+
   return 0;
   
 }
