@@ -20,6 +20,7 @@ do {                                                                \
 #define  ABSOLUTEMAXSNAPS 1000
 
 #define  MAXLEN      1024
+#define  MAX_STRING_LEN      1024
 #define  GRAVITY     6.672e-8
 #define  SOLAR_MASS  1.989e33
 #define  SOLAR_LUM   3.826e33
@@ -337,8 +338,8 @@ extern double ejectedmass_total;
 extern double metalsejectedmass_total;
 
 extern int MergedNr;
-extern int TotMerged; 
-extern int *TreeNMergedgals;
+extern int TotMerged;
+extern int *TreeNMergedgals; 
 extern int MaxMergedGals;     // Maximum number of galaxies allowed for current tree  
 
 extern int zeromass_count;

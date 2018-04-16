@@ -25,7 +25,7 @@ void *mycalloc(size_t n, size_t size)
   if (ptr == NULL)
   {
     fprintf(stderr, "Could not allocate %.4f MB of memory.\n", n / (1024.0 * 1024.0));
-    ABORT(EXIT_FAILURE);
+    return NULL; 
   }
 
   TotMem += n * size; 

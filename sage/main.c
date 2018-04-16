@@ -223,7 +223,7 @@ int main(int argc, char **argv)
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree(tree);
-      if (tree > 1)
+      if (tree > 0)
         break;
     }
 

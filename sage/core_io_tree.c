@@ -10,47 +10,23 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "io/tree_binary.h"
 
 // keep a static file handle to remove the need to do constant seeking
-FILE* load_fd = NULL;
 
 void load_tree_table(int filenr, int32_t treestyle)
 {
-  int i, n, totNHalos;
+  int i, n;
   char buf[MAXLEN];
   FILE *fd;
-
-  // Some tree files are padded to three digits whereas some are not (e.g., tree.4 vs tree.004)
-  // Try both styles to see if the tree can be located.  If not, skip this tree.
-
+   
   if (treestyle == 0)
     snprintf(buf, MAXLEN, "%s/%s_%03d%s", SimulationDir, TreeName, filenr, TreeExtension);
   else
     snprintf(buf, MAXLEN, "%s/%s.%d%s", SimulationDir, TreeName, filenr, TreeExtension);
-    
-  load_fd = fopen(buf, "r");
-  if (load_fd == NULL)
-  {
-    printf("Could not locate %s\n", buf);
-    ABORT(EXIT_FAILURE);
-  }
 
-  myfread(&Ntrees, 1, sizeof(Ntrees), load_fd);
-  myfread(&totNHalos, 1, sizeof(totNHalos), load_fd);
-
-  TreeNHalos = mycalloc(Ntrees, sizeof(*(TreeNHalos)));
-  TreeFirstHalo = mycalloc(Ntrees, sizeof(*(TreeFirstHalo)));
-
-  for(n = 0; n < NOUT; n++)
-    TreeNgals[n] = mycalloc(Ntrees, sizeof(*(TreeNgals[n]))); 
-  TreeNMergedgals = mycalloc(Ntrees, sizeof(*(TreeNMergedgals)));
-  myfread(TreeNHalos, Ntrees, sizeof(*(TreeNHalos)), load_fd); 
-
-  if(Ntrees)
-    TreeFirstHalo[0] = 0;
-  for(i = 1; i < Ntrees; i++)
-    TreeFirstHalo[i] = TreeFirstHalo[i - 1] + TreeNHalos[i - 1];
-
+  load_tree_table_binary(buf);
+ 
   for(n = 0; n < NOUT; n++)
   {
     for(i = 0; i < Ntrees; i++)
@@ -58,7 +34,10 @@ void load_tree_table(int filenr, int32_t treestyle)
       TreeNgals[n][i] = 0;
       TreeNMergedgals[i] = 0;
     }
-    sprintf(buf, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+    if (treestyle == 0)
+      snprintf(buf, MAX_STRING_LEN - 1, "%s/%s_z%1.3f_%03d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
+    else
+    snprintf(buf, MAX_STRING_LEN - 1, "%s/%s_z%1.3f_%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[n]], filenr);
 
     if(!(fd = fopen(buf, "w")))
     {
@@ -86,10 +65,9 @@ void free_tree_table(void)
   myfree(TreeNHalos, sizeof(*(TreeNHalos)) * Ntrees);
 	
 	// Don't forget to free the open file handle
-	if(load_fd) {
-		fclose(load_fd);
-		load_fd = NULL;
-	}
+
+  close_binary_file();
+
 }
 
 void load_tree(int nr)
@@ -97,10 +75,8 @@ void load_tree(int nr)
   int i;
 
   // must have an FD
-  assert( load_fd );
-
-  Halo = mycalloc(TreeNHalos[nr], sizeof(*(Halo))); 
-  myfread(Halo, TreeNHalos[nr], sizeof(*(Halo)), load_fd);
+  
+  load_tree_binary(nr);
 
   MaxGals = (int)(MAXGALFAC * TreeNHalos[nr]);
 
@@ -111,10 +87,39 @@ void load_tree(int nr)
   FoF_MaxGals = 10000; 
 
   gal_to_free = mycalloc(MaxMergedGals, sizeof(*(gal_to_free))); 
-  HaloAux = mycalloc(TreeNHalos[nr], sizeof(*(HaloAux))); 
+  if (gal_to_free == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for `gal_to_free`.\n");
+    ABORT(EXIT_FAILURE);
+  }
+
+  HaloAux = mycalloc(TreeNHalos[nr], sizeof(*(HaloAux)));
+  if (HaloAux == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for `HaloAux`.\n");
+    ABORT(EXIT_FAILURE);
+  }
+ 
   HaloGal = mycalloc(MaxGals, sizeof(*(HaloGal))); 
+  if (HaloGal == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for `HaloGal`.\n");
+    ABORT(EXIT_FAILURE);
+  }
+
   Gal = mycalloc(FoF_MaxGals, sizeof(*(Gal))); 
+  if (Gal == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for `Gal`.\n");
+    ABORT(EXIT_FAILURE);
+  }
+
   MergedGal = mycalloc(MaxMergedGals, sizeof(*(MergedGal))); 
+  if (MergedGal == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for `MergedGal`.\n");
+    ABORT(EXIT_FAILURE);
+  }
 
   double Min_Halo = 1e5;
   double Max_Halo = 0.0; 

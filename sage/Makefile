@@ -15,11 +15,13 @@ OBJS   = 	./main.o \
 			./model_disk_instability.o \
 			./model_reincorporation.o \
 			./model_mergers.o \
-			./model_misc.o 
+			./model_misc.o \
+			./io/tree_binary.o
 
 INCL   =	./core_allvars.h  \
 			./core_proto.h  \
 			./core_simulation.h  \
+			./io/tree_binary.h \
 			./Makefile
 
 #USE-MPI = yes# set this if you want to run in parallel
