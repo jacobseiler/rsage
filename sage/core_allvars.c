@@ -151,9 +151,6 @@ double V_mass;
 double beta_mass; 
 double epsilon_mass_max;
 
-int count_firstSF;
-int count_notfirstSF;
-
 int RescaleSN;
 
 int mergedgal_mallocs;
@@ -165,10 +162,6 @@ int gal_frees;
 int ismerged_frees;
 
 int *gal_to_free;
-
-int small_steps;
-int large_steps;
-int times_written;
 
 int outside_box;
 int inside_box;

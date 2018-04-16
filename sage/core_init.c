@@ -70,36 +70,17 @@ void init(void)
 
   }
  
-  // Testing Parameters //
-
-  /*
-  V_energy = 70.0;
-  alpha_energy = 1.80; 
-  beta_energy = 16.0; 
-
-  V_mass = 80.0; 
-  alpha_mass = 40.0; 
-  beta_mass = 16.0; 
-  */
-
   // Tiamat Parameters //
 
   V_energy = 70.0;
   alpha_energy = 0.5;
-  //beta_energy = 2.0;
   beta_energy = 10.0;
 
   V_mass = 70.0; 
   alpha_mass = 6.0; 
-  //beta_mass = 0.0; 
   beta_mass = 10.0; 
 
   epsilon_mass_max = 30.0;
-
-  //
-
-  count_firstSF = 0;
-  count_notfirstSF = 0;
 
   if(TimeResolutionSN > 50)
   {
@@ -118,7 +99,6 @@ void init(void)
       ++SN_Array_Len;
     }
 
-    //SN_Array_Len = 50;
   }
   
   mergedgal_mallocs = 0;
@@ -127,178 +107,7 @@ void init(void)
   mergedgal_frees = 0;
   gal_frees = 0;
  
-  small_steps = 0;
-  large_steps = 0;
-  times_written = 0; 
 }
-
-
-int32_t init_grid()
-{
-
-  // There are two modes of operation for accounting for the photoionization feedback. //
-  // In the first we read the photoionization rates and redshift of reionization for ALL redshifts. //
-  // Feedback is then applied to all of redshifts.  This has extensive memory requirements as assuming a 512^3 grid to float precision, then each grid will be ~0.5GB in size. //
-
-
-  int32_t i; 
-  FILE *photoion, *reionredshift;
-  char buf[MAXLEN];
-
-  printf("Reading in the data for the reionization feedback using cifog.\n");
-  Grid = mycalloc(1, sizeof(struct GRID_STRUCT));
-  if (Grid == NULL)
-  {
-    fprintf(stderr, "Cannot allocate memory for the high level grid struct.\n");
-    return EXIT_FAILURE;
-  }
-
-  Grid->GridSize = GridSize;
-  Grid->NumCellsTotal = CUBE(GridSize); 
-
-  Grid->ReionRedshift = malloc(sizeof(*(Grid->ReionRedshift)) * Grid->NumCellsTotal);
-  if (Grid->ReionRedshift == NULL)
-  {
-    fprintf(stderr, "Cannot allocate memory for the reionization redshift grid.\n");
-    return EXIT_FAILURE;
-  } 
-
-  snprintf(buf, MAXLEN, "%s/%s", PhotoionDir, ReionRedshiftName); 
-  if(!(reionredshift= fopen(buf, "rb")))
-  {
-    fprintf(stderr, "Cannot open file %s\n", buf);
-    return EXIT_FAILURE;
-  }
-
-  printf("Reading the reionization redshift grid from %s\n", buf);
-  fread(Grid->ReionRedshift, sizeof(*(Grid->ReionRedshift)), Grid->NumCellsTotal, reionredshift);
-  fclose(reionredshift);
-   
-  Grid->NumGrids = MAXSNAPS;
-    
-  Grid->PhotoGrid = malloc(sizeof(struct PHOTO_GRID) * Grid->NumGrids); // Allocate enough memory to hold the photoionization grids.
-  if (Grid->PhotoGrid == NULL)
-  {
-    fprintf(stderr, "Cannot allocate memory for the photoionization grid struct\n");
-    return EXIT_FAILURE;
-  }
-
-  for (i = 0; i < Grid->NumGrids; ++i)
-  {
-    Grid->PhotoGrid[i].PhotoRate = mycalloc(sizeof(*(Grid->PhotoGrid[i].PhotoRate)), Grid->NumCellsTotal); // Then allocate memory for each photoionization grid.
- 
-    // For some of the early snapshots we don't have photoionization grids (because ionization hasn't started yet at z=100).  
-    // Let's put a flag to know whether we have any valid data for this snapshot so we don't have to create empty grids.
-    if (i > LowSnap && i <= HighSnap)
-    {
-      Grid->PhotoGrid[i].valid_grid = 1;
-    }
-    else
-    { 
-      Grid->PhotoGrid[i].valid_grid = 0;
-      printf("Snapshot %d is not a valid snapshot for reionization -- SKIPPING! --\n", i);
-      continue;
-    }
-    snprintf(buf, MAXLEN, "%s/%s_%03d", PhotoionDir, PhotoionName, i);
-
-    if(!(photoion = fopen(buf, "rb")))
-    {
-      fprintf(stderr, "Cannot open file %s\n", buf);
-      return EXIT_FAILURE;
-    }
-
-    printf("Reading photoionization grid %s\n", buf);    
-    fread(Grid->PhotoGrid[i].PhotoRate, sizeof(*(Grid->PhotoGrid[i].PhotoRate)), Grid->NumCellsTotal, photoion);
-    fclose(photoion);
-
-  }
-
-  printf("All reionization feedback stuff read in successfully\n");
-
-  return EXIT_SUCCESS;   
-}
-
-int32_t init_reion_lists(int32_t filenr)
-{
-
-  FILE *ListFile;
-  char ListFile_name[MAXLEN];
-  int32_t SnapNum, SnapNum_Read;
- 
-  if (ReionSnap == LowSnap) // This is the first iteration of the self-consistent run so there will be no ionization yet.
-  {
-    return EXIT_SUCCESS;
-  }
-
-  snprintf(ListFile_name, MAXLEN, "%s/reionization_modifiers/treefile_%03d", PhotoionDir, filenr);    
-
-  ListFile = fopen(ListFile_name, "rb");
-  if (ListFile == NULL)
-  {
-    fprintf(stderr, "Cannot open file %s\n", ListFile_name);
-    return EXIT_FAILURE;
-  }
- 
-  printf("Reading in the reionization modifier lists.\n");
- 
-  ReionList = malloc(sizeof(struct REIONMOD_STRUCT));
-  if (ReionList == NULL)
-  {
-    fprintf(stderr, "Cannot allocate memory for Reionization List struct\n");
-    return EXIT_FAILURE;
-  }
-
-  ReionList->NumLists = ReionSnap; 
-
-  ReionList->ReionMod_List = malloc(sizeof(struct REIONMOD_LIST) * ReionList->NumLists);
-
-  for (SnapNum = 0; SnapNum < ReionList->NumLists; ++SnapNum)
-  {
-
-    fread(&SnapNum_Read, sizeof(int32_t), 1, ListFile);
-
-    fread(&ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(int32_t), 1, ListFile);
-    //printf("Snapshot %d has %d Halos in the list.\n", SnapNum_Read, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
-
-    if (SnapNum_Read != SnapNum)
-    { 
-      fprintf(stderr, "When attempting to read the reionization modifier lists, the read file had a snapshot number %d when we expected a number %d\n", SnapNum_Read, SnapNum);
-      return EXIT_FAILURE;
-    }
-
-    ReionList->ReionMod_List[SnapNum].NHalos_Found = 0;
- 
-    if (ReionList->ReionMod_List[SnapNum].NHalos_Ionized == 0) // There were no halos within ionized regions for this snapshot, reionization hasn't started or is in the beginning.
-    {
-      continue;
-    }
-   
-    ReionList->ReionMod_List[SnapNum].HaloID = mycalloc(ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID))); 
-
-    fread(ReionList->ReionMod_List[SnapNum].HaloID, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
-
-#ifdef DEBUG_SELFCON    
-    int32_t i;
-    for (i = 0; i < ReionList->ReionMod_List[SnapNum].NHalos_Ionized; ++i)
-    {
-      int64_t ID;
-      ID = ReionList->ReionMod_List[SnapNum].HaloID[i];
-      printf("File %d: HaloID %ld is in the list, corresponding to tree %d and Halo number %d\n", filenr, ID, (int32_t)(ID >> 32), (int32_t)ID); 
-    }
-#endif
-
-    ReionList->ReionMod_List[SnapNum].ReionMod = mycalloc(ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod))); 
-
-    fread(ReionList->ReionMod_List[SnapNum].ReionMod, sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
-  
-    
-  }
-  fclose(ListFile);
- 
-  return EXIT_SUCCESS;
-
-}
-
 
 void set_units(void)
 {
@@ -320,8 +129,6 @@ void set_units(void)
   RhoCrit = 3 * Hubble * Hubble / (8 * M_PI * G);
 
 }
-
-
 
 void read_snap_list(void)
 {
@@ -354,8 +161,6 @@ void read_snap_list(void)
     printf("found %d defined times in snaplist\n", Snaplistlen);
 }
 
-
-
 double time_to_present(double z)
 {
 #define WORKSIZE 1000
@@ -382,6 +187,4 @@ double integrand_time_to_present(double a, void *param)
   (void)(param); // Avoids triggering unused-parameter warning.
   return 1 / sqrt(Omega / a + (1 - Omega - OmegaLambda) + OmegaLambda * a * a);
 }
-
-
 

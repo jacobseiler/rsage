@@ -370,7 +370,7 @@ void add_galaxy_to_merger_list(int p)
   int32_t j, status;
  
   MergedGal[MergedNr] = Gal[p]; // This is a shallow copy and does not copy the memory the pointers are pointing to.
-  status = malloc_grid_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
+  status = malloc_temporal_arrays(&MergedGal[MergedNr]);  // Need to malloc arrays for the pointers and then copy over their numeric values.
   if (status == EXIT_FAILURE)
   {
     ABORT(EXIT_FAILURE);
@@ -410,7 +410,7 @@ void add_galaxy_to_merger_list(int p)
   ++MergedNr;  
   Gal[p].IsMerged = 1;
 
-  free_grid_arrays(&Gal[p]); 
+  free_temporal_arrays(&Gal[p]); 
   ++gal_frees;
 }
  

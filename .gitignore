@@ -9,6 +9,8 @@ output/*.pdf
 # SAGE ignores.
 sage/sage
 sage/*.o
+sage/io/*.o
+sage/self_consistent/*.o
 
 # Grid code ignores.
 gridding/grid_sage

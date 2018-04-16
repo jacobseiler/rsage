@@ -181,15 +181,6 @@ void update_stars_array(int p, double stars, double dt, int tree, int ngal)
 
   double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
 
-  if(time_spanned > 50) 
-  {
-    ++large_steps; 
-  }
-  else
-  {
-    ++small_steps;
-  }
-
   Gal[p].Total_SF_Time += time_spanned; // How long it has been since we've updated the array?
   Gal[p].Total_Stars += stars; // How many stars we will need to bin once we do update the array?
 

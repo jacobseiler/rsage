@@ -366,9 +366,6 @@ extern double V_mass;
 extern double beta_mass; 
 extern double epsilon_mass_max;
 
-extern int count_firstSF;
-extern int count_notfirstSF;
-
 extern int RescaleSN;
 extern int mergedgal_mallocs;
 extern int gal_mallocs;
@@ -379,10 +376,6 @@ extern int gal_frees;
 extern int ismerged_frees;
 
 extern int *gal_to_free;
-
-extern int small_steps;
-extern int large_steps;
-extern int times_written;
 
 extern int outside_box;
 extern int inside_box;

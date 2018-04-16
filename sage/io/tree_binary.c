@@ -22,7 +22,7 @@ FILE *load_fd;
 
 void load_tree_table_binary(char *fname) 
 {
-  int32_t i, totNHalos, n;
+  int32_t i, totNHalos;
 
   // We've already checked that the tree exists.
 
@@ -49,23 +49,6 @@ void load_tree_table_binary(char *fname)
   {
     fprintf(stderr, "Could not allocate memory for `TreeFirstHalo`.\n");
     ABORT(EXIT_FAILURE);
-  }
-
-  TreeNMergedgals = mycalloc(Ntrees, sizeof(*(TreeNMergedgals)));
-  if (TreeFirstHalo == NULL)
-  {
-    fprintf(stderr, "Could not allocate memory for `TreeNMergedgals`.\n");
-    ABORT(EXIT_FAILURE);
-  }
-
-  for(n = 0; n < NOUT; n++)
-  {
-    TreeNgals[n] = mycalloc(Ntrees, sizeof(*(TreeNgals[n]))); 
-    if (TreeNgals[n] == NULL)
-    {
-      fprintf(stderr, "Could not allocate memory for `TreeNgals[%d]`.\n", n);
-      ABORT(EXIT_FAILURE);
-    }
   }
 
   if(Ntrees)

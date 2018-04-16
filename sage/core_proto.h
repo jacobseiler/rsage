@@ -18,11 +18,11 @@ void save_galaxies(int filenr, int tree);
 void save_merged_galaxies(int MergedNr, int filenr);
 
 void free_galaxies_and_tree(int32_t treenr);
-void free_grid_arrays(struct GALAXY *g);
+void free_temporal_arrays(struct GALAXY *g);
 void free_tree_table(void);
 int32_t free_grid(void);
 int32_t free_reion_lists(int32_t filenr);
-int32_t malloc_grid_arrays(struct GALAXY *g);
+int32_t malloc_temporal_arrays(struct GALAXY *g);
 void print_allocated(void);
 
 int32_t read_parameter_file(char *fname);
@@ -34,7 +34,7 @@ void print_final_memory(void);
 void myexit(int signum);
 
 void finalize_galaxy_file(void);
-void write_gridarray(struct GALAXY *g, FILE *fp);
+void write_temporal_arrays(struct GALAXY *g, FILE *fp);
 void finalize_merged_galaxy_file(void);
 
 void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal);
@@ -51,9 +51,8 @@ void add_galaxy_to_merger_list(int p);
 double dmax(double x, double y);
 
 double do_reionization(int centralgal, double Zcurr, int ReturnMfilt);
-double do_myreionization(int centralgal, double Zcurr, double *Mfilt);
+double do_grid_reionization(int centralgal, double Zcurr, double *Mfilt);
 int32_t do_self_consistent_reionization(int gal, int halonr, int infall, double *reionization_modifier);
-double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t infall, int64_t *found_idx);
 
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree, int ngal);
@@ -92,7 +91,7 @@ void grid_update_mass_metals_mass(double mass, double mass_metals, int GridPos, 
 
 
 int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t *grid_1D);
-void update_grid_array(int p, int halonr, int steps_completed);
+void update_temporal_array(int p, int halonr, int steps_completed);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
 
 

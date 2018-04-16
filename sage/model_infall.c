@@ -56,7 +56,7 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
   }
   else if (ReionizationOn == 2) 
   {     
-    reionization_modifier = do_myreionization(centralgal, Zcurr, &dummy);
+    reionization_modifier = do_grid_reionization(centralgal, Zcurr, &dummy);
   }
   else if (ReionizationOn == 3 || ReionizationOn == 4)
   {
@@ -118,7 +118,7 @@ void strip_from_satellite(int halonr, int centralgal, int gal, int32_t step)
   }
   else if (ReionizationOn == 2) 
   {
-    reionization_modifier = do_myreionization(centralgal, ZZ[Halo[halonr].SnapNum], &dummy);
+    reionization_modifier = do_grid_reionization(centralgal, ZZ[Halo[halonr].SnapNum], &dummy);
   }
   else if (ReionizationOn == 3 || ReionizationOn == 4)
   {
@@ -235,53 +235,6 @@ double do_reionization(int gal, double Zcurr, int ReturnMfilt)
 
 }
 
-double do_myreionization(int gal, double Zcurr, double *Mfilt)
-{
-  double z_reion;
-
-  double M = 3.0e9; // Fits from Sobbachi 2015.
-  double a = 0.17;
-  double b = -2.1;
-  double c = 2.0;
-  double d = 2.3;
-  double my_Mfilt, Mvir, PhotHI, reionization_modifier;
-
-  int32_t grid_position, status;
-
-  if (Grid->PhotoGrid[Gal[gal].SnapNum].valid_grid == 0) // In this instance reionization has not started yet so we don't have any data loaded.
-  {
-    return 1.0;
-  }
-
-  status= determine_1D_idx(Gal[gal].Pos[0], Gal[gal].Pos[1], Gal[gal].Pos[2], &grid_position); 
-  if (status == EXIT_FAILURE)
-  {
-    ABORT(EXIT_FAILURE);
-  }
-
-  z_reion = Grid->ReionRedshift[grid_position]; // This is the redshift the cell was ionized at. 
-
-  if(ReionizationOn == 2 && Zcurr < z_reion) // Has the cell been reionized yet? 
-  {
-    PhotHI = Grid->PhotoGrid[Gal[gal].SnapNum].PhotoRate[grid_position]/1.0e-12; // Photoionization Rate (in units of 1e-12).
-    
-    my_Mfilt = M * pow(PhotHI,a) * pow((1.0 + Zcurr)/10.0,b) * pow(1.0 - pow((1.0 + Zcurr)/(1.0 + z_reion), c), d);
-    Mvir = Gal[gal].Mvir * 1.0e10 / Hubble_h;
- 
-    reionization_modifier = pow(2.0, -my_Mfilt/Mvir);
-  }
-  else
-  {
-    reionization_modifier = 1.0;
-    my_Mfilt = 0.0; 
-  }
-
-  *Mfilt = my_Mfilt;
-  return reionization_modifier;
-  
-}
-
-
 void add_infall_to_hot(int gal, double infallingGas)
 {
   float metallicity; 
@@ -317,140 +270,5 @@ void add_infall_to_hot(int gal, double infallingGas)
     Gal[gal].HotGas = 0.0; 
     Gal[gal].MetalsHotGas = 0.0;
   }
-}
-
-double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increment_counter, int64_t *found_idx)
-{
-
-  int32_t is_found;
-  int64_t count, search_idx, search_HaloID;
-  int32_t number_search_IDs;
-  double reionization_modifier;
-
-  is_found = 0;
-  count = 0;
-  number_search_IDs = ReionList->ReionMod_List[SnapNum].NHalos_Ionized; // This is the numbers of IDs that we are searching through. 
-
-  search_idx = ceil(number_search_IDs / 2.0) - 1; 
-
-  if (match_HaloID == 38654705745)
-  {
-    printf("search_idx = %ld\t number_search_IDs = %d\n", (long)search_idx, number_search_IDs);
-  }
-
-
-  while (is_found == 0)
-  {
-    ++count;
-    search_HaloID = ReionList->ReionMod_List[SnapNum].HaloID[search_idx];
-
-    if (match_HaloID == search_HaloID) 
-    {
-      is_found = 1;
-    }
-    else if (number_search_IDs / pow(2, count) < 1.0) // The smallest index movement is less than 1.  The HaloID isn't in the list. 
-    {
-      break;
-    }
-    else if (match_HaloID > search_HaloID) // The HaloID we are trying to match is larger than the ID we're currently comparing against. 
-    {
-      search_idx = search_idx + ceil(number_search_IDs / pow(2, count + 1)); // Move up the list.
-    }
-    else // Otherwise the HaloID we are trying to match is smaller than the ID we're currently comparing against.
-    {
-      search_idx = search_idx - ceil(number_search_IDs / pow(2, count + 1)); // Move down the list. 
-    }
-
-    // When the HaloID we're trying to match is at idx 0 it can be tough to
-    // find.  For example, if we're at idx 1 then we try and move down the
-    // list, we will end up in negatives!  In this case, fix up the edge case.
-    if (search_idx < 0) 
-    {
-      search_idx = 0;
-    }
-
-    if (search_idx >= number_search_IDs) // Fix edge case.
-    {
-      search_idx = number_search_IDs -1;
-    }
-
-
-    if (match_HaloID == 38654705745)
-    {
-      printf("search_idx = %ld\t search_HaloID = %ld\tcount = %ld\n", (long)search_idx, (long)search_HaloID, (long)count);
-    }
-
-  }
-
-  if (is_found == 1)
-  {
-    *found_idx = search_idx;
-    if (increment_counter == 1) // Only want to increment our counters once as for satellite galaxies with a subhalo, strip_from_satellite is called multiple times. 
-    {
-      ++ReionList->ReionMod_List[SnapNum].NHalos_Found;
-#ifdef DEBUG_SELFCON
-      printf("Filenr %d: Found unique HaloID %ld at index %ld with modifier %.4f\n", filenr, match_HaloID, *found_idx, reionization_modifier);
-#endif 
-    }
-  }
-  else
-  {
-    reionization_modifier = 1.0;
-    *found_idx = -1;
-  }
-
-  return reionization_modifier;
-
-}
-
-int32_t do_self_consistent_reionization(int32_t gal, int32_t halonr, int32_t increment_counter, double *reionization_modifier)
-{
-
-  int32_t treenr; 
-  int64_t HaloID, found_idx = -1;
-
-  if (ReionSnap == LowSnap)
-  {
-    *reionization_modifier = 1.0;
-    return EXIT_SUCCESS; 
-  }
-
-  if ((Halo[halonr].SnapNum > ReionSnap) || (ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized == 0)) // We have yet to do reionization for this snapshot or if there are no halos within ionized regions for this snapshot.
-  {
-    *reionization_modifier = 1.0; // Reionization hasn't happened yet for this halo.
-    return EXIT_SUCCESS; 
-  } 
-  
-  ReionList->NumLists = ReionSnap; 
-
-  treenr = Gal[gal].TreeNr;
-
-  HaloID = ((int64_t)treenr << 32) | (int64_t)halonr; // Generates the unique ID for each halo within this file. 
-
-  *reionization_modifier = search_for_modifier(HaloID, Halo[halonr].SnapNum, increment_counter, &found_idx); 
-
-  if (found_idx == -1)
-  {
-    *reionization_modifier = 1.0;
-    return EXIT_SUCCESS;
-  }
-
-  // If ReionizationOn is 3 we want to do the proper self-consistent treatment.
-  // However if ReionizationOn is 4 we want to use the analytic formula to determine reionization_modifier for those halos in ionized regions. 
-  if (ReionizationOn == 4)
-  {
-    *reionization_modifier = do_reionization(gal, ZZ[Halo[halonr].SnapNum], 0);
-  }
-
-  if (ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID[found_idx] != HaloID)
-  {
-    fprintf(stderr, "After searching for HaloID %ld (corresponding to tree number %d and halo number %d) within the reionization list, the found_idx was %ld.  However queuring the reionization list at snapshot %d, the HaloID at %ld index is %ld\n", (long)HaloID, treenr, halonr, (long)found_idx, Halo[halonr].SnapNum, (long)found_idx, ReionList->ReionMod_List[Halo[halonr].SnapNum].HaloID[found_idx]);
-
-    return EXIT_FAILURE; 
-  } 
-
- 
-  return EXIT_SUCCESS; 
-
 }
 

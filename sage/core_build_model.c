@@ -375,7 +375,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
           {
 
             disrupt_satellite_to_ICS(merger_centralgal, p, tree);
-            update_grid_array(p, halonr, step); // Updates the grid before it's added to the merger list.
+            update_temporal_array(p, halonr, step); // Updates the temporal arrays before it's added to the merger list.
             add_galaxy_to_merger_list(p);
 	
           }
@@ -386,7 +386,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
               time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);   
 
               deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step, tree, ngal);
-              update_grid_array(p, halonr, step); // Updates the grid before it's added to the merger list.
+              update_temporal_array(p, halonr, step); // Updates the temporal arrays before it's added to the merger list.
               add_galaxy_to_merger_list(p);
 
             }
@@ -404,7 +404,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
     {
       continue; // Merged galaxies have already had their grid properties updated.
     }
-    update_grid_array(p, halonr, STEPS); // Otherwise update the grid properties of the galaxy.
+    update_temporal_array(p, halonr, STEPS); // Otherwise update the temporal properties of the galaxy.
   }
 
   // Extra miscellaneous stuff before finishing this halo

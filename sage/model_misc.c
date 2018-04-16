@@ -89,7 +89,7 @@ void init_galaxy(int p, int halonr, int treenr)
  
   Gal[p].IsMerged = -1;
 
-  status = malloc_grid_arrays(&Gal[p]);
+  status = malloc_temporal_arrays(&Gal[p]);
   if (status == EXIT_FAILURE)
   {
     ABORT(EXIT_FAILURE);
@@ -288,77 +288,5 @@ int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t *grid_1D
   }
 
   return EXIT_SUCCESS;
-}
-
-// INPUT: 
-// Galaxy index (p).
-// Halo index (halonr).
-// Number of steps completed (for merged galaxies this is <= STEPS otherwise = STEPS) (steps_completed)
-//
-// OUTPUT/USE:
-// Tracks a number of properties that will be used by the gridding code.  
-// These properties are in the form of a length SNAPNUM array so only the values at the Galaxy redshift will be altered. 
-
-void update_grid_array(int p, int halonr, int steps_completed)
-{
-    int32_t grid_position, step, status;
-    int32_t SnapCurr = Halo[halonr].SnapNum;
- 
-    status = determine_1D_idx(Gal[p].Pos[0], Gal[p].Pos[1], Gal[p].Pos[2], &grid_position); 
-    if (status == EXIT_FAILURE)
-    {
-      exit(EXIT_FAILURE);
-    }
-    
-    Gal[p].GridPos = grid_position; 
-
-    // NOTE: We use the Snapshot number of the FOF-Halo (i.e. the main halo the galaxy belongs to) because the snapshot number of the galaxy has been shifted by -1. //
-    // This is consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. //
-    Gal[p].GridHistory[SnapCurr] = grid_position; // Remember the grid history of the galaxy over the Snapshot range.
-    Gal[p].GridStellarMass[SnapCurr] = Gal[p].StellarMass; // Stellar mass at this snapshot.
-
-    for(step = 0; step < steps_completed; step++) // We loop over the number of steps completed to allow merged galaxies to be updated. 
-    {
-      Gal[p].GridSFR[SnapCurr] += Gal[p].SfrBulge[step] + Gal[p].SfrDisk[step]; // Star formation rate at this snapshot.
-    }
-
-    Gal[p].GridZ[SnapCurr] = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas); // Metallicity at this snapshot.
-    Gal[p].GridFoFMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
- 
-    if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
-    {
-      Gal[p].EjectedFraction[SnapCurr] = 0.0; // Check divide by 0 case.
-    }
-    else
-    { 
-        Gal[p].EjectedFraction[SnapCurr] = Gal[p].EjectedMass/(Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass);
-        // EjectedFraction is the fraction of baryons in the ejected reservoir.
-    }
-    if (Gal[p].EjectedFraction[SnapCurr] < 0.0 || Gal[p].EjectedFraction[SnapCurr] > 1.0)
-    {
-      fprintf(stderr, "Found ejected fraction = %.4e \t p = %d \t Gal[p].EjectedMass = %.4e \t Gal[p].HotGas = %.4e \t Gal[p].ColdGas = %.4e\n\n", Gal[p].EjectedFraction[SnapCurr], p, Gal[p].EjectedMass, Gal[p].HotGas, Gal[p].ColdGas); 
-      ABORT(EXIT_FAILURE); 
-    }
-
-    Gal[p].LenHistory[SnapCurr] = Gal[p].Len;
-    if (Gal[p].LenHistory[SnapCurr] < 0)
-    {  
-      fprintf(stderr, "Have a galaxy with Len < 0.  Galaxy number %d with Len %d.\n", p, Gal[p].Len);
-      ABORT(EXIT_FAILURE);
-    }
-    if (Gal[p].EjectedMass > 0.0)
-    {
-        Gal[p].GridEjectedMass[SnapCurr] += Gal[p].EjectedMass; 
-    }
-
-    Gal[p].DynamicalTime[SnapCurr] = Gal[p].Rvir / Gal[p].Vvir; 
-    Gal[p].GridColdGas[SnapCurr] = Gal[p].ColdGas;
-    Gal[p].GridBHMass[SnapCurr] = Gal[p].BlackHoleMass;
-
-    Gal[p].GridDustColdGas[SnapCurr] = Gal[p].DustColdGas;    
-    Gal[p].GridDustHotGas[SnapCurr] = Gal[p].DustHotGas;
-    Gal[p].GridDustEjectedMass[SnapCurr] = Gal[p].DustEjectedMass;
-    Gal[p].GridType[SnapCurr] = Gal[p].Type;
-
 }
 
