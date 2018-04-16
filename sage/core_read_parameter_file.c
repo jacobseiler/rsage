@@ -235,6 +235,54 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &RescaleSN;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "fescPrescription");
+  addr[nt] = &fescPrescription;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "alpha");
+  addr[nt] = &alpha;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "beta");
+  addr[nt] = &beta;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "MH_low");
+  addr[nt] = &MH_low;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_low");
+  addr[nt] = &fesc_low;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "MH_high");
+  addr[nt] = &MH_high;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_high");
+  addr[nt] = &fesc_high;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "quasar_baseline");
+  addr[nt] = &quasar_baseline;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "quasar_boosted");
+  addr[nt] = &quasar_boosted;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "N_dyntime");
+  addr[nt] = &N_dyntime;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc");
+  addr[nt] = &fesc;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "HaloPartCut");
+  addr[nt] = &HaloPartCut;
+  id[nt++] = INT;
+
   if((fd = fopen(fname, "r")))
   {
     while(!feof(fd))

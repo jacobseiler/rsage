@@ -7,9 +7,11 @@ int myfseek(FILE *stream, long offset, int whence);
 void construct_galaxies(int halonr, int tree, int filenr);
 void evolve_galaxies(int halonr, int ngal, int tree);
 int  join_galaxies_of_progenitors(int treenr, int halonr, int nstart);
+
 void init(void);
 int32_t init_grid(void);
 int32_t init_reion_lists(int32_t filenr);
+int32_t init_selfcon_grid(void);
 void set_units(void);
 
 void load_tree_table(int filenr, int32_t treestyle);
@@ -21,6 +23,7 @@ void free_galaxies_and_tree(int32_t treenr);
 void free_temporal_arrays(struct GALAXY *g);
 void free_tree_table(void);
 int32_t free_grid(void);
+int32_t free_selfcon_grid(void);
 int32_t free_reion_lists(int32_t filenr);
 int32_t malloc_temporal_arrays(struct GALAXY *g);
 void print_allocated(void);

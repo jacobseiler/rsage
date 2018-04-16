@@ -228,6 +228,27 @@ struct GRID_STRUCT
   }*PhotoGrid;
 }*Grid;
 
+
+struct SELFCON_GRID_STRUCT 
+{
+
+  int32_t GridSize;   
+  uint64_t NumCellsTotal;  
+
+  double *Nion_HI;
+  uint64_t *GalCount;
+
+  // TODO: Move these to their own struct.
+  /* These properties are per galaxy (not per grid cell) but I'm lazy. */
+  int32_t *SnapshotGalaxy;
+  float *fescGalaxy;
+  float *MvirGalaxy;
+  float *MstarGalaxy;
+  float *NgammaGalaxy;
+  float *NgammafescGalaxy;
+
+}*SelfConGrid;
+
 extern int    FirstFile;    // first and last file for processing 
 extern int    LastFile;
 
@@ -302,6 +323,24 @@ extern double BlackHoleGrowthRate;
 extern double Reionization_z0;
 extern double Reionization_zr;
 extern double ThresholdSatDisruption;
+
+// Parameters for the gridding with self_consistent
+extern int fescPrescription;
+extern double fesc;
+
+extern double MH_low;
+extern double fesc_low;
+extern double MH_high;
+extern double fesc_high;
+
+extern double alpha;
+extern double beta;
+
+extern double quasar_baseline;
+extern double quasar_boosted;
+extern double N_dyntime;
+
+extern int HaloPartCut;
 
 extern double UnitLength_in_cm,
   UnitTime_in_s,

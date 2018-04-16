@@ -181,14 +181,14 @@ void strip_from_satellite(int halonr, int centralgal, int gal, int32_t step)
 
 double do_reionization(int gal, double Zcurr, int ReturnMfilt)
 {
-  double alpha, a, f_of_a, a_on_a0, a_on_ar, Mfiltering, Mjeans, Mchar, mass_to_use, modifier;
+  double reion_alpha, a, f_of_a, a_on_a0, a_on_ar, Mfiltering, Mjeans, Mchar, mass_to_use, modifier;
   double Tvir, Vchar, omegaZ, xZ, deltacritZ, HubbleZ;
 
   // we employ the reionization recipie described in Gnedin (2000), however use the fitting 
   // formulas given by Kravtsov et al (2004) Appendix B 
 
-  // here are two parameters that Kravtsov et al keep fixed, alpha gives the best fit to the Gnedin data 
-  alpha = 6.0;
+  // here are two parameters that Kravtsov et al keep fixed, reion_alpha gives the best fit to the Gnedin data 
+  reion_alpha = 6.0;
   Tvir = 1e4;
 
   // calculate the filtering mass 
@@ -197,14 +197,14 @@ double do_reionization(int gal, double Zcurr, int ReturnMfilt)
   a_on_ar = a / ar;
 
   if(a <= a0)
-    f_of_a = 3.0 * a / ((2.0 + alpha) * (5.0 + 2.0 * alpha)) * pow(a_on_a0, alpha);
+    f_of_a = 3.0 * a / ((2.0 + reion_alpha) * (5.0 + 2.0 * reion_alpha)) * pow(a_on_a0, reion_alpha);
   else if((a > a0) && (a < ar))
     f_of_a =
-    (3.0 / a) * a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +
+    (3.0 / a) * a0 * a0 * (1.0 / (2.0 + reion_alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * reion_alpha)) +
     a * a / 10.0 - (a0 * a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5));
   else
     f_of_a =
-    (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +
+    (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + reion_alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * reion_alpha)) +
     (ar * ar / 10.0) * (5.0 - 4.0 * pow(a_on_ar, -0.5)) - (a0 * a0 / 10.0) * (5.0 -
     4.0 *
     pow(a_on_a0,

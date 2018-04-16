@@ -18,6 +18,7 @@ OBJS   = 	./main.o \
 			./model_misc.o \
 			./io/tree_binary.o \
 			./self_consistent/selfcon.o \
+			./self_consistent/selfcon_grid.o \
 			./self_consistent/grid.o \
 			./self_consistent/common.o 
 
@@ -26,6 +27,7 @@ INCL   =	./core_allvars.h  \
 			./core_simulation.h  \
 			./io/tree_binary.h \
 			./self_consistent/selfcon.h \
+			./self_consistent/selfcon_grid.h \
 			./self_consistent/grid.h \
 			./self_consistent/common.h \
 			./Makefile

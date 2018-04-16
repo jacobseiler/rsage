@@ -13,6 +13,9 @@ struct GRID_STRUCT
 struct REIONMOD_STRUCT
   *ReionList;
 
+struct SELFCON_GRID_STRUCT
+  *SelfConGrid;
+
 // auxiliary halo data 
 struct halo_aux_data		
   *HaloAux;
@@ -92,6 +95,24 @@ double BlackHoleGrowthRate;
 double Reionization_z0;
 double Reionization_zr;
 double ThresholdSatDisruption;
+
+// Parameters for the gridding with self_consistent
+int fescPrescription;
+double fesc;
+double MH_low;
+double fesc_low;
+double MH_high;
+double fesc_high;
+
+double alpha;
+double beta;
+
+double quasar_baseline;
+double quasar_boosted;
+double N_dyntime;
+
+int HaloPartCut;
+
 // more misc 
 double UnitLength_in_cm,
   UnitTime_in_s,

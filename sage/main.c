@@ -140,7 +140,7 @@ int main(int argc, char **argv)
   }
 
   init();
-
+  status = init_selfcon_grid();
   if(ReionizationOn == 2)
   {
     status = init_grid();

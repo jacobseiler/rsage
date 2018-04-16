@@ -77,7 +77,7 @@ void print_final_memory(void)
     printf("The highest peak memory usage was %.4f MB (%.4f GB)\n", master_HighMarkMem / (1024.0 * 1024.0), master_HighMarkMem / (1024.0 * 1024.0 * 1024.0));
 #else
   printf("The highest peak memory usage was %.4f MB (%.4f GB)\n", HighMarkMem / (1024.0 * 1024.0), HighMarkMem / (1024.0 * 1024.0 * 1024.0));
-  printf("Note: Memory allocations below %.4f MB are not tracked.\nTo change this, adjust the variable 'MEMORY_THRESHOLD' in `core_mymallo.c`.\n", MEMORY_THRESHOLD);
+  printf("Note: This is only updated every %.4f MB.\nTo change this, adjust the variable 'MEMORY_THRESHOLD' in `core_mymallo.c`.\n", MEMORY_THRESHOLD);
 
 #endif
 
