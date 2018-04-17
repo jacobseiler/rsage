@@ -3,7 +3,9 @@
 
 // Proto-Types //
 
-void determine_fesc_constants(void);
-int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *grid);
+// External //
+int32_t init_selfcon_grid(void);
+int32_t free_selfcon_grid(void);
+int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot);
 
 #endif

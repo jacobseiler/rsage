@@ -13,7 +13,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
-
+#include "self_consistent/selfcon_grid.h"
 
 char bufz0[1000], bufmergedz0[1000];
 int exitfail = 1;
@@ -260,6 +260,7 @@ int main(int argc, char **argv)
 
   print_final_memory();
 
+  free_selfcon_grid();
   return 0;
   
 }

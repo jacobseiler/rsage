@@ -10,6 +10,8 @@
 
 #include "../core_allvars.h"
 #include "../core_proto.h"
+#include "common.h"
+#include "selfcon_grid.h"
 
 // Local Variables //
 
@@ -77,6 +79,16 @@ void update_temporal_array(int p, int halonr, int steps_completed)
     Gal[p].GridDustHotGas[SnapCurr] = Gal[p].DustHotGas;
     Gal[p].GridDustEjectedMass[SnapCurr] = Gal[p].DustEjectedMass;
     Gal[p].GridType[SnapCurr] = Gal[p].Type;
+
+    if (self_consistent == 1 && SnapCurr == LowSnap)
+    {
+      status = update_selfcon_grid(&Gal[p], grid_position, SnapCurr);
+      if (status != EXIT_SUCCESS)
+      {
+        ABORT(EXIT_FAILURE);
+      }    
+      printf("SFR %.4f\tGridPos %d\tNion %.4f\n", Gal[p].GridSFR[SnapCurr], grid_position, SelfConGrid->Nion_HI[grid_position]);
+    }
 
 }
 

@@ -16,6 +16,11 @@
 
 // Local Proto-Types //
 
+void determine_fesc_constants(void);
+int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *grid);
+int32_t determine_nion(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
+int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local);
+
 // External Functions //
 
 int32_t init_selfcon_grid(void)
@@ -100,7 +105,7 @@ int32_t init_selfcon_grid(void)
   {
     return EXIT_FAILURE;
   }
-
+  
   return EXIT_SUCCESS;
 
 }
@@ -108,15 +113,43 @@ int32_t init_selfcon_grid(void)
 int32_t free_selfcon_grid(void)
 { 
 
-  myfree(SelfConGrid->Nion_HI, sizeof(*(SelfConGrid->Nion_HI)) * Grid->NumCellsTotal);
-  myfree(SelfConGrid->GalCount, sizeof(*(SelfConGrid->GalCount)) * Grid->NumCellsTotal);
+  myfree(SelfConGrid->Nion_HI, sizeof(*(SelfConGrid->Nion_HI)) * SelfConGrid->NumCellsTotal);
+  myfree(SelfConGrid->GalCount, sizeof(*(SelfConGrid->GalCount)) * SelfConGrid->NumCellsTotal);
   
-  free(Grid);
+  free(SelfConGrid);
 
   return EXIT_SUCCESS;
 
 }
 
+int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot)
+{
+
+  int32_t status;
+  float Ngamma_HI, Ngamma_HeI, Ngamma_HeII, fesc_local;
+  float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
+
+  status = determine_nion(g->GridSFR[snapshot] * SFR_conversion, g->GridZ[snapshot], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
+  if (status != EXIT_SUCCESS)
+  {
+    return EXIT_FAILURE;
+  }
+
+  status = determine_fesc(g, snapshot, &fesc_local);
+  if (status != EXIT_SUCCESS)
+  {
+    return EXIT_FAILURE;
+  }
+
+  if (Ngamma_HI > 0.0)
+  {
+    SelfConGrid->Nion_HI[grid_idx] += pow(10, Ngamma_HI - 50.0) * fesc_local; // Keep the number of ionizing photons in units of 10^50 photons/s. 
+  }
+
+  ++(SelfConGrid->GalCount[grid_idx]);
+
+  return EXIT_SUCCESS;
+}
 
 // Local Functions //
 
@@ -140,7 +173,7 @@ void determine_fesc_constants(void)
  
 }
 
-int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *grid)
+int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 {
 
 #define ALLOCATE_GRID_MEMORY(name, length) \
@@ -153,28 +186,139 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *grid)
   }                                        \
 }
 
-  uint64_t cell_idx;
+  int32_t cell_idx;
 
-  if (grid == NULL)
+  if (my_grid == NULL)
   {
     fprintf(stderr, "`init_selfcon_grid` was called with a SELFCON_GRID_STRUCT pointer that has not been initialized\n");
     return EXIT_FAILURE;
   }
 
-  grid->GridSize = GridSize;
-  grid->NumCellsTotal = CUBE(GridSize);
+  my_grid->GridSize = GridSize;
+  my_grid->NumCellsTotal = CUBE(GridSize);
 
-  ALLOCATE_GRID_MEMORY(grid->Nion_HI, grid->NumCellsTotal);
-  ALLOCATE_GRID_MEMORY(grid->GalCount, grid->NumCellsTotal);
+  ALLOCATE_GRID_MEMORY(my_grid->Nion_HI, my_grid->NumCellsTotal);
+  ALLOCATE_GRID_MEMORY(my_grid->GalCount, my_grid->NumCellsTotal);
 
- for (cell_idx = 0; cell_idx < Grid->NumCellsTotal; ++cell_idx)
- { 
-      grid->Nion_HI[cell_idx] = 0.0;
-      grid->GalCount[cell_idx] = 0;
- }
+  for (cell_idx = 0; cell_idx < my_grid->NumCellsTotal; ++cell_idx)
+  {
+    my_grid->Nion_HI[cell_idx] = 0.0;
+    my_grid->GalCount[cell_idx] = 0;
+  }
 
   return EXIT_SUCCESS;
 
 #undef ALLOCATE_GRID_MEMORY
 
+}
+
+int32_t determine_nion(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
+{
+
+  if (SFR == 0)
+  {
+    *Ngamma_HI = 0;
+    *Ngamma_HeI = 0;
+    *Ngamma_HeII = 0;
+  }
+  else if (Z < 0.0025) // 11
+  {
+    *Ngamma_HI = log10(SFR) + 53.354;
+    *Ngamma_HeI = log10(SFR) + 52.727;
+    *Ngamma_HeII = log10(SFR) + 48.941;
+  }
+  else if (Z >= 0.0025 && Z < 0.006) // 12
+  {
+    *Ngamma_HI = log10(SFR) + 53.290;
+    *Ngamma_HeI = log10(SFR) + 52.583;
+    *Ngamma_HeII = log10(SFR) + 49.411;
+  }
+  else if (Z>= 0.006 && Z < 0.014) // 13
+  {
+    *Ngamma_HI = log10(SFR) + 53.248;
+    *Ngamma_HeI = log10(SFR) + 52.481;
+    *Ngamma_HeII = log10(SFR) + 49.254;
+  }
+  else if (Z >= 0.014 && Z < 0.030) // 14
+  {
+    *Ngamma_HI = log10(SFR) + 53.166;
+    *Ngamma_HeI = log10(SFR) + 52.319;
+    *Ngamma_HeII = log10(SFR) + 48.596;
+  }
+  else // 15
+  {
+    *Ngamma_HI = log10(SFR) + 53.041;
+    *Ngamma_HeI = log10(SFR) + 52.052;
+    *Ngamma_HeII = log10(SFR) + 47.939;
+  }
+
+  if (SFR != 0)
+  {
+    assert(*Ngamma_HI > 0.0);
+    assert(*Ngamma_HeI > 0.0);
+    assert(*Ngamma_HeII > 0.0);
+  }
+
+  return EXIT_SUCCESS;
+
+}
+
+int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
+{
+
+  float halomass = g->GridFoFMass[snapshot] * 1.0e10 / Hubble_h;
+  float ejectedfraction = g->EjectedFraction[snapshot];
+
+  switch(fescPrescription)
+  {
+    case 0:
+      *fesc_local = fesc;
+      break;
+
+    case 1:
+      *fesc_local = pow(10,1.0 - 0.2*log10(halomass)); // Deprecated.
+      break;
+
+    case 2:
+      *fesc_local = alpha * pow((halomass), beta);
+      break;
+
+    case 3:
+      *fesc_local = alpha * ejectedfraction + beta;
+      break;
+
+    /*
+    case 4:
+      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
+      break;
+    */
+    case 5:
+      *fesc_local = pow(fesc_low * (fesc_low/fesc_high),(-log10(halomass/MH_low)/log10(MH_high/MH_low)));
+      if (*fesc_local > fesc_low)
+      {
+        *fesc_local = fesc_low;
+      }
+      break;
+
+    case 6:
+      *fesc_local = 1. - pow((1.-fesc_low) * ((1.-fesc_low)/(1.-fesc_high)),(-log10(halomass/MH_low)/log10(MH_high/MH_low)));
+      if (*fesc_local < fesc_low)
+      {
+        *fesc_local = fesc_low;
+      }
+      break;
+
+    default:
+      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `determine_fesc` in `selfcon_grid.c`.\nPlease add it there.\n");
+      return EXIT_FAILURE;
+
+  }
+
+  if (*fesc_local > 1.0 || *fesc_local < 0.0)
+  {
+    fprintf(stderr, "Had fesc_local = %.4f with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", *fesc_local, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(g->GridSFR[snapshot]), ejectedfraction);
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
 }

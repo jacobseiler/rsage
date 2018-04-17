@@ -233,19 +233,10 @@ struct SELFCON_GRID_STRUCT
 {
 
   int32_t GridSize;   
-  uint64_t NumCellsTotal;  
+  int32_t NumCellsTotal;  
 
-  double *Nion_HI;
-  uint64_t *GalCount;
-
-  // TODO: Move these to their own struct.
-  /* These properties are per galaxy (not per grid cell) but I'm lazy. */
-  int32_t *SnapshotGalaxy;
-  float *fescGalaxy;
-  float *MvirGalaxy;
-  float *MstarGalaxy;
-  float *NgammaGalaxy;
-  float *NgammafescGalaxy;
+  float *Nion_HI;
+  int32_t *GalCount;
 
 }*SelfConGrid;
 
