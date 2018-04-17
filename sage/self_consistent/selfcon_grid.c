@@ -151,6 +151,67 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   return EXIT_SUCCESS;
 }
 
+int32_t save_selfcon_grid()
+{
+
+  FILE* file_HI;
+  char tag[MAX_STRING_LEN], fname_HI[MAX_STRING_LEN];
+  int32_t nwritten;
+
+  switch(fescPrescription)
+  {
+    case 0:
+      snprintf(tag, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", fesc, HaloPartCut);
+      break;
+
+    case 1:
+      return EXIT_FAILURE; 
+
+    case 2:
+      snprintf(tag, MAX_STRING_LEN - 1, "MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
+      break;
+
+    case 3:
+      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.2f_%.2f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      break;
+
+    /*
+    case 4:
+      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
+      break;
+    */
+    case 5:
+    case 6:
+      snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
+      break;
+
+    default:
+      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `save_selfcon_grid` in `selfcon_grid.c`.\nPlease add it there.\n");
+      return EXIT_FAILURE;
+
+  }
+
+  snprintf(fname_HI, MAX_STRING_LEN, "%s/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, tag, LowSnap); 
+
+  file_HI = fopen(fname_HI, "wb");
+  if (file_HI == NULL)
+  {
+    fprintf(stderr, "Could not open file %s.\n", fname_HI);
+    return EXIT_FAILURE;
+  }
+
+  nwritten = myfwrite(SelfConGrid->Nion_HI, sizeof(*(SelfConGrid->Nion_HI)) * SelfConGrid->NumCellsTotal, 1, file_HI);
+  if (nwritten != 1)
+  {
+    fprintf(stderr, "Could not write 1 element of size %zu to file %s, wrote %d instead.\n", sizeof(*(SelfConGrid->Nion_HI)) * SelfConGrid->NumCellsTotal, fname_HI, nwritten); 
+    return EXIT_FAILURE;
+  }
+  fclose(file_HI);
+
+  return EXIT_SUCCESS;
+
+}
+
 // Local Functions //
 
 void determine_fesc_constants(void)

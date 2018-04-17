@@ -86,8 +86,10 @@ void update_temporal_array(int p, int halonr, int steps_completed)
       if (status != EXIT_SUCCESS)
       {
         ABORT(EXIT_FAILURE);
-      }    
+      }
+#ifdef DEBUG_SELCON_GRID
       printf("SFR %.4f\tGridPos %d\tNion %.4f\n", Gal[p].GridSFR[SnapCurr], grid_position, SelfConGrid->Nion_HI[grid_position]);
+#endif
     }
 
 }

@@ -4,7 +4,7 @@
 
 FileNameGalaxies       tmp 
 OutputDir              /lustre/projects/p004_swin/jseiler/kali/tmp/galaxies
-GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion
+GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/tmp/grids/nion
 
 FirstFile         0 
 LastFile          0 

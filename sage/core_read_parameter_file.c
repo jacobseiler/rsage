@@ -34,6 +34,10 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = OutputDir;
   id[nt++] = STRING;
 
+  strcpy(tag[nt], "GridOutputDir");
+  addr[nt] = GridOutputDir;
+  id[nt++] = STRING;
+
   strcpy(tag[nt], "FileNameGalaxies");
   addr[nt] = FileNameGalaxies;
   id[nt++] = STRING;

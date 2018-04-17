@@ -223,8 +223,6 @@ int main(int argc, char **argv)
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree(tree);
-      if (tree > 0)
-        break;
     }
 
     finalize_galaxy_file();  
@@ -233,10 +231,16 @@ int main(int argc, char **argv)
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
 
+    status = save_selfcon_grid();
+    if (status != EXIT_SUCCESS)
+    {
+      ABORT(EXIT_FAILURE);
+    }
+
     if (ReionizationOn == 3 || ReionizationOn == 4)
     {
       status = free_reion_lists(filenr);
-      if (status == EXIT_FAILURE)
+      if (status != EXIT_SUCCESS)
       {
         ABORT(EXIT_FAILURE);
       } 
