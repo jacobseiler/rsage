@@ -63,8 +63,11 @@ void load_tree_binary(int32_t treenr)
   // must have an FD
   assert(load_fd );
 
-  //Halo = mycalloc(TreeNHalos[treenr], sizeof(*(Halo)));
-  Halo = mycalloc(TreeNHalos[treenr], sizeof(struct halo_data));
+  // Previously used mycalloc instead of malloc but there was immense slowdowns (~3x).
+  // I profiled this using Vtune and it was the implementation of the function itself that was causing the slowdown.
+  // This may be because this loop is hit so often that initializing all the memory to 0 took a long time.
+
+  Halo = mymalloc(TreeNHalos[treenr] * sizeof(struct halo_data));
   if (Halo == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `Halo`.\nTried to allocate memory for %d Halos,\n", TreeNHalos[treenr]);

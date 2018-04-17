@@ -16,6 +16,25 @@
 
 static double TotMem = 0, HighMarkMem = 0;
 
+void track_memory(double size);
+
+void *mymalloc(size_t size)
+{
+
+  void *ptr;
+
+  ptr = malloc(size);
+  if (ptr == NULL)
+  {
+    fprintf(stderr, "Could not allocate %.4f MB of memory.\n", size / (1024.0 * 1024.0));
+    return NULL; 
+  }
+
+  track_memory(size);
+
+  return ptr;
+}
+
 void *mycalloc(size_t n, size_t size)
 {
 
@@ -24,14 +43,20 @@ void *mycalloc(size_t n, size_t size)
   ptr = calloc(n, size);
   if (ptr == NULL)
   {
-    fprintf(stderr, "Could not allocate %.4f MB of memory.\n", n / (1024.0 * 1024.0));
+    fprintf(stderr, "Could not allocate %.4f MB of memory.\n", (n * size) / (1024.0 * 1024.0));
     return NULL; 
   }
 
- 
-  TotMem += n * size; 
+  track_memory(n*size);
 
- /*
+  return ptr;
+}
+
+void track_memory(double size)
+{
+ 
+  TotMem += size; 
+
   if (TotMem > HighMarkMem && (TotMem - HighMarkMem > (MEMORY_THRESHOLD * 1024.0 * 1024.0)))
   {
 #ifdef MPI
@@ -41,8 +66,6 @@ void *mycalloc(size_t n, size_t size)
 #endif
     HighMarkMem = TotMem;
   }
-  */
-  return ptr; 
 }
 
 void *myrealloc(void *p, size_t new_n, size_t old_n)

@@ -27,6 +27,7 @@ int32_t malloc_temporal_arrays(struct GALAXY *g);
 void print_allocated(void);
 
 int32_t read_parameter_file(char *fname);
+void *mymalloc(size_t size);
 void *mycalloc(size_t n, size_t size);
 void *myrealloc(void *p, size_t new_n, size_t old_n); 
 void myfree(void *p, size_t size);

@@ -92,40 +92,39 @@ void load_tree(int nr)
   MaxMergedGals = MaxGals;
   FoF_MaxGals = 10000; 
 
-  //gal_to_free = mycalloc(MaxMergedGals, sizeof(*(gal_to_free))); 
-  gal_to_free = mycalloc(MaxMergedGals, sizeof(int));
+  // Previously used mycalloc instead of malloc but there was immense slowdowns (~3x).
+  // I profiled this using Vtune and it was the implementation of the function itself that was causing the slowdown.
+  // This may be because this loop is hit so often that initializing all the memory to 0 took a long time.
+
+  gal_to_free = mymalloc(MaxMergedGals * sizeof(int));
   if (gal_to_free == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `gal_to_free`.\n");
     ABORT(EXIT_FAILURE);
   }
 
-  //HaloAux = mycalloc(TreeNHalos[nr], sizeof(*(HaloAux)));
-  HaloAux = mycalloc(TreeNHalos[nr], sizeof(struct halo_aux_data));
+  HaloAux = mymalloc(TreeNHalos[nr] * sizeof(struct halo_aux_data));
   if (HaloAux == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `HaloAux`.\n");
     ABORT(EXIT_FAILURE);
   }
  
-  //HaloGal = mycalloc(MaxGals, sizeof(*(HaloGal))); 
-  HaloGal = mycalloc(MaxGals, sizeof(struct GALAXY));
+  HaloGal = mymalloc(MaxGals * sizeof(struct GALAXY));
   if (HaloGal == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `HaloGal`.\n");
     ABORT(EXIT_FAILURE);
   }
 
-  //Gal = mycalloc(FoF_MaxGals, sizeof(*(Gal))); 
-  Gal = mycalloc(FoF_MaxGals, sizeof(struct GALAXY));
+  Gal = mymalloc(FoF_MaxGals * sizeof(struct GALAXY));
   if (Gal == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `Gal`.\n");
     ABORT(EXIT_FAILURE);
   }
 
-  //MergedGal = mycalloc(MaxMergedGals, sizeof(*(MergedGal))); 
-  MergedGal = mycalloc(MaxMergedGals, sizeof(struct GALAXY));
+  MergedGal = mymalloc(MaxMergedGals * sizeof(struct GALAXY));
   if (MergedGal == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `MergedGal`.\n");
@@ -136,8 +135,6 @@ void load_tree(int nr)
   double Max_Halo = 0.0; 
   for(i = 0; i < TreeNHalos[nr]; i++)
   {
-    if (Halo[i].FirstHaloInFOFgroup == -1)
-    exit(0);
 
     if(Halo[i].Mvir > Max_Halo)
       Max_Halo = Halo[i].Mvir;
