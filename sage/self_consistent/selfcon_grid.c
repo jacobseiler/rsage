@@ -12,6 +12,10 @@
 #include "../core_proto.h"
 #include "selfcon_grid.h"
 
+#ifdef MPI
+#include <mpi.h>
+struct SELFCON_GRID_STRUCT *MPI_sum_grids(void);
+#endif
 // Local Variables //
 
 // Local Proto-Types //
@@ -20,6 +24,7 @@ void determine_fesc_constants(void);
 int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *grid);
 int32_t determine_nion(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
 int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local);
+int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite);
 
 // External Functions //
 
@@ -154,59 +159,33 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
 int32_t save_selfcon_grid()
 {
 
-  FILE* file_HI;
-  char tag[MAX_STRING_LEN], fname_HI[MAX_STRING_LEN];
-  int32_t nwritten;
+  int32_t status;
 
-  switch(fescPrescription)
+#ifdef MPI
+
+  struct SELFCON_GRID_STRUCT *master_grid;
+
+  master_grid = MPI_sum_grids(); 
+  if (ThisTask == 0 && master_grid == NULL)
   {
-    case 0:
-      snprintf(tag, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", fesc, HaloPartCut);
-      break;
-
-    case 1:
-      return EXIT_FAILURE; 
-
-    case 2:
-      snprintf(tag, MAX_STRING_LEN - 1, "MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
-      break;
-
-    case 3:
-      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.2f_%.2f_HaloPartCut%d", alpha, beta, HaloPartCut); 
-      break;
-
-    /*
-    case 4:
-      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
-      break;
-    */
-    case 5:
-    case 6:
-      snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
-      break;
-
-    default:
-      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `save_selfcon_grid` in `selfcon_grid.c`.\nPlease add it there.\n");
-      return EXIT_FAILURE;
-
-  }
-
-  snprintf(fname_HI, MAX_STRING_LEN, "%s/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, tag, LowSnap); 
-
-  file_HI = fopen(fname_HI, "wb");
-  if (file_HI == NULL)
-  {
-    fprintf(stderr, "Could not open file %s.\n", fname_HI);
     return EXIT_FAILURE;
   }
 
-  nwritten = myfwrite(SelfConGrid->Nion_HI, sizeof(*(SelfConGrid->Nion_HI)) * SelfConGrid->NumCellsTotal, 1, file_HI);
-  if (nwritten != 1)
+  if (ThisTask == 0)
   {
-    fprintf(stderr, "Could not write 1 element of size %zu to file %s, wrote %d instead.\n", sizeof(*(SelfConGrid->Nion_HI)) * SelfConGrid->NumCellsTotal, fname_HI, nwritten); 
+    status = write_selfcon_grid(master_grid);
+  }
+  else
+    status = EXIT_SUCCESS;
+
+#else
+  status = write_selfcon_grid(SelfConGrid);
+#endif
+
+  if (status != EXIT_SUCCESS)
+  {
     return EXIT_FAILURE;
   }
-  fclose(file_HI);
 
   return EXIT_SUCCESS;
 
@@ -383,3 +362,97 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
   return EXIT_SUCCESS;
 }
+
+#ifdef MPI
+
+struct SELFCON_GRID_STRUCT *MPI_sum_grids(void)
+{
+
+  int32_t status;
+  struct SELFCON_GRID_STRUCT *master_grid;
+  master_grid = malloc(sizeof(*(master_grid))); // Needs to be malloced for all Tasks for Reduce.
+
+  if (ThisTask == 0)
+  {
+  
+    status = malloc_selfcon_grid(master_grid);
+    if (status != EXIT_SUCCESS)
+    {
+      fprintf(stderr, "Could not allocate memory when trying to sum the grids across tasks.\n");
+      return NULL;
+    } 
+    printf("Reducing selfcon grid.\n");
+  }
+
+  MPI_Reduce(SelfConGrid->Nion_HI, master_grid->Nion_HI, SelfConGrid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (ThisTask == 0)
+    return master_grid;
+  else
+    return NULL; 
+
+}
+
+#endif
+
+int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
+{ 
+
+  FILE* file_HI;
+  char tag[MAX_STRING_LEN], fname_HI[MAX_STRING_LEN];
+  int32_t nwritten;
+
+  switch(fescPrescription)
+  {
+    case 0:
+      snprintf(tag, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", fesc, HaloPartCut);
+      break;
+
+    case 1:
+      return EXIT_FAILURE; 
+
+    case 2:
+      snprintf(tag, MAX_STRING_LEN - 1, "MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
+      break;
+
+    case 3:
+      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.2f_%.2f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      break;
+
+    /*
+    case 4:
+      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
+      break;
+    */
+    case 5:
+    case 6:
+      snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
+      break;
+
+    default:
+      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `save_selfcon_grid` in `selfcon_grid.c`.\nPlease add it there.\n");
+      return EXIT_FAILURE;
+
+  }
+
+  snprintf(fname_HI, MAX_STRING_LEN, "%s/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, tag, LowSnap); 
+
+  file_HI = fopen(fname_HI, "wb");
+  if (file_HI == NULL)
+  {
+    fprintf(stderr, "Could not open file %s.\n", fname_HI);
+    return EXIT_FAILURE;
+  }
+
+  nwritten = myfwrite(grid_towrite->Nion_HI, sizeof(*(grid_towrite->Nion_HI)) * grid_towrite->NumCellsTotal, 1, file_HI);
+  if (nwritten != 1)
+  {
+    fprintf(stderr, "Could not write 1 element of size %zu to file %s, wrote %d instead.\n", sizeof(*(grid_towrite->Nion_HI)) * grid_towrite->NumCellsTotal, fname_HI, nwritten); 
+    return EXIT_FAILURE;
+  }
+  fclose(file_HI);
+
+  return EXIT_SUCCESS;
+
+}
+

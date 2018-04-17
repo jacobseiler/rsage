@@ -14,7 +14,7 @@
 
 // Local Variables //
 
-FILE *load_fd; 
+FILE *load_fd = NULL; 
 
 // Local Proto-Types //
 
@@ -63,7 +63,8 @@ void load_tree_binary(int32_t treenr)
   // must have an FD
   assert(load_fd );
 
-  Halo = mycalloc(TreeNHalos[treenr], sizeof(*(Halo)));
+  //Halo = mycalloc(TreeNHalos[treenr], sizeof(*(Halo)));
+  Halo = mycalloc(TreeNHalos[treenr], sizeof(struct halo_data));
   if (Halo == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `Halo`.\nTried to allocate memory for %d Halos,\n", TreeNHalos[treenr]);

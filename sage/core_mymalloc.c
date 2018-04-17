@@ -28,8 +28,10 @@ void *mycalloc(size_t n, size_t size)
     return NULL; 
   }
 
+ 
   TotMem += n * size; 
 
+ /*
   if (TotMem > HighMarkMem && (TotMem - HighMarkMem > (MEMORY_THRESHOLD * 1024.0 * 1024.0)))
   {
 #ifdef MPI
@@ -38,7 +40,8 @@ void *mycalloc(size_t n, size_t size)
     printf("New highmark memory: %.4f MB (was %.4f MB)\n", TotMem / (1024.0 * 1024.0), HighMarkMem / (1024.0 * 1024.0));
 #endif
     HighMarkMem = TotMem;
-  } 
+  }
+  */
   return ptr; 
 }
 

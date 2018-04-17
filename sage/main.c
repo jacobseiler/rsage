@@ -140,7 +140,9 @@ int main(int argc, char **argv)
   }
 
   init();
-  status = init_selfcon_grid();
+
+  if (self_consistent == 1)  
+    status = init_selfcon_grid();
   if(ReionizationOn == 2)
   {
     status = init_grid();
@@ -223,6 +225,8 @@ int main(int argc, char **argv)
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree(tree);
+      if (tree > 1000)
+        break;
     }
 
     finalize_galaxy_file();  
@@ -231,19 +235,22 @@ int main(int argc, char **argv)
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
 
-    status = save_selfcon_grid();
-    if (status != EXIT_SUCCESS)
+    if (self_consistent == 1)
     {
-      ABORT(EXIT_FAILURE);
-    }
-
-    if (ReionizationOn == 3 || ReionizationOn == 4)
-    {
-      status = free_reion_lists(filenr);
+      status = save_selfcon_grid();
       if (status != EXIT_SUCCESS)
       {
         ABORT(EXIT_FAILURE);
-      } 
+      }
+
+      if (ReionizationOn == 3 || ReionizationOn == 4)
+      {
+        status = free_reion_lists(filenr);
+        if (status != EXIT_SUCCESS)
+        {
+          ABORT(EXIT_FAILURE);
+        } 
+      }
     }
 
   } // filenr loop
@@ -262,9 +269,12 @@ int main(int argc, char **argv)
   snprintf(copy_command, MAXLEN - 1, "cp %s %s", argv[1], OutputDir); 
   system(copy_command);
 
-  print_final_memory();
+  //print_final_memory();
 
-  free_selfcon_grid();
+  if (self_consistent == 1)
+  {
+    free_selfcon_grid();
+  }
   return 0;
   
 }

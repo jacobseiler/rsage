@@ -38,7 +38,7 @@ PartMass        7.8436e-4 ; 1e10 Msun/h
 BoxSize		108.96	
 GridSize    256 
 
-self_consistent 1
+self_consistent 0
 %------------------------------------------
 %----- SAGE recipe options ----------------
 %------------------------------------------

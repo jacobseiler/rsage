@@ -82,6 +82,7 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 
     if (self_consistent == 1 && SnapCurr == LowSnap)
     {
+      printf("orjeorjqojer\n");
       status = update_selfcon_grid(&Gal[p], grid_position, SnapCurr);
       if (status != EXIT_SUCCESS)
       {

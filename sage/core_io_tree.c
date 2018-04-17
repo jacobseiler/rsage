@@ -92,35 +92,40 @@ void load_tree(int nr)
   MaxMergedGals = MaxGals;
   FoF_MaxGals = 10000; 
 
-  gal_to_free = mycalloc(MaxMergedGals, sizeof(*(gal_to_free))); 
+  //gal_to_free = mycalloc(MaxMergedGals, sizeof(*(gal_to_free))); 
+  gal_to_free = mycalloc(MaxMergedGals, sizeof(int));
   if (gal_to_free == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `gal_to_free`.\n");
     ABORT(EXIT_FAILURE);
   }
 
-  HaloAux = mycalloc(TreeNHalos[nr], sizeof(*(HaloAux)));
+  //HaloAux = mycalloc(TreeNHalos[nr], sizeof(*(HaloAux)));
+  HaloAux = mycalloc(TreeNHalos[nr], sizeof(struct halo_aux_data));
   if (HaloAux == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `HaloAux`.\n");
     ABORT(EXIT_FAILURE);
   }
  
-  HaloGal = mycalloc(MaxGals, sizeof(*(HaloGal))); 
+  //HaloGal = mycalloc(MaxGals, sizeof(*(HaloGal))); 
+  HaloGal = mycalloc(MaxGals, sizeof(struct GALAXY));
   if (HaloGal == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `HaloGal`.\n");
     ABORT(EXIT_FAILURE);
   }
 
-  Gal = mycalloc(FoF_MaxGals, sizeof(*(Gal))); 
+  //Gal = mycalloc(FoF_MaxGals, sizeof(*(Gal))); 
+  Gal = mycalloc(FoF_MaxGals, sizeof(struct GALAXY));
   if (Gal == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `Gal`.\n");
     ABORT(EXIT_FAILURE);
   }
 
-  MergedGal = mycalloc(MaxMergedGals, sizeof(*(MergedGal))); 
+  //MergedGal = mycalloc(MaxMergedGals, sizeof(*(MergedGal))); 
+  MergedGal = mycalloc(MaxMergedGals, sizeof(struct GALAXY));
   if (MergedGal == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `MergedGal`.\n");
