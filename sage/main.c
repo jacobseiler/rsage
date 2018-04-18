@@ -225,8 +225,6 @@ int main(int argc, char **argv)
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree(tree);
-      if (tree > 1000)
-        break;
     }
 
     finalize_galaxy_file();  
@@ -237,11 +235,6 @@ int main(int argc, char **argv)
 
     if (self_consistent == 1)
     {
-      status = save_selfcon_grid();
-      if (status != EXIT_SUCCESS)
-      {
-        ABORT(EXIT_FAILURE);
-      }
 
       if (ReionizationOn == 3 || ReionizationOn == 4)
       {
@@ -268,13 +261,21 @@ int main(int argc, char **argv)
   char copy_command[MAXLEN];
   snprintf(copy_command, MAXLEN - 1, "cp %s %s", argv[1], OutputDir); 
   system(copy_command);
-
-  //print_final_memory();
-
+  
   if (self_consistent == 1)
   {
-    free_selfcon_grid();
+
+    status = save_selfcon_grid();
+    if (status != EXIT_SUCCESS)
+    {
+      ABORT(EXIT_FAILURE);
+    }
+
+    free_selfcon_grid(SelfConGrid);
   }
+
+  print_final_memory();
+
   return 0;
   
 }

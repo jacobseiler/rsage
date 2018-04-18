@@ -115,13 +115,13 @@ int32_t init_selfcon_grid(void)
 
 }
 
-int32_t free_selfcon_grid(void)
+int32_t free_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_to_free)
 { 
 
-  myfree(SelfConGrid->Nion_HI, sizeof(*(SelfConGrid->Nion_HI)) * SelfConGrid->NumCellsTotal);
-  myfree(SelfConGrid->GalCount, sizeof(*(SelfConGrid->GalCount)) * SelfConGrid->NumCellsTotal);
+  myfree(grid_to_free->Nion_HI, sizeof(*(grid_to_free->Nion_HI)) * grid_to_free->NumCellsTotal);
+  myfree(grid_to_free->GalCount, sizeof(*(grid_to_free->GalCount)) * grid_to_free->NumCellsTotal);
   
-  free(SelfConGrid);
+  free(grid_to_free);
 
   return EXIT_SUCCESS;
 
@@ -186,6 +186,11 @@ int32_t save_selfcon_grid()
   {
     return EXIT_FAILURE;
   }
+
+#ifdef MPI
+  if (ThisTask == 0)
+    free_selfcon_grid(master_grid);    
+#endif
 
   return EXIT_SUCCESS;
 
@@ -435,7 +440,7 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
 
   }
 
-  snprintf(fname_HI, MAX_STRING_LEN, "%s/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, tag, LowSnap); 
+  snprintf(fname_HI, MAX_STRING_LEN, "%s/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, tag, HighSnap); 
 
   file_HI = fopen(fname_HI, "wb");
   if (file_HI == NULL)

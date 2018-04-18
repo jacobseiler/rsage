@@ -7,7 +7,7 @@ OutputDir              /lustre/projects/p004_swin/jseiler/kali/tmp/galaxies
 GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/tmp/grids/nion
 
 FirstFile         0 
-LastFile          0 
+LastFile          63 
 
 %------------------------------------------
 %----- Snapshot output list ---------------
@@ -38,7 +38,7 @@ PartMass        7.8436e-4 ; 1e10 Msun/h
 BoxSize		108.96	
 GridSize    256 
 
-self_consistent 0
+self_consistent 1
 %------------------------------------------
 %----- SAGE recipe options ----------------
 %------------------------------------------

@@ -48,7 +48,7 @@ def parse_input_arguments():
 
     parser.add_argument("-d", "--directory", dest="run_directory", 
                       help="Path to the directory the output files will be "
-                           "located.  Required.")
+                           "located.  Required.  Enter WITHOUT the final /")
 
     parser.add_argument("-f", "--SAGE_ini", dest="SAGE_fname", 
                       help="Location of the SAGE ini file.  Required.")
@@ -102,7 +102,8 @@ def create_directories(args):
        
         # If the grids directory didn't exist, there's no way these will.
 
-        dirs = ["grids/nion", "grids/cifog", "grids/cifog/reionmod_dir"]
+        dirs = ["grids/nion", "grids/cifog",
+                "grids/cifog/reionization_modifiers"]
         for directory in dirs:
             dir_ = "{0}/{1}".format(base_dir, directory)
             os.makedirs(dir_)
@@ -130,7 +131,7 @@ def update_ini_files(args):
   
     SAGE_params["OutputDir"] = "{0}/galaxies".format(args["run_directory"])
     SAGE_params["GridOutputDir"] = "{0}/grids/nion".format(args["run_directory"])
-    SAGE_params["PhotoionDir"] = "{0}/galaxies/grids/cifog".format(args["run_directory"])
+    SAGE_params["PhotoionDir"] = "{0}/grids/cifog".format(args["run_directory"])
     SAGE_params["PhotoionName"] = "photHI"
     SAGE_params["ReionRedshiftName"] = "reionization_redshift"
 

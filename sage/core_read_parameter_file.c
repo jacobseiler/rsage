@@ -334,10 +334,6 @@ int32_t read_parameter_file(char *fname)
     }
     fclose(fd);
 
-    i = strlen(OutputDir);
-    if(i > 0)
-      if(OutputDir[i - 1] != '/')
-      strcat(OutputDir, "/");
   }
   else
   {
