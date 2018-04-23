@@ -148,7 +148,7 @@ int32_t init_delayedSN(void)
 
   coreburning_tbins_low = 2; // Any time below 2Myr will result in stars > 120Myr to explode. This is beyond the limits of the IMF.
   coreburning_tbins_high = 45; // Any time above 45Myr will result in stars > 8Myr to explode. Can just return 8.0 in this case. 
-  coreburning_tbins_delta = 0.1;
+  coreburning_tbins_delta = 0.00001;
 
   N_tbins = (coreburning_tbins_high - coreburning_tbins_low) / (coreburning_tbins_delta);
   int32_t bin_idx;
@@ -172,9 +172,9 @@ int32_t init_delayedSN(void)
 
   m_IMFbins_low = 8.0; // The IMF range is from 8.0 to 120.0 Msun.
   m_IMFbins_high = 120.0;
-  m_IMFbins_delta = 0.1;
+  m_IMFbins_delta = 0.00001;
 
-  int32_t N_massbins = (m_IMFbins_high - m_IMFbins_low) / (m_IMFbins_delta);
+  N_massbins = (m_IMFbins_high - m_IMFbins_low) / (m_IMFbins_delta);
   
   IMF_massgrid_eta = malloc(sizeof(*(IMF_massgrid_eta)) * N_massbins); 
   if (IMF_massgrid_eta == NULL)
@@ -192,8 +192,8 @@ int32_t init_delayedSN(void)
 
   for (bin_idx = 0; bin_idx < N_massbins; ++bin_idx)
   {
-    IMF_massgrid_eta[bin_idx] = IMF_CONSTANT * pow(m_IMFbins_low + ((double)bin_idx * m_IMFbins_delta), IMF_slope + 1.0);
-    IMF_massgrid_m[bin_idx] = IMF_CONSTANT * pow(m_IMFbins_low + ((double)bin_idx * m_IMFbins_delta), IMF_slope + 2.0);
+    IMF_massgrid_eta[bin_idx] = pow(m_IMFbins_low + ((double)bin_idx * m_IMFbins_delta), IMF_slope + 1.0);
+    IMF_massgrid_m[bin_idx] = pow(m_IMFbins_low + ((double)bin_idx * m_IMFbins_delta), IMF_slope + 2.0);
   }
 
 #undef IMF_CONSTANT

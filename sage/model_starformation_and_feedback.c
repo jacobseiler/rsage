@@ -322,11 +322,18 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m)
 {
-  int32_t bin_idx_low = (m_low - m_IMFbins_low) / (m_IMFbins_delta); 
-  int32_t bin_idx_high = (m_high - m_IMFbins_low) / (m_IMFbins_delta); 
- 
-  *Delta_Eta = IMF_massgrid_eta[bin_idx_high] - IMF_massgrid_eta[bin_idx_low];
-  *Delta_m = IMF_massgrid_m[bin_idx_high] - IMF_massgrid_m[bin_idx_low];
+
+  int32_t bin_idx_low = round((m_low - m_IMFbins_low) / (m_IMFbins_delta)); 
+  int32_t bin_idx_high = round((m_high - m_IMFbins_low) / (m_IMFbins_delta)); 
+
+  if (bin_idx_high == N_massbins)
+    --bin_idx_high;
+
+  if (bin_idx_low == N_massbins)
+    --bin_idx_low;
+
+  *Delta_Eta = IMF_norm / (IMF_slope + 1.0) * (IMF_massgrid_eta[bin_idx_high] - IMF_massgrid_eta[bin_idx_low]);
+  *Delta_m = IMF_norm / (IMF_slope + 1.0) * (IMF_massgrid_m[bin_idx_high] - IMF_massgrid_m[bin_idx_low]);
 
 }
 
@@ -404,8 +411,17 @@ double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax)
 double calculate_coreburning(double t)
 {
 
-  int32_t bin_idx = (t - coreburning_tbins_low) / (coreburning_tbins_delta); 
+  /*
+  double a = 0.7473; // Fits from Portinari et al. (1998). 
+  double b = -2.6979;
+  double c = -4.7659;
+  double d = 0.5934;
 
+  double m = pow(10, a/log10(t) + b * exp(c/log10(t)) + d); 
+
+  return m; 
+  */
+  int32_t bin_idx = (t - coreburning_tbins_low) / (coreburning_tbins_delta); 
   if (bin_idx < 0) // Time is so short that only stars with mass greater than 120Msun can go nova.
     return 120.0;
 
@@ -413,6 +429,7 @@ double calculate_coreburning(double t)
     return 8.0; 
 
   return coreburning_times[bin_idx];
+
  
 }
 
