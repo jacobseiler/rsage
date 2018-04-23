@@ -11,7 +11,6 @@ int  join_galaxies_of_progenitors(int treenr, int halonr, int nstart);
 void init(void);
 int32_t init_grid(void);
 int32_t init_reion_lists(int32_t filenr);
-void set_units(void);
 
 void load_tree_table(int filenr, int32_t treestyle);
 void load_tree(int nr);
@@ -76,7 +75,6 @@ double get_virial_mass(int halonr);
 double get_disk_radius(int halonr, int p);
 
 void read_output_snaps(void);
-void read_snap_list(void);
 void read_cooling_functions(void);
 double get_metaldependent_cooling_rate(double logTemp, double logZ);
 double get_rate(int tab, double logTemp);

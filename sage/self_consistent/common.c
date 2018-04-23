@@ -80,7 +80,7 @@ void update_temporal_array(int p, int halonr, int steps_completed)
     Gal[p].GridDustEjectedMass[SnapCurr] = Gal[p].DustEjectedMass;
     Gal[p].GridType[SnapCurr] = Gal[p].Type;
 
-    if (self_consistent == 1 && SnapCurr == HighSnap)
+    if (self_consistent == 1 && SnapCurr == HighSnap && (ReionizationOn == 3 || ReionizationOn == 4))
     {
       status = update_selfcon_grid(&Gal[p], grid_position, SnapCurr);
       if (status != EXIT_SUCCESS)
