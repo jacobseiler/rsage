@@ -2,9 +2,9 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies       tmp 
-OutputDir              /lustre/projects/p004_swin/jseiler/kali/tmp/galaxies
-GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/tmp/grids/nion
+FileNameGalaxies       base 
+OutputDir              /lustre/projects/p004_swin/jseiler/kali/base_reionization_off/galaxies
+GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion
 
 FirstFile         0 
 LastFile          63 
@@ -38,7 +38,8 @@ PartMass        7.8436e-4 ; 1e10 Msun/h
 BoxSize		108.96	
 GridSize    256 
 
-self_consistent 1
+self_consistent 0
+
 %------------------------------------------
 %----- SAGE recipe options ----------------
 %------------------------------------------
@@ -46,7 +47,7 @@ self_consistent 1
 SFprescription        0   ;0: original Croton et al. 2006
 AGNrecipeOn           2   ;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
 SupernovaRecipeOn     1   ;0: switch off
-ReionizationOn        1  ;0: switch off; 1: Base; 2: Use <<Photoionization Options>> to calculate the Sobacchi & Meisinger (2014) filtering Mass. 
+ReionizationOn        0 ;0: switch off; 1: Base; 2: Use <<Photoionization Options>> to calculate the Sobacchi & Meisinger (2014) filtering Mass. 
 DiskInstabilityOn     1   ;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
 
 
@@ -100,7 +101,7 @@ ReionSnap           29
 
 PhotonPrescription  1  ; 0: for photons emitted based on Halos (using Source Efficiency parameter); 1: Using the photons from STARBURST spectra.
 Verbose         1 ;
-fescPrescription 0 ; 
+fescPrescription 3 ; 
 % 0: For constant f_esc (given by fesc) 
 % 1: Scaling with Halo Mass (function from Kimm et al 2016) DEPRECATED 
 % 2: Power Law as a function of halo mass. Fixed points of the curve are defined by (MH_low, fesc_low) and (MH_high, fesc_high).
@@ -113,7 +114,7 @@ MH_low          3.96e9
 fesc_low        1e-4
 MH_high         3.16e11
 fesc_high       0.95
-alpha           0.7
+alpha           0.3
 beta            0.0
 fesc            0.20 ; Constant fesc for fescPrescription == 0.
 quasar_baseline 0.10 ; Baseline escape fraction.

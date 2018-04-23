@@ -204,7 +204,7 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["HaloPartCut"][0])
 
     elif fesc_prescription == 3:
-        nion_fname = "{0}_ejected_alpha{1:.3f}_beta{2:.3f}_HaloPartCut{3}_nionHI" \
+        nion_fname = "{0}_ejected_{1:.3f}_{2:.3f}_HaloPartCut{3}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"][0],
                              SAGE_params["alpha"][0],
                              SAGE_params["beta"][0],

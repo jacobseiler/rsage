@@ -421,7 +421,7 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
       break;
 
     case 3:
-      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.2f_%.2f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
       break;
 
     /*
