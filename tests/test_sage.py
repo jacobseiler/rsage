@@ -37,7 +37,7 @@ import PlotScripts
 
 def get_trees():
     """
-    Grabs the trees needed for the testing. 
+    Grabs the trees and galaxy output needed for the testing. 
 
     First checks the test directory to see if they trees are there.
     Otherwise downloads the test_RSAGE repo.
@@ -56,9 +56,9 @@ def get_trees():
     """
 
     print("")
-    print("Checking to see if we need to download the test tree file.")
+    print("Checking to see if we need to download the test tree and output file.")
 
-    tree_file = "{0}/trees_063_000.dat".format(test_dir)
+    tree_file = "{0}/trees_063_000.dat".format(test_dir)    
     if not os.path.isfile(tree_file):
         print("{0} does not exist, downloading the test_RSAGE repo and "
               "unzipping.".format(tree_file))
@@ -108,7 +108,7 @@ def run_my_sage():
     print("Done.")
     print("Executing SAGE.")    
 
-    path_to_sage = "{0}/../sage/sage".format(test_dir)
+    path_to_sage = "{0}/../sage/optimization_sage".format(test_dir)
     path_to_ini = "{0}/test_ini_files/test_mini_millennium.ini".format(test_dir)
     subprocess.call([path_to_sage, path_to_ini])
 
@@ -123,6 +123,8 @@ def check_smf():
 
     AllVars.Set_Params_MiniMill()
     max_snap = len(AllVars.SnapZ) - 1
+
+    # First check that the output of the test run can be read. 
 
     Gals, Gals_Desc = ReadScripts.ReadGals_SAGE("test_output/galaxies/test_z0.000",
                                                 0, max_snap + 1)
@@ -145,13 +147,39 @@ def check_smf():
                                               position[w_wrong]))
         raise RuntimeError
 
-    mass = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / AllVars.Hubble_h)
-    w_wrong = np.where(mass <= 0.0)[0] 
+    mass_test = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / AllVars.Hubble_h)
+    w_wrong = np.where(mass_test <= 0.0)[0] 
     if (len(w_wrong) > 0):
         print("The mass of the acceptable galaxies must be greater than 0.0.")
         print("Galaxies {0} had stellar mass {1}.".format(w_gal[w_wrong],
-                                                          mass[w_wrong]))
+                                                          mass_test[w_wrong]))
         raise RuntimeError
+
+    # Now let's check compare the mass of the test to the data. 
+
+    Gals_data, Gals_Desc = ReadScripts.ReadGals_SAGE("./mini_millennium_z0.000",
+                                                     0, max_snap + 1)
+    Gals_Merged_data, _= ReadScripts.ReadGals_SAGE("./mini_millennium_MergedGalaxies",
+                                                   0, max_snap + 1)
+    Gals_data = ReadScripts.Join_Arrays(Gals_data, Gals_Merged_data, Gals_Desc)
+
+    w_gal_data = np.where((Gals_data.GridHistory[:, max_snap] != -1) & 
+                         (Gals_data.GridStellarMass[:, max_snap] > 0.0))[0]
+   
+    mass_data = np.log10(Gals_data.GridStellarMass[w_gal_data, max_snap] * 1.0e10 / AllVars.Hubble_h)
+    mass_difference = mass_test - mass_data
+    w_wrong = np.where(mass_difference > 3e-3)[0]
+    if (len(w_wrong) > 0):
+        print("There must be no difference between the mass of the test run and"
+              " the data in the test_RSAGE repository")
+        print("Test Galaxies {0} had stellar mass {1} and data Galaxies {2} "
+              "have stellar mass {3}".format(w_gal[w_wrong],
+                                             mass_test[w_wrong],
+                                             w_gal_data[w_wrong],
+                                             mass_data[w_wrong]))
+        print("The difference is {0}".format(mass_difference[w_wrong]))
+        raise RuntimeError
+    
 
     print("")
     print("================")

@@ -194,3 +194,16 @@ long count_gal;
 
 int32_t LowSnap;
 int32_t HighSnap;
+
+float *IMF_massgrid_eta;
+float *IMF_massgrid_m;
+float m_IMFbins_low;
+float m_IMFbins_high;
+float m_IMFbins_delta;
+float N_massbins;
+
+float *coreburning_times;
+float coreburning_tbins_low;
+float coreburning_tbins_high;
+float coreburning_tbins_delta;
+float N_tbins;

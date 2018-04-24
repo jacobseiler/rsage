@@ -419,4 +419,17 @@ extern long count_gal;
 extern int32_t LowSnap;
 extern int32_t HighSnap;
 
+extern float *IMF_massgrid_eta;
+extern float *IMF_massgrid_m;
+extern float m_IMFbins_low;
+extern float m_IMFbins_high;
+extern float m_IMFbins_delta;
+extern float N_massbins;
+
+extern float *coreburning_times;
+extern float coreburning_tbins_low;
+extern float coreburning_tbins_high;
+extern float coreburning_tbins_delta;
+extern float N_tbins;
+
 #endif  // #ifndef ALLVARS_H
