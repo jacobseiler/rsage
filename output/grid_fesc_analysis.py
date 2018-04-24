@@ -487,14 +487,13 @@ if __name__ == '__main__':
     #fname =["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties"] 
     #fname = [fname[0]]
 
-    nion_fname =["/lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion/base_ejected_alpha0.300_beta0.000_HaloPartCut32_nionHI", 
-                 "/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/nion/tmp_fesc0.20_HaloPartCut32_nionHI"]
+    nion_fname=["/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/nion/tmp_fesc0.20_HaloPartCut32_nionHI",
+                "/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/grids/nion/base_ejected_0.300_0.000_HaloPartCut32_nionHI"]
  
     simulation_norm = [6, 6]
 
-    plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1, model_tags, "test_base_nion")
     plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1,
-              model_tags, "reion_off")
+              model_tags, "selfcons_fej")
 
     #plot_fesc_z(fname, PlotSnapshot, model_tags, "base")
 

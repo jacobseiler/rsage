@@ -2373,11 +2373,11 @@ if __name__ == '__main__':
 
     ## Kali ## 
    
-    model_tags = [r"$SelfConsi \: 256$", r"$SelfCons \: 1024 \: -> \: 256$"] 
+    model_tags = [r"$Constant$", r"$fej$", r"$fejpower$"]
 
     output_tags = [r"Base Reion On", r"Base Reion Off", r"Consistent"]
 
-    number_models = 2
+    number_models = 3
 
     simulation_model1 = 6 # Which simulation are we using?
     # 0 : Mysim (Manodeep's original simulation run).
@@ -2386,7 +2386,7 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'self_consistent_kali_new'
+    model = 'self_consistent_kali_fejpower'
 
     GridSize_model1 = 256
         
@@ -2395,11 +2395,15 @@ if __name__ == '__main__':
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/cifog/XHII"
     filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/cifog/XHII"
     filepath_model4 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/cifog/XHII"
-    
+    filepath_model5 = "/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/grids/cifog/XHII"
+    filepath_model6 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/cifog/XHII"
+
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
     filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
     filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/nion/test_fesc0.20_HaloPartCut32_nionHI"
     filepath_nion_model4 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/nion/tmp_fesc0.20_HaloPartCut32_nionHI"
+    filepath_nion_model5 = "/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/grids/nion/base_ejected_0.300_0.000_HaloPartCut32_nionHI"
+    filepath_nion_model6 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/nion/base_ejectedpower_1.000e-02_0.01_1.000e+00_0.60_HaloPartCut32_nionHI"
   
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/snap"
     filepath_density_model2 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/snap"
@@ -2411,11 +2415,14 @@ if __name__ == '__main__':
     simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1, simulation_model1]
     precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
-    ionized_cells_filepath_array = [filepath_model2,
-                                    filepath_model4]
-    nion_filepath_array = [filepath_nion_model3, 
-                           filepath_nion_model4]
-    density_filepath_array = [filepath_density_model1,
+    ionized_cells_filepath_array = [filepath_model4,
+                                    filepath_model5,
+                                    filepath_model6]
+    nion_filepath_array = [filepath_nion_model4,
+                           filepath_nion_model5, 
+                           filepath_nion_model6]
+    density_filepath_array = [filepath_density_model4,
+                              filepath_density_model4,
                               filepath_density_model4] 
     #photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2]
     

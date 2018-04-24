@@ -195,7 +195,7 @@ def get_nion_fname(SAGE_params):
 
     elif fesc_prescription == 2:
         alpha, beta = determine_fesc_constants(SAGE_params)              
-        nion_fname = "{0}_MH_{1:.3e}_{2:.3e}_{3:.3e}_{4:.3e}_HaloPartCut{5}_nionHI" \
+        nion_fname = "{0}_MH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"][0],
                              SAGE_params["MH_low"][0],
                              SAGE_params["fesc_low"][0],
@@ -226,6 +226,19 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["MH_high"][0],
                              SAGE_params["fesc_high"][0],
                              SAGE_params["HaloPartCut"][0])
+
+    elif fesc_prescription == 7:
+        nion_fname = "{0}_ejectedpower_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
+                     .format(SAGE_params["FileNameGalaxies"][0],
+                             SAGE_params["MH_low"][0],
+                             SAGE_params["fesc_low"][0],
+                             SAGE_params["MH_high"][0],
+                             SAGE_params["fesc_high"][0],
+                             SAGE_params["HaloPartCut"][0])
+        
+    else:
+        print("Select a valid fescPrescription (0 to 7 inclusive).")
+        raise ValueError
 
     return nion_fname
 

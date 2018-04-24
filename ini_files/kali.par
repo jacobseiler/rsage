@@ -101,7 +101,7 @@ ReionSnap           29
 
 PhotonPrescription  1  ; 0: for photons emitted based on Halos (using Source Efficiency parameter); 1: Using the photons from STARBURST spectra.
 Verbose         1 ;
-fescPrescription 3 ; 
+fescPrescription 7 ; 
 % 0: For constant f_esc (given by fesc) 
 % 1: Scaling with Halo Mass (function from Kimm et al 2016) DEPRECATED 
 % 2: Power Law as a function of halo mass. Fixed points of the curve are defined by (MH_low, fesc_low) and (MH_high, fesc_high).
@@ -109,11 +109,12 @@ fescPrescription 3 ;
 % 4: fesc is boosted by recent quasar activity. Has a baseline fesc given by quasar_baseline, boosted fesc given by quasar_boosted which lasts N_dyntime dynamical times.
 % 5: Anne's fesc functional form that decreases for increasing halo mass. Fixed points as defined in identical manner to fescPrescription == 2. 
 % 6: Anne's fesc functional form that increases for decreasing halo mass. Fixed points as defined in identical manner to fescPrescription == 2. 
+% 7: Power law as a function of ejected fraction. Function is of the form alpha*fej^beta.
 
-MH_low          3.96e9 
-fesc_low        1e-4
-MH_high         3.16e11
-fesc_high       0.95
+MH_low          0.01 
+fesc_low        0.01 
+MH_high         1.0
+fesc_high       0.6
 alpha           0.3
 beta            0.0
 fesc            0.20 ; Constant fesc for fescPrescription == 0.
