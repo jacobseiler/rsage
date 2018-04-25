@@ -9,7 +9,6 @@
 #include "core_proto.h"
 
 
-
 double cooling_recipe(int gal, double dt)
 {
   double tcool, x, logZ, lambda, rcool, rho_rcool, rho0, temp, coolingGas;

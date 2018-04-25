@@ -179,6 +179,13 @@ struct GALAXY
   float DustHotGas;
   float DustEjectedMass;
 
+  // Quasar Activity Tracking 
+
+  int32_t QuasarActivityToggle;
+  float TargetQuasarTime;
+  float QuasarBoostActiveTime;
+  float QuasarFractionalPhotons;
+
 }
 *Gal, *HaloGal, *MergedGal;
 

@@ -144,6 +144,12 @@ void init_galaxy(int p, int halonr, int treenr)
   Gal[p].DustHotGas = 0.0;
   Gal[p].DustEjectedMass = 0.0;
 
+  // Quasar Activity Tracking 
+  
+  Gal[p].QuasarActivityToggle = 0;
+  Gal[p].TargetQuasarTime = 0.0;
+  Gal[p].QuasarBoostActiveTime = 0.0;
+  Gal[p].QuasarFractionalPhotons = 0.0;
 }
 
 double get_disk_radius(int halonr, int p)

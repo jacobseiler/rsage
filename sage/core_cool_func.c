@@ -81,7 +81,6 @@ void read_cooling_functions(void)
 }
 
 
-
 double get_metaldependent_cooling_rate(double logTemp, double logZ)  // pass: log10(temperatue/Kelvin), log10(metallicity) 
 {
   int i;
