@@ -74,26 +74,11 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   Gal[centralgal].DustHotGas -= ejected_mass * dust_fraction_hot; // Dust that has been ejected from the galaxy.
   Gal[centralgal].DustHotGas -= NSN * eta * Ms * dust_fraction_hotcold; // Dust that has been annihilated by shocks.
   dust_removed += NSN * eta * Ms * dust_fraction_hotcold;
-
-
-  //if( NSN * eta * Ms * dust_fraction_hotcold > 0.0) 
-  //printf("NSN = %.4e\tdust_fraction_hotcold = %.4e\tNSN*eta*Ms*dust_fraction_hotcold = %4e\n", NSN, dust_fraction_hotcold, NSN * eta * Ms * dust_fraction_hotcold);
-
-//if (dust_added > 0.0)
-//fprintf(stderr, "Dust added = %.4e\tDust removed = %.4e\n", dust_added, dust_removed);
  
   Gal[centralgal].EjectedMass += ejected_mass;
   Gal[centralgal].MetalsEjectedMass += ejected_mass * metallicityHot;
 
   Gal[centralgal].DustEjectedMass += ejected_mass * dust_fraction_hot; 
-
-  //assert(ejected_mass == ejected_mass);
-  //assert(dust_fraction_hot == dust_fraction_hot);
-  // Both of these asserts pass.
-
- 
-  //printf("ejected_mass %.4e\tdust_fraction_hot %.4e\tDustEjectedMass %.4e\n", ejected_mass, dust_fraction_hot, Gal[centralgal].DustEjectedMass);
-  XASSERT(Gal[centralgal].DustEjectedMass == Gal[centralgal].DustEjectedMass, "ejected_mass %.4e\tdust_fraction_hot %.4e\tDustEjectedMass %.4e\n", ejected_mass, dust_fraction_hot, Gal[centralgal].DustEjectedMass);
 
   Gal[p].GridOutflowRate[Halo[Gal[centralgal].HaloNr].SnapNum] += ejected_mass / dt; 
 
@@ -111,6 +96,11 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
     Gal[p].MetalsHotGas = 0.0; 
   if(Gal[p].GrandSum < 0.0)
     Gal[p].GrandSum = 0.0;
+
+  if (Gal[p].DustColdGas < 0.0)
+    Gal[p].DustColdGas = 0.0;
+  if (Gal[p].DustHotGas < 0.0)
+    Gal[p].DustHotGas = 0.0;
  
 }
 

@@ -39,10 +39,8 @@ void reincorporate_gas(int centralgal, double dt)
     Gal[centralgal].DustHotGas += dust_fraction_ejected * reincorporated;
 
     if (Gal[centralgal].DustEjectedMass < 0.0)
-    {
       Gal[centralgal].DustEjectedMass = 0.0;
-    } 
-    assert(Gal[centralgal].DustEjectedMass == Gal[centralgal].DustEjectedMass);
+
   }
 
 }
