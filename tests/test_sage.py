@@ -108,7 +108,7 @@ def run_my_sage():
     print("Done.")
     print("Executing SAGE.")    
 
-    path_to_sage = "{0}/../sage/optimization_sage".format(test_dir)
+    path_to_sage = "{0}/../sage/sage".format(test_dir)
     path_to_ini = "{0}/test_ini_files/test_mini_millennium.ini".format(test_dir)
     subprocess.call([path_to_sage, path_to_ini])
 
@@ -154,6 +154,8 @@ def check_smf():
         print("Galaxies {0} had stellar mass {1}.".format(w_gal[w_wrong],
                                                           mass_test[w_wrong]))
         raise RuntimeError
+
+    print(mass_test)
 
     # Now let's check compare the mass of the test to the data. 
 

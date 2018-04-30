@@ -11,7 +11,7 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
-
+int32_t update_quasar_tracking(int32_t gal, int32_t step, float substep_dt);
 
 void construct_galaxies(int halonr, int tree, int filenr)
 {
@@ -334,7 +334,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
       // If we're doing the quasar boosted fescPrescription, update the tracking.
       if (fescPrescription == 4)
       {
-        update_quasar_tracking();
+        update_quasar_tracking(p, step, substep_dt);
       } 
 
       // For the central galaxy only 
@@ -504,7 +504,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
 }
 
 
-int32_t update_quasar_tracking(int32_t gal)
+int32_t update_quasar_tracking(int32_t gal, int32_t step, float substep_dt)
 {
 
   if (Gal[gal].QuasarActivityToggle > 0)
