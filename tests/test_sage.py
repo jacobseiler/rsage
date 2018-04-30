@@ -155,8 +155,6 @@ def check_smf():
                                                           mass_test[w_wrong]))
         raise RuntimeError
 
-    print(mass_test)
-
     # Now let's check compare the mass of the test to the data. 
 
     Gals_data, Gals_Desc = ReadScripts.ReadGals_SAGE("./mini_millennium_z0.000",
