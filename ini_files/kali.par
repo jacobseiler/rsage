@@ -2,9 +2,9 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies       tmp 
-OutputDir              /lustre/projects/p004_swin/jseiler/kali/tmp/galaxies
-GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/tmp/grids/nion
+FileNameGalaxies       base 
+OutputDir              /lustre/projects/p004_swin/jseiler/kali/new_save/galaxies
+GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/new_save/grids/nion
 
 FirstFile         0 
 LastFile          63 
@@ -38,7 +38,7 @@ PartMass        7.8436e-4 ; 1e10 Msun/h
 BoxSize		108.96	
 GridSize    256 
 
-self_consistent 1
+self_consistent 0
 %------------------------------------------
 %----- SAGE recipe options ----------------
 %------------------------------------------

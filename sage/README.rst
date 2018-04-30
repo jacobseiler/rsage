@@ -104,7 +104,7 @@ its value will be given by the **Default:** parameter.
 | DynamicalTime      | Dynamical time of the host halo.  Default: 0.0.                     | 32 bit float.  | Myr.                                             | MAXSNAPS           |
 +--------------------+---------------------------------------------------------------------+----------------+--------------------------------------------------+--------------------+
 | LenMergerGal       | If there was a merger in this galaxy's past, denotes the number of  |                |                                                  |                    |
-|                    | dark matter particles of the **merging** halo.  Default: -1.        | 32 bit integer.| Myr.                                             | MAXSNAPS           |
+|                    | dark matter particles of the **merging** halo.  Default: -1.        | 32 bit integer.| Unitless.  Greater than 0.                       | MAXSNAPS           |
 +--------------------+---------------------------------------------------------------------+----------------+--------------------------------------------------+--------------------+
 | GridReionMod       | Value of the reionization modifier.  Default: -1.                   | 32 bit float.  | Unitless.  Greater than (or equal to) 0.         | MAXSNAPS           |
 +--------------------+---------------------------------------------------------------------+----------------+--------------------------------------------------+--------------------+
