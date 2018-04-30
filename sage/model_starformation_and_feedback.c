@@ -59,8 +59,6 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
 
   dust_removed += NSN * eta * Ms * dust_fraction_coldhot;
 
-  //fprintf(stderr, "Dust added = %.4e\tCold Dust Removed Reheated= %4.e\tCold Dust Removed Annihilated = %4.e\n", yd * NSN, reheated_mass * dust_fraction_cold, NSN * eta * Ms* dust_fraction_coldhot); 
-
   Gal[centralgal].HotGas += reheated_mass;
   Gal[centralgal].MetalsHotGas += reheated_mass * metallicity;
   Gal[centralgal].DustHotGas += reheated_mass * dust_fraction_cold; 
@@ -68,6 +66,8 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   metallicityHot = get_metallicity(Gal[centralgal].HotGas, Gal[centralgal].MetalsHotGas);
   dust_fraction_hot = get_dust_fraction(Gal[p].HotGas, Gal[p].DustHotGas);
   dust_fraction_hotcold = get_dust_fraction(Gal[p].ColdGas + Gal[p].HotGas + Gal[p].EjectedMass, Gal[p].DustHotGas);
+  // When dust_fraction_hotcold is calculated is irrelevant (i.e., before or after mass is added/subtracted from ColdGas).
+  // This is because mass is conserved between ColdGas and HotGas during this step.
 
   Gal[centralgal].HotGas -= ejected_mass;
   Gal[centralgal].MetalsHotGas -= ejected_mass * metallicityHot;
