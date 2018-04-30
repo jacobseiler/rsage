@@ -11,6 +11,7 @@ import PlotScripts
 import ReadScripts
 import AllVars
 
+import subprocess
 def parse_input_arguments():
     """
     Parses the command line input arguments.
@@ -51,6 +52,11 @@ def parse_input_arguments():
                         "but with value of HighSnap and stopSnapshot "
                         "incremented by 1.  Default: None", 
                         default = None)
+    parser.add_argument("-x", "--run_prefix", dest="prefix",
+                        help="Prefix for the naming of files. Useful to run "
+                            "multiple models with only slight variations. "
+                            "Default: No prefixes.", default = None)
+
     args = parser.parse_args()
 
     if (args.SAGE_fname is None):
@@ -138,18 +144,27 @@ def increment_ini(args):
     ``args["ini_dir"]``.
     """
 
+    if args["prefix"] is None:
+        prefix_tag = ""
+    else:
+        prefix_tag = args["prefix"]
+
     cifog_params, cifog_params_names, cifog_headers = ReadScripts.read_cifog_ini(args["cifog_fname"])
     SAGE_params, SAGE_params_names = ReadScripts.read_SAGE_ini(args["SAGE_fname"])
+
+    concat_properties(SAGE_params)
 
     SAGE_params['HighSnap'] = [SAGE_params['HighSnap'][0] + 1] 
     SAGE_params['ReionSnap'] = [SAGE_params['ReionSnap'][0] + 1] 
 
     cifog_params["stopSnapshot"] = [cifog_params["stopSnapshot"][0] + 1]
  
-    fname_SAGE = "{0}/SAGE_snap{1}.ini".format(args["ini_dir"],
-                                               SAGE_params["HighSnap"][0])
-    fname_cifog = "{0}/cifog_snap{1}.ini".format(args["ini_dir"],
-                                                 cifog_params["stopSnapshot"][0])
+    fname_SAGE = "{0}/{2}_SAGE_snap{1}.ini".format(args["ini_dir"],
+                                                   SAGE_params["HighSnap"][0],
+                                                   prefix_tag)
+    fname_cifog = "{0}/{2}_cifog_snap{1}.ini".format(args["ini_dir"],
+                                                     cifog_params["stopSnapshot"][0],
+                                                     prefix_tag)
    
     with open (fname_SAGE, "w+") as f:
         for name in SAGE_params_names:
@@ -164,8 +179,29 @@ def increment_ini(args):
             string = "{0} = {1}\n".format(name, cifog_params[name][0])
             f.write(string)
 
-    print("Successfully wrote to {0}".format(fname_SAGE))
-    print("Successfully wrote to {0}".format(fname_cifog))
+    print("Successfully created ini file {0}".format(fname_SAGE))
+    print("Successfully created ini file {0}".format(fname_cifog))
+
+
+def concat_properties(SAGE_params):
+
+    command = "cat {0}/properties/misc_properties_{1:03d}_*" \
+                 .format(SAGE_params["GridOutputDir"][0],
+                 SAGE_params["HighSnap"][0])
+
+    fname = "{0}/properties/misc_properties_{1:03d}" \
+                 .format(SAGE_params["GridOutputDir"][0],
+                 SAGE_params["HighSnap"][0])
+    
+    f = open(fname, "w")
+    subprocess.call(command, stdout=f, shell=True)
+    f.close() 
+
+    command = "rm {0}/properties/misc_properties_{1:03d}_*" \
+                 .format(SAGE_params["GridOutputDir"][0],
+                 SAGE_params["HighSnap"][0])
+
+    subprocess.call(command, shell=True)
 
 if __name__ == '__main__':
 
@@ -176,3 +212,4 @@ if __name__ == '__main__':
 
     if args["ini_dir"] is not None:
         increment_ini(args)
+

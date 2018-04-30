@@ -47,14 +47,19 @@ def parse_input_arguments():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-d", "--directory", dest="run_directory", 
-                      help="Path to the directory the output files will be "
-                           "located.  Required.  Enter WITHOUT the final /")
+                        help="Path to the directory the output files will be "
+                             "located.  Required.  Enter WITHOUT the final /")
 
     parser.add_argument("-f", "--SAGE_ini", dest="SAGE_fname", 
-                      help="Location of the SAGE ini file.  Required.")
+                        help="Location of the SAGE ini file.  Required.")
 
     parser.add_argument("-c", "--cifog_ini", dest="cifog_fname", 
-                      help="Location of the cifog ini file.  Required.")
+                        help="Location of the cifog ini file.  Required.")
+
+    parser.add_argument("-p", "--run_prefix", dest="prefix",
+                        help="Prefix for the naming of files. Useful to run "
+                            "multiple models with only slight variations. "
+                            "Default: No prefixes.", default = None)
 
     args = parser.parse_args()
 
@@ -128,22 +133,31 @@ def update_ini_files(args):
 
     SAGE_params, SAGE_params_names = ReadScripts.read_SAGE_ini(args["SAGE_fname"])
     cifog_params, cifog_params_names, cifog_headers = ReadScripts.read_cifog_ini(args["cifog_fname"])
-  
+ 
+    if args["prefix"] is None:
+        prefix_tag = ""
+    else:
+        prefix_tag = args["prefix"]
+ 
     SAGE_params["OutputDir"] = "{0}/galaxies".format(args["run_directory"])
     SAGE_params["GridOutputDir"] = "{0}/grids/nion".format(args["run_directory"])
     SAGE_params["PhotoionDir"] = "{0}/grids/cifog".format(args["run_directory"])
-    SAGE_params["PhotoionName"] = "photHI"
-    SAGE_params["ReionRedshiftName"] = "reionization_redshift"
+    SAGE_params["PhotoionName"] = "{0}_photHI".format(prefix_tag)
+    SAGE_params["ReionRedshiftName"] = "{0}_reionization_redshift" \
+                                       .format(prefix_tag)
 
-    nion_fname = get_nion_fname(SAGE_params)
+    nion_fname = get_nion_fname(SAGE_params) 
     cifog_params["inputNionFile"] = "{0}/grids/nion/{1}" \
                                     .format(args["run_directory"], nion_fname)
-    cifog_params["output_XHII_file"] = "{0}/grids/cifog/XHII" \
-                                       .format(args["run_directory"])
-    cifog_params["output_photHI_file"] = "{0}/grids/cifog/photHI" \
-                                       .format(args["run_directory"])
-    cifog_params["output_restart_file"] = "{0}/grids/cifog/restart" \
-                                       .format(args["run_directory"])
+    cifog_params["output_XHII_file"] = "{0}/grids/cifog/{1}_XHII" \
+                                       .format(args["run_directory"],
+                                               prefix_tag)
+    cifog_params["output_photHI_file"] = "{0}/grids/cifog/{1}_photHI" \
+                                         .format(args["run_directory"],
+                                                 prefix_tag)
+    cifog_params["output_restart_file"] = "{0}/grids/cifog/{1}_restart" \
+                                          .format(args["run_directory"],
+                                                  prefix_tag)
     print("Nion_fname {0}".format(nion_fname))
 
     with open (args["SAGE_fname"], "w+") as f:

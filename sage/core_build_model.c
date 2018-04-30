@@ -62,7 +62,7 @@ void construct_galaxies(int halonr, int tree, int filenr)
 
     while(fofhalo >= 0)
     {
-      ngal = join_galaxies_of_progenitors(tree, fofhalo, ngal);
+      ngal = join_galaxies_of_progenitors(tree, fofhalo, ngal, filenr);
       fofhalo = Halo[fofhalo].NextHaloInFOFgroup;
     }
 
@@ -73,7 +73,7 @@ void construct_galaxies(int halonr, int tree, int filenr)
 
 
 
-int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
+int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart, int32_t filenr)
 {
   int ngal, prog, i, j, first_occupied, lenmax, lenoccmax, centralgal;
   double previousMvir, previousVvir, previousVmax;
@@ -245,7 +245,7 @@ int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
   if(ngal == 0)
   {
     // We have no progenitors with galaxies. This means we create a new galaxy. 
-    init_galaxy(ngal, halonr, treenr);
+    init_galaxy(ngal, halonr, treenr, filenr);
     ngal++;
   }
 
@@ -334,20 +334,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
       // If we're doing the quasar boosted fescPrescription, update the tracking.
       if (fescPrescription == 4)
       {
-        if (Gal[p].QuasarActivityToggle > 0)
-        {
-          Gal[p].QuasarBoostActiveTime += substep_dt; 
-          if (Gal[p].QuasarBoostActiveTime > Gal[p].TargetQuasarTime)
-          {
-            Gal[p].QuasarActivityToggle -= 1;
-            if (Gal[p].QuasarActivityToggle == 0) // There can be the case where a quasar goes off while the galaxy has it's fesc still boosted. Only turn off boost when ALL quasars have been switched off. 
-            {
-              Gal[p].QuasarFractionalPhotons = (step + 1.0) / STEPS; // Turn the quasar off partway through the snapshot.
-                                                                     // We do the +1.0 because we measure from the END of a substep.
-                                                                     // i.e., if the quasar boost turns off when step == 4, it was active for 50% of the snapshot, not 40%.
-            }
-          }
-        } 
+        update_quasar_tracking();
       } 
 
       // For the central galaxy only 
@@ -516,3 +503,27 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
   }
 }
 
+
+int32_t update_quasar_tracking(int32_t gal)
+{
+
+  if (Gal[gal].QuasarActivityToggle > 0)
+  {
+    Gal[gal].QuasarBoostActiveTime += substep_dt; 
+    if (Gal[gal].QuasarBoostActiveTime > Gal[gal].TargetQuasarTime)
+    {
+      Gal[gal].QuasarActivityToggle -= 1;
+      if (Gal[gal].QuasarActivityToggle == 0) // There can be the case where a quasar goes off while the galaxy has it's fesc still boosted. Only turn off boost when ALL quasars have been switched off. 
+      {
+        Gal[gal].QuasarFractionalPhotons = (step + 1.0) / STEPS; // Turn the quasar off partway through the snapshot.
+                                                               // We do the +1.0 because we measure from the END of a substep.
+                                                               // i.e., if the quasar boost turns off when step == 4, it was active for 50% of the snapshot, not 40%.
+        Gal[gal].QuasarBoostActiveTime = 0.0;
+        Gal[gal].TargetQuasarTime = 0.0;  
+      }
+    }
+  }
+
+  return EXIT_SUCCESS;
+ 
+}

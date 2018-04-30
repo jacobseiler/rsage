@@ -67,6 +67,9 @@ do {                                                                \
 // This structure contains the properties used within the code
 struct GALAXY
 {
+
+  int32_t FileNr;
+
   int   SnapNum;
   int   Type;
 

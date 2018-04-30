@@ -17,6 +17,7 @@
 struct SELFCON_GRID_STRUCT *MPI_sum_grids(void);
 #endif
 // Local Variables //
+FILE *fesc_file = NULL;
 
 // Local Proto-Types //
 
@@ -141,6 +142,7 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   int32_t status;
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII, fesc_local;
   float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
+  char fesc_fname[MAX_STRING_LEN];
 
   status = determine_nion(g->GridSFR[snapshot] * SFR_conversion, g->GridZ[snapshot], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
   if (status != EXIT_SUCCESS)
@@ -158,7 +160,27 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   {
     SelfConGrid->Nion_HI[grid_idx] += pow(10, Ngamma_HI - 50.0) * fesc_local; // Keep the number of ionizing photons in units of 10^50 photons/s. 
   }
+  
+  if (fesc_file == NULL)
+  {
+    snprintf(fesc_fname, MAX_STRING_LEN - 1, "%s/properties/misc_properties_%03d_%d", GridOutputDir, HighSnap, g->FileNr);
+    fesc_file = fopen(fesc_fname, "w");
+    if (fesc_file == NULL)
+    {
+      fprintf(stderr, "Could not open file %s\n", fesc_fname);
+      return EXIT_FAILURE;
+    }
+    printf("Opened file!\n");
+  }
 
+  if (fesc_file == NULL)
+  {
+    fprintf(stderr, "Attempted to write to the fesc properties file (%s) but it is not opened.\n", fesc_fname);
+    return EXIT_FAILURE;
+  }
+
+  fprintf(fesc_file, "%.4f %.4f %d %.4e %.4e %.4e %.4e\n", fesc_local, g->EjectedFraction[snapshot], g->Len, get_virial_mass(g->HaloNr), get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup), g->StellarMass, Ngamma_HI); 
+ 
   ++(SelfConGrid->GalCount[grid_idx]);
 
   return EXIT_SUCCESS;
@@ -199,6 +221,11 @@ int32_t save_selfcon_grid()
   if (ThisTask == 0)
     free_selfcon_grid(master_grid);    
 #endif
+
+  if (fesc_file != NULL)
+  {
+    fclose(fesc_file);
+  }
 
   return EXIT_SUCCESS;
 
@@ -325,6 +352,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
   float halomass = g->GridFoFMass[snapshot] * 1.0e10 / Hubble_h;
   float ejectedfraction = g->EjectedFraction[snapshot];
+  float quasarfrac = g->QuasarFractionalPhotons;
 
   switch(fescPrescription)
   {
@@ -344,11 +372,11 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       *fesc_local = alpha * ejectedfraction + beta;
       break;
 
-    /*
+    
     case 4:
-      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
+      *fesc_local = quasar_baseline * (1 - quasarfrac)  + quasar_boosted * quasarfrac;
       break;
-    */
+    
     case 5:
       *fesc_local = pow(fesc_low * (fesc_low/fesc_high),(-log10(halomass/MH_low)/log10(MH_high/MH_low)));
       if (*fesc_local > fesc_low)
@@ -377,7 +405,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
   if (*fesc_local > 1.0 || *fesc_local < 0.0)
   {
-    fprintf(stderr, "Had fesc_local = %.4f with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", *fesc_local, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(g->GridSFR[snapshot]), ejectedfraction);
+    fprintf(stderr, "Had fesc_local = %.4f with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1), Ejected Fraction %.4e and QuasarFractionalPhotons %.4f\n", *fesc_local, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(g->GridSFR[snapshot]), ejectedfraction, quasarfrac);
     return EXIT_FAILURE;
   }
 
@@ -440,11 +468,11 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
       snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
       break;
 
-    /*
+
     case 4:
-      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
+      snprintf(tag, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
       break;
-    */
+
     case 5:
     case 6:
       snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      

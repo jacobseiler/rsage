@@ -141,8 +141,8 @@ int main(int argc, char **argv)
 
   init();
  
-  if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
-    status = init_selfcon_grid();
+  //if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
+  status = init_selfcon_grid();
   if(ReionizationOn == 2)
   {
     status = init_grid();
@@ -257,7 +257,7 @@ int main(int argc, char **argv)
   snprintf(copy_command, MAXLEN - 1, "cp %s %s", argv[1], OutputDir); 
   system(copy_command);
   
-  if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
+  if (self_consistent == 1) //&& (ReionizationOn == 3 || ReionizationOn == 4))
   {
     status = save_selfcon_grid();
     if (status != EXIT_SUCCESS)

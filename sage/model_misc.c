@@ -9,12 +9,14 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
-void init_galaxy(int p, int halonr, int treenr)
+void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
 {
   int32_t j, step, status;
   
   ++count_gal;
 	assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
+
+  Gal[p].FileNr = filenr;
 
   Gal[p].Type = 0;
   Gal[p].TreeNr = treenr;

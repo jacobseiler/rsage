@@ -1,4 +1,4 @@
-EXEC   = optimization_sage 
+EXEC   = sage 
 
 OBJS   = 	./main.o \
 			./core_read_parameter_file.o \
@@ -32,7 +32,7 @@ INCL   =	./core_allvars.h  \
 			./self_consistent/common.h \
 			./Makefile
 
-#USE-MPI = yes# set this if you want to run in parallel
+USE-MPI = yes# set this if you want to run in parallel
 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
