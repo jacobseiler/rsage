@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 
       if (self_consistent == 0) // Don't want to save properties if we're running iteratively.
       {
-        status = save_fesc_properties(filenr, i);
+        //status = save_fesc_properties(filenr, i);
         if (status == EXIT_FAILURE)
         {
           ABORT(EXIT_FAILURE);

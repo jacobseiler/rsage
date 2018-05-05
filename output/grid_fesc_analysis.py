@@ -40,7 +40,7 @@ m_gal_high = 15.0
 
 bin_width = 0.2
 
-output_format = ".pdf"
+output_format = ".png"
 
 def my_load_data(fname):
 
@@ -327,9 +327,9 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
                 t_dt[model_number][count-1] = (AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number][count]])*1.0e3
          
         if plot_time == 1:
-            print(nion[model_number])
-            ax1.plot((AllVars.t_BigBang - AllVars.Lookback_Time[SnapList[model_number]])*1.0e3, nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
-            ax3.plot(t_dt[model_number], dt_nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
+            ax1.plot((AllVars.t_BigBang -
+AllVars.Lookback_Time[SnapList[model_number]])*1.0e3, nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = PlotScripts.global_linewidth)
+            ax3.plot(t_dt[model_number], dt_nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = PlotScripts.global_linewidth)
                     
         else:	
             ax1.plot(SnapList[model_number], nion[model_number], color = PlotScripts.colors[model_number], label = labels[model_number], ls = PlotScripts.linestyles[model_number], lw = 3)
@@ -340,13 +340,19 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
     bouwens_1sigma_lower = [50.81, 50.73, 50.60, 50.41, 50.21, 50.00, 49.80, 49.60, 49.39, 49.18] # 68% Confidence Intervals for the ionizing emissitivity from Bouwens 2015.
     bouwens_1sigma_upper = [51.04, 50.85, 50.71, 50.62, 50.56, 50.49, 50.43, 50.36, 50.29, 50.23]
 
-    bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI. 
+    bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI.
     bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
 
     if plot_time == 1:
-        ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2)
-        ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.6, 
+        ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper,
+                         color = 'k', alpha = 0.7,
                          label = r"$\mathbf{Bouwens \: et \: al. \: (2015)}$")
+        ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_1sigma_lower,
+                         color = 'k', hatch = '//', edgecolor = 'k', alpha = 0.4, 
+                         facecolor = 'k', lw = 0.0)
+        ax1.fill_between(bouwens_t, bouwens_1sigma_upper, bouwens_2sigma_upper,
+                         color = 'k', hatch = '//', edgecolor = 'k', alpha = 0.4,
+                         facecolor = 'k', lw = 0.0)
     else:
         ax1.fill_between(bouwens_z, bouwens_1sigma_lower, bouwens_1sigma_upper, color = 'k', alpha = 0.2)
         ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.6, 
@@ -415,8 +421,8 @@ def plot_nion(base_grid_name, SnapList, GridSize, simulation_norm, plot_time, la
         for tick in ax3.yaxis.get_major_ticks():
         tick.label.set_fontsize(label_size - 5)
         '''
-    ax1.text(350, 50.0, r"$68\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
-    ax1.text(350, 50.5, r"$95\%$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
+    ax1.text(350, 50.0, r"$\mathbf{68\%}$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
+    ax1.text(350, 50.5, r"$\mathbf{95\%}$", horizontalalignment='center', verticalalignment = 'center', fontsize = PlotScripts.global_labelsize)
 
     for axis in ['top','bottom','left','right']: # Adjust axis thickness.
         ax1.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
@@ -473,18 +479,22 @@ if __name__ == '__main__':
        
     PlotSnapshot = [[42, 64, 76, 93]] 
 
-    model_tags = [r"$\mathbf{f_{esc} \: \propto \: Quasar \: Activity}$", 
-                  r"$\mathbf{f_{esc} = 0.20}$"]
- 
-    fname =["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties"] 
-    fname = [fname[0]]
+    #model_tags = [r"$\mathbf{f_{esc} \: \propto \: Quasar \: Activity}$", 
+    #              r"$\mathbf{f_{esc} = 0.20}$"]
 
-    nion_fname = ["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI", "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"]
+    model_tags = [r"$\mathbf{f_{ej}}$", r"Self Con"]
+ 
+    #fname =["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties"] 
+    #fname = [fname[0]]
+
+    nion_fname=["/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/nion/tmp_fesc0.20_HaloPartCut32_nionHI",
+                "/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/grids/nion/base_ejected_0.300_0.000_HaloPartCut32_nionHI"]
  
     simulation_norm = [6, 6]
 
-    #plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1, model_tags, "test_base_nion")
+    plot_nion(nion_fname, [np.arange(27, 99), np.arange(27,99)], [256, 256], simulation_norm, 1,
+              model_tags, "selfcons_fej")
 
-    plot_fesc_z(fname, PlotSnapshot, model_tags, "base")
+    #plot_fesc_z(fname, PlotSnapshot, model_tags, "base")
 
     #plot_fescNgamma_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_paper_Ngammafesc_allz_starburst_medium_quasarwind_fesc0.10_fboosted1.00_HaloPartCut32_1DynTime")

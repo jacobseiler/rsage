@@ -11,6 +11,7 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
+#define IMF_CONSTANT IMF_norm/(IMF_slope + 1.0) 
 
 void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double NSN, double dt) 
 {
@@ -311,8 +312,19 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m)
 {
-  *Delta_Eta = IMF_norm / (IMF_slope + 1.0) * (pow(m_high, IMF_slope + 1.0) - pow(m_low, IMF_slope + 1.0));
-  *Delta_m = IMF_norm / (IMF_slope + 1.0) * (pow(m_high, IMF_slope + 2.0) - pow(m_low, IMF_slope + 2.0));
+
+  int32_t bin_idx_low = round((m_low - m_IMFbins_low) / (m_IMFbins_delta)); 
+  int32_t bin_idx_high = round((m_high - m_IMFbins_low) / (m_IMFbins_delta)); 
+
+  if (bin_idx_high == N_massbins)
+    --bin_idx_high;
+
+  if (bin_idx_low == N_massbins)
+    --bin_idx_low;
+
+  *Delta_Eta = IMF_norm / (IMF_slope + 1.0) * (IMF_massgrid_eta[bin_idx_high] - IMF_massgrid_eta[bin_idx_low]);
+  *Delta_m = IMF_norm / (IMF_slope + 1.0) * (IMF_massgrid_m[bin_idx_high] - IMF_massgrid_m[bin_idx_low]);
+
 }
 
 // This function determines the amount of mass reheated for a supernova event.
@@ -389,6 +401,7 @@ double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax)
 double calculate_coreburning(double t)
 {
 
+  /*
   double a = 0.7473; // Fits from Portinari et al. (1998). 
   double b = -2.6979;
   double c = -4.7659;
@@ -397,6 +410,17 @@ double calculate_coreburning(double t)
   double m = pow(10, a/log10(t) + b * exp(c/log10(t)) + d); 
 
   return m; 
+  */
+  int32_t bin_idx = (t - coreburning_tbins_low) / (coreburning_tbins_delta); 
+  if (bin_idx < 0) // Time is so short that only stars with mass greater than 120Msun can go nova.
+    return 120.0;
+
+  if (bin_idx > N_tbins) // Time is so long that all stars within the IMF range can go nova.
+    return 8.0; 
+
+  return coreburning_times[bin_idx];
+
+ 
 }
 
 // If the cold gas that has been reheated has enough energy, it is possible to unbind some of the gas in the hot halo.
@@ -599,9 +623,15 @@ void do_previous_recycling(int p, int centralgal, int step, double dt)
 
 
     t_high = (mwmsa - ((Age[Gal[p].SnapNum - 1]) - time_into_snap)) * UnitTime_in_Megayears / Hubble_h;
+    if (t_high < 2.0)
+      t_high = 2.0;
     m_high = calculate_coreburning(t_high);
+
     t_low = (mwmsa - (Age[Gal[p].SnapNum] - time_into_snap)) * UnitTime_in_Megayears / Hubble_h;
+    if (t_low < 2.0)
+      t_low = 2.0;
     m_low = calculate_coreburning(t_low);
+
     calculate_Delta_Eta(m_low, m_high, &Delta_Eta, &Delta_m); // Calculate the number and mass fraction of stars from snapshot i that go nova in the snapshot we are evolving FROM. 
     mass_stars_recycled = Delta_m * Gal[p].StellarAge_Denominator; // Update the amount of stellar mass recycled from previous stars that have gone nova.
     NSN = Delta_Eta * Gal[p].StellarAge_Denominator * 1.0e10 / Hubble_h;
@@ -630,10 +660,14 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
     t_low = (TimeResolutionSN - Gal[p].Total_SF_Time); // Then our 'sub-grid' SN feedback time will be the time from this SF episode until we next calculate SN feedback (divided by 2 as we assume the stars are formed in the middle of the interval).
   else // Otherwise the star formation time scale is larger than the SN feedback time scale.
     t_low  = (dt * UnitTime_in_Megayears / Hubble_h) / 2.0; // Then the feedback time will be the time from this SF event to the next star formation event. This is because SN feedback is only calculated when star formation occurs regardless of the actual value of 'TimeResolutionSN'. 
-    
+   
+  if (t_low < 2.0)
+    t_low = 2.0;
+ 
   m_low = calculate_coreburning(t_low);    
   if(m_low < 8.0)
-    m_low = 8.0; 
+    m_low = 8.0;
+ 
   if(m_low > 120.0)
     return;      
  

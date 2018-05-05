@@ -268,6 +268,10 @@ int32_t calculate_fesc(int p, int i, int filenr, float *fesc_local)
     }
 
   } 
+  else if (fescPrescription == 7)
+  {
+    *fesc_local = alpha * pow(ejectedfraction, beta); 
+  }
 	
   if (*fesc_local > 1.0)
   {

@@ -11,6 +11,10 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
+<<<<<<< HEAD
+=======
+int32_t update_quasar_tracking(int32_t gal, int32_t step, float substep_dt);
+>>>>>>> development
 
 void construct_galaxies(int halonr, int tree, int filenr)
 {
@@ -61,7 +65,7 @@ void construct_galaxies(int halonr, int tree, int filenr)
 
     while(fofhalo >= 0)
     {
-      ngal = join_galaxies_of_progenitors(tree, fofhalo, ngal);
+      ngal = join_galaxies_of_progenitors(tree, fofhalo, ngal, filenr);
       fofhalo = Halo[fofhalo].NextHaloInFOFgroup;
     }
 
@@ -71,7 +75,12 @@ void construct_galaxies(int halonr, int tree, int filenr)
 }
 
 
+<<<<<<< HEAD
 int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
+=======
+
+int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart, int32_t filenr)
+>>>>>>> development
 {
   int ngal, prog, i, j, first_occupied, lenmax, lenoccmax, centralgal;
   double previousMvir, previousVvir, previousVmax;
@@ -242,7 +251,7 @@ int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
   if(ngal == 0)
   {
     // We have no progenitors with galaxies. This means we create a new galaxy. 
-    init_galaxy(ngal, halonr, treenr);
+    init_galaxy(ngal, halonr, treenr, filenr);
     ngal++;
   }
 
@@ -276,7 +285,7 @@ int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
 void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the FOF-background subhalo (i.e. main halo) 
 {
   int p, i, step, centralgal, merger_centralgal, currenthalo, offset;
-  double infallingGas, coolingGas, deltaT, time, galaxyBaryons, currentMvir;
+  double infallingGas, coolingGas, deltaT, substep_dt, time, galaxyBaryons, currentMvir;
   
   centralgal = Gal[0].CentralGal;
  
@@ -295,6 +304,16 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
       do_previous_SN(p, centralgal, deltaT);
     }
 
+    // If we're using the Quasar fescPrescription, then quasars can go off in the middle of a snapshot.
+    // In this case the fesc is boosted for the rest of the snapshot.  However after that snapshot, we want to put the boost to the full value.
+    // For galaxies that had a quasar in a previous snapshot, their boost value will be fractional. 
+    if (fescPrescription == 4)
+    {
+      if (Gal[p].QuasarActivityToggle > 0 && Gal[p].QuasarFractionalPhotons < 1.0)
+      {
+        Gal[p].QuasarFractionalPhotons = 1.0;
+      }
+    }
   }
 
   // We integrate things forward by using a number of intervals equal to STEPS 
@@ -308,12 +327,19 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
       if(Gal[p].mergeType > 0)
         continue;
       deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
-      time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);
+      substep_dt = deltaT / STEPS;
+      time = Age[Gal[p].SnapNum] - (step + 0.5) * substep_dt; 
 
       Gal[p].Age = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
 
       if(Gal[p].dT < 0.0)
         Gal[p].dT = deltaT;
+
+      // If we're doing the quasar boosted fescPrescription, update the tracking.
+      if (fescPrescription == 4)
+      {
+        update_quasar_tracking(p, step, substep_dt);
+      } 
 
       // For the central galaxy only 
       if(p == centralgal)
@@ -321,17 +347,17 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
         add_infall_to_hot(centralgal, infallingGas / STEPS);
 
         if(ReIncorporationFactor > 0.0)
-          reincorporate_gas(centralgal, deltaT / STEPS);
+          reincorporate_gas(centralgal, substep_dt); 
       }
 			else 
 				if(Gal[p].Type == 1 && Gal[p].HotGas > 0.0)
 					strip_from_satellite(halonr, centralgal, p, 1);
 
       // Determine the cooling gas given the halo properties 
-      coolingGas = cooling_recipe(p, deltaT / STEPS);
+      coolingGas = cooling_recipe(p, substep_dt); 
       cool_gas_onto_galaxy(p, coolingGas);
  
-      starformation_and_feedback(p, centralgal, time, deltaT / STEPS, halonr, step, tree, ngal);
+      starformation_and_feedback(p, centralgal, time, substep_dt, halonr, step, tree, ngal);
 
     }
 
@@ -344,7 +370,8 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
 				assert(Gal[p].MergTime < 999.0);
 
         deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
-        Gal[p].MergTime -= deltaT / STEPS;
+        substep_dt = deltaT / STEPS;
+        Gal[p].MergTime -= substep_dt; 
 
         // only consider mergers or disruption for halo-to-baryonic mass ratios below the threshold
         // or for satellites with no baryonic mass (they don't grow and will otherwise hang around forever)
@@ -378,9 +405,9 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
           {
             if(Gal[p].MergTime <= 0.0)  // a merger has occured! 
             {
-              time = Age[Gal[p].SnapNum] - (step + 0.5) * (deltaT / STEPS);   
+              time = Age[Gal[p].SnapNum] - (step + 0.5) * substep_dt;
 
-              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, deltaT / STEPS, halonr, step, tree, ngal);
+              deal_with_galaxy_merger(p, merger_centralgal, centralgal, time, substep_dt, halonr, step, tree, ngal);
               update_temporal_array(p, halonr, step); // Updates the temporal arrays before it's added to the merger list.
               add_galaxy_to_merger_list(p);
 
@@ -479,3 +506,27 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
   }
 }
 
+
+int32_t update_quasar_tracking(int32_t gal, int32_t step, float substep_dt)
+{
+
+  if (Gal[gal].QuasarActivityToggle > 0)
+  {
+    Gal[gal].QuasarBoostActiveTime += substep_dt; 
+    if (Gal[gal].QuasarBoostActiveTime > Gal[gal].TargetQuasarTime)
+    {
+      Gal[gal].QuasarActivityToggle -= 1;
+      if (Gal[gal].QuasarActivityToggle == 0) // There can be the case where a quasar goes off while the galaxy has it's fesc still boosted. Only turn off boost when ALL quasars have been switched off. 
+      {
+        Gal[gal].QuasarFractionalPhotons = (step + 1.0) / STEPS; // Turn the quasar off partway through the snapshot.
+                                                               // We do the +1.0 because we measure from the END of a substep.
+                                                               // i.e., if the quasar boost turns off when step == 4, it was active for 50% of the snapshot, not 40%.
+        Gal[gal].QuasarBoostActiveTime = 0.0;
+        Gal[gal].TargetQuasarTime = 0.0;  
+      }
+    }
+  }
+
+  return EXIT_SUCCESS;
+ 
+}

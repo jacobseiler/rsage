@@ -6,12 +6,11 @@ int myfseek(FILE *stream, long offset, int whence);
 
 void construct_galaxies(int halonr, int tree, int filenr);
 void evolve_galaxies(int halonr, int ngal, int tree);
-int  join_galaxies_of_progenitors(int treenr, int halonr, int nstart);
+int  join_galaxies_of_progenitors(int treenr, int halonr, int nstart, int32_t filenr);
 
 void init(void);
 int32_t init_grid(void);
 int32_t init_reion_lists(int32_t filenr);
-void set_units(void);
 
 void load_tree_table(int filenr, int32_t treestyle);
 void load_tree(int nr);
@@ -41,7 +40,7 @@ void finalize_merged_galaxy_file(void);
 
 void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal);
 void add_galaxies_together(int t, int p);
-void init_galaxy(int treenr, int p, int halonr);
+void init_galaxy(int treenr, int p, int halonr, int32_t filenr);
 double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr);
 void add_infall_to_hot(int centralgal, double infallingGas);
 double cooling_recipe(int centralgal, double dt);
@@ -76,7 +75,6 @@ double get_virial_mass(int halonr);
 double get_disk_radius(int halonr, int p);
 
 void read_output_snaps(void);
-void read_snap_list(void);
 void read_cooling_functions(void);
 double get_metaldependent_cooling_rate(double logTemp, double logZ);
 double get_rate(int tab, double logTemp);

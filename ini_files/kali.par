@@ -2,9 +2,9 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies       base 
-OutputDir              /lustre/projects/p004_swin/jseiler/kali/new_save/galaxies
-GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/new_save/grids/nion
+FileNameGalaxies       quasarfesc 
+OutputDir              /lustre/projects/p004_swin/jseiler/kali/base_reionization_off/galaxies
+GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion
 
 FirstFile         0 
 LastFile          63 
@@ -15,8 +15,8 @@ LastFile          63
 
 NumOutputs        1   ; sets the desired number of galaxy outputs; use -1 for all outputs
 
-LowSnap           27 
-HighSnap          98 
+LowSnap           60 
+HighSnap          60 
 
 %------------------------------------------
 %----- Simulation information  ------------
@@ -38,7 +38,8 @@ PartMass        7.8436e-4 ; 1e10 Msun/h
 BoxSize		108.96	
 GridSize    256 
 
-self_consistent 0
+self_consistent 1
+
 %------------------------------------------
 %----- SAGE recipe options ----------------
 %------------------------------------------
@@ -46,7 +47,7 @@ self_consistent 0
 SFprescription        0   ;0: original Croton et al. 2006
 AGNrecipeOn           2   ;0: switch off; 1: empirical model; 2: Bondi-Hoyle model; 3: cold cloud accretion model
 SupernovaRecipeOn     1   ;0: switch off
-ReionizationOn        1  ;0: switch off; 1: Base; 2: Use <<Photoionization Options>> to calculate the Sobacchi & Meisinger (2014) filtering Mass. 
+ReionizationOn        0 ;0: switch off; 1: Base; 2: Use <<Photoionization Options>> to calculate the Sobacchi & Meisinger (2014) filtering Mass. 
 DiskInstabilityOn     1   ;0: switch off; 1: bulge and BH growth through instabilities w. instability starbursts
 
 
@@ -100,7 +101,7 @@ ReionSnap           29
 
 PhotonPrescription  1  ; 0: for photons emitted based on Halos (using Source Efficiency parameter); 1: Using the photons from STARBURST spectra.
 Verbose         1 ;
-fescPrescription 0 ; 
+fescPrescription 4 ; 
 % 0: For constant f_esc (given by fesc) 
 % 1: Scaling with Halo Mass (function from Kimm et al 2016) DEPRECATED 
 % 2: Power Law as a function of halo mass. Fixed points of the curve are defined by (MH_low, fesc_low) and (MH_high, fesc_high).
@@ -108,12 +109,13 @@ fescPrescription 0 ;
 % 4: fesc is boosted by recent quasar activity. Has a baseline fesc given by quasar_baseline, boosted fesc given by quasar_boosted which lasts N_dyntime dynamical times.
 % 5: Anne's fesc functional form that decreases for increasing halo mass. Fixed points as defined in identical manner to fescPrescription == 2. 
 % 6: Anne's fesc functional form that increases for decreasing halo mass. Fixed points as defined in identical manner to fescPrescription == 2. 
+% 7: Power law as a function of ejected fraction. Function is of the form alpha*fej^beta.
 
-MH_low          3.96e9 
-fesc_low        1e-4
-MH_high         3.16e11
-fesc_high       0.95
-alpha           0.7
+MH_low          0.01 
+fesc_low        0.01 
+MH_high         1.0
+fesc_high       0.6
+alpha           0.3
 beta            0.0
 fesc            0.20 ; Constant fesc for fescPrescription == 0.
 quasar_baseline 0.10 ; Baseline escape fraction.

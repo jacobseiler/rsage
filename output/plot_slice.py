@@ -2373,7 +2373,10 @@ if __name__ == '__main__':
 
     ## Kali ## 
    
-    model_tags = [r"$SelfConsi \: 256$", r"$SelfCons \: 1024 \: -> \: 256$"] 
+    #model_tags = [r"$Constant$", r"$fej$", r"$fejpower$", 
+    #              r"$fejpower 0.3$", r"$fejpower 0.5 cut$"]
+
+    model_tags = [r"$Constant$", r"$fej$"]
 
     output_tags = [r"Base Reion On", r"Base Reion Off", r"Consistent"]
 
@@ -2386,7 +2389,7 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'self_consistent_kali_new'
+    model = 'self_consistent_kali_fejpower'
 
     GridSize_model1 = 256
         
@@ -2395,11 +2398,21 @@ if __name__ == '__main__':
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/cifog/XHII"
     filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/cifog/XHII"
     filepath_model4 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/cifog/XHII"
-    
+    filepath_model5 = "/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/grids/cifog/XHII"
+    filepath_model6 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/cifog/XHII"
+    filepath_model7 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/cifog/0.3_XHII"
+    filepath_model8 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/cifog/0.5_halopartcut32_XHII"
+    filepath_model9 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/cifog/0.4_halopartcut32_XHII"
+
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
     filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
     filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/nion/test_fesc0.20_HaloPartCut32_nionHI"
     filepath_nion_model4 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/nion/tmp_fesc0.20_HaloPartCut32_nionHI"
+    filepath_nion_model5 = "/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/grids/nion/base_ejected_0.300_0.000_HaloPartCut32_nionHI"
+    filepath_nion_model6 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/nion/base_ejectedpower_1.000e-02_0.01_1.000e+00_0.60_HaloPartCut32_nionHI"
+    filepath_nion_model7 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/nion/0.3_ejectedpower_1.000e-02_0.01_1.000e+00_0.30_HaloPartCut32_nionHI"
+    filepath_nion_model8 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/nion/0.5_halopartcut32_ejectedpower_1.000e-02_0.01_1.000e+00_0.50_HaloPartCut32_nionHI"
+    filepath_nion_model9 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/nion/0.4_halopartcut32_ejectedpower_1.000e-02_0.01_1.000e+00_0.40_HaloPartCut32_nionHI"
   
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/snap"
     filepath_density_model2 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/snap"
@@ -2411,12 +2424,15 @@ if __name__ == '__main__':
     simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1, simulation_model1]
     precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
-    ionized_cells_filepath_array = [filepath_model2,
-                                    filepath_model4]
-    nion_filepath_array = [filepath_nion_model3, 
-                           filepath_nion_model4]
-    density_filepath_array = [filepath_density_model1,
-                              filepath_density_model4] 
+    ionized_cells_filepath_array = [filepath_model4,
+                                    filepath_model9]
+    nion_filepath_array = [filepath_nion_model4,
+                           filepath_nion_model9]
+    density_filepath_array = [filepath_density_model4,
+                              filepath_density_model4,
+                              filepath_density_model4, 
+                              filepath_density_model4, 
+                              filepath_density_model4]
     #photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2]
     
     ###########################      
@@ -2429,7 +2445,7 @@ if __name__ == '__main__':
 
     #snaplist = np.arange(0, len(AllVars.SnapZ)) 
     #snaplist = np.arange(0, 70)
-    snaplist = np.arange(28, 94) 
+    snaplist = np.arange(28, 98) 
     #snaplist = np.arange(20, 50)
 
     z_index = 0 
@@ -2541,7 +2557,7 @@ if __name__ == '__main__':
             #photofield_path = "{0}_{1:02d}".format(photofield_filepath_array[model_number], snapshot_idx) 
             #photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
 
-            tag = "{0}_{1:03d}".format(output_tags[model_number], snapshot_idx)
+            #tag = "{0}_{1:03d}".format(output_tags[model_number], snapshot_idx)
             #plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, tag) 
 
             volume_frac_array[model_number][count] = calculate_volume_frac(ionized_cells_array[model_number], GridSize_array[model_number])
@@ -2613,7 +2629,7 @@ if __name__ == '__main__':
     if (rank == 0): 
         plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction")
         plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array,
-                        simulation_norm, 1, model_tags, OutputDir, "nion")
+                        simulation_norm, 1, model_tags, OutputDir, "nioncut")
         plot_optical_depth(AllVars.SnapZ[snaplist], volume_frac_array, model_tags, OutputDir, "OpticalDepth")
 
         plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")

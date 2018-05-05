@@ -17,6 +17,7 @@
 struct SELFCON_GRID_STRUCT *MPI_sum_grids(void);
 #endif
 // Local Variables //
+FILE *fesc_file = NULL;
 
 // Local Proto-Types //
 
@@ -89,6 +90,14 @@ int32_t init_selfcon_grid(void)
     printf("\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
     XASSERT(fesc_low < fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 6), we require fesc_low < fesc_high\n", fesc_low, fesc_high);
   }
+  else if (fescPrescription == 7)
+  {
+#ifdef MPI
+    if (ThisTask == 0)
+#endif
+    printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\nThis takes the form A*fej^B.\n");
+    determine_fesc_constants();
+  }
   else
   {
     printf("\n\nOnly escape fraction prescriptions 0 to 6 (exlucding 1) are permitted.\n");
@@ -131,6 +140,7 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   int32_t status;
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII, fesc_local;
   float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
+  char fesc_fname[MAX_STRING_LEN];
 
   status = determine_nion(g->GridSFR[snapshot] * SFR_conversion, g->GridZ[snapshot], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
   if (status != EXIT_SUCCESS)
@@ -148,7 +158,27 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   {
     SelfConGrid->Nion_HI[grid_idx] += pow(10, Ngamma_HI - 50.0) * fesc_local; // Keep the number of ionizing photons in units of 10^50 photons/s. 
   }
+  
+  if (fesc_file == NULL)
+  {
+    snprintf(fesc_fname, MAX_STRING_LEN - 1, "%s/properties/misc_properties_%03d_%d", GridOutputDir, HighSnap, g->FileNr);
+    fesc_file = fopen(fesc_fname, "w");
+    if (fesc_file == NULL)
+    {
+      fprintf(stderr, "Could not open file %s\n", fesc_fname);
+      return EXIT_FAILURE;
+    }
+    printf("Opened file!\n");
+  }
 
+  if (fesc_file == NULL)
+  {
+    fprintf(stderr, "Attempted to write to the fesc properties file (%s) but it is not opened.\n", fesc_fname);
+    return EXIT_FAILURE;
+  }
+
+  fprintf(fesc_file, "%.4f %.4f %d %.4e %.4e %.4e %.4e\n", fesc_local, g->EjectedFraction[snapshot], g->Len, get_virial_mass(g->HaloNr), get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup), g->StellarMass, Ngamma_HI); 
+ 
   ++(SelfConGrid->GalCount[grid_idx]);
 
   return EXIT_SUCCESS;
@@ -190,7 +220,79 @@ int32_t save_selfcon_grid()
     free_selfcon_grid(master_grid);    
 #endif
 
+  if (fesc_file != NULL)
+  {
+    fclose(fesc_file);
+  }
+
   return EXIT_SUCCESS;
+
+}
+
+<<<<<<< HEAD
+=======
+// Local Functions //
+
+void determine_fesc_constants(void)
+{ 
+  
+  double A, B, log_A;
+ 
+
+  switch(fescPrescription)
+  {
+    case 2:
+    case 7: 
+      log_A = (log10(fesc_high) - (log10(fesc_low)*log10(MH_high)/log10(MH_low))) * pow(1 - (log10(MH_high) / log10(MH_low)), -1);
+      B = (log10(fesc_low) - log_A) / log10(MH_low);
+      A = pow(10, log_A);
+      
+      alpha = A;
+      beta = B;
+      
+      printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
+      printf("This gives a power law with constants A = %.4e, B = %.4e\n", alpha, beta);
+      break;
+  }
+ 
+}
+
+int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
+{
+
+#define ALLOCATE_GRID_MEMORY(name, length) \
+{                                          \
+  name = mycalloc(length, sizeof(*(name)));  \
+  if (name == NULL)                        \
+  {                                        \
+    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate"#name".\n", sizeof(*(name)* length)); \
+    return EXIT_FAILURE;                   \
+  }                                        \
+}
+
+  int32_t cell_idx;
+
+  if (my_grid == NULL)
+  {
+    fprintf(stderr, "`init_selfcon_grid` was called with a SELFCON_GRID_STRUCT pointer that has not been initialized\n");
+    return EXIT_FAILURE;
+  }
+
+  my_grid->GridSize = GridSize;
+  my_grid->NumCellsTotal = CUBE(GridSize);
+
+  ALLOCATE_GRID_MEMORY(my_grid->Nion_HI, my_grid->NumCellsTotal);
+  ALLOCATE_GRID_MEMORY(my_grid->GalCount, my_grid->NumCellsTotal);
+
+  for (cell_idx = 0; cell_idx < my_grid->NumCellsTotal; ++cell_idx)
+  {
+    my_grid->Nion_HI[cell_idx] = 0.0;
+    my_grid->GalCount[cell_idx] = 0;
+  }
+
+  return EXIT_SUCCESS;
+
+#undef ALLOCATE_GRID_MEMORY
 
 }
 
@@ -250,6 +352,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
   float halomass = g->GridFoFMass[snapshot] * 1.0e10 / Hubble_h;
   float ejectedfraction = g->EjectedFraction[snapshot];
+  float quasarfrac = g->QuasarFractionalPhotons;
 
   switch(fescPrescription)
   {
@@ -269,11 +372,11 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       *fesc_local = alpha * ejectedfraction + beta;
       break;
 
-    /*
+    
     case 4:
-      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
+      *fesc_local = quasar_baseline * (1 - quasarfrac)  + quasar_boosted * quasarfrac;
       break;
-    */
+    
     case 5:
       *fesc_local = pow(fesc_low * (fesc_low/fesc_high),(-log10(halomass/MH_low)/log10(MH_high/MH_low)));
       if (*fesc_local > fesc_low)
@@ -290,6 +393,10 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       }
       break;
 
+    case 7:
+      *fesc_local = alpha * pow(ejectedfraction, beta);
+      break;
+
     default:
       fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `determine_fesc` in `selfcon_grid.c`.\nPlease add it there.\n");
       return EXIT_FAILURE;
@@ -298,7 +405,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
   if (*fesc_local > 1.0 || *fesc_local < 0.0)
   {
-    fprintf(stderr, "Had fesc_local = %.4f with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", *fesc_local, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(g->GridSFR[snapshot]), ejectedfraction);
+    fprintf(stderr, "Had fesc_local = %.4f with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1), Ejected Fraction %.4e and QuasarFractionalPhotons %.4f\n", *fesc_local, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(g->GridSFR[snapshot]), ejectedfraction, quasarfrac);
     return EXIT_FAILURE;
   }
 
@@ -420,17 +527,21 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
       break;
 
     case 3:
-      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.2f_%.2f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
       break;
 
-    /*
+
     case 4:
-      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
+      snprintf(tag, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
       break;
-    */
+
     case 5:
     case 6:
       snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
+      break;
+
+    case 7:
+      snprintf(tag, MAX_STRING_LEN - 1, "ejectedpower_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
       break;
 
     default:
