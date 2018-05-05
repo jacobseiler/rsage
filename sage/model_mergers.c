@@ -159,9 +159,12 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
         {
           Gal[gal].QuasarActivityToggle += 1; // We do +1 to account for the case in which a quasar goes off while fesc is still boosted.
           Gal[gal].TargetQuasarTime = Gal[gal].Rvir / Gal[gal].Vvir * N_dyntime; // This will be the time the fesc boost lasts for.
-          Gal[gal].QuasarFractionalPhotons = (STEPS - step + 1.0) / STEPS; // Quasars can trigger partway through a snapshot.  Boost for a fraction of the time in that case.
-                                                                           // We do the +1.0 because we measure from the END of a substep.  
-                                                                           // i.e., if a merger goes off when step == 4, There is 50% of the snapshot remaining, not 60%.
+          if(Gal[gal].QuasarActivityToggle == 1)
+          {
+            Gal[gal].QuasarFractionalPhotons = (STEPS - step) / STEPS; // Quasars can trigger partway through a snapshot.  Boost for a fraction of the time in that case.
+                                                                             // We do the +1.0 because we measure from the END of a substep.  
+                                                                             // i.e., if a merger goes off when step == 4, There is 50% of the snapshot remaining, not 60%.
+          }
         }
         
       }
@@ -219,9 +222,12 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
       {
         Gal[gal].QuasarActivityToggle += 1; // We do +1 to account for the case in which a quasar goes off while fesc is still boosted.
         Gal[gal].TargetQuasarTime = Gal[gal].Rvir / Gal[gal].Vvir * N_dyntime; // This will be the time the fesc boost lasts for.
-        Gal[gal].QuasarFractionalPhotons = (STEPS - (step + 1.0)) / STEPS; // Quasars can trigger partway through a snapshot.  Boost for a fraction of the time in that case.
+        if(Gal[gal].QuasarActivityToggle == 1)
+          Gal[gal].QuasarFractionalPhotons = (STEPS - (step)) / STEPS; // Quasars can trigger partway through a snapshot.  Boost for a fraction of the time in that case.
                                                                            // We do the +1.0 because we measure from the END of a substep.  
-                                                                           // i.e., if a merger goes off when step == 4, There is 50% of the snapshot remaining, not 60%.
+                                                                           // i.e., if a merger goes off when step == 4, There is 50% of the snapshot remaining, not 60%.          
+
+      
       }
 
 
@@ -396,6 +402,12 @@ void add_galaxy_to_merger_list(int p)
   }
 
   ++mergedgal_mallocs;
+
+  if (fescPrescription == 4)
+  {
+    MergedGal[MergedNr].QuasarFractionalPhotons = 0.0;
+    Gal[p].QuasarFractionalPhotons = 0.0;
+  }
 
   for (j = 0; j < MAXSNAPS; ++j)
   {

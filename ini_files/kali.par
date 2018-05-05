@@ -7,7 +7,7 @@ OutputDir              /lustre/projects/p004_swin/jseiler/kali/base_reionization
 GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion
 
 FirstFile         0 
-LastFile          63 
+LastFile          0 
 
 %------------------------------------------
 %----- Snapshot output list ---------------
@@ -15,8 +15,8 @@ LastFile          63
 
 NumOutputs        1   ; sets the desired number of galaxy outputs; use -1 for all outputs
 
-LowSnap           60 
-HighSnap          60 
+LowSnap           1 
+HighSnap          98 
 
 %------------------------------------------
 %----- Simulation information  ------------
@@ -38,7 +38,7 @@ PartMass        7.8436e-4 ; 1e10 Msun/h
 BoxSize		108.96	
 GridSize    256 
 
-self_consistent 1
+self_consistent 0 
 
 %------------------------------------------
 %----- SAGE recipe options ----------------

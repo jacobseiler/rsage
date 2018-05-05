@@ -11,10 +11,7 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
-<<<<<<< HEAD
-=======
 int32_t update_quasar_tracking(int32_t gal, int32_t step, float substep_dt);
->>>>>>> development
 
 void construct_galaxies(int halonr, int tree, int filenr)
 {
@@ -74,13 +71,7 @@ void construct_galaxies(int halonr, int tree, int filenr)
 
 }
 
-
-<<<<<<< HEAD
-int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart)
-=======
-
 int join_galaxies_of_progenitors(int treenr, int halonr, int ngalstart, int32_t filenr)
->>>>>>> development
 {
   int ngal, prog, i, j, first_occupied, lenmax, lenoccmax, centralgal;
   double previousMvir, previousVvir, previousVmax;
@@ -313,6 +304,10 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
       {
         Gal[p].QuasarFractionalPhotons = 1.0;
       }
+      if (Gal[p].QuasarActivityToggle == 0)
+      {
+        Gal[p].QuasarFractionalPhotons = 0.0;
+      }
     }
   }
 
@@ -509,6 +504,8 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
 
 int32_t update_quasar_tracking(int32_t gal, int32_t step, float substep_dt)
 {
+  // substep_dt is in code units, as is TargetQuasarTime.
+
 
   if (Gal[gal].QuasarActivityToggle > 0)
   {

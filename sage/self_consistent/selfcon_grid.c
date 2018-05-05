@@ -229,8 +229,6 @@ int32_t save_selfcon_grid()
 
 }
 
-<<<<<<< HEAD
-=======
 // Local Functions //
 
 void determine_fesc_constants(void)
@@ -371,7 +369,6 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
     case 3:
       *fesc_local = alpha * ejectedfraction + beta;
       break;
-
     
     case 4:
       *fesc_local = quasar_baseline * (1 - quasarfrac)  + quasar_boosted * quasarfrac;
@@ -414,65 +411,6 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
 
 // Local Functions //
-
-void determine_fesc_constants(void)
-{ 
-  
-  double A, B, log_A;
-  
-  if (fescPrescription == 2)
-  { 
-    log_A = (log10(fesc_high) - (log10(fesc_low)*log10(MH_high)/log10(MH_low))) * pow(1 - (log10(MH_high) / log10(MH_low)), -1);
-    B = (log10(fesc_low) - log_A) / log10(MH_low);
-    A = pow(10, log_A);
-    
-    alpha = A;
-    beta = B;
-    
-    printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
-    printf("This gives a power law with constants A = %.4e, B = %.4e\n", alpha, beta);
-  }
- 
-}
-
-int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
-{
-
-#define ALLOCATE_GRID_MEMORY(name, length) \
-{                                          \
-  name = mycalloc(length, sizeof(*(name)));  \
-  if (name == NULL)                        \
-  {                                        \
-    fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate"#name".\n", sizeof(*(name)* length)); \
-    return EXIT_FAILURE;                   \
-  }                                        \
-}
-
-  int32_t cell_idx;
-
-  if (my_grid == NULL)
-  {
-    fprintf(stderr, "`init_selfcon_grid` was called with a SELFCON_GRID_STRUCT pointer that has not been initialized\n");
-    return EXIT_FAILURE;
-  }
-
-  my_grid->GridSize = GridSize;
-  my_grid->NumCellsTotal = CUBE(GridSize);
-
-  ALLOCATE_GRID_MEMORY(my_grid->Nion_HI, my_grid->NumCellsTotal);
-  ALLOCATE_GRID_MEMORY(my_grid->GalCount, my_grid->NumCellsTotal);
-
-  for (cell_idx = 0; cell_idx < my_grid->NumCellsTotal; ++cell_idx)
-  {
-    my_grid->Nion_HI[cell_idx] = 0.0;
-    my_grid->GalCount[cell_idx] = 0;
-  }
-
-  return EXIT_SUCCESS;
-
-#undef ALLOCATE_GRID_MEMORY
-
-}
 
 #ifdef MPI
 
