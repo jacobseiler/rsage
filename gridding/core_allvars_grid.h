@@ -139,28 +139,37 @@ struct GALAXY_INPUT
 struct GALAXY_GRID
 { 
   int TreeNr; 
-  int mergeType;
-  int *History; // Integers that describe the grid position at every redshift.
+  
+  int32_t *Type;
+  int32_t *FoFNr;
+  int32_t *History; // Integers that describe the grid position at every redshift.
+
+  float *ColdGas;
+  float *HotGas;
+  float *EjectedMass;
+
+  float *DustColdGas;
+  float *DustHotGas;
+  float *DustEjectedMass;
+
+  float *BHMass;
   float *StellarMass; // Units of 1.0e10 Msun/h.
   float *SFR; // Units of Msun yr^-1
   float *Z; // NOT solar metallicity, actual metallicity.
   float *FoFMass; // Units of 1.0e10 Msun/h.
   float *EjectedFraction; // Unitless (fraction).
   int *LenHistory; // Number of particles in FoF Halo.
-  float *OutflowRate;
-  float *InfallRate;
-  float *EjectedMass;
+
   int *QuasarActivity;
-  float *DynamicalTime;
   int *QuasarSubstep;
-  float *ColdGas;
+  float *DynamicalTime;
+
   int *LenMergerGal;
-  float *BHMass;
+
   float *ReionMod;
-  float *ColdDustMass;
-  float *HotDustMass;
-  float *EjectedDustMass;
-  int32_t *Type;
+
+  float *GridNgamma_HI;
+  float *Gridfesc;
 
 }*GalGrid;
 

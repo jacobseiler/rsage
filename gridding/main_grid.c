@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 #ifdef MPI     
     printf("I am Task %d and I'm doing file %d.\n", ThisTask, filenr);
 #endif 
-    for (i = 0; i < 2; ++i) // i = 0 does the normal galaxies, i = 1 does the merged galaxies.
+    for (i = 1; i < 2; ++i) // i = 0 does the normal galaxies, i = 1 does the merged galaxies.
     {
       if(i == 0)      
         snprintf(buf, MAXLEN, "%s/%s_z%1.3f_%d", GalaxiesInputDir, FileNameGalaxies, ZZ[LastSnapShotNr], filenr);
@@ -194,8 +194,8 @@ int main(int argc, char **argv)
   printf("Rank %d freeing\n", ThisTask); 
 #else  
  
-  count_grid_properties(Grid); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
-  status = save_grid(Grid); // Saves grid.
+  //count_grid_properties(Grid); // Counts how many halos/galaxies/Photons are in the grid at each redshift.
+  //status = save_grid(Grid); // Saves grid.
 
   if (status == EXIT_FAILURE)
   {

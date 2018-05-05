@@ -62,6 +62,13 @@ int32_t update_grid_properties(int32_t filenr)
             return EXIT_FAILURE;
           } 
 
+          //printf("%.4e %.4e\n",  Ngamma_HI, GalGrid[gal_idx].GridNgamma_HI[snapshot_idx]);
+          if (fabs(fesc_local - GalGrid[gal_idx].Gridfesc[snapshot_idx]) > 0.05 && GalGrid[gal_idx].TreeNr == 40) 
+          //if (GalGrid[gal_idx].TreeNr == 40) 
+          {
+            printf("Grid %.4e\tSAGE %.4e\tSnap %d\tGal %ld\tTree %d\tFoFNr %d\tGridPos %ld\n",  fesc_local, GalGrid[gal_idx].Gridfesc[snapshot_idx], snapshot_idx, (long)gal_idx, GalGrid[gal_idx].TreeNr, GalGrid[gal_idx].FoFNr[snapshot_idx], (long)grid_position);
+          }
+
 #ifdef DEBUG_PYTHON_C
           int32_t count = 0;
           if (count < 10)
