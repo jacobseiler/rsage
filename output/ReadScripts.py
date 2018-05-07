@@ -24,6 +24,43 @@ from numpy import inf
 import h5py
 
 np.set_printoptions(threshold=np.nan)
+
+
+def Read_SAGE_header(model_name, fnr):
+
+    if fnr:
+        if (Dot == 1):
+            fname = "{0}.{1}".format(model_name, fnr)
+        else:
+            fname = "{0}_{1}".format(model_name, fnr)
+    else:
+        fname = "{0}".format(model_name)
+    if not os.path.isfile(fname):
+        print("File {0} does not exist!".format(fname))
+        quit() 
+        
+    if getFileSize(fname) == 0:
+        print("File {0} empty!".format(fname))
+        quit() 
+        
+    fin = open(fname, 'rb')  # Open the file
+    Nsubsteps = np.fromfile(fin, np.dtype(np.int32),1) 
+    Nsnap = np.fromfile(fin, np.dtype(np.int32),1) 
+    redshifts = np.fromfile(fin, np.dtype(np.float64), int(Nsnap)) 
+    Hubble_h = np.fromfile(fin, np.dtype(np.float64),1) 
+    Omega = np.fromfile(fin, np.dtype(np.float64),1) 
+    OmegaLambda = np.fromfile(fin, np.dtype(np.float64),1) 
+    BaryonFrac = np.fromfile(fin, np.dtype(np.float64),1) 
+    PartMass = np.fromfile(fin, np.dtype(np.float64),1) 
+    BoxSize = np.fromfile(fin, np.dtype(np.float64),1) 
+    GridSize = np.fromfile(fin, np.dtype(np.int32),1) 
+    
+    Ntrees = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of trees in file
+
+    fin.close()
+
+    return Ntrees
+
 def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=None):
     # Initialize variables.
     TotNTrees = 0
@@ -37,16 +74,13 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
         rank = 0
         size = 1
 
-    print("Determining array storage requirements.")
-    
-    # Read each file and determine the total number of galaxies to be read in
-    goodfiles = 0
-
-    if (Dot == 1):
-        fname = Model_Name+'.'+str(fnr)  # Complete filename
+    if fnr is not None:
+        if (Dot == 1):
+            fname = "{0}.{1}".format(Model_Name, fnr)
+        else:
+            fname = "{0}_{1}".format(Model_Name, fnr)
     else:
-        fname = Model_Name+'_'+str(fnr)  # Complete filename
-
+        fname = "{0}".format(Model_Name)
     if not os.path.isfile(fname):
         print("File\t%s  \tdoes not exist!  Skipping..." % (fname))
         quit() 
@@ -71,62 +105,14 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
         Ntrees = np.fromfile(fin,np.dtype(np.int32),1)  # Read number of trees in file
         TotNTrees = TotNTrees + Ntrees  # Update total sim trees number
     NtotHalos = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of gals in file.
-    TotNHalos = TotNHalos + NtotHalos  # Update total sim gals number
+    GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) 
+
+
     print("Rank %d is reading File %s and contains %d total galaxies" %(rank, fname, NtotHalos))
-	
-    goodfiles = goodfiles + 1  # Update number of files read for volume calculation
-    fin.close()
-    
-    print("")
-    print("Input files contain:\t%d trees ;\t%d Halos/Galaxies." % (TotNTrees, TotNHalos))
-    print("")
 
-    # Initialize the storage array
-    G = np.empty(TotNHalos, dtype=Object_Desc)
-    
-    offset = 0  # Offset index for storage array
-    
-    # Open each file in turn and read in the preamble variables and structure.
-    print("Reading in files.")
-    if (Dot == 1):
-        fname = Model_Name+'.'+str(fnr)  # Complete filename
-    else:
-        fname = Model_Name+'_'+str(fnr)  # Complete filename
-        
-    if not os.path.isfile(fname):
-        print("Couldn't find file %s" %(fname))
-        exit()
-        
-    if getFileSize(fname) == 0:
-        print("File %s is empty!" %(fname))
-        exit()
-    
-    fin = open(fname, 'rb')  # Open the file
-    Nsubsteps = np.fromfile(fin, np.dtype(np.int32),1) 
-    Nsnap = np.fromfile(fin, np.dtype(np.int32),1) 
-    redshifts = np.fromfile(fin, np.dtype(np.float64), int(Nsnap))
-    Hubble_h = np.fromfile(fin, np.dtype(np.float64),1) 
-    Omega = np.fromfile(fin, np.dtype(np.float64),1) 
-    OmegaLambda = np.fromfile(fin, np.dtype(np.float64),1) 
-    BaryonFrac = np.fromfile(fin, np.dtype(np.float64),1) 
-    PartMass = np.fromfile(fin, np.dtype(np.float64),1) 
-    BoxSize = np.fromfile(fin, np.dtype(np.float64),1) 
-    GridSize = np.fromfile(fin, np.dtype(np.int32),1) 
-
-
-    if (Contain_TreeInfo == 1):
-        Ntrees = np.fromfile(fin, np.dtype(np.int32), 1)  # Read number of trees in file
-    NtotHalos = np.fromfile(fin, np.dtype(np.int32), 1)[0]  # Read number of gals in file.
-    if (Contain_TreeInfo == 1):
-        GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) # Read the number of gals in each tree
-
-    print(":Rank %d is Reading N= %d Objects from %s: " %(rank, NtotHalos, fname))
- 	
-    GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures
-
-    FileIndexRanges.append((offset,offset+NtotHalos))
-      
+    GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures      
     G = GG.view(np.recarray)
+
     return G
 
 def ReadHalos(DirName, First_File, Last_File):
@@ -162,7 +148,6 @@ def ReadHalos(DirName, First_File, Last_File):
 
     return Read_SAGE_Objects(DirName, Halo_Desc, 1, 1, First_File, Last_File)
     
-## Using this one ##   
 def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
 
     Galdesc_full = [ 
@@ -201,8 +186,7 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
     return (Read_SAGE_Objects(DirName, Gal_Desc, 1, 0, fnr, comm), Gal_Desc)
 
 def Join_Arrays(Array1, Array2, Desc):
-    
-   
+
     G = np.empty(len(Array1) + len(Array2), Desc) # Create an empty array with enough space to hold both arrays.
 
     G[0:len(Array1)] = Array1[0:len(Array1)].copy() # Slice in the first array.

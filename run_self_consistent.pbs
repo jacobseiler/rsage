@@ -4,7 +4,7 @@
 # resource requests
 #PBS -l nodes=1:ppn=32
 #PBS -l walltime=00:20:00:00
-#PBS -N fejpower0.3_1024_subsampled_256 
+#PBS -N fesc0.15 
 #PBS -l vmem=500gb
 
 module load gcc/6.4.0
@@ -12,9 +12,9 @@ module load fftw/x86_64/gnu/3.3.3-openmpi-psm
 module load gsl/x86_64/gnu/1.9
 module load python/x86_64/gnu/3.5.2
 
-ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/fejpower_self_consistent_1024_subsampled_256"
-log_dir="/home/jseiler/self_consistent_SAGE/logs/fejpower_self_consistent_1024_subsampled_256"
-run_prefix="0.4_halopartcut32" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
+ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/self_consistent_1024_subsampled_256/"
+log_dir="/home/jseiler/self_consistent_SAGE/logs/self_consistent_1024_subsampled_256/"
+run_prefix="fesc0.15" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
 
 LowSnap=27
 HighSnap=98

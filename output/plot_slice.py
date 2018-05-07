@@ -2376,7 +2376,7 @@ if __name__ == '__main__':
     #model_tags = [r"$Constant$", r"$fej$", r"$fejpower$", 
     #              r"$fejpower 0.3$", r"$fejpower 0.5 cut$"]
 
-    model_tags = [r"$Constant$", r"$fej$"]
+    model_tags = [r"$Constant$", r"$Quasar$"]
 
     output_tags = [r"Base Reion On", r"Base Reion Off", r"Consistent"]
 
@@ -2389,7 +2389,7 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'self_consistent_kali_fejpower'
+    model = 'self_consistent_quasar'
 
     GridSize_model1 = 256
         
@@ -2398,40 +2398,25 @@ if __name__ == '__main__':
     filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/cifog/XHII"
     filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/cifog/XHII"
     filepath_model4 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/cifog/XHII"
-    filepath_model5 = "/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/grids/cifog/XHII"
-    filepath_model6 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/cifog/XHII"
-    filepath_model7 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/cifog/0.3_XHII"
-    filepath_model8 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/cifog/0.5_halopartcut32_XHII"
-    filepath_model9 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/cifog/0.4_halopartcut32_XHII"
+    filepath_model5 = "/lustre/projects/p004_swin/jseiler/kali/quasar_self_consistent/grids/cifog/0.1_1.0_2.5_XHII"
 
     filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
     filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
-    filepath_nion_model3 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/nion/test_fesc0.20_HaloPartCut32_nionHI"
     filepath_nion_model4 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/nion/tmp_fesc0.20_HaloPartCut32_nionHI"
-    filepath_nion_model5 = "/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/grids/nion/base_ejected_0.300_0.000_HaloPartCut32_nionHI"
-    filepath_nion_model6 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/nion/base_ejectedpower_1.000e-02_0.01_1.000e+00_0.60_HaloPartCut32_nionHI"
-    filepath_nion_model7 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/nion/0.3_ejectedpower_1.000e-02_0.01_1.000e+00_0.30_HaloPartCut32_nionHI"
-    filepath_nion_model8 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/nion/0.5_halopartcut32_ejectedpower_1.000e-02_0.01_1.000e+00_0.50_HaloPartCut32_nionHI"
-    filepath_nion_model9 = "/lustre/projects/p004_swin/jseiler/kali/fejpower_self_consistent_1024_subsampled_256/grids/nion/0.4_halopartcut32_ejectedpower_1.000e-02_0.01_1.000e+00_0.40_HaloPartCut32_nionHI"
-  
+    filepath_nion_model5 = "/lustre/projects/p004_swin/jseiler/kali/quasar_self_consistent/grids/nion/0.1_1.0_2.5_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI"
+ 
+ 
     filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/snap"
-    filepath_density_model2 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/snap"
     filepath_density_model4 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/1024_subsampled_256/snap"
-        
-    #filepath_photofield_model1 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/photHI_photHI1_fesc0.35"
-    #filepath_photofield_model2 = "/lustre/projects/p004_swin/jseiler/kali/grids/cifog/photHI_photHI1_fescMHneg"  
-    
+
     simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1, simulation_model1]
     precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
     ionized_cells_filepath_array = [filepath_model4,
-                                    filepath_model9]
+                                    filepath_model5]
     nion_filepath_array = [filepath_nion_model4,
-                           filepath_nion_model9]
+                           filepath_nion_model5]
     density_filepath_array = [filepath_density_model4,
-                              filepath_density_model4,
-                              filepath_density_model4, 
-                              filepath_density_model4, 
                               filepath_density_model4]
     #photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2]
     

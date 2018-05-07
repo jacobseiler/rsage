@@ -97,8 +97,10 @@ def create_redshift_grid(args):
     AllVars.Set_Params_Kali()
 
     GridSize = SAGE_params["GridSize"][0]
-    xHII_base = SAGE_params["PhotoionDir"][0] + "/XHII" 
-    redshift_output_base = SAGE_params["PhotoionDir"][0] + "/" + SAGE_params["ReionRedshiftName"][0] 
+    xHII_base = "{0}/{1}_XHII".format(SAGE_params["PhotoionDir"][0],
+                                      args["prefix"])     
+    redshift_output_base = "{0}/{1}".format(SAGE_params["PhotoionDir"][0],
+                                                SAGE_params["ReionRedshiftName"][0]) 
 
     reionization_redshift_grid = np.full((pow(GridSize, 3)), -1.0)
 

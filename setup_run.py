@@ -108,7 +108,8 @@ def create_directories(args):
         # If the grids directory didn't exist, there's no way these will.
 
         dirs = ["grids/nion", "grids/cifog",
-                "grids/cifog/reionization_modifiers"]
+                "grids/cifog/reionization_modifiers",
+                "grids/nion/properties"]
         for directory in dirs:
             dir_ = "{0}/{1}".format(base_dir, directory)
             os.makedirs(dir_)
@@ -225,12 +226,12 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["HaloPartCut"][0])
 
     elif fesc_prescription == 4:
-        nion_fname = "{0}_quasar_base{1:.2f}_boost{2:.2f}_dyntime{3:.2f}_HaloPartCut_nionHI" \
+        nion_fname = "{0}_quasar_{1:.2f}_{2:.2f}_{3:.2f}_HaloPartCut{4}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"][0],
-                            SAGE_params["quasar_baseline"][0],
-                            SAGE_params["quasar_boosted"][0],
-                            SAGE_params["N_dyntime"][0],
-                            SAGE_params["HaloPartCut"][0])
+                             SAGE_params["quasar_baseline"][0],
+                             SAGE_params["quasar_boosted"][0],
+                             SAGE_params["N_dyntime"][0],
+                             SAGE_params["HaloPartCut"][0])
 
     elif fesc_prescription == 5 or fesc_prescription == 6:
         nion_fname = "{0}_Anne_MH_{1:.3e}_{2:.3e}_{3:.3e}_{4:.3e}_HaloPartCut{5}_nionHI" \
