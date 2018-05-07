@@ -17,7 +17,6 @@ from __future__ import print_function
 import numpy as np
 import argparse
 import sys
-import h5py
 import os
 import pytest
 
@@ -157,16 +156,8 @@ def check_smf():
 
     # Now let's check compare the mass of the test to the data. 
 
-    Gals_data, Gals_Desc = ReadScripts.ReadGals_SAGE("./mini_millennium_z0.000",
-                                                     0, max_snap + 1)
-    Gals_Merged_data, _= ReadScripts.ReadGals_SAGE("./mini_millennium_MergedGalaxies",
-                                                   0, max_snap + 1)
-    Gals_data = ReadScripts.Join_Arrays(Gals_data, Gals_Merged_data, Gals_Desc)
+    mass_data = np.loadtxt("./mini_millennium_testmass.txt") 
 
-    w_gal_data = np.where((Gals_data.GridHistory[:, max_snap] != -1) & 
-                         (Gals_data.GridStellarMass[:, max_snap] > 0.0))[0]
-   
-    mass_data = np.log10(Gals_data.GridStellarMass[w_gal_data, max_snap] * 1.0e10 / AllVars.Hubble_h)
     mass_difference = mass_test - mass_data
     w_wrong = np.where(mass_difference > 3e-3)[0]
     if (len(w_wrong) > 0):
