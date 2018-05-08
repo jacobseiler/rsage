@@ -239,6 +239,15 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &RescaleSN;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "PhotonPrescription");
+  addr[nt] = &PhotonPrescription;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "TimeResolutionStellar");
+  addr[nt] = &TimeResolutionStellar;
+  id[nt++] = DOUBLE;
+
+
   strcpy(tag[nt], "fescPrescription");
   addr[nt] = &fescPrescription;
   id[nt++] = INT;

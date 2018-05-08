@@ -126,13 +126,8 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
     Gal[p].Gridfesc[j] = 0.0;
   }
 
-  for (j = 0; j < SN_Array_Len; ++j)
-  {
-    Gal[p].Stars[j] = 0.0;
-  }
-
   Gal[p].Total_SF_Time = 0.0;
-  Gal[p].Total_Stars = 0.0;
+  Gal[p].Total_SN_Stars = 0.0;
 
   Gal[p].GrandSum = 0.0;
  
@@ -144,6 +139,11 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
   Gal[p].mass_stars_recycled = 0.0;
   Gal[p].mass_metals_new = 0.0; 
   Gal[p].NSN = 0.0;
+  for (j = 0; j < SN_Array_Len; ++j)
+  {
+    Gal[p].SN_Stars[j] = 0.0;
+  }
+
 
   Gal[p].DustColdGas = 0.0;
   Gal[p].DustHotGas = 0.0;

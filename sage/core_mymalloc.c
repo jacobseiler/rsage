@@ -6,6 +6,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "self_consistent/selfcon_grid.h"
 
 #ifdef MPI
 #include <mpi.h>
@@ -110,4 +111,51 @@ void print_final_memory(void)
 
 #endif
 
+}
+
+int32_t final_cleanup(char **argv)
+{
+
+  int32_t status;
+
+  XASSERT((gal_mallocs == gal_frees) && (mergedgal_mallocs == mergedgal_frees), "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees);  
+ 
+  gsl_rng_free(random_generator); 
+
+  if (ReionizationOn == 2 )
+  {
+    status = free_grid();
+  } 
+
+  // Copy the parameter file to the output directory. 
+  char copy_command[MAX_STRING_LEN];
+  snprintf(copy_command, MAX_STRING_LEN - 1, "cp %s %s", argv[1], OutputDir); 
+  system(copy_command);
+  
+  if (self_consistent == 1) //&& (ReionizationOn == 3 || ReionizationOn == 4))
+  {
+    status = save_selfcon_grid();
+    if (status != EXIT_SUCCESS)
+    {
+      return EXIT_FAILURE; 
+    }
+
+    free_selfcon_grid(SelfConGrid);
+  }
+
+  if (IRA == 0)
+  {
+    free(IMF_massgrid_eta);
+    free(IMF_massgrid_m);
+  }
+
+  if (PhotonPrescription == 1)
+  {
+    free(stars_tbins);
+    free(stars_Ngamma);
+  }
+
+  print_final_memory();
+
+  return EXIT_SUCCESS;
 }

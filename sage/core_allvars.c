@@ -195,6 +195,8 @@ long count_gal;
 int32_t LowSnap;
 int32_t HighSnap;
 
+// Delayed Supernovae Lookup Tables
+
 float *IMF_massgrid_eta;
 float *IMF_massgrid_m;
 float m_IMFbins_low;
@@ -207,3 +209,12 @@ float coreburning_tbins_low;
 float coreburning_tbins_high;
 float coreburning_tbins_delta;
 float N_tbins;
+
+// Ionizing Photon Lookup Tables
+
+float *stars_tbins;
+float *stars_Ngamma;
+int32_t PhotonPrescription;
+double TimeResolutionStellar; 
+int32_t StellarTracking_Len; 
+

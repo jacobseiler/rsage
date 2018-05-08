@@ -242,39 +242,12 @@ int main(int argc, char **argv)
       }
     }
   } // filenr loop
-  XASSERT((gal_mallocs == gal_frees) && (mergedgal_mallocs == mergedgal_frees), "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees);
-  exitfail = 0;
- 
-  gsl_rng_free(random_generator); 
 
-  if (ReionizationOn == 2 )
+  status = final_cleanup(argv);
+  if (status != EXIT_SUCCESS)
   {
-    status = free_grid();
-  } 
-
-  // Copy the parameter file to the output directory. 
-  char copy_command[MAXLEN];
-  snprintf(copy_command, MAXLEN - 1, "cp %s %s", argv[1], OutputDir); 
-  system(copy_command);
-  
-  if (self_consistent == 1) //&& (ReionizationOn == 3 || ReionizationOn == 4))
-  {
-    status = save_selfcon_grid();
-    if (status != EXIT_SUCCESS)
-    {
-      ABORT(EXIT_FAILURE);
-    }
-
-    free_selfcon_grid(SelfConGrid);
+    ABORT(EXIT_FAILURE);
   }
-
-  if (IRA == 0)
-  {
-    free(IMF_massgrid_eta);
-    free(IMF_massgrid_m);
-  }
-
-  print_final_memory();
 
   return 0;
   

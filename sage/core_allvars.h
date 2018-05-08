@@ -153,7 +153,6 @@ struct GALAXY
   float   *GridFoFMass;
   float   *EjectedFraction;
   int32_t *LenHistory;
-  double  *Stars; 
   float   *GridOutflowRate;
   float   *GridInfallRate;
   int32_t *QuasarActivity;
@@ -164,11 +163,6 @@ struct GALAXY
   float   *GridNgamma_HI;
   float   *Gridfesc;
  
-  double StellarAge_Numerator;
-  double StellarAge_Denominator;
-  double Total_SF_Time;
-  double Total_Stars;
-
   int IsMerged;
   double GrandSum;
   int IsMalloced;
@@ -179,6 +173,13 @@ struct GALAXY
   float mass_stars_recycled;
   float mass_metals_new; 
   float NSN; // Number of supernova within a time step.  Can be fractional. 
+  double *SN_Stars; 
+
+  double StellarAge_Numerator;
+  double StellarAge_Denominator;
+  double Total_SF_Time;
+  double Total_SN_Stars;
+
  
   // Dust Properties
   float DustColdGas;
@@ -192,6 +193,9 @@ struct GALAXY
   float QuasarBoostActiveTime;
   float QuasarFractionalPhotons;
 
+  // Stellar Age Tracking To Determine Nion.
+  float *Stellar_Stars; // Keep this separate from the Stars of the delayed SN.
+                        // Its possible tat we want to do tracking of stellar ages to determine Nion but not do delayed SN (or vice versa).
 }
 *Gal, *HaloGal, *MergedGal;
 
@@ -432,6 +436,8 @@ extern long count_gal;
 extern int32_t LowSnap;
 extern int32_t HighSnap;
 
+// Delayed Supernovae Lookup Tables
+
 extern float *IMF_massgrid_eta;
 extern float *IMF_massgrid_m;
 extern float m_IMFbins_low;
@@ -444,5 +450,13 @@ extern float coreburning_tbins_low;
 extern float coreburning_tbins_high;
 extern float coreburning_tbins_delta;
 extern float N_tbins;
+
+// Ionizing Photon Lookup Tables
+
+extern float *stars_tbins;
+extern float *stars_Ngamma;
+extern int32_t PhotonPrescription;
+extern double TimeResolutionStellar; 
+extern int32_t StellarTracking_Len; 
 
 #endif  // #ifndef ALLVARS_H

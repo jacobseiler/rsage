@@ -141,7 +141,6 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
   ALLOCATE_ARRAY_MEMORY(g->GridFoFMass,         MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->EjectedFraction,     MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->LenHistory,          MAXSNAPS);
-  ALLOCATE_ARRAY_MEMORY(g->Stars,               SN_Array_Len);
   ALLOCATE_ARRAY_MEMORY(g->GridOutflowRate,     MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridInfallRate,      MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->QuasarActivity,      MAXSNAPS);
@@ -150,7 +149,9 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
   ALLOCATE_ARRAY_MEMORY(g->LenMergerGal,        MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridReionMod,        MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridNgamma_HI,       MAXSNAPS);
-  ALLOCATE_ARRAY_MEMORY(g->Gridfesc,       MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->Gridfesc,            MAXSNAPS);
+
+  ALLOCATE_ARRAY_MEMORY(g->SN_Stars,            SN_Array_Len);
 
   g->IsMalloced = 1; // This way we can check that we're not freeing memory that hasn't been allocated.
 
@@ -178,7 +179,6 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridFoFMass,         sizeof(*(g->GridFoFMass)) * MAXSNAPS);
   myfree(g->EjectedFraction,     sizeof(*(g->EjectedFraction)) * MAXSNAPS);
   myfree(g->LenHistory,          sizeof(*(g->LenHistory)) * MAXSNAPS);
-  myfree(g->Stars,               sizeof(*(g->Stars)) * SN_Array_Len);
   myfree(g->GridOutflowRate,     sizeof(*(g->GridOutflowRate)) * MAXSNAPS);
   myfree(g->GridInfallRate,      sizeof(*(g->GridInfallRate)) * MAXSNAPS);
   myfree(g->QuasarActivity,      sizeof(*(g->QuasarActivity)) * MAXSNAPS);
@@ -188,6 +188,8 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridReionMod,        sizeof(*(g->GridReionMod)) * MAXSNAPS);
   myfree(g->GridNgamma_HI,       sizeof(*(g->GridNgamma_HI)) * MAXSNAPS);
   myfree(g->Gridfesc,            sizeof(*(g->Gridfesc)) * MAXSNAPS);
+
+  myfree(g->SN_Stars,            sizeof(*(g->SN_Stars)) * SN_Array_Len);
 
   g->IsMalloced = 0;
 }

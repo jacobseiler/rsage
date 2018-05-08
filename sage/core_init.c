@@ -16,6 +16,7 @@
 // Local Proto-Types //
 
 int32_t init_delayedSN(void);
+int32_t init_nionlookup(void);
 void read_snap_list(void);
 void set_units(void);
 
@@ -100,6 +101,17 @@ void init(void)
       ABORT(EXIT_FAILURE);
     }  
   }
+
+  if (PhotonPrescription == 1)
+  {
+    int32_t status;
+
+    status = init_nionlookup();
+    if (status != EXIT_SUCCESS)
+    {
+      ABORT(EXIT_FAILURE);
+    }  
+  }
  
   mergedgal_mallocs = 0;
   gal_mallocs = 0 ;
@@ -168,8 +180,6 @@ int32_t init_delayedSN(void)
 
   // Now need to know given a mass range (defined by the timestep) what is the number and mass fraction of SN that go supernova. 
 
-#define IMF_CONSTANT IMF_norm/(IMF_slope + 1.0) 
-
   m_IMFbins_low = 8.0; // The IMF range is from 8.0 to 120.0 Msun.
   m_IMFbins_high = 120.0;
   m_IMFbins_delta = 0.00001;
@@ -196,9 +206,86 @@ int32_t init_delayedSN(void)
     IMF_massgrid_m[bin_idx] = pow(m_IMFbins_low + ((double)bin_idx * m_IMFbins_delta), IMF_slope + 2.0);
   }
 
-#undef IMF_CONSTANT
-
   return EXIT_SUCCESS;
+
+}
+
+int32_t init_nionlookup(void)
+{
+
+  // For PhotonPrescription == 1 we wish to explicitly track the stellar ages of a galaxy.
+  // Then we determine the number of ionizing photons using the age of the stellar population.
+
+  // Using STARBURST99 it was determined that the number of ionizing photons emitted from an instantaneous starburst depends on the 
+  // mass of stars formed and the time since the starburst.  Furthermore, the number of ionizing photons scales linearly with the mass of stars formed.
+  // That is, a starburst that forms 8.0e10Msun worth of stars will emit 10x as many photons as a starburst that forms 7.0e10Msun worth of stars.
+
+  // So if we read in a table that contains the number of ionizing photons emitted from a starburst for a 7.0e10Msun episode, then we can scale our values to this lookup table
+  // using log10 Ngamma(Msun, t) = (log10 M* - 7.0) + log10 Ngamma(7.0, t). 
+
+#define MAXBINS 10000
+
+  char buf[MAX_STRING_LEN], fname[MAX_STRING_LEN];
+  FILE *niontable;
+  int32_t i = 0, num_lines = 0;
+  float t, HI, HI_L, HeI, HeI_L, HeII, HeII_L, L;
+
+  snprintf(fname, MAX_STRING_LEN - 1, "extra/nion_table.txt");
+  niontable = fopen(fname, "r");
+  if (niontable == NULL)
+  {
+    fprintf(stderr, "Could not open file %s\n", fname);
+    return EXIT_FAILURE;
+  }
+
+  stars_tbins = calloc(MAXBINS, sizeof(*(stars_tbins)));
+  if (stars_tbins == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for the time bins for the tracking of stellar populations.\n");
+    return EXIT_FAILURE;
+  }
+
+  stars_Ngamma = calloc(MAXBINS, sizeof(*(stars_Ngamma)));
+  if (stars_Ngamma == NULL)
+  {
+    fprintf(stderr, "Could not allocate memory for the Ngamma HI bins for the tracking of stellar populations.\n");
+    return EXIT_FAILURE;
+  }
+
+  while (i < 8)
+  {
+    fgets(buf, MAX_STRING_LEN, niontable);
+    ++i;
+  }
+
+  while (fscanf(niontable, "%f %f %f %f %f %f %f %f", &t, &HI, &HI_L, &HeI, &HeI_L, &HeII, &HeII_L, &L) == 8) 
+  {
+
+    stars_tbins[num_lines] = t;
+    stars_Ngamma[num_lines] = HI;
+
+    ++num_lines;
+    if (num_lines == MAXBINS - 1)
+    {
+      fprintf(stderr, "Exceeding the maximum bins for the tracking of stellar populations.\n");
+      return EXIT_FAILURE;
+    }
+  }
+
+  // We track the past 100Myr of star formation.  The resolution on which we do the tracking is specified in the .ini file. 
+
+  float Time_Stellar = 0.0; 
+
+  StellarTracking_Len = 0;
+  while(Time_Stellar < 100)
+  {
+    Time_Stellar += TimeResolutionStellar;
+    ++StellarTracking_Len;
+  }
+ 
+  return EXIT_SUCCESS;
+
+#undef MAXBINS
 
 }
 

@@ -281,11 +281,11 @@ void add_galaxies_together(int t, int p)
 
   for(i = 0; i < SN_Array_Len; ++i) // Careful that we add up to the current snapshot number (inclusive) as we need to account for the stars just formed.
   {
-    Gal[t].Stars[i] += Gal[p].Stars[i];
+    Gal[t].SN_Stars[i] += Gal[p].SN_Stars[i];
 
   }
  
-  Gal[t].Total_Stars += Gal[p].Total_Stars;
+  Gal[t].Total_SN_Stars += Gal[p].Total_SN_Stars;
  
 }
 
@@ -350,12 +350,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     stars *= factor; 
   }
 
-  if (IRA == 0)
-    update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, false); 
-  else
-    update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, true);
-
-  //update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, false); 
+  update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal); 
  
   update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, NSN, dt);
 
@@ -440,7 +435,7 @@ void add_galaxy_to_merger_list(int p)
 
   for (j = 0; j < SN_Array_Len; ++j)
   {
-    MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
+    MergedGal[MergedNr].SN_Stars[j] = Gal[p].SN_Stars[j];
   }
   ++MergedNr;  
   Gal[p].IsMerged = 1;
