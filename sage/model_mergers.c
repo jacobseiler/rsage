@@ -279,13 +279,15 @@ void add_galaxies_together(int t, int p)
 
   // Our delayed SN scheme requires the stars formed by current galaxy and also its progenitors; so need to go back through the central galaxy of the merger and add all the stars from the merging galaxy.
 
-  for(i = 0; i < SN_Array_Len; ++i) // Careful that we add up to the current snapshot number (inclusive) as we need to account for the stars just formed.
+  if (IRA == 0)
   {
-    Gal[t].SN_Stars[i] += Gal[p].SN_Stars[i];
+    for(i = 0; i < SN_Array_Len; ++i) // Careful that we add up to the current snapshot number (inclusive) as we need to account for the stars just formed.
+    {
+      Gal[t].SN_Stars[i] += Gal[p].SN_Stars[i];
 
+    } 
+    Gal[t].Total_SN_Stars += Gal[p].Total_SN_Stars;
   }
- 
-  Gal[t].Total_SN_Stars += Gal[p].Total_SN_Stars;
  
 }
 
@@ -433,10 +435,14 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].Gridfesc[j] = Gal[p].Gridfesc[j];
   }
 
-  for (j = 0; j < SN_Array_Len; ++j)
+  if (IRA == 0)
   {
-    MergedGal[MergedNr].SN_Stars[j] = Gal[p].SN_Stars[j];
+    for (j = 0; j < SN_Array_Len; ++j)
+    {
+      MergedGal[MergedNr].SN_Stars[j] = Gal[p].SN_Stars[j];
+    }
   }
+
   ++MergedNr;  
   Gal[p].IsMerged = 1;
 

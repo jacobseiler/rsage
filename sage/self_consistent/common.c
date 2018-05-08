@@ -79,10 +79,9 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 
   Gal[p].DynamicalTime[SnapCurr] = Gal[p].Rvir / Gal[p].Vvir; 
 
-  float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
 
-  status = determine_nion(Gal[p].GridSFR[SnapCurr] * SFR_conversion, Gal[p].GridZ[SnapCurr], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
+  status = determine_nion(&Gal[p], SnapCurr, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
   if (status != EXIT_SUCCESS)
   {
     ABORT(EXIT_FAILURE); 
@@ -151,7 +150,15 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
   ALLOCATE_ARRAY_MEMORY(g->GridNgamma_HI,       MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->Gridfesc,            MAXSNAPS);
 
-  ALLOCATE_ARRAY_MEMORY(g->SN_Stars,            SN_Array_Len);
+  if (IRA == 0)
+  {
+    ALLOCATE_ARRAY_MEMORY(g->SN_Stars,            SN_Array_Len);
+  }
+
+  if (PhotonPrescription == 1)
+  {
+    ALLOCATE_ARRAY_MEMORY(g->Stellar_Stars,       StellarTracking_Len);
+  }
 
   g->IsMalloced = 1; // This way we can check that we're not freeing memory that hasn't been allocated.
 
@@ -189,7 +196,16 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridNgamma_HI,       sizeof(*(g->GridNgamma_HI)) * MAXSNAPS);
   myfree(g->Gridfesc,            sizeof(*(g->Gridfesc)) * MAXSNAPS);
 
-  myfree(g->SN_Stars,            sizeof(*(g->SN_Stars)) * SN_Array_Len);
+  if (IRA == 0)
+  {
+    myfree(g->SN_Stars,          sizeof(*(g->SN_Stars)) * SN_Array_Len);
+  }
+
+  if (PhotonPrescription == 1)
+  {
+    myfree(g->Stellar_Stars,     sizeof(*(g->Stellar_Stars)) * StellarTracking_Len);
+  }
+
 
   g->IsMalloced = 0;
 }
@@ -220,7 +236,6 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
   free(buffer); \
 }
 
-  float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
   int j;  
   int32_t nwritten;
   void *buffer;
@@ -240,7 +255,7 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
   WRITE_GRID_PROPERTY(g->GridDustEjectedMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridBHMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridStellarMass, MAXSNAPS);
-  WRITE_CONVERTED_GRID_PROPERTY(g->GridSFR, MAXSNAPS, SFR_conversion, typeof(*(g->GridSFR))); 
+  WRITE_CONVERTED_GRID_PROPERTY(g->GridSFR, MAXSNAPS, SFR_CONVERSION, typeof(*(g->GridSFR))); 
   WRITE_GRID_PROPERTY(g->GridZ, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridFoFMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->EjectedFraction, MAXSNAPS);

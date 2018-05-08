@@ -106,4 +106,3 @@ double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax);
 double calculate_ejected_mass(double *reheated_mass, double reheated_energy, double Vvir);
 double calculate_coreburning(double t);
 void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double NSN, double dt);
-void  update_SN_stars_array(int p, double stars, double dt, int tree, int ngal);

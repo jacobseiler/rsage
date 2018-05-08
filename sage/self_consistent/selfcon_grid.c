@@ -19,6 +19,9 @@ struct SELFCON_GRID_STRUCT *MPI_sum_grids(void);
 // Local Variables //
 FILE *fesc_file = NULL;
 
+#define STARBURSTSTEP 0.1 // This is the step size for the Starburst99 data (in Myr). 
+#define LOOKUPTABLE_MASS 1.0e-3*Hubble_h // This is the shift for the Lookup Table linear equation in units of 1.0e10 Msun/h.
+
 // Local Proto-Types //
 
 void determine_fesc_constants(void);
@@ -139,10 +142,9 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
 
   int32_t status;
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII, fesc_local;
-  float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
   char fesc_fname[MAX_STRING_LEN];
 
-  status = determine_nion(g->GridSFR[snapshot] * SFR_conversion, g->GridZ[snapshot], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
+  status = determine_nion(g, snapshot, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
   if (status != EXIT_SUCCESS)
   {
     return EXIT_FAILURE;
@@ -294,54 +296,85 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 
 }
 
-int32_t determine_nion(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
+int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
 {
 
-  if (SFR == 0)
+  switch (PhotonPrescription)
   {
-    *Ngamma_HI = 0;
-    *Ngamma_HeI = 0;
-    *Ngamma_HeII = 0;
-  }
-  else if (Z < 0.0025) // 11
-  {
-    *Ngamma_HI = log10(SFR) + 53.354;
-    *Ngamma_HeI = log10(SFR) + 52.727;
-    *Ngamma_HeII = log10(SFR) + 48.941;
-  }
-  else if (Z >= 0.0025 && Z < 0.006) // 12
-  {
-    *Ngamma_HI = log10(SFR) + 53.290;
-    *Ngamma_HeI = log10(SFR) + 52.583;
-    *Ngamma_HeII = log10(SFR) + 49.411;
-  }
-  else if (Z>= 0.006 && Z < 0.014) // 13
-  {
-    *Ngamma_HI = log10(SFR) + 53.248;
-    *Ngamma_HeI = log10(SFR) + 52.481;
-    *Ngamma_HeII = log10(SFR) + 49.254;
-  }
-  else if (Z >= 0.014 && Z < 0.030) // 14
-  {
-    *Ngamma_HI = log10(SFR) + 53.166;
-    *Ngamma_HeI = log10(SFR) + 52.319;
-    *Ngamma_HeII = log10(SFR) + 48.596;
-  }
-  else // 15
-  {
-    *Ngamma_HI = log10(SFR) + 53.041;
-    *Ngamma_HeI = log10(SFR) + 52.052;
-    *Ngamma_HeII = log10(SFR) + 47.939;
-  }
+    case 0: ;
+      double SFR = g->GridSFR[snapshot] * SFR_CONVERSION;
+      double Z = g->GridZ[snapshot];
 
-  if (SFR != 0)
-  {
-    assert(*Ngamma_HI > 0.0);
-    assert(*Ngamma_HeI > 0.0);
-    assert(*Ngamma_HeII > 0.0);
-  }
+      if (SFR == 0)
+      {
+        *Ngamma_HI = 0;
+        *Ngamma_HeI = 0;
+        *Ngamma_HeII = 0;
+      }
+      else if (Z < 0.0025) // 11
+      {
+        *Ngamma_HI = log10(SFR) + 53.354;
+        *Ngamma_HeI = log10(SFR) + 52.727;
+        *Ngamma_HeII = log10(SFR) + 48.941;
+      }
+      else if (Z >= 0.0025 && Z < 0.006) // 12
+      {
+        *Ngamma_HI = log10(SFR) + 53.290;
+        *Ngamma_HeI = log10(SFR) + 52.583;
+        *Ngamma_HeII = log10(SFR) + 49.411;
+      }
+      else if (Z>= 0.006 && Z < 0.014) // 13
+      {
+        *Ngamma_HI = log10(SFR) + 53.248;
+        *Ngamma_HeI = log10(SFR) + 52.481;
+        *Ngamma_HeII = log10(SFR) + 49.254;
+      }
+      else if (Z >= 0.014 && Z < 0.030) // 14
+      {
+        *Ngamma_HI = log10(SFR) + 53.166;
+        *Ngamma_HeI = log10(SFR) + 52.319;
+        *Ngamma_HeII = log10(SFR) + 48.596;
+      }
+      else // 15
+      {
+        *Ngamma_HI = log10(SFR) + 53.041;
+        *Ngamma_HeI = log10(SFR) + 52.052;
+        *Ngamma_HeII = log10(SFR) + 47.939;
+      }
 
-  return EXIT_SUCCESS;
+      if (SFR != 0)
+      {
+        assert(*Ngamma_HI > 0.0);
+        assert(*Ngamma_HeI > 0.0);
+        assert(*Ngamma_HeII > 0.0);
+      }
+
+      return EXIT_SUCCESS;
+
+    case 1: ;
+
+      double t;
+      int32_t i ,lookup_idx;
+
+      *Ngamma_HI = 0;
+      *Ngamma_HeI = 0;
+      *Ngamma_HeII = 0;
+
+      for (i = 0; i < StellarTracking_Len; ++i)
+      {
+        t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
+        lookup_idx = (t / 0.1); // Find the index in the lookup table. 
+         
+        *Ngamma_HI += (g->Stellar_Stars[i] - LOOKUPTABLE_MASS) * stars_Ngamma[lookup_idx]; 
+      }
+
+      return EXIT_SUCCESS;
+
+    default:
+      fprintf(stderr, "The specified PhotonPrescription value is not valid.");
+      return EXIT_FAILURE;
+
+  }
 
 }
 

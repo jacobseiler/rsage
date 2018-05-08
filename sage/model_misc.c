@@ -126,9 +126,6 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
     Gal[p].Gridfesc[j] = 0.0;
   }
 
-  Gal[p].Total_SN_SF_Time = 0.0;
-  Gal[p].Total_SN_Stars = 0.0;
-
   Gal[p].GrandSum = 0.0;
  
   Gal[p].StellarAge_Numerator = 0.0;
@@ -139,11 +136,18 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
   Gal[p].mass_stars_recycled = 0.0;
   Gal[p].mass_metals_new = 0.0; 
   Gal[p].NSN = 0.0;
-  for (j = 0; j < SN_Array_Len; ++j)
-  {
-    Gal[p].SN_Stars[j] = 0.0;
-  }
 
+  if (IRA == 0)
+  {
+    for (j = 0; j < SN_Array_Len; ++j)
+    {
+      Gal[p].SN_Stars[j] = 0.0;
+    }
+  }
+  Gal[p].Total_SN_SF_Time = 0.0;
+  Gal[p].Total_SN_Stars = 0.0;
+
+  // Dust Reservoirs.
 
   Gal[p].DustColdGas = 0.0;
   Gal[p].DustHotGas = 0.0;
@@ -155,6 +159,19 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
   Gal[p].TargetQuasarTime = 0.0;
   Gal[p].QuasarBoostActiveTime = 0.0;
   Gal[p].QuasarFractionalPhotons = 0.0;
+
+  // Stellar Age Tracking
+
+  if (PhotonPrescription == 1)
+  {
+    for (j = 0; j < StellarTracking_Len; ++j)
+    {
+      Gal[p].Stellar_Stars[j] = 0.0;
+    }
+  }
+  Gal[p].Total_Stellar_SF_Time = 0.0;
+  Gal[p].Total_Stellar_Stars = 0.0;
+
 }
 
 double get_disk_radius(int halonr, int p)

@@ -13,6 +13,13 @@
 
 #define IMF_CONSTANT IMF_norm/(IMF_slope + 1.0) 
 
+// Local Proto-Types //
+
+void  update_SN_stars_array(int p, double stars, double dt, int tree, int ngal);
+void update_stellar_tracking(int p, double stars, double dt, int tree, int ngal);
+
+// External Functions //
+
 void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double NSN, double dt) 
 {
 
@@ -146,6 +153,11 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
     update_SN_stars_array(p, stars, time_spanned, tree, ngal);
   }
 
+  if (PhotonPrescription == 1)
+  {
+    //update_stellar_tracking(p, stars, time_spanned, tree, ngal);
+  }
+
   // update gas and metals from star formation 
   Gal[p].ColdGas -= stars;
   Gal[p].MetalsColdGas -= metallicity * stars;
@@ -158,63 +170,6 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
     Gal[p].MetalsColdGas = 0.0;
 
 }
-
-// This function updates the array which holds the amount of stars formed in the past 50 Myr.
-// As we only need this array for doing delayed SN, if we are using the IRA then this function will never be called.
-// If the SF timestep is less than the resolution on which we do supernova feedback then we will keep track of the total stars formed over these small timesteps and then update them all in one bin.
-// If the SF timestep is larger than the resolution on which we do supernova feedback we will spread the stars formed evenly over a number of elements (>= 1). 
-//
-// INPUT: The index of the galaxy (p).
-// 	: The number of stars formed in the current SF episode (stars). ## UNITS: 1.0e10 Msun/h (Code Units). 
-// 	: The timestep over which the SF is occuring (dt). ## UNITS: Code Units, multiply by 'UnitTime_in_Megayears / Hubble_h' for Myr.
-// 	: The tree currently being used (tree); currently used for debugging purposes.
-//
-// OUTPUT: None.
-
-void update_SN_stars_array(int p, double stars, double dt, int tree, int ngal)
-{
-
-  double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
-
-  Gal[p].Total_SN_SF_Time += time_spanned; // How long it has been since we've updated the array?
-  Gal[p].Total_SN_Stars += stars; // How many stars we will need to bin once we do update the array?
-
-  if(Gal[p].Total_SN_SF_Time > TimeResolutionSN * SN_Array_Len) // This handles cases in which the time spanned is greater than 50Myr.  In this case we wipe the array clean and push the star formation into a 50Myr bin. 
-    Gal[p].Total_SN_SF_Time = TimeResolutionSN * SN_Array_Len;
-
-  if(Gal[p].Total_SN_SF_Time < TimeResolutionSN) // If it hasn't been long enough yet, don't update the array. 
-    return;
-
-  int num_shuffled = round(Gal[p].Total_SN_SF_Time/TimeResolutionSN); // How many cells will this SF event span.
-
-  double stars_spread = Gal[p].Total_SN_Stars/num_shuffled; // We spread the stars evenly over time.
-
-  int i;
-
-  XASSERT(Gal[p].IsMalloced == 1, "We are attempting to update the stars array but this galaxy has already had its arrays freed.\nGalaxy %d \t Halo %d \t Tree %d \t Time spanned %.4eMyr\n", p, Gal[p].HaloNr, tree, time_spanned);  
-
-  for(i = SN_Array_Len - 1; i > num_shuffled - 1; --i)
-  {
-      Gal[p].SN_Stars[i] = Gal[p].SN_Stars[i-num_shuffled]; // Shuffle the current elements of the array far enough along so we can store the new stars.
-  }
-    XPRINT(p < ngal, "We have the case where the galaxy p is greater than the number of galaxies.  p = %d \t ngal = %d\n", p, ngal);
-  for(i = SN_Array_Len - 1; i > (SN_Array_Len - num_shuffled - 1); --i)
-  {
-    Gal[p].StellarAge_Numerator += Gal[p].SN_Stars[i] * (Age[Gal[p].SnapNum - 4]);
-    Gal[p].StellarAge_Denominator += Gal[p].SN_Stars[i]; 
-  }
-
-  for(i = 0; i < num_shuffled; ++i) 
-  {
-    Gal[p].StellarAge_Numerator += Gal[p].SN_Stars[i] * (Age[Gal[p].SnapNum - 4]);
-    Gal[p].SN_Stars[i] = stars_spread; // Update the vacated elements with the new stars.
-    Gal[p].GrandSum += stars_spread; 
-  } 
-
-  Gal[p].Total_SN_SF_Time = 0.0; // We've updated so reset our variables.
-  Gal[p].Total_SN_Stars = 0.0;
-}
-
 
 void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal)
 {
@@ -730,5 +685,101 @@ void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, doub
   *mass_metals_new = Yield * (*stars);    
   *mass_stars_recycled = RecycleFraction * (*stars);
 
+}
+
+// Local Functions //
+
+// This function updates the array which holds the amount of stars formed in the past 50 Myr.
+// As we only need this array for doing delayed SN, if we are using the IRA then this function will never be called.
+// If the SF timestep is less than the resolution on which we do supernova feedback then we will keep track of the total stars formed over these small timesteps and then update them all in one bin.
+// If the SF timestep is larger than the resolution on which we do supernova feedback we will spread the stars formed evenly over a number of elements (>= 1). 
+//
+// INPUT: The index of the galaxy (p).
+// 	: The number of stars formed in the current SF episode (stars). ## UNITS: 1.0e10 Msun/h (Code Units). 
+// 	: The timestep over which the SF is occuring (dt). ## UNITS: Code Units, multiply by 'UnitTime_in_Megayears / Hubble_h' for Myr.
+// 	: The tree currently being used (tree); currently used for debugging purposes.
+//
+// OUTPUT: None.
+
+void update_SN_stars_array(int p, double stars, double dt, int tree, int ngal)
+{
+
+  double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
+
+  Gal[p].Total_SN_SF_Time += time_spanned; // How long it has been since we've updated the array?
+  Gal[p].Total_SN_Stars += stars; // How many stars we will need to bin once we do update the array?
+
+  if(Gal[p].Total_SN_SF_Time > TimeResolutionSN * SN_Array_Len) // This handles cases in which the time spanned is greater than 50Myr.  In this case we wipe the array clean and push the star formation into a 50Myr bin. 
+    Gal[p].Total_SN_SF_Time = TimeResolutionSN * SN_Array_Len;
+
+  if(Gal[p].Total_SN_SF_Time < TimeResolutionSN) // If it hasn't been long enough yet, don't update the array. 
+    return;
+
+  int num_shuffled = round(Gal[p].Total_SN_SF_Time/TimeResolutionSN); // How many cells will this SF event span.
+
+  double stars_spread = Gal[p].Total_SN_Stars/num_shuffled; // We spread the stars evenly over time.
+
+  int i;
+
+  XASSERT(Gal[p].IsMalloced == 1, "We are attempting to update the stars array but this galaxy has already had its arrays freed.\nGalaxy %d \t Halo %d \t Tree %d \t Time spanned %.4eMyr\n", p, Gal[p].HaloNr, tree, time_spanned);  
+
+  for(i = SN_Array_Len - 1; i > num_shuffled - 1; --i)
+  {
+      Gal[p].SN_Stars[i] = Gal[p].SN_Stars[i-num_shuffled]; // Shuffle the current elements of the array far enough along so we can store the new stars.
+  }
+    XPRINT(p < ngal, "We have the case where the galaxy p is greater than the number of galaxies.  p = %d \t ngal = %d\n", p, ngal);
+  for(i = SN_Array_Len - 1; i > (SN_Array_Len - num_shuffled - 1); --i)
+  {
+    Gal[p].StellarAge_Numerator += Gal[p].SN_Stars[i] * (Age[Gal[p].SnapNum - 4]);
+    Gal[p].StellarAge_Denominator += Gal[p].SN_Stars[i]; 
+  }
+
+  for(i = 0; i < num_shuffled; ++i) 
+  {
+    Gal[p].StellarAge_Numerator += Gal[p].SN_Stars[i] * (Age[Gal[p].SnapNum - 4]);
+    Gal[p].SN_Stars[i] = stars_spread; // Update the vacated elements with the new stars.
+    Gal[p].GrandSum += stars_spread; 
+  } 
+
+  Gal[p].Total_SN_SF_Time = 0.0; // We've updated so reset our variables.
+  Gal[p].Total_SN_Stars = 0.0;
+}
+
+
+void update_stellar_tracking(int p, double stars, double dt, int tree, int ngal)
+{
+
+  double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
+
+  Gal[p].Total_Stellar_SF_Time += time_spanned; // How long it has been since we've updated the array?
+  Gal[p].Total_Stellar_Stars += stars; // How many stars we will need to bin once we do update the array?
+
+  if(Gal[p].Total_Stellar_SF_Time > TimeResolutionStellar * StellarTracking_Len) 
+    Gal[p].Total_Stellar_SF_Time = TimeResolutionStellar * StellarTracking_Len;
+
+  if(Gal[p].Total_Stellar_SF_Time < TimeResolutionStellar) // If it hasn't been long enough yet, don't update the array. 
+    return;
+
+  int num_shuffled = round(Gal[p].Total_Stellar_SF_Time/TimeResolutionStellar); // How many cells will this SF event span.
+
+  double stars_spread = Gal[p].Total_Stellar_Stars/num_shuffled; // We spread the stars evenly over time.
+
+  int i;
+
+  XASSERT(Gal[p].IsMalloced == 1, "We are attempting to update the Stellar Tracking array but this galaxy has already had its arrays freed.\nGalaxy %d \t Halo %d \t Tree %d \t Time spanned %.4eMyr\n", p, Gal[p].HaloNr, tree, time_spanned);  
+
+  for(i = StellarTracking_Len - 1; i > num_shuffled - 1; --i)
+  {
+      Gal[p].Stellar_Stars[i] = Gal[p].Stellar_Stars[i-num_shuffled]; // Shuffle the current elements of the array far enough along so we can store the new stars.
+  }
+  XPRINT(p < ngal, "We have the case where the galaxy p is greater than the number of galaxies.  p = %d \t ngal = %d\n", p, ngal);
+
+  for(i = 0; i < num_shuffled; ++i) 
+  {
+    Gal[p].Stellar_Stars[i] = stars_spread; // Update the vacated elements with the new stars.  
+  } 
+
+  Gal[p].Total_Stellar_SF_Time = 0.0; // We've updated so reset our variables.
+  Gal[p].Total_Stellar_Stars = 0.0;
 }
 

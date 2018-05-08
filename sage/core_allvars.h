@@ -38,6 +38,7 @@ do {                                                                \
 #define  SEC_PER_YEAR       3.155e7
 
 #define	 CUBE(x) (x*x*x)
+#define  SFR_CONVERSION UnitMass_in_g/UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS/STEPS; // Conversion from the SFR over one snapshot to Msun/yr. 
 
 #ifdef NDEBUG
 #define XASSERT(EXP, ...)                                do{} while(0)
@@ -195,6 +196,8 @@ struct GALAXY
   // Stellar Age Tracking To Determine Nion.
   float *Stellar_Stars; // Keep this separate from the Stars of the delayed SN.
                         // Its possible tat we want to do tracking of stellar ages to determine Nion but not do delayed SN (or vice versa).
+  double Total_Stellar_SF_Time;
+  double Total_Stellar_Stars;
 }
 *Gal, *HaloGal, *MergedGal;
 
