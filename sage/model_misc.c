@@ -126,7 +126,7 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
     Gal[p].Gridfesc[j] = 0.0;
   }
 
-  Gal[p].Total_SF_Time = 0.0;
+  Gal[p].Total_SN_SF_Time = 0.0;
   Gal[p].Total_SN_Stars = 0.0;
 
   Gal[p].GrandSum = 0.0;

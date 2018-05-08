@@ -176,16 +176,16 @@ void update_SN_stars_array(int p, double stars, double dt, int tree, int ngal)
 
   double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
 
-  Gal[p].Total_SF_Time += time_spanned; // How long it has been since we've updated the array?
+  Gal[p].Total_SN_SF_Time += time_spanned; // How long it has been since we've updated the array?
   Gal[p].Total_SN_Stars += stars; // How many stars we will need to bin once we do update the array?
 
-  if(Gal[p].Total_SF_Time > TimeResolutionSN * SN_Array_Len) // This handles cases in which the time spanned is greater than 50Myr.  In this case we wipe the array clean and push the star formation into a 50Myr bin. 
-    Gal[p].Total_SF_Time = TimeResolutionSN * SN_Array_Len;
+  if(Gal[p].Total_SN_SF_Time > TimeResolutionSN * SN_Array_Len) // This handles cases in which the time spanned is greater than 50Myr.  In this case we wipe the array clean and push the star formation into a 50Myr bin. 
+    Gal[p].Total_SN_SF_Time = TimeResolutionSN * SN_Array_Len;
 
-  if(Gal[p].Total_SF_Time < TimeResolutionSN) // If it hasn't been long enough yet, don't update the array. 
+  if(Gal[p].Total_SN_SF_Time < TimeResolutionSN) // If it hasn't been long enough yet, don't update the array. 
     return;
 
-  int num_shuffled = round(Gal[p].Total_SF_Time/TimeResolutionSN); // How many cells will this SF event span.
+  int num_shuffled = round(Gal[p].Total_SN_SF_Time/TimeResolutionSN); // How many cells will this SF event span.
 
   double stars_spread = Gal[p].Total_SN_Stars/num_shuffled; // We spread the stars evenly over time.
 
@@ -211,7 +211,7 @@ void update_SN_stars_array(int p, double stars, double dt, int tree, int ngal)
     Gal[p].GrandSum += stars_spread; 
   } 
 
-  Gal[p].Total_SF_Time = 0.0; // We've updated so reset our variables.
+  Gal[p].Total_SN_SF_Time = 0.0; // We've updated so reset our variables.
   Gal[p].Total_SN_Stars = 0.0;
 }
 
@@ -657,7 +657,7 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
   double fac;
  
   if(dt * UnitTime_in_Megayears / Hubble_h / 2.0 < TimeResolutionSN) // If the star formation time scale is smaller than the time scale on which we do SN feedback
-    t_low = (TimeResolutionSN - Gal[p].Total_SF_Time); // Then our 'sub-grid' SN feedback time will be the time from this SF episode until we next calculate SN feedback (divided by 2 as we assume the stars are formed in the middle of the interval).
+    t_low = (TimeResolutionSN - Gal[p].Total_SN_SF_Time); // Then our 'sub-grid' SN feedback time will be the time from this SF episode until we next calculate SN feedback (divided by 2 as we assume the stars are formed in the middle of the interval).
   else // Otherwise the star formation time scale is larger than the SN feedback time scale.
     t_low  = (dt * UnitTime_in_Megayears / Hubble_h) / 2.0; // Then the feedback time will be the time from this SF event to the next star formation event. This is because SN feedback is only calculated when star formation occurs regardless of the actual value of 'TimeResolutionSN'. 
    

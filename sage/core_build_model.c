@@ -290,7 +290,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
   for(p = 0; p < ngal; p++)
   {
     deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
-    if(IRA == 0 && (Gal[p].Total_SF_Time + (deltaT * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN))
+    if(IRA == 0 && (Gal[p].Total_SN_SF_Time + (deltaT * UnitTime_in_Megayears / Hubble_h) > TimeResolutionSN))
     {
       do_previous_SN(p, centralgal, deltaT);
     }

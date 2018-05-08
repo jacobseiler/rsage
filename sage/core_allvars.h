@@ -177,9 +177,8 @@ struct GALAXY
 
   double StellarAge_Numerator;
   double StellarAge_Denominator;
-  double Total_SF_Time;
+  double Total_SN_SF_Time;
   double Total_SN_Stars;
-
  
   // Dust Properties
   float DustColdGas;
