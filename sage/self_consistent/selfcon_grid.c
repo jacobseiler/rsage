@@ -365,8 +365,24 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
         t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
         lookup_idx = (t / 0.1); // Find the index in the lookup table. 
          
-        *Ngamma_HI += (g->Stellar_Stars[i] - LOOKUPTABLE_MASS) * stars_Ngamma[lookup_idx]; 
+        *Ngamma_HI += (g->Stellar_Stars[i] - LOOKUPTABLE_MASS) + stars_Ngamma[lookup_idx]; 
       }
+
+      if (*Ngamma_HI < 0.0)
+      {
+        fprintf(stderr, "Got an Ngamma value of %.4e\n", *Ngamma_HI);
+       
+        for (i = 0; i < StellarTracking_Len; ++i)
+        {
+          t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
+          lookup_idx = (t / 0.1); // Find the index in the lookup table. 
+        
+          printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_Ngamma[lookup_idx] %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_Ngamma[lookup_idx]); 
+
+        }
+        return EXIT_FAILURE;
+      }
+
 
       return EXIT_SUCCESS;
 

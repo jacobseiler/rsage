@@ -3101,9 +3101,12 @@ if __name__ == '__main__':
 
     galaxies_model8='/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/galaxies/base_z5.782'
     merged_galaxies_model8='/lustre/projects/p004_swin/jseiler/kali/fej_self_consistent_1024_subsampled_256/galaxies/base_MergedGalaxies'
+
+    galaxies_model9='/lustre/projects/p004_swin/jseiler/kali/wtf/galaxies/fixedSN_z5.782'
+    merged_galaxies_model9='/lustre/projects/p004_swin/jseiler/kali/wtf/galaxies/fixedSN_MergedGalaxies'
         
-    galaxies_filepath_array = [galaxies_model7]
-    merged_galaxies_filepath_array = [merged_galaxies_model7]
+    galaxies_filepath_array = [galaxies_model9]
+    merged_galaxies_filepath_array = [merged_galaxies_model9]
        
     number_substeps = [10] # How many substeps does each model have (specified by STEPS variable within SAGE).
     number_snapshots = [99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
@@ -3520,12 +3523,7 @@ if __name__ == '__main__':
                     reionmod = reionmod[reionmod > -1] # Some satellite galaxies that don't have HotGas and hence won't be stripped. As a result reionmod = -1 for these. Ignore them.        
 
                     mass_BH = G.GridBHMass[w_gal, current_snap] * 1.0e10 / AllVars.Hubble_h # Msun. Not log units. 
-                    
-                    merge_flag = G_Merged.mergeType[w_merged_gal]
-                    merge_flag[merge_flag >= 1] = 1.0 
-                    merge_mass_central = np.log10(G_Merged.GridFoFMass[w_merged_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
-                    merge_mass_galaxy = np.log10(G_Merged.GridStellarMass[w_merged_gal, current_snap] * 1.0e10 / AllVars.Hubble_h) # Msun. Log Units. 
-                                        
+                                                           
                     L_UV = SFR_gal + 39.927 # Using relationship from STARBURST99, units of erg s^-1 A^-1. Log Units.
                     M_UV = AllVars.Luminosity_to_ABMag(L_UV, 1600)
 
@@ -3632,15 +3630,6 @@ if __name__ == '__main__':
 
                     (mean_reionmod_halo_local, std_reionmod_halo_local, N_local, sum_reionmod_halo, bin_middle) = AllVars.Calculate_2D_Mean(mass_reionmod_central, reionmod, bin_width, m_low, m_high) 
                     (mean_reionmod_halo_array[current_model_number][snapshot_idx], std_reionmod_halo_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_reionmod_halo_array[current_model_number][snapshot_idx], std_reionmod_halo_array[current_model_number][snapshot_idx], N_halo_array[current_model_number][snapshot_idx], mean_reionmod_halo_local, std_reionmod_halo_local, N_local) # Then update the running total. 
-
-                    ## Mergers ##
-
-                    if (len(merge_flag) > 0):
-                        (_, _, _, merger_counts_local, _) = AllVars.Calculate_2D_Mean(merge_mass_central, merge_flag, bin_width, m_low, m_high)
-                        mergers_halo_array[model_number][snapshot_idx] += merger_counts_local
-
-                        (_, _, _, merger_counts_local_galaxy, _) = AllVars.Calculate_2D_Mean(merge_mass_galaxy, merge_flag, bin_width, m_gal_low, m_gal_high)
-                        mergers_galaxy_array[model_number][snapshot_idx] += merger_counts_local_galaxy
         
                     ## Total Dust Mass ##
 
@@ -3694,9 +3683,9 @@ if __name__ == '__main__':
                     keep_files =  same_files[current_model_number] # Decide if we want to keep the files loaded or throw them out. 
                     current_model_number += 1 # Update the inner loop model number.
    
-    #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile,
-    #                    LastFile, NumFile, galaxy_halo_mass_mean, model_tags,
-    #                    1, paper_plots, "self_con")
+    StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile,
+                        LastFile, NumFile, galaxy_halo_mass_mean, model_tags,
+                        1, paper_plots, "wtf")
     #plot_reionmod(PlotSnapList, SnapList, simulation_norm, mean_reionmod_halo_array, 
                   #std_reionmod_halo_array, N_halo_array, mean_reionmod_z, 
                   #std_reionmod_z, N_reionmod_z, False, model_tags,
@@ -3707,10 +3696,10 @@ if __name__ == '__main__':
     #          std_dust_galaxy_array, N_galaxy_array, mean_dust_halo_array,
     #          std_dust_halo_array, N_halo_array, False, model_tags,
     #          "dustmass_total")
-    plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, 
-                               std_BHmass_galaxy_array, N_galaxy_array,
-                               FirstFile, LastFile, NumFile, 
-                               model_tags, "StellarMass_BHMass")
+    #plot_stellarmass_blackhole(PlotSnapList, simulation_norm, mean_BHmass_galaxy_array, 
+    #                           std_BHmass_galaxy_array, N_galaxy_array,
+    #                           FirstFile, LastFile, NumFile, 
+    #                           model_tags, "StellarMass_BHMass")
     
     #plot_ejectedfraction(SnapList, PlotSnapList, simulation_norm,
     #                     mean_ejected_halo_array, std_ejected_halo_array, 

@@ -268,6 +268,12 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m)
 {
 
+  if (m_low < 8.0)
+    m_low = 8.0;
+
+  if (m_high < 8.0)
+    m_high = 8.0;
+
   int32_t bin_idx_low = round((m_low - m_IMFbins_low) / (m_IMFbins_delta)); 
   int32_t bin_idx_high = round((m_high - m_IMFbins_low) / (m_IMFbins_delta)); 
 
@@ -279,6 +285,8 @@ void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double 
 
   *Delta_Eta = IMF_CONSTANT * (IMF_massgrid_eta[bin_idx_high] - IMF_massgrid_eta[bin_idx_low]);
   *Delta_m = IMF_CONSTANT * (IMF_massgrid_m[bin_idx_high] - IMF_massgrid_m[bin_idx_low]);
+
+  //printf("m_low %.4e\tm_high %.4e\tbin_idx_low %d\tbin_idx_high %d\tdelta_m %.4e\n", m_low, m_high, bin_idx_low, bin_idx_high, *Delta_m);
 
 }
 
@@ -366,7 +374,9 @@ double calculate_coreburning(double t)
 
   return m; 
   */
+
   int32_t bin_idx = (t - coreburning_tbins_low) / (coreburning_tbins_delta); 
+
   if (bin_idx < 0) // Time is so short that only stars with mass greater than 120Msun can go nova.
     return 120.0;
 
@@ -463,6 +473,8 @@ void do_previous_SN(int p, int centralgal, double dt)
       t_low = (i * TimeResolutionSN) / 2.0 + time_until_next_SN; // (i * TimeResolutionSN) is the number of stars that were formed that many megayears ago.  time_until_next_SN allows us to ask how many of stars will explode in this SN step.
       if(t_low < 2)
   	    t_low = 2;
+      if (t_low > 45)
+        m_low = 120.0;
  
       m_low = calculate_coreburning(t_low);    
 
@@ -576,21 +588,28 @@ void do_previous_recycling(int p, int centralgal, int step, double dt)
     double mwmsa = Gal[p].StellarAge_Numerator / Gal[p].StellarAge_Denominator; // The numerator is weighted by the age of the stars with the denominator simply being the number of stars.
     double time_into_snap = dt * step; 
 
-
     t_high = (mwmsa - ((Age[Gal[p].SnapNum - 1]) - time_into_snap)) * UnitTime_in_Megayears / Hubble_h;
     if (t_high < 2.0)
       t_high = 2.0;
-    m_high = calculate_coreburning(t_high);
+    if (t_high > 45.0)
+      m_high = 8.0;
+    else
+      m_high = calculate_coreburning(t_high);
 
     t_low = (mwmsa - (Age[Gal[p].SnapNum] - time_into_snap)) * UnitTime_in_Megayears / Hubble_h;
     if (t_low < 2.0)
       t_low = 2.0;
-    m_low = calculate_coreburning(t_low);
+
+    if (t_low > 45.0)
+      m_low = 8.0;
+    else
+      m_low = calculate_coreburning(t_low);
+
 
     calculate_Delta_Eta(m_low, m_high, &Delta_Eta, &Delta_m); // Calculate the number and mass fraction of stars from snapshot i that go nova in the snapshot we are evolving FROM. 
     mass_stars_recycled = Delta_m * Gal[p].StellarAge_Denominator; // Update the amount of stellar mass recycled from previous stars that have gone nova.
     NSN = Delta_Eta * Gal[p].StellarAge_Denominator * 1.0e10 / Hubble_h;
-
+    //printf("m_low %.4e\tm_high %.4e\tt_low %.4e\tt_high %.4e\tDelta_m %.4e\n", m_low, m_high, t_low, t_high, Delta_m);
     update_from_SN_feedback(p, centralgal, 0.0, 0.0, mass_stars_recycled, 0.0, NSN, dt);
   } 
 }

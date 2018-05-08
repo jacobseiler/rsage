@@ -2,9 +2,9 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies       quasarfesc 
-OutputDir              /lustre/projects/p004_swin/jseiler/kali/base_reionization_off/galaxies
-GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion
+FileNameGalaxies       fixedSN 
+OutputDir              /lustre/projects/p004_swin/jseiler/kali/wtf/galaxies
+GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/wtf/grids/nion
 
 FirstFile         0 
 LastFile          63 
@@ -99,7 +99,8 @@ ReionSnap           29
 %----- Grid Code Options ------------------
 %------------------------------------------
 
-PhotonPrescription  1  ; 0: for photons emitted based on Halos (using Source Efficiency parameter); 1: Using the photons from STARBURST spectra.
+PhotonPrescription  0  ; 0: for photons emitted based on Halos (using Source Efficiency parameter); 1: Using the photons from STARBURST spectra.
+TimeResolutionStellar 10;
 Verbose         1 ;
 fescPrescription 4 ; 
 % 0: For constant f_esc (given by fesc) 

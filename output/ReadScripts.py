@@ -465,6 +465,7 @@ def read_SAGE_ini(fname):
          ('ReionRedshiftName', '<U1024'),
          ('ReionSnap', np.int32),
          ('PhotonPrescription', np.int32),
+         ('TimeResolutionStellar', np.float64),
          ('Verbose', np.int32),
          ('fescPrescription', np.int32),            
          ('MH_low', np.float64),

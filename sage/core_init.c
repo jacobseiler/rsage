@@ -282,7 +282,8 @@ int32_t init_nionlookup(void)
     Time_Stellar += TimeResolutionStellar;
     ++StellarTracking_Len;
   }
- 
+
+  printf("Lookup table read\n"); 
   return EXIT_SUCCESS;
 
 #undef MAXBINS
