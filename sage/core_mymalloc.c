@@ -156,6 +156,8 @@ int32_t final_cleanup(char **argv)
   }
 
   print_final_memory();
+  printf("There was a total of %.4ee50 Photon/s emitted (intrinsic, not necessarily escaped) over the entire simulation.\n", Ngamma_HI_Total);
+
 
   return EXIT_SUCCESS;
 }

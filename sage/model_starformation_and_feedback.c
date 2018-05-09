@@ -155,7 +155,7 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
 
   if (PhotonPrescription == 1)
   {
-    //update_stellar_tracking(p, stars, time_spanned, tree, ngal);
+    update_stellar_tracking(p, stars, time_spanned, tree, ngal);
   }
 
   // update gas and metals from star formation 
@@ -416,13 +416,13 @@ double calculate_ejected_mass(double *reheated_mass, double reheated_energy, dou
     	ejected_mass = (reheated_energy - Delta_Ehot) * 1.0e-7/(0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Balance between the excess thermal energy and the thermal energy of the hot gas.
 	// Energy changed from erg to Joules (kg m^2 s^-2) then divided by virial velocity (converted to m/s) giving final units of kg.
 
-        ejected_mass = ejected_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; // Convert back from kg to 1.0e10*Msun/h. 
+      ejected_mass = ejected_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; // Convert back from kg to 1.0e10*Msun/h. 
     }
     else // Not enough energy to eject mass. 
     {
-	ejected_mass = 0.0;
-        *reheated_mass = reheated_energy * 1.0e-7 / (0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Amount of mass that can be reheated to virial temperature of the hot halo.
-	*reheated_mass = *reheated_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; 
+      ejected_mass = 0.0;
+      *reheated_mass = reheated_energy * 1.0e-7 / (0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Amount of mass that can be reheated to virial temperature of the hot halo.
+      *reheated_mass = *reheated_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; 
     }
 
   } 					
@@ -505,6 +505,20 @@ void do_previous_SN(int p, int centralgal, double dt)
 
       reheated_energy += calculate_reheated_energy(Delta_Eta, Gal[p].SN_Stars[i], Gal[centralgal].Vmax); // Update the energy injected from previous stars that have gone nova. 
       mass_stars_recycled += Delta_m * Gal[p].SN_Stars[i]; // Update the amount of stellar mass recycled from previous stars that have gone nova.
+
+      // Since stars have gone supernova, need to update the number of stars remaining at that time. 
+      if (PhotonPrescription == 1)
+      {
+        Gal[p].Stellar_Stars[i] -= Delta_m * Gal[p].SN_Stars[i];
+        if (Gal[p].Stellar_Stars[i] < 0.0)
+          Gal[p].Stellar_Stars[i] = 0.0;
+      }
+
+      Gal[p].SN_Stars[i] -= Delta_m * Gal[p].SN_Stars[i];
+      if (Gal[p].SN_Stars[i] < 0.0)
+        Gal[p].SN_Stars[i] = 0.0;
+
+
       mass_metals_new += Delta_m / m_SNII * Yield * Gal[p].SN_Stars[i]; // Update the amount of new metals that the supernova has enriched the ISM with.
 
       NSN += Delta_Eta * Gal[p].SN_Stars[i] * 1.0e10 / Hubble_h; // The number of supernova events will be simply given by the number fraction of stars that exploded times the mass of stars. 

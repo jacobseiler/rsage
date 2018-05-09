@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -158,8 +160,8 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
 
   if (Ngamma_HI > 0.0)
   {
-    SelfConGrid->Nion_HI[grid_idx] += pow(10, Ngamma_HI - 50.0) * fesc_local; // Keep the number of ionizing photons in units of 10^50 photons/s.
-    SelfConGrid->Nion_HI_Total += pow(10, Ngamma_HI - 50.0) * fesc_local; 
+    SelfConGrid->Nion_HI[grid_idx] += exp10(Ngamma_HI - 50.0) * fesc_local; // Keep the number of ionizing photons in units of 10^50 photons/s.
+    SelfConGrid->Nion_HI_Total += exp10(Ngamma_HI - 50.0) * fesc_local; 
   }
   
   if (fesc_file == NULL)
@@ -300,11 +302,11 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 
 int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
 {
-
+  double SFR = g->GridSFR[snapshot] * SFR_CONVERSION;
   switch (PhotonPrescription)
   {
     case 0: ;
-      double SFR = g->GridSFR[snapshot] * SFR_CONVERSION;
+      
       double Z = g->GridZ[snapshot];
 
       if (SFR == 0)
@@ -362,14 +364,19 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
       *Ngamma_HeI = 0;
       *Ngamma_HeII = 0;
 
-      for (i = 0; i < StellarTracking_Len; ++i)
+      for (i = 0; i < StellarTracking_Len - 1; ++i)
       {
+        if (g->Stellar_Stars[i] < 1e-10)
+          continue;
+
         t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
         lookup_idx = (t / 0.1); // Find the index in the lookup table. 
-         
-        *Ngamma_HI += (g->Stellar_Stars[i] - LOOKUPTABLE_MASS) + stars_Ngamma[lookup_idx]; 
+        
+        *Ngamma_HI += exp10(log10(g->Stellar_Stars[i] / LOOKUPTABLE_MASS) + stars_Ngamma[lookup_idx] - 50.0);  
+        //printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_Ngamma[lookup_idx] %.4e\tRunningTotal %.4e\tSFR %.4e\tValue %.4e\tStars-MASS %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_Ngamma[lookup_idx], *Ngamma_HI, SFR, (g->Stellar_Stars[i] - LOOKUPTABLE_MASS) + stars_Ngamma[lookup_idx], g->Stellar_Stars[i] - LOOKUPTABLE_MASS); 
       }
 
+      /*
       if (*Ngamma_HI < 0.0)
       {
         fprintf(stderr, "Got an Ngamma value of %.4e\n", *Ngamma_HI);
@@ -378,13 +385,14 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
         {
           t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
           lookup_idx = (t / 0.1); // Find the index in the lookup table. 
-        
-          printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_Ngamma[lookup_idx] %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_Ngamma[lookup_idx]); 
+          double total = 0.0;
+          total += (g->Stellar_Stars[i] - LOOKUPTABLE_MASS) + stars_Ngamma[lookup_idx]; 
+          printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_Ngamma[lookup_idx] %.4e\tRunningTotal %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_Ngamma[lookup_idx], total); 
 
         }
         return EXIT_FAILURE;
       }
-
+      */
 
       return EXIT_SUCCESS;
 

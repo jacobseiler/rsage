@@ -128,8 +128,6 @@ int main(int argc, char **argv)
   printf("Executing with %s %s\n", argv[0], argv[1]);
   atexit(bye);
 
-  ABORT(EXIT_FAILURE);
-
   sigaction(SIGXCPU, NULL, &saveaction_XCPU);
   current_XCPU = saveaction_XCPU;
   current_XCPU.sa_handler = termination_handler;

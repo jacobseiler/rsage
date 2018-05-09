@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,7 +87,10 @@ void update_temporal_array(int p, int halonr, int steps_completed)
   {
     ABORT(EXIT_FAILURE); 
   }
-  Gal[p].GridNgamma_HI[SnapCurr] = Ngamma_HI;
+  Gal[p].GridNgamma_HI[SnapCurr] = exp10(Ngamma_HI - 50.0);
+  //printf("Ngamma_HI %.4e\texp10(Ngamma_HI - 50.0) %.4e\n", Ngamma_HI, exp10(Ngamma_HI - 50.0));  
+  //Ngamma_HI_Total += exp10(Ngamma_HI - 50.0);
+  Ngamma_HI_Total += Ngamma_HI; 
 
   float fesc_local;
 

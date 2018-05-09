@@ -152,7 +152,8 @@ def check_smf():
                                               position[w_wrong]))
         raise RuntimeError
 
-    mass_test = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / AllVars.Hubble_h)
+    mass_test = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / AllVars.Hubble_h)   
+    
     w_wrong = np.where(mass_test <= 0.0)[0] 
     if (len(w_wrong) > 0):
         print("The mass of the acceptable galaxies must be greater than 0.0.")
@@ -163,16 +164,15 @@ def check_smf():
     # Now let's check compare the mass of the test to the data. 
 
     mass_data = np.loadtxt("./mini_millennium_testmass.txt") 
-
+   
     mass_difference = mass_test - mass_data
     w_wrong = np.where(mass_difference > 3e-3)[0]
     if (len(w_wrong) > 0):
         print("There must be no difference between the mass of the test run and"
               " the data in the test_RSAGE repository")
-        print("Test Galaxies {0} had stellar mass {1} and data Galaxies {2} "
-              "have stellar mass {3}".format(w_gal[w_wrong],
+        print("Test Galaxies {0} had stellar mass {1} and data "
+              "have stellar mass {2}".format(w_gal[w_wrong],
                                              mass_test[w_wrong],
-                                             w_gal_data[w_wrong],
                                              mass_data[w_wrong]))
         print("The difference is {0}".format(mass_difference[w_wrong]))
         raise RuntimeError

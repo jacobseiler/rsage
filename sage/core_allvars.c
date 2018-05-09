@@ -195,6 +195,8 @@ long count_gal;
 int32_t LowSnap;
 int32_t HighSnap;
 
+float Ngamma_HI_Total;
+
 // Delayed Supernovae Lookup Tables
 
 float *IMF_massgrid_eta;

@@ -61,6 +61,7 @@ void init(void)
 
   count_Mvir = 0;
   count_Len = 0;
+
   if (IMF == 1)
   {
     // Salpeter IMF //
@@ -118,6 +119,8 @@ void init(void)
 
   mergedgal_frees = 0;
   gal_frees = 0;
+
+  Ngamma_HI_Total = 0.0;
  
 }
 
@@ -224,6 +227,7 @@ int32_t init_nionlookup(void)
   // using log10 Ngamma(Msun, t) = (log10 M* - 7.0) + log10 Ngamma(7.0, t). 
 
 #define MAXBINS 10000
+#define FINALTIME 20
 
   char buf[MAX_STRING_LEN], fname[MAX_STRING_LEN];
   FILE *niontable;
@@ -269,15 +273,14 @@ int32_t init_nionlookup(void)
     {
       fprintf(stderr, "Exceeding the maximum bins for the tracking of stellar populations.\n");
       return EXIT_FAILURE;
-    }
+    }  
   }
-
   // We track the past 100Myr of star formation.  The resolution on which we do the tracking is specified in the .ini file. 
 
   float Time_Stellar = 0.0; 
 
   StellarTracking_Len = 0;
-  while(Time_Stellar < 100)
+  while(Time_Stellar < FINALTIME)
   {
     Time_Stellar += TimeResolutionStellar;
     ++StellarTracking_Len;
@@ -287,6 +290,7 @@ int32_t init_nionlookup(void)
   return EXIT_SUCCESS;
 
 #undef MAXBINS
+#undef FINALTIME
 
 }
 

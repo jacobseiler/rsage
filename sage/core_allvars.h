@@ -439,6 +439,8 @@ extern long count_gal;
 extern int32_t LowSnap;
 extern int32_t HighSnap;
 
+extern float Ngamma_HI_Total;
+
 // Delayed Supernovae Lookup Tables
 
 extern float *IMF_massgrid_eta;
