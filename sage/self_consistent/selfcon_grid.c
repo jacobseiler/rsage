@@ -158,7 +158,8 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
 
   if (Ngamma_HI > 0.0)
   {
-    SelfConGrid->Nion_HI[grid_idx] += pow(10, Ngamma_HI - 50.0) * fesc_local; // Keep the number of ionizing photons in units of 10^50 photons/s. 
+    SelfConGrid->Nion_HI[grid_idx] += pow(10, Ngamma_HI - 50.0) * fesc_local; // Keep the number of ionizing photons in units of 10^50 photons/s.
+    SelfConGrid->Nion_HI_Total += pow(10, Ngamma_HI - 50.0) * fesc_local; 
   }
   
   if (fesc_file == NULL)
@@ -280,6 +281,7 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 
   my_grid->GridSize = GridSize;
   my_grid->NumCellsTotal = CUBE(GridSize);
+  my_grid->Nion_HI_Total = 0.0;
 
   ALLOCATE_GRID_MEMORY(my_grid->Nion_HI, my_grid->NumCellsTotal);
   ALLOCATE_GRID_MEMORY(my_grid->GalCount, my_grid->NumCellsTotal);
@@ -289,7 +291,7 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
     my_grid->Nion_HI[cell_idx] = 0.0;
     my_grid->GalCount[cell_idx] = 0;
   }
-
+  
   return EXIT_SUCCESS;
 
 #undef ALLOCATE_GRID_MEMORY
@@ -483,6 +485,7 @@ struct SELFCON_GRID_STRUCT *MPI_sum_grids(void)
   }
 
   MPI_Reduce(SelfConGrid->Nion_HI, master_grid->Nion_HI, SelfConGrid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(SelfConGrid->Nion_HI_Total, master_grid->Nion_HI_Total, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
 
   if (ThisTask == 0)
     return master_grid;
@@ -553,6 +556,9 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
     return EXIT_FAILURE;
   }
   fclose(file_HI);
+
+  printf("Successfully wrote Nion grid to %s\n", fname_HI);
+  printf("The total number of ionizing photons emitted at Snapshot %d was %.4ee50 photons/s\n", HighSnap, grid_towrite->Nion_HI_Total); 
 
   return EXIT_SUCCESS;
 

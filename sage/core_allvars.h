@@ -253,6 +253,7 @@ struct SELFCON_GRID_STRUCT
 
   int32_t GridSize;   
   int32_t NumCellsTotal;  
+  float Nion_HI_Total;
 
   float *Nion_HI;
   int32_t *GalCount;
