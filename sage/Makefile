@@ -1,3 +1,5 @@
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
 EXEC   = sage 
 
 OBJS   = 	./main.o \
@@ -33,7 +35,7 @@ INCL   =	./core_allvars.h  \
 			./Makefile
 
 #USE-MPI = yes# set this if you want to run in parallel
-
+OPT := -DROOT_DIR='"${ROOT_DIR}"'
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
@@ -60,13 +62,13 @@ else
   GSL_LIBDIR := $(shell gsl-config --prefix)/lib
   GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
 endif
-CCFLAGS += $(GSL_INCL)
+CFLAGS += $(GSL_INCL)
 
 OPTIMIZE = -g -O3 -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
 
 LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
 
-CCFLAGS =   $(OPTIONS) $(OPT) $(OPTIMIZE) 
+CFLAGS +=   $(OPTIONS) $(OPT) $(OPTIMIZE) 
 
 default: all
 

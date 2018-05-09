@@ -2,7 +2,7 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies       tracking 
+FileNameGalaxies       no_tracking 
 OutputDir              /lustre/projects/p004_swin/jseiler/kali/tracking/galaxies
 GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/tracking/grids/nion
 
@@ -15,8 +15,8 @@ LastFile          0
 
 NumOutputs        1   ; sets the desired number of galaxy outputs; use -1 for all outputs
 
-LowSnap           1 
-HighSnap          98 
+LowSnap           60 
+HighSnap          60 
 
 %------------------------------------------
 %----- Simulation information  ------------
@@ -38,7 +38,7 @@ PartMass        7.8436e-4 ; 1e10 Msun/h
 BoxSize		108.96	
 GridSize    256 
 
-self_consistent 0 
+self_consistent 1 
 
 %------------------------------------------
 %----- SAGE recipe options ----------------
@@ -93,7 +93,7 @@ IMF			2	; 1 for Salpeter, 2 for Chabrier.
 PhotoionDir 	    /lustre/projects/p004_swin/jseiler/kali/reionization_feedback/kali_delayed_noreionization/
 PhotoionName 		photHI_delayed_noreionization_photHI1_sphere_fesc0.30
 ReionRedshiftName   reionization_redshift_27_98	
-ReionSnap           29
+ReionSnap           60
 
 %------------------------------------------
 %----- Grid Code Options ------------------
