@@ -112,8 +112,8 @@ def run_my_sage():
     path_to_sage = "{0}/../sage/sage".format(test_dir)
     path_to_ini = "{0}/test_ini_files/test_mini_millennium.ini".format(test_dir)
     returncode = subprocess.call([path_to_sage, path_to_ini])
-    print("Returncode {0}".format(returncode))
-    if returncode < 0:
+
+    if returncode != 0:
         print("SAGE exited with error code {0}".format(returncode))
         raise RuntimeError
 
