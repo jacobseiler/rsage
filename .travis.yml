@@ -3,7 +3,7 @@ sudo: required
 
 env:
   global:
-    - NUMPY_VERISON = 1.13
+    - NUMPY_VERISON=1.13
 notifications:
   email:
     recipients:
