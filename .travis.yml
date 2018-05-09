@@ -14,21 +14,7 @@ notifications:
 matrix:
   fast_finish: true
 
-  include:
-    - os: osx
-      osx_image: xcode8
-      compiler: gcc
-      env: COMPILER=gcc PYTHON_VERSION=2.7
-      before_install:
-        - wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
-
-    - os: osx
-      osx_image: xcode9.3
-      compiler: clang
-      env: COMPILER=clang FAMILY=clang V='Apple LLVM 7.0.0' PYTHON_VERSION=3.6
-      before_install:
-        - wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh
-        
+  include:        
     - os: linux
       dist: trusty
       sudo: required
@@ -53,10 +39,13 @@ install:
   - conda install -q --yes -c asmeurer gsl
   - conda install -q --yes -c conda-forge hdf5
   - conda install -q --yes -c anaconda gcc
-  
+  - conda install -q --yes -c astropy 
+  - conda install -q --yes -c scipy 
+ 
 before_script:
 
 script:
+  - cd sage/
   - make -r CC=$COMPILER
-  - cd tests/
+  - cd ../tests/
   - python test_sage.py 

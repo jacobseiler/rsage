@@ -34,7 +34,7 @@ sys.path.append(scripts_dir)
 
 import AllVars
 import ReadScripts
-import PlotScripts
+
 
 def get_trees():
     """

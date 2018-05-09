@@ -6,22 +6,7 @@ matplotlib.use('Agg')
 import sys
 import os
 import numpy as np
-import pylab as plt
-import matplotlib.colors as colors
-import matplotlib.cm as cm
-from numpy import *
-from random import sample, seed
 import math
-import random
-import csv
-from io import StringIO
-from collections import Counter
-from matplotlib.colors import LogNorm
-import time
-from matplotlib.ticker import MultipleLocator
-from os.path import getsize as getFileSize
-from numpy import inf 
-import h5py
 
 np.set_printoptions(threshold=np.nan)
 
@@ -84,11 +69,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
     if not os.path.isfile(fname):
         print("File\t%s  \tdoes not exist!  Skipping..." % (fname))
         quit() 
-        
-    if getFileSize(fname) == 0:
-        print("File\t%s  \tis empty!  Skipping..." % (fname))
-        quit() 
-        
+
     fin = open(fname, 'rb')  # Open the file
     Nsubsteps = np.fromfile(fin, np.dtype(np.int32),1) 
     Nsnap = np.fromfile(fin, np.dtype(np.int32),1) 
