@@ -34,13 +34,12 @@ matrix:
 install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
-  - conda create -q --yes -n test python=$PYTHON_VERSION numpy=$NUMPY_VERSION 
+  - conda create -q --yes -n test python=$PYTHON_VERSION 
   - source activate test
   - conda install -q --yes -c asmeurer gsl
   - conda install -q --yes -c conda-forge hdf5
   - conda install -q --yes -c anaconda gcc
-  - conda install -q --yes -c astropy 
-  - conda install -q --yes -c scipy 
+  - pip install -r requirements.txt
  
 before_script:
 
