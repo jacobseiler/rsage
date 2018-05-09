@@ -20,12 +20,8 @@ def Read_SAGE_header(model_name, fnr):
         fname = "{0}".format(model_name)
     if not os.path.isfile(fname):
         print("File {0} does not exist!".format(fname))
-        quit() 
-        
-    if getFileSize(fname) == 0:
-        print("File {0} empty!".format(fname))
-        quit() 
-        
+        raise RuntimeError
+
     fin = open(fname, 'rb')  # Open the file
     Nsubsteps = np.fromfile(fin, np.dtype(np.int32),1) 
     Nsnap = np.fromfile(fin, np.dtype(np.int32),1) 
@@ -66,7 +62,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
         fname = "{0}".format(Model_Name)
     if not os.path.isfile(fname):
         print("File\t%s  \tdoes not exist!  Skipping..." % (fname))
-        quit() 
+        raise RuntimeError
 
     fin = open(fname, 'rb')  # Open the file
     Nsubsteps = np.fromfile(fin, np.dtype(np.int32),1) 
@@ -86,8 +82,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
     NtotHalos = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of gals in file.
     GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) 
 
-
-    print("Rank %d is reading File %s and contains %d total galaxies" %(rank, fname, NtotHalos))
+    print("Rank {0} is reading File {1} and contains {2} total galaxies".format(rank, fname, NtotHalos))
 
     GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures      
     G = GG.view(np.recarray)
