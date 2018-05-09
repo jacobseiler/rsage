@@ -18,9 +18,11 @@ import numpy as np
 import argparse
 import sys
 import os
-import pytest
 
-from urllib.request import urlretrieve
+try: # Python2
+    from urllib import urlretrieve
+except ImportError: #Python3
+    from urllib.request import urlretrieve
 import subprocess
 
 # Get the directory the testing happens in.
