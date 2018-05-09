@@ -37,7 +37,6 @@ install:
   - conda create -q --yes -n test python=$PYTHON_VERSION 
   - source activate test
   - conda install -q --yes -c asmeurer gsl
-  - conda install -q --yes -c conda-forge hdf5
   - conda install -q --yes -c anaconda gcc
   - pip install -r requirements.txt
  
