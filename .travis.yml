@@ -45,6 +45,6 @@ before_script:
 
 script:
   - cd sage/
-  - make -r CC=$COMPILER
+  - make 
   - cd ../tests/
   - python test_sage.py 
