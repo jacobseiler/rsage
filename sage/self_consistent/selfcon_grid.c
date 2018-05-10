@@ -159,8 +159,8 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
 
   if (Ngamma_HI > 0.0)
   {
-    SelfConGrid->Nion_HI[grid_idx] += exp10(Ngamma_HI - 50.0) * fesc_local; // Keep the number of ionizing photons in units of 10^50 photons/s.
-    SelfConGrid->Nion_HI_Total += exp10(Ngamma_HI - 50.0) * fesc_local; 
+    SelfConGrid->Nion_HI[grid_idx] += Ngamma_HI * fesc_local; // Ngamma_HI is already in units of 1.0e50 photons/s. 
+    SelfConGrid->Nion_HI_Total += Ngamma_HI * fesc_local; 
   }
   
   if (fesc_file == NULL)
