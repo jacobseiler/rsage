@@ -177,7 +177,7 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridFoFHaloNr,       sizeof(*(g->GridFoFHaloNr)) * MAXSNAPS);
   myfree(g->GridHistory,         sizeof(*(g->GridHistory)) * MAXSNAPS);
   myfree(g->GridColdGas,         sizeof(*(g->GridColdGas)) * MAXSNAPS);
-  myfree(g->GridHotGas,          sizeof(*(g->GridColdGas)) * MAXSNAPS);
+  myfree(g->GridHotGas,          sizeof(*(g->GridHotGas)) * MAXSNAPS);
   myfree(g->GridEjectedMass,     sizeof(*(g->GridEjectedMass)) * MAXSNAPS);
   myfree(g->GridDustColdGas,     sizeof(*(g->GridDustColdGas)) * MAXSNAPS);
   myfree(g->GridDustHotGas,      sizeof(*(g->GridDustHotGas)) * MAXSNAPS);

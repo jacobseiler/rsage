@@ -11,6 +11,7 @@ sage/sage
 sage/*.o
 sage/io/*.o
 sage/self_consistent/*.o
+sage/.nfs*
 
 # Grid code ignores.
 gridding/grid_sage
@@ -28,3 +29,4 @@ tests/trees*
 tests/millennium.a_list
 tests/test_output/galaxies/*
 tests/test_output/grids/*
+tests/*.txt

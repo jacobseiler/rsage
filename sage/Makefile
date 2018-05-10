@@ -34,8 +34,9 @@ INCL   =	./core_allvars.h  \
 			./self_consistent/common.h \
 			./Makefile
 
-#USE-MPI = yes# set this if you want to run in parallel
 OPT := -DROOT_DIR='"${ROOT_DIR}"'
+
+USE-MPI = yes# set this if you want to run in 
 ifdef USE-MPI
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler

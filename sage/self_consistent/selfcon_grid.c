@@ -532,7 +532,7 @@ struct SELFCON_GRID_STRUCT *MPI_sum_grids(void)
   }
 
   MPI_Reduce(SelfConGrid->Nion_HI, master_grid->Nion_HI, SelfConGrid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
-  MPI_Reduce(SelfConGrid->Nion_HI_Total, master_grid->Nion_HI_Total, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&SelfConGrid->Nion_HI_Total, &master_grid->Nion_HI_Total, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
 
   if (ThisTask == 0)
     return master_grid;

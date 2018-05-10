@@ -132,7 +132,7 @@ int32_t final_cleanup(char **argv)
   snprintf(copy_command, MAX_STRING_LEN - 1, "cp %s %s", argv[1], OutputDir); 
   system(copy_command);
   
-  if (self_consistent == 1) //&& (ReionizationOn == 3 || ReionizationOn == 4))
+  if ((self_consistent == 1) && (ReionizationOn == 3 || ReionizationOn == 4))
   {
     status = save_selfcon_grid();
     if (status != EXIT_SUCCESS)
@@ -145,6 +145,7 @@ int32_t final_cleanup(char **argv)
 
   if (IRA == 0)
   {
+    free(coreburning_times);
     free(IMF_massgrid_eta);
     free(IMF_massgrid_m);
   }

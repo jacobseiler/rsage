@@ -276,6 +276,7 @@ int32_t init_nionlookup(void)
     }  
   }
 
+  fclose(niontable);
   // Check that the Nion lookup table had enough datapoints to cover the time we're tracking the ages for. 
   if (stars_tbins[num_lines - 1] / 1.0e6 < FINALTIME)
   {

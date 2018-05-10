@@ -141,8 +141,8 @@ int main(int argc, char **argv)
 
   init();
  
-  //if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
-  status = init_selfcon_grid();
+  if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
+    status = init_selfcon_grid();
   if(ReionizationOn == 2)
   {
     status = init_grid();
