@@ -119,13 +119,13 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
 {
 
 #define ALLOCATE_ARRAY_MEMORY(name, length) \
-{                                          \
-  name = mycalloc(length, sizeof(*(name)));  \
-  if (name == NULL)                        \
-  {                                        \
+{                                           \
+  name = mycalloc(length, sizeof(*(name))); \
+  if (name == NULL)                         \
+  {                                         \
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate"#name".\n", sizeof(*(name)* length)); \
-    return EXIT_FAILURE;                   \
-  }                                        \
+    return EXIT_FAILURE;                    \
+  }                                         \
 }
 
   ALLOCATE_ARRAY_MEMORY(g->GridType,            MAXSNAPS);
@@ -217,6 +217,7 @@ void free_temporal_arrays(struct GALAXY *g)
 void write_temporal_arrays(struct GALAXY *g, FILE *fp)
 {
 
+// This macro writes out a property in code units.
 #define WRITE_GRID_PROPERTY(name, length)    \
 {                                            \
   XASSERT(name != NULL, #name" has a NULL pointer.\n"); \
@@ -225,6 +226,9 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
           length, nwritten);                 \
 }
 
+// This macro writes out a property in non-code units.
+// It's necessary to specify both the conversion factor (`conversion`) and the data-type (`type`) of the written property.
+// Specifying the data type is necessary to cast the void pointer.
 #define WRITE_CONVERTED_GRID_PROPERTY(name, length, conversion, type)    \
 {                                            \
   XASSERT(name != NULL, #name" has a NULL pointer.\n"); \

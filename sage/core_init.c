@@ -227,14 +227,14 @@ int32_t init_nionlookup(void)
   // using log10 Ngamma(Msun, t) = (log10 M* - 7.0) + log10 Ngamma(7.0, t). 
 
 #define MAXBINS 10000
-#define FINALTIME 20
+#define FINALTIME 100 // This is the time we wish to track the stellar history for. 
 
   char buf[MAX_STRING_LEN], fname[MAX_STRING_LEN];
   FILE *niontable;
   int32_t i = 0, num_lines = 0;
   float t, HI, HI_L, HeI, HeI_L, HeII, HeII_L, L;
 
-  snprintf(fname, MAX_STRING_LEN - 1, "extra/nion_table.txt");
+  snprintf(fname, MAX_STRING_LEN - 1, ROOT_DIR "/extra/nion_table.txt");
   niontable = fopen(fname, "r");
   if (niontable == NULL)
   {
@@ -275,14 +275,21 @@ int32_t init_nionlookup(void)
       return EXIT_FAILURE;
     }  
   }
-  // We track the past 100Myr of star formation.  The resolution on which we do the tracking is specified in the .ini file. 
+
+  // Check that the Nion lookup table had enough datapoints to cover the time we're tracking the ages for. 
+  if (stars_tbins[num_lines - 1] / 1.0e6 < FINALTIME)
+  {
+    fprintf(stderr, "The final time specified in the Nion lookup table is %.4f Myr. However we specified to track stellar ages over %d Myr.\n", stars_tbins[num_lines - 1] / 1.0e6, FINALTIME);
+    fprintf(stderr, "Either update the Nion lookup table or reduce the value of FINALTIME in `core_init.c`.\n");
+    return EXIT_FAILURE;
+  }
 
   float Time_Stellar = 0.0; 
 
   StellarTracking_Len = 0;
   while(Time_Stellar < FINALTIME)
   {
-    Time_Stellar += TimeResolutionStellar;
+    Time_Stellar += TimeResolutionStellar; // The resolution on which we do the tracking is specified in the .ini file. 
     ++StellarTracking_Len;
   }
 

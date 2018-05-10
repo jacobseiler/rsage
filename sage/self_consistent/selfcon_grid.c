@@ -173,7 +173,6 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
       fprintf(stderr, "Could not open file %s\n", fesc_fname);
       return EXIT_FAILURE;
     }
-    printf("Opened file!\n");
   }
 
   if (fesc_file == NULL)
