@@ -24,6 +24,7 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 {
   int32_t grid_position, step, status;
   int32_t SnapCurr = Halo[halonr].SnapNum;
+
   // NOTE: We use the Snapshot number of the FOF-Halo (i.e. the main halo the galaxy belongs to) because the snapshot number of the galaxy has been shifted by -1. //
   // This is consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. //
 
@@ -87,7 +88,7 @@ void update_temporal_array(int p, int halonr, int steps_completed)
   {
     ABORT(EXIT_FAILURE); 
   }
-  Gal[p].GridNgamma_HI[SnapCurr] = exp10(Ngamma_HI - 50.0);
+  Gal[p].GridNgamma_HI[SnapCurr] = (Ngamma_HI - 50.0);
   //printf("Ngamma_HI %.4e\texp10(Ngamma_HI - 50.0) %.4e\n", Ngamma_HI, exp10(Ngamma_HI - 50.0));  
   //Ngamma_HI_Total += exp10(Ngamma_HI - 50.0);
   Ngamma_HI_Total += Ngamma_HI; 
@@ -246,8 +247,9 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
 
   int j;  
   int32_t nwritten;
-  void *buffer;
- 
+  void *buffer; 
+  const double SFR_CONVERSION = UnitMass_in_g/UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS/STEPS; // Conversion from the SFR over one snapshot to Msun/yr. 
+
   nwritten = fwrite(&g->TreeNr, sizeof(g->TreeNr), 1, fp);
  
   XASSERT(g->IsMalloced == 1, "We are trying to write out the grid arrays for a galaxies who has already been freed.\n");

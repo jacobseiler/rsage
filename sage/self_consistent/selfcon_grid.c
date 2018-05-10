@@ -22,7 +22,6 @@ struct SELFCON_GRID_STRUCT *MPI_sum_grids(void);
 FILE *fesc_file = NULL;
 
 #define STARBURSTSTEP 0.1 // This is the step size for the Starburst99 data (in Myr). 
-#define LOOKUPTABLE_MASS 1.0e-3*Hubble_h // This is the shift for the Lookup Table linear equation in units of 1.0e10 Msun/h.
 
 // Local Proto-Types //
 
@@ -299,13 +298,61 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 
 }
 
+/*
+
+Calculates the ionizing photon rate for a given galaxy at a specified snapshot.
+
+Depending on the value of `PhotonPrescription` specified, the prescription to calculate this will change.
+
+0: Assumes a continuous SFR over the Snapshot and assigns an ionizing photon rate proportional to log(SFR)
+1: Uses the results of STARBURST99 to assign an ionizing photon rate that depends upon the age of previous SF episodes. 
+
+**Important** See Units. 
+
+Parameters
+----------
+
+g: struct GALAXY.  See `core_allvars.h` for the struct architecture.
+  Galaxy that we are calculating ionizing photons for.
+
+snapshot: Integer. 
+  The snapshot number we are calculating 
+
+*Ngamma_HI, *Ngamma_HeI, *Ngamma_HeII: Float Pointers.
+  Pointers that will store the number of hydrogen, helium and helium II ionizing photons. 
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  For `PhotonPrescription == 0`, only EXIT_SUCCESS can be returned (no fail conditions).
+  For `PhotonPrescription == 1`, if the number of ionizing photons is negative, EXIT_FAILURE is returned.  Otherwise EXIT_SUCCESS is returned. 
+  For any other `PhotonPrescription`, EXIT_FAILURE is returned.  
+
+Pointer Updates
+----------
+
+*Ngamma_HI, *Ngamma_HeI, *Ngamma_HeII.
+
+Units  
+----------
+
+The ionizing photon rate is returned in units of 1.0e50 Photons/s.
+Star formation rate is converted from internal code units to Msun/yr.
+Metallicity is in absolute metallicity (not solar).
+
+*/
+
 int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
 {
-  double SFR = g->GridSFR[snapshot] * SFR_CONVERSION;
+
   switch (PhotonPrescription)
   {
     case 0: ;
       
+      const double SFR_CONVERSION = UnitMass_in_g/UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS/STEPS; // Conversion from the SFR over one snapshot to Msun/yr. 
+
+      double SFR = g->GridSFR[snapshot] * SFR_CONVERSION;
       double Z = g->GridZ[snapshot];
 
       if (SFR == 0)
@@ -313,51 +360,47 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
         *Ngamma_HI = 0;
         *Ngamma_HeI = 0;
         *Ngamma_HeII = 0;
+        return EXIT_SUCCESS;
       }
       else if (Z < 0.0025) // 11
       {
-        *Ngamma_HI = log10(SFR) + 53.354;
+        *Ngamma_HI = log10(SFR) + 53.154;
         *Ngamma_HeI = log10(SFR) + 52.727;
         *Ngamma_HeII = log10(SFR) + 48.941;
       }
       else if (Z >= 0.0025 && Z < 0.006) // 12
       {
-        *Ngamma_HI = log10(SFR) + 53.290;
+        *Ngamma_HI = log10(SFR) + 53.090;
         *Ngamma_HeI = log10(SFR) + 52.583;
         *Ngamma_HeII = log10(SFR) + 49.411;
       }
       else if (Z>= 0.006 && Z < 0.014) // 13
       {
-        *Ngamma_HI = log10(SFR) + 53.248;
+        *Ngamma_HI = log10(SFR) + 53.048;
         *Ngamma_HeI = log10(SFR) + 52.481;
         *Ngamma_HeII = log10(SFR) + 49.254;
       }
       else if (Z >= 0.014 && Z < 0.030) // 14
       {
-        *Ngamma_HI = log10(SFR) + 53.166;
+        *Ngamma_HI = log10(SFR) + 52.966;
         *Ngamma_HeI = log10(SFR) + 52.319;
         *Ngamma_HeII = log10(SFR) + 48.596;
       }
       else // 15
       {
-        *Ngamma_HI = log10(SFR) + 53.041;
+        *Ngamma_HI = log10(SFR) + 52.941;
         *Ngamma_HeI = log10(SFR) + 52.052;
         *Ngamma_HeII = log10(SFR) + 47.939;
       }
 
-      if (SFR != 0)
-      {
-        assert(*Ngamma_HI > 0.0);
-        assert(*Ngamma_HeI > 0.0);
-        assert(*Ngamma_HeII > 0.0);
-      }
-
+      *Ngamma_HI = exp10(*Ngamma_HI - 50.0);
       return EXIT_SUCCESS;
 
     case 1: ;
 
       double t;
       int32_t i ,lookup_idx;
+      const double lookuptable_mass = 1.0e-4*Hubble_h;
 
       *Ngamma_HI = 0;
       *Ngamma_HeI = 0;
@@ -371,36 +414,33 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
         t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
         lookup_idx = (t / 0.1); // Find the index in the lookup table. 
         
-        *Ngamma_HI += exp10(log10(g->Stellar_Stars[i] / LOOKUPTABLE_MASS) + stars_Ngamma[lookup_idx] - 50.0);  
-        //printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_Ngamma[lookup_idx] %.4e\tRunningTotal %.4e\tSFR %.4e\tValue %.4e\tStars-MASS %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_Ngamma[lookup_idx], *Ngamma_HI, SFR, (g->Stellar_Stars[i] - LOOKUPTABLE_MASS) + stars_Ngamma[lookup_idx], g->Stellar_Stars[i] - LOOKUPTABLE_MASS); 
+        *Ngamma_HI += exp10(log10(g->Stellar_Stars[i] / lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);  
       }
 
-      /*
+      // The units of Ngamma are 1.0e50 photons/s.  Hence a negative value is not allowed.
       if (*Ngamma_HI < 0.0)
       {
-        fprintf(stderr, "Got an Ngamma value of %.4e\n", *Ngamma_HI);
-       
+        fprintf(stderr, "Got an NgammaHI value of %.4e.  This MUST be a positive value.\nPrinting out information for every element used to calculate Ngamma.\n", *Ngamma_HI);
+
+        // Print out information for every element of the array so we can try identify the problem.       
         for (i = 0; i < StellarTracking_Len; ++i)
         {
           t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
           lookup_idx = (t / 0.1); // Find the index in the lookup table. 
-          double total = 0.0;
-          total += (g->Stellar_Stars[i] - LOOKUPTABLE_MASS) + stars_Ngamma[lookup_idx]; 
-          printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_Ngamma[lookup_idx] %.4e\tRunningTotal %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_Ngamma[lookup_idx], total); 
 
+          double total = 0.0;
+          total += exp10(log10(g->Stellar_Stars[i] / lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);  
+          printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_Ngamma[lookup_idx] %.4e\tRunningTotal %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_Ngamma[lookup_idx], total); 
         }
         return EXIT_FAILURE;
       }
-      */
 
       return EXIT_SUCCESS;
 
     default:
       fprintf(stderr, "The specified PhotonPrescription value is not valid.");
       return EXIT_FAILURE;
-
   }
-
 }
 
 int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)

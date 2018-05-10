@@ -38,7 +38,6 @@ do {                                                                \
 #define  SEC_PER_YEAR       3.155e7
 
 #define	 CUBE(x) (x*x*x)
-#define  SFR_CONVERSION UnitMass_in_g/UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS/STEPS; // Conversion from the SFR over one snapshot to Msun/yr. 
 
 #ifdef NDEBUG
 #define XASSERT(EXP, ...)                                do{} while(0)
