@@ -47,14 +47,19 @@ def parse_input_arguments():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-d", "--directory", dest="run_directory", 
-                      help="Path to the directory the output files will be "
-                           "located.  Required.  Enter WITHOUT the final /")
+                        help="Path to the directory the output files will be "
+                             "located.  Required.  Enter WITHOUT the final /")
 
     parser.add_argument("-f", "--SAGE_ini", dest="SAGE_fname", 
-                      help="Location of the SAGE ini file.  Required.")
+                        help="Location of the SAGE ini file.  Required.")
 
     parser.add_argument("-c", "--cifog_ini", dest="cifog_fname", 
-                      help="Location of the cifog ini file.  Required.")
+                        help="Location of the cifog ini file.  Required.")
+
+    parser.add_argument("-p", "--run_prefix", dest="prefix",
+                        help="Prefix for the naming of files. Useful to run "
+                            "multiple models with only slight variations. "
+                            "Default: No prefixes.", default = None)
 
     args = parser.parse_args()
 
@@ -103,7 +108,8 @@ def create_directories(args):
         # If the grids directory didn't exist, there's no way these will.
 
         dirs = ["grids/nion", "grids/cifog",
-                "grids/cifog/reionization_modifiers"]
+                "grids/cifog/reionization_modifiers",
+                "grids/nion/properties"]
         for directory in dirs:
             dir_ = "{0}/{1}".format(base_dir, directory)
             os.makedirs(dir_)
@@ -128,22 +134,31 @@ def update_ini_files(args):
 
     SAGE_params, SAGE_params_names = ReadScripts.read_SAGE_ini(args["SAGE_fname"])
     cifog_params, cifog_params_names, cifog_headers = ReadScripts.read_cifog_ini(args["cifog_fname"])
-  
+ 
+    if args["prefix"] is None:
+        prefix_tag = ""
+    else:
+        prefix_tag = args["prefix"]
+ 
     SAGE_params["OutputDir"] = "{0}/galaxies".format(args["run_directory"])
     SAGE_params["GridOutputDir"] = "{0}/grids/nion".format(args["run_directory"])
     SAGE_params["PhotoionDir"] = "{0}/grids/cifog".format(args["run_directory"])
-    SAGE_params["PhotoionName"] = "photHI"
-    SAGE_params["ReionRedshiftName"] = "reionization_redshift"
+    SAGE_params["PhotoionName"] = "{0}_photHI".format(prefix_tag)
+    SAGE_params["ReionRedshiftName"] = "{0}_reionization_redshift" \
+                                       .format(prefix_tag)
 
-    nion_fname = get_nion_fname(SAGE_params)
+    nion_fname = get_nion_fname(SAGE_params) 
     cifog_params["inputNionFile"] = "{0}/grids/nion/{1}" \
                                     .format(args["run_directory"], nion_fname)
-    cifog_params["output_XHII_file"] = "{0}/grids/cifog/XHII" \
-                                       .format(args["run_directory"])
-    cifog_params["output_photHI_file"] = "{0}/grids/cifog/photHI" \
-                                       .format(args["run_directory"])
-    cifog_params["output_restart_file"] = "{0}/grids/cifog/restart" \
-                                       .format(args["run_directory"])
+    cifog_params["output_XHII_file"] = "{0}/grids/cifog/{1}_XHII" \
+                                       .format(args["run_directory"],
+                                               prefix_tag)
+    cifog_params["output_photHI_file"] = "{0}/grids/cifog/{1}_photHI" \
+                                         .format(args["run_directory"],
+                                                 prefix_tag)
+    cifog_params["output_restart_file"] = "{0}/grids/cifog/{1}_restart" \
+                                          .format(args["run_directory"],
+                                                  prefix_tag)
     print("Nion_fname {0}".format(nion_fname))
 
     with open (args["SAGE_fname"], "w+") as f:
@@ -195,7 +210,7 @@ def get_nion_fname(SAGE_params):
 
     elif fesc_prescription == 2:
         alpha, beta = determine_fesc_constants(SAGE_params)              
-        nion_fname = "{0}_MH_{1:.3e}_{2:.3e}_{3:.3e}_{4:.3e}_HaloPartCut{5}_nionHI" \
+        nion_fname = "{0}_MH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"][0],
                              SAGE_params["MH_low"][0],
                              SAGE_params["fesc_low"][0],
@@ -204,19 +219,19 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["HaloPartCut"][0])
 
     elif fesc_prescription == 3:
-        nion_fname = "{0}_ejected_alpha{1:.3f}_beta{2:.3f}_HaloPartCut{3}_nionHI" \
+        nion_fname = "{0}_ejected_{1:.3f}_{2:.3f}_HaloPartCut{3}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"][0],
                              SAGE_params["alpha"][0],
                              SAGE_params["beta"][0],
                              SAGE_params["HaloPartCut"][0])
 
     elif fesc_prescription == 4:
-        nion_fname = "{0}_quasar_base{1:.2f}_boost{2:.2f}_dyntime{3:.2f}_HaloPartCut_nionHI" \
+        nion_fname = "{0}_quasar_{1:.2f}_{2:.2f}_{3:.2f}_HaloPartCut{4}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"][0],
-                            SAGE_params["quasar_baseline"][0],
-                            SAGE_params["quasar_boosted"][0],
-                            SAGE_params["N_dyntime"][0],
-                            SAGE_params["HaloPartCut"][0])
+                             SAGE_params["quasar_baseline"][0],
+                             SAGE_params["quasar_boosted"][0],
+                             SAGE_params["N_dyntime"][0],
+                             SAGE_params["HaloPartCut"][0])
 
     elif fesc_prescription == 5 or fesc_prescription == 6:
         nion_fname = "{0}_Anne_MH_{1:.3e}_{2:.3e}_{3:.3e}_{4:.3e}_HaloPartCut{5}_nionHI" \
@@ -226,6 +241,19 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["MH_high"][0],
                              SAGE_params["fesc_high"][0],
                              SAGE_params["HaloPartCut"][0])
+
+    elif fesc_prescription == 7:
+        nion_fname = "{0}_ejectedpower_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
+                     .format(SAGE_params["FileNameGalaxies"][0],
+                             SAGE_params["MH_low"][0],
+                             SAGE_params["fesc_low"][0],
+                             SAGE_params["MH_high"][0],
+                             SAGE_params["fesc_high"][0],
+                             SAGE_params["HaloPartCut"][0])
+        
+    else:
+        print("Select a valid fescPrescription (0 to 7 inclusive).")
+        raise ValueError
 
     return nion_fname
 

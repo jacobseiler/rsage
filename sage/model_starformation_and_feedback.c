@@ -11,6 +11,14 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
+#define IMF_CONSTANT IMF_norm/(IMF_slope + 1.0) 
+
+// Local Proto-Types //
+
+void  update_SN_stars_array(int p, double stars, double dt, int tree, int ngal);
+void update_stellar_tracking(int p, double stars, double dt, int tree, int ngal);
+
+// External Functions //
 
 void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double NSN, double dt) 
 {
@@ -59,8 +67,6 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
 
   dust_removed += NSN * eta * Ms * dust_fraction_coldhot;
 
-  //fprintf(stderr, "Dust added = %.4e\tCold Dust Removed Reheated= %4.e\tCold Dust Removed Annihilated = %4.e\n", yd * NSN, reheated_mass * dust_fraction_cold, NSN * eta * Ms* dust_fraction_coldhot); 
-
   Gal[centralgal].HotGas += reheated_mass;
   Gal[centralgal].MetalsHotGas += reheated_mass * metallicity;
   Gal[centralgal].DustHotGas += reheated_mass * dust_fraction_cold; 
@@ -68,32 +74,19 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   metallicityHot = get_metallicity(Gal[centralgal].HotGas, Gal[centralgal].MetalsHotGas);
   dust_fraction_hot = get_dust_fraction(Gal[p].HotGas, Gal[p].DustHotGas);
   dust_fraction_hotcold = get_dust_fraction(Gal[p].ColdGas + Gal[p].HotGas + Gal[p].EjectedMass, Gal[p].DustHotGas);
+  // When dust_fraction_hotcold is calculated is irrelevant (i.e., before or after mass is added/subtracted from ColdGas).
+  // This is because mass is conserved between ColdGas and HotGas during this step.
 
   Gal[centralgal].HotGas -= ejected_mass;
   Gal[centralgal].MetalsHotGas -= ejected_mass * metallicityHot;
   Gal[centralgal].DustHotGas -= ejected_mass * dust_fraction_hot; // Dust that has been ejected from the galaxy.
   Gal[centralgal].DustHotGas -= NSN * eta * Ms * dust_fraction_hotcold; // Dust that has been annihilated by shocks.
   dust_removed += NSN * eta * Ms * dust_fraction_hotcold;
-
-
-  //if( NSN * eta * Ms * dust_fraction_hotcold > 0.0) 
-  //printf("NSN = %.4e\tdust_fraction_hotcold = %.4e\tNSN*eta*Ms*dust_fraction_hotcold = %4e\n", NSN, dust_fraction_hotcold, NSN * eta * Ms * dust_fraction_hotcold);
-
-//if (dust_added > 0.0)
-//fprintf(stderr, "Dust added = %.4e\tDust removed = %.4e\n", dust_added, dust_removed);
  
   Gal[centralgal].EjectedMass += ejected_mass;
   Gal[centralgal].MetalsEjectedMass += ejected_mass * metallicityHot;
 
   Gal[centralgal].DustEjectedMass += ejected_mass * dust_fraction_hot; 
-
-  //assert(ejected_mass == ejected_mass);
-  //assert(dust_fraction_hot == dust_fraction_hot);
-  // Both of these asserts pass.
-
- 
-  //printf("ejected_mass %.4e\tdust_fraction_hot %.4e\tDustEjectedMass %.4e\n", ejected_mass, dust_fraction_hot, Gal[centralgal].DustEjectedMass);
-  XASSERT(Gal[centralgal].DustEjectedMass == Gal[centralgal].DustEjectedMass, "ejected_mass %.4e\tdust_fraction_hot %.4e\tDustEjectedMass %.4e\n", ejected_mass, dust_fraction_hot, Gal[centralgal].DustEjectedMass);
 
   Gal[p].GridOutflowRate[Halo[Gal[centralgal].HaloNr].SnapNum] += ejected_mass / dt; 
 
@@ -111,15 +104,21 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
     Gal[p].MetalsHotGas = 0.0; 
   if(Gal[p].GrandSum < 0.0)
     Gal[p].GrandSum = 0.0;
+
+  if (Gal[p].DustColdGas < 0.0)
+    Gal[p].DustColdGas = 0.0;
+  if (Gal[p].DustHotGas < 0.0)
+    Gal[p].DustHotGas = 0.0;
  
 }
 
 
-void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal, bool update_stars) 
+void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal)
 {
  
   double metallicity = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas);
   double dust_fraction_cold = get_dust_fraction(Gal[p].ColdGas, Gal[p].DustColdGas);
+  double time_spanned;
 
   // If the SF episode was from a merger the stars are placed in different reservoirs. 
   if(!ismerger)
@@ -139,16 +138,24 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
 
   }
 
-  if(update_stars == true)
+  // If we're doing delayed SN we need to update the tracking 
+  if (ismerger == true)
+  { 
+    time_spanned = 0.0;
+  }
+  else
   {
-    if (ismerger == true)
-    { 
-      update_stars_array(p, stars, 0.0, tree, ngal); // When we add the stars from a merger to the stars array, we don't want to increase the time spanned.
-    }
-    else
-    {
-      update_stars_array(p, stars, dt, tree, ngal);
-    }
+    time_spanned = dt;
+  }
+  
+  if (IRA == 0)
+  { 
+    update_SN_stars_array(p, stars, time_spanned, tree, ngal);
+  }
+
+  if (PhotonPrescription == 1)
+  {
+    update_stellar_tracking(p, stars, time_spanned, tree, ngal);
   }
 
   // update gas and metals from star formation 
@@ -163,64 +170,6 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
     Gal[p].MetalsColdGas = 0.0;
 
 }
-
-// This function updates the array which holds the amount of stars formed in the past 50 Myr.
-// As we only need this array for doing delayed SN, if we are using the IRA then this function will never be called.
-// If the SF timestep is less than the resolution on which we do supernova feedback then we will keep track of the total stars formed over these small timesteps and then update them all in one bin.
-// If the SF timestep is larger than the resolution on which we do supernova feedback we will spread the stars formed evenly over a number of elements (>= 1). 
-//
-// INPUT: The index of the galaxy (p).
-// 	: The number of stars formed in the current SF episode (stars). ## UNITS: 1.0e10 Msun/h (Code Units). 
-// 	: The timestep over which the SF is occuring (dt). ## UNITS: Code Units, multiply by 'UnitTime_in_Megayears / Hubble_h' for Myr.
-// 	: The tree currently being used (tree); currently used for debugging purposes.
-//
-// OUTPUT: None.
-
-void update_stars_array(int p, double stars, double dt, int tree, int ngal)
-{
-
-  double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
-
-  Gal[p].Total_SF_Time += time_spanned; // How long it has been since we've updated the array?
-  Gal[p].Total_Stars += stars; // How many stars we will need to bin once we do update the array?
-
-  if(Gal[p].Total_SF_Time > TimeResolutionSN * SN_Array_Len) // This handles cases in which the time spanned is greater than 50Myr.  In this case we wipe the array clean and push the star formation into a 50Myr bin. 
-    Gal[p].Total_SF_Time = TimeResolutionSN * SN_Array_Len;
-
-  if(Gal[p].Total_SF_Time < TimeResolutionSN) // If it hasn't been long enough yet, don't update the array. 
-    return;
-
-  int num_shuffled = round(Gal[p].Total_SF_Time/TimeResolutionSN); // How many cells will this SF event span.
-
-  double stars_spread = Gal[p].Total_Stars/num_shuffled; // We spread the stars evenly over time.
-
-  int i;
-
-  XASSERT(Gal[p].IsMalloced == 1, "We are attempting to update the stars array but this galaxy has already had its arrays freed.\nGalaxy %d \t Halo %d \t Tree %d \t Time spanned %.4eMyr\n", p, Gal[p].HaloNr, tree, time_spanned);  
-
-  for(i = SN_Array_Len - 1; i > num_shuffled - 1; --i)
-  {
-      Gal[p].Stars[i] = Gal[p].Stars[i-num_shuffled]; // Shuffle the current elements of the array far enough along so we can store the new stars.
-      //Gal[p].StellarAge_Numerator += Gal[p].Stars[i] * (Age[Gal[p].SnapNum] - (Time_SFH / UnitTime_in_Megayears * Hubble_h));
-  }
-    XPRINT(p < ngal, "We have the case where the galaxy p is greater than the number of galaxies.  p = %d \t ngal = %d\n", p, ngal);
-  for(i = SN_Array_Len - 1; i > (SN_Array_Len - num_shuffled - 1); --i)
-  {
-    Gal[p].StellarAge_Numerator += Gal[p].Stars[i] * (Age[Gal[p].SnapNum - 4]);
-    Gal[p].StellarAge_Denominator += Gal[p].Stars[i]; 
-  }
-
-  for(i = 0; i < num_shuffled; ++i) 
-  {
-    Gal[p].StellarAge_Numerator += Gal[p].Stars[i] * (Age[Gal[p].SnapNum - 4]);
-    Gal[p].Stars[i] = stars_spread; // Update the vacated elements with the new stars.
-    Gal[p].GrandSum += stars_spread; 
-  } 
-
-  Gal[p].Total_SF_Time = 0.0; // We've updated so reset our variables.
-  Gal[p].Total_Stars = 0.0;
-}
-
 
 void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal)
 {
@@ -297,10 +246,7 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
     stars *= factor; 
   }
   
-  if (IRA == 0) 
-    update_from_star_formation(p, stars, dt, step, false, tree, ngal, false);
-  else
-    update_from_star_formation(p, stars, dt, step, false, tree, ngal, true);
+  update_from_star_formation(p, stars, dt, step, false, tree, ngal);
  
   update_from_SN_feedback(p, centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, NSN, dt);
 
@@ -321,8 +267,27 @@ void starformation_and_feedback(int p, int centralgal, double time, double dt, i
 
 void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double *Delta_m)
 {
-  *Delta_Eta = IMF_norm / (IMF_slope + 1.0) * (pow(m_high, IMF_slope + 1.0) - pow(m_low, IMF_slope + 1.0));
-  *Delta_m = IMF_norm / (IMF_slope + 1.0) * (pow(m_high, IMF_slope + 2.0) - pow(m_low, IMF_slope + 2.0));
+
+  if (m_low < 8.0)
+    m_low = 8.0;
+
+  if (m_high < 8.0)
+    m_high = 8.0;
+
+  int32_t bin_idx_low = round((m_low - m_IMFbins_low) / (m_IMFbins_delta)); 
+  int32_t bin_idx_high = round((m_high - m_IMFbins_low) / (m_IMFbins_delta)); 
+
+  if (bin_idx_high == N_massbins)
+    --bin_idx_high;
+
+  if (bin_idx_low == N_massbins)
+    --bin_idx_low;
+
+  *Delta_Eta = IMF_CONSTANT * (IMF_massgrid_eta[bin_idx_high] - IMF_massgrid_eta[bin_idx_low]);
+  *Delta_m = IMF_CONSTANT * (IMF_massgrid_m[bin_idx_high] - IMF_massgrid_m[bin_idx_low]);
+
+  //printf("m_low %.4e\tm_high %.4e\tbin_idx_low %d\tbin_idx_high %d\tdelta_m %.4e\n", m_low, m_high, bin_idx_low, bin_idx_high, *Delta_m);
+
 }
 
 // This function determines the amount of mass reheated for a supernova event.
@@ -399,6 +364,7 @@ double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax)
 double calculate_coreburning(double t)
 {
 
+  /*
   double a = 0.7473; // Fits from Portinari et al. (1998). 
   double b = -2.6979;
   double c = -4.7659;
@@ -407,6 +373,19 @@ double calculate_coreburning(double t)
   double m = pow(10, a/log10(t) + b * exp(c/log10(t)) + d); 
 
   return m; 
+  */
+
+  int32_t bin_idx = (t - coreburning_tbins_low) / (coreburning_tbins_delta); 
+
+  if (bin_idx < 0) // Time is so short that only stars with mass greater than 120Msun can go nova.
+    return 120.0;
+
+  if (bin_idx > N_tbins) // Time is so long that all stars within the IMF range can go nova.
+    return 8.0; 
+
+  return coreburning_times[bin_idx];
+
+ 
 }
 
 // If the cold gas that has been reheated has enough energy, it is possible to unbind some of the gas in the hot halo.
@@ -437,13 +416,13 @@ double calculate_ejected_mass(double *reheated_mass, double reheated_energy, dou
     	ejected_mass = (reheated_energy - Delta_Ehot) * 1.0e-7/(0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Balance between the excess thermal energy and the thermal energy of the hot gas.
 	// Energy changed from erg to Joules (kg m^2 s^-2) then divided by virial velocity (converted to m/s) giving final units of kg.
 
-        ejected_mass = ejected_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; // Convert back from kg to 1.0e10*Msun/h. 
+      ejected_mass = ejected_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; // Convert back from kg to 1.0e10*Msun/h. 
     }
     else // Not enough energy to eject mass. 
     {
-	ejected_mass = 0.0;
-        *reheated_mass = reheated_energy * 1.0e-7 / (0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Amount of mass that can be reheated to virial temperature of the hot halo.
-	*reheated_mass = *reheated_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; 
+      ejected_mass = 0.0;
+      *reheated_mass = reheated_energy * 1.0e-7 / (0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Amount of mass that can be reheated to virial temperature of the hot halo.
+      *reheated_mass = *reheated_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; 
     }
 
   } 					
@@ -485,7 +464,7 @@ void do_previous_SN(int p, int centralgal, double dt)
   {   
     for(i = 1; i < SN_Array_Len; ++i)
     {
-      if(Gal[p].Stars[i] < 1e-10)
+      if(Gal[p].SN_Stars[i] < 1e-10)
 	    continue;
 
       // First calculate the smallest star which would have expended its H and He and gone supernova. 
@@ -494,6 +473,8 @@ void do_previous_SN(int p, int centralgal, double dt)
       t_low = (i * TimeResolutionSN) / 2.0 + time_until_next_SN; // (i * TimeResolutionSN) is the number of stars that were formed that many megayears ago.  time_until_next_SN allows us to ask how many of stars will explode in this SN step.
       if(t_low < 2)
   	    t_low = 2;
+      if (t_low > 45)
+        m_low = 120.0;
  
       m_low = calculate_coreburning(t_low);    
 
@@ -520,13 +501,27 @@ void do_previous_SN(int p, int centralgal, double dt)
           continue;
 
       calculate_Delta_Eta(m_low, m_high, &Delta_Eta, &Delta_m); // Calculate the number and mass fraction of stars i Myr ago that go supernova in the current SF step. 
-      reheated_mass += calculate_reheated_mass(Delta_Eta, Gal[p].Stars[i], Gal[centralgal].Vmax); // Update the amount of mass reheated from previous stars that have gone nova.
+      reheated_mass += calculate_reheated_mass(Delta_Eta, Gal[p].SN_Stars[i], Gal[centralgal].Vmax); // Update the amount of mass reheated from previous stars that have gone nova.
 
-      reheated_energy += calculate_reheated_energy(Delta_Eta, Gal[p].Stars[i], Gal[centralgal].Vmax); // Update the energy injected from previous stars that have gone nova. 
-      mass_stars_recycled += Delta_m * Gal[p].Stars[i]; // Update the amount of stellar mass recycled from previous stars that have gone nova.
-      mass_metals_new += Delta_m / m_SNII * Yield * Gal[p].Stars[i]; // Update the amount of new metals that the supernova has enriched the ISM with.
+      reheated_energy += calculate_reheated_energy(Delta_Eta, Gal[p].SN_Stars[i], Gal[centralgal].Vmax); // Update the energy injected from previous stars that have gone nova. 
+      mass_stars_recycled += Delta_m * Gal[p].SN_Stars[i]; // Update the amount of stellar mass recycled from previous stars that have gone nova.
 
-      NSN += Delta_Eta * Gal[p].Stars[i] * 1.0e10 / Hubble_h; // The number of supernova events will be simply given by the number fraction of stars that exploded times the mass of stars. 
+      // Since stars have gone supernova, need to update the number of stars remaining at that time. 
+      if (PhotonPrescription == 1)
+      {
+        Gal[p].Stellar_Stars[i] -= Delta_m * Gal[p].SN_Stars[i];
+        if (Gal[p].Stellar_Stars[i] < 0.0)
+          Gal[p].Stellar_Stars[i] = 0.0;
+      }
+
+      Gal[p].SN_Stars[i] -= Delta_m * Gal[p].SN_Stars[i];
+      if (Gal[p].SN_Stars[i] < 0.0)
+        Gal[p].SN_Stars[i] = 0.0;
+
+
+      mass_metals_new += Delta_m / m_SNII * Yield * Gal[p].SN_Stars[i]; // Update the amount of new metals that the supernova has enriched the ISM with.
+
+      NSN += Delta_Eta * Gal[p].SN_Stars[i] * 1.0e10 / Hubble_h; // The number of supernova events will be simply given by the number fraction of stars that exploded times the mass of stars. 
  
       XASSERT(reheated_mass >= 0.0, "i = %d \t Reheated mass = %.4e \t t_low = %.4e Myr \t m_low = %.4e \t t_high = %.4e Myr \t m_high = %.4e\n", i, reheated_mass, t_low, m_low, t_high, m_high); // Just make sure we're doing this right.
 
@@ -607,15 +602,28 @@ void do_previous_recycling(int p, int centralgal, int step, double dt)
     double mwmsa = Gal[p].StellarAge_Numerator / Gal[p].StellarAge_Denominator; // The numerator is weighted by the age of the stars with the denominator simply being the number of stars.
     double time_into_snap = dt * step; 
 
-
     t_high = (mwmsa - ((Age[Gal[p].SnapNum - 1]) - time_into_snap)) * UnitTime_in_Megayears / Hubble_h;
-    m_high = calculate_coreburning(t_high);
+    if (t_high < 2.0)
+      t_high = 2.0;
+    if (t_high > 45.0)
+      m_high = 8.0;
+    else
+      m_high = calculate_coreburning(t_high);
+
     t_low = (mwmsa - (Age[Gal[p].SnapNum] - time_into_snap)) * UnitTime_in_Megayears / Hubble_h;
-    m_low = calculate_coreburning(t_low);
+    if (t_low < 2.0)
+      t_low = 2.0;
+
+    if (t_low > 45.0)
+      m_low = 8.0;
+    else
+      m_low = calculate_coreburning(t_low);
+
+
     calculate_Delta_Eta(m_low, m_high, &Delta_Eta, &Delta_m); // Calculate the number and mass fraction of stars from snapshot i that go nova in the snapshot we are evolving FROM. 
     mass_stars_recycled = Delta_m * Gal[p].StellarAge_Denominator; // Update the amount of stellar mass recycled from previous stars that have gone nova.
     NSN = Delta_Eta * Gal[p].StellarAge_Denominator * 1.0e10 / Hubble_h;
-
+    //printf("m_low %.4e\tm_high %.4e\tt_low %.4e\tt_high %.4e\tDelta_m %.4e\n", m_low, m_high, t_low, t_high, Delta_m);
     update_from_SN_feedback(p, centralgal, 0.0, 0.0, mass_stars_recycled, 0.0, NSN, dt);
   } 
 }
@@ -637,13 +645,17 @@ void do_contemporaneous_SN(int p, int centralgal, double dt, double *stars, doub
   double fac;
  
   if(dt * UnitTime_in_Megayears / Hubble_h / 2.0 < TimeResolutionSN) // If the star formation time scale is smaller than the time scale on which we do SN feedback
-    t_low = (TimeResolutionSN - Gal[p].Total_SF_Time); // Then our 'sub-grid' SN feedback time will be the time from this SF episode until we next calculate SN feedback (divided by 2 as we assume the stars are formed in the middle of the interval).
+    t_low = (TimeResolutionSN - Gal[p].Total_SN_SF_Time); // Then our 'sub-grid' SN feedback time will be the time from this SF episode until we next calculate SN feedback (divided by 2 as we assume the stars are formed in the middle of the interval).
   else // Otherwise the star formation time scale is larger than the SN feedback time scale.
     t_low  = (dt * UnitTime_in_Megayears / Hubble_h) / 2.0; // Then the feedback time will be the time from this SF event to the next star formation event. This is because SN feedback is only calculated when star formation occurs regardless of the actual value of 'TimeResolutionSN'. 
-    
+   
+  if (t_low < 2.0)
+    t_low = 2.0;
+ 
   m_low = calculate_coreburning(t_low);    
   if(m_low < 8.0)
-    m_low = 8.0; 
+    m_low = 8.0;
+ 
   if(m_low > 120.0)
     return;      
  
@@ -706,5 +718,101 @@ void do_IRA_SN(int p, int centralgal, double *stars, double *reheated_mass, doub
   *mass_metals_new = Yield * (*stars);    
   *mass_stars_recycled = RecycleFraction * (*stars);
 
+}
+
+// Local Functions //
+
+// This function updates the array which holds the amount of stars formed in the past 50 Myr.
+// As we only need this array for doing delayed SN, if we are using the IRA then this function will never be called.
+// If the SF timestep is less than the resolution on which we do supernova feedback then we will keep track of the total stars formed over these small timesteps and then update them all in one bin.
+// If the SF timestep is larger than the resolution on which we do supernova feedback we will spread the stars formed evenly over a number of elements (>= 1). 
+//
+// INPUT: The index of the galaxy (p).
+// 	: The number of stars formed in the current SF episode (stars). ## UNITS: 1.0e10 Msun/h (Code Units). 
+// 	: The timestep over which the SF is occuring (dt). ## UNITS: Code Units, multiply by 'UnitTime_in_Megayears / Hubble_h' for Myr.
+// 	: The tree currently being used (tree); currently used for debugging purposes.
+//
+// OUTPUT: None.
+
+void update_SN_stars_array(int p, double stars, double dt, int tree, int ngal)
+{
+
+  double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
+
+  Gal[p].Total_SN_SF_Time += time_spanned; // How long it has been since we've updated the array?
+  Gal[p].Total_SN_Stars += stars; // How many stars we will need to bin once we do update the array?
+
+  if(Gal[p].Total_SN_SF_Time > TimeResolutionSN * SN_Array_Len) // This handles cases in which the time spanned is greater than 50Myr.  In this case we wipe the array clean and push the star formation into a 50Myr bin. 
+    Gal[p].Total_SN_SF_Time = TimeResolutionSN * SN_Array_Len;
+
+  if(Gal[p].Total_SN_SF_Time < TimeResolutionSN) // If it hasn't been long enough yet, don't update the array. 
+    return;
+
+  int num_shuffled = round(Gal[p].Total_SN_SF_Time/TimeResolutionSN); // How many cells will this SF event span.
+
+  double stars_spread = Gal[p].Total_SN_Stars/num_shuffled; // We spread the stars evenly over time.
+
+  int i;
+
+  XASSERT(Gal[p].IsMalloced == 1, "We are attempting to update the stars array but this galaxy has already had its arrays freed.\nGalaxy %d \t Halo %d \t Tree %d \t Time spanned %.4eMyr\n", p, Gal[p].HaloNr, tree, time_spanned);  
+
+  for(i = SN_Array_Len - 1; i > num_shuffled - 1; --i)
+  {
+      Gal[p].SN_Stars[i] = Gal[p].SN_Stars[i-num_shuffled]; // Shuffle the current elements of the array far enough along so we can store the new stars.
+  }
+    XPRINT(p < ngal, "We have the case where the galaxy p is greater than the number of galaxies.  p = %d \t ngal = %d\n", p, ngal);
+  for(i = SN_Array_Len - 1; i > (SN_Array_Len - num_shuffled - 1); --i)
+  {
+    Gal[p].StellarAge_Numerator += Gal[p].SN_Stars[i] * (Age[Gal[p].SnapNum - 4]);
+    Gal[p].StellarAge_Denominator += Gal[p].SN_Stars[i]; 
+  }
+
+  for(i = 0; i < num_shuffled; ++i) 
+  {
+    Gal[p].StellarAge_Numerator += Gal[p].SN_Stars[i] * (Age[Gal[p].SnapNum - 4]);
+    Gal[p].SN_Stars[i] = stars_spread; // Update the vacated elements with the new stars.
+    Gal[p].GrandSum += stars_spread; 
+  } 
+
+  Gal[p].Total_SN_SF_Time = 0.0; // We've updated so reset our variables.
+  Gal[p].Total_SN_Stars = 0.0;
+}
+
+
+void update_stellar_tracking(int p, double stars, double dt, int tree, int ngal)
+{
+
+  double time_spanned = dt * UnitTime_in_Megayears / Hubble_h; // The time spanned by this star formation event.
+
+  Gal[p].Total_Stellar_SF_Time += time_spanned; // How long it has been since we've updated the array?
+  Gal[p].Total_Stellar_Stars += stars; // How many stars we will need to bin once we do update the array?
+
+  if(Gal[p].Total_Stellar_SF_Time > TimeResolutionStellar * StellarTracking_Len) 
+    Gal[p].Total_Stellar_SF_Time = TimeResolutionStellar * StellarTracking_Len;
+
+  if(Gal[p].Total_Stellar_SF_Time < TimeResolutionStellar) // If it hasn't been long enough yet, don't update the array. 
+    return;
+
+  int num_shuffled = round(Gal[p].Total_Stellar_SF_Time/TimeResolutionStellar); // How many cells will this SF event span.
+
+  double stars_spread = Gal[p].Total_Stellar_Stars/num_shuffled; // We spread the stars evenly over time.
+
+  int i;
+
+  XASSERT(Gal[p].IsMalloced == 1, "We are attempting to update the Stellar Tracking array but this galaxy has already had its arrays freed.\nGalaxy %d \t Halo %d \t Tree %d \t Time spanned %.4eMyr\n", p, Gal[p].HaloNr, tree, time_spanned);  
+
+  for(i = StellarTracking_Len - 1; i > num_shuffled - 1; --i)
+  {
+      Gal[p].Stellar_Stars[i] = Gal[p].Stellar_Stars[i-num_shuffled]; // Shuffle the current elements of the array far enough along so we can store the new stars.
+  }
+  XPRINT(p < ngal, "We have the case where the galaxy p is greater than the number of galaxies.  p = %d \t ngal = %d\n", p, ngal);
+
+  for(i = 0; i < num_shuffled; ++i) 
+  {
+    Gal[p].Stellar_Stars[i] = stars_spread; // Update the vacated elements with the new stars.  
+  } 
+
+  Gal[p].Total_Stellar_SF_Time = 0.0; // We've updated so reset our variables.
+  Gal[p].Total_Stellar_Stars = 0.0;
 }
 

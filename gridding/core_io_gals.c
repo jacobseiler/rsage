@@ -36,6 +36,9 @@ int32_t load_gals(char *fname)
 
   int32_t i, j;
   FILE *infile;
+  int32_t steps, maxsnaps, gridsize;
+  double *zz;
+  double hubbleh, omega, omegalambda, baryonfrac, partmass, boxsize;
 
   infile = fopen(fname, "rb");
   if (infile == NULL) 
@@ -47,6 +50,20 @@ int32_t load_gals(char *fname)
 #ifdef DEBUG_GALS 
   printf("Loading Galaxies from file %s\n", fname);
 #endif
+
+  fread(&steps, 1, sizeof(int32_t), infile);
+  fread(&maxsnaps, 1, sizeof(int32_t), infile);
+
+  zz = malloc(sizeof(double) * maxsnaps);
+  fread(zz, maxsnaps, sizeof(double), infile);
+  fread(&hubbleh, 1, sizeof(double), infile);
+  fread(&omega, 1, sizeof(double), infile);
+  fread(&omegalambda, 1, sizeof(double), infile);
+  fread(&baryonfrac, 1, sizeof(double), infile);
+  fread(&partmass, 1, sizeof(double), infile);
+  fread(&boxsize, 1, sizeof(double), infile);
+  fread(&gridsize, 1, sizeof(int32_t), infile);
+  
   fread(&Ntrees, 1, sizeof(int), infile);
   fread(&NtotGals, sizeof(int), 1, infile);
 
@@ -59,36 +76,45 @@ int32_t load_gals(char *fname)
   {
 
     fread(&GalGrid[i].TreeNr, sizeof(int), 1, infile); 
-    fread(&GalGrid[i].mergeType, sizeof(int), 1, infile); 
 
     // Now want to read in array data from the galaxy files (`read` == 1).
+    
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].Type, MAXSNAPS, 1);
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].FoFNr, MAXSNAPS, 1);
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].History, MAXSNAPS, 1);
+
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].ColdGas, MAXSNAPS, 1);
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].HotGas, MAXSNAPS, 1);
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].EjectedMass, MAXSNAPS, 1);
+
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].DustColdGas, MAXSNAPS, 1);
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].DustHotGas, MAXSNAPS, 1);
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].DustEjectedMass, MAXSNAPS, 1);
+
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].BHMass, MAXSNAPS, 1);
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].StellarMass, MAXSNAPS, 1);
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].SFR, MAXSNAPS, 1);
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].Z, MAXSNAPS, 1);
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].FoFMass, MAXSNAPS, 1);
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].EjectedFraction, MAXSNAPS, 1);
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].LenHistory, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].OutflowRate, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].InfallRate, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].EjectedMass, MAXSNAPS, 1);
+
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].QuasarActivity, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].DynamicalTime, MAXSNAPS, 1);
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].QuasarSubstep, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].ColdGas, MAXSNAPS, 1);
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].DynamicalTime, MAXSNAPS, 1);
+       
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].LenMergerGal, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].BHMass, MAXSNAPS, 1);
+
     ALLOCATE_ARRAY_MEMORY(GalGrid[i].ReionMod, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].ColdDustMass, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].HotDustMass, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].EjectedDustMass, MAXSNAPS, 1);
-    ALLOCATE_ARRAY_MEMORY(GalGrid[i].Type, MAXSNAPS, 1);
+
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].GridNgamma_HI, MAXSNAPS, 1);
+    ALLOCATE_ARRAY_MEMORY(GalGrid[i].Gridfesc, MAXSNAPS, 1);
 
 #ifdef DEBUG_GALS
     if (i == 53)
     {
       int tmp = MAXSNAPS - 1;
-      printf("mergeType = %d\tHistory[Final] = %d\tStellarMass = %.4f\tSFR = %.4f\tZ = %.4f\tFoFMass = %.4f\tEjectedFraction = %.4f\tLenHistory = %d\tOutflowRate = %.4f\tInfallRate = %.4f\tEjectedMass = %.4f\tQuasarActivity = %d\tDynamicalTime = %.4f\tQuasarSubstep = %d\tColdGas = %.4f\tLenMergerGal = %d\tBHMass = %.4f\tReionization Modifier = %.4f\n", GalGrid[i].mergeType, GalGrid[i].History[tmp], GalGrid[i].StellarMass[tmp], GalGrid[i].SFR[tmp], GalGrid[i].Z[tmp], GalGrid[i].FoFMass[tmp], GalGrid[i].EjectedFraction[tmp], GalGrid[i].LenHistory[tmp], GalGrid[i].OutflowRate[tmp], GalGrid[i].InfallRate[tmp], GalGrid[i].EjectedMass[tmp], GalGrid[i].QuasarActivity[tmp], GalGrid[i].DynamicalTime[tmp], GalGrid[i].QuasarSubstep[tmp], GalGrid[i].ColdGas[tmp], GalGrid[i].LenMergerGal[tmp], GalGrid[i].BHMass[tmp], GalGrid[i].ReionMod[tmp]);
+      printf("History[Final] = %d\tStellarMass = %.4f\tSFR = %.4f\tZ = %.4f\tFoFMass = %.4f\tEjectedFraction = %.4f\tLenHistory = %d\tEjectedMass = %.4f\tQuasarActivity = %d\tDynamicalTime = %.4f\tQuasarSubstep = %d\tColdGas = %.4f\tLenMergerGal = %d\tBHMass = %.4f\tReionization Modifier = %.4f\n", GalGrid[i].History[tmp], GalGrid[i].StellarMass[tmp], GalGrid[i].SFR[tmp], GalGrid[i].Z[tmp], GalGrid[i].FoFMass[tmp], GalGrid[i].EjectedFraction[tmp], GalGrid[i].LenHistory[tmp], GalGrid[i].EjectedMass[tmp], GalGrid[i].QuasarActivity[tmp], GalGrid[i].DynamicalTime[tmp], GalGrid[i].QuasarSubstep[tmp], GalGrid[i].ColdGas[tmp], GalGrid[i].LenMergerGal[tmp], GalGrid[i].BHMass[tmp], GalGrid[i].ReionMod[tmp]);
       fclose(infile);
       return EXIT_FAILURE; 
     }
@@ -156,24 +182,38 @@ void free_gals(void)
 
   int i;
   for (i = 0; i < NtotGals; ++i)
-  {     
+  {           
+    free(GalGrid[i].Type);
+    free(GalGrid[i].FoFNr);
     free(GalGrid[i].History);
+
+    free(GalGrid[i].ColdGas);
+    free(GalGrid[i].HotGas);
+    free(GalGrid[i].EjectedMass);
+
+    free(GalGrid[i].DustColdGas);
+    free(GalGrid[i].DustHotGas);
+    free(GalGrid[i].DustEjectedMass);
+
+    free(GalGrid[i].BHMass);
     free(GalGrid[i].StellarMass);
     free(GalGrid[i].SFR);
     free(GalGrid[i].Z);
     free(GalGrid[i].FoFMass); 
     free(GalGrid[i].EjectedFraction);
     free(GalGrid[i].LenHistory);
-    free(GalGrid[i].OutflowRate); 
-    free(GalGrid[i].InfallRate); 
-    free(GalGrid[i].EjectedMass); 
+
     free(GalGrid[i].QuasarActivity); 
-    free(GalGrid[i].DynamicalTime);
     free(GalGrid[i].QuasarSubstep); 
-    free(GalGrid[i].ColdGas); 
+    free(GalGrid[i].DynamicalTime);
+
     free(GalGrid[i].LenMergerGal); 
-    free(GalGrid[i].BHMass);
-    free(GalGrid[i].ReionMod); 
+
+    free(GalGrid[i].ReionMod);
+
+    free(GalGrid[i].GridNgamma_HI); 
+    free(GalGrid[i].Gridfesc); 
+
   }
 
   for (i = 0; i < Grid->NumGrids; ++i)

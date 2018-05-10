@@ -67,6 +67,9 @@ do {                                                                \
 // This structure contains the properties used within the code
 struct GALAXY
 {
+
+  int32_t FileNr;
+
   int   SnapNum;
   int   Type;
 
@@ -134,35 +137,32 @@ struct GALAXY
   float infallVvir;
   float infallVmax;
 
-  int GridPos;
-  int *GridHistory;
-  float *GridStellarMass;
-  float *GridSFR;
-  float *GridZ;
-  float *GridFoFMass;
-  float *EjectedFraction;
-  int *LenHistory;
-  double *Stars; 
-  float *GridOutflowRate;
-  float *GridInfallRate;
-  float *GridEjectedMass;
-  int *QuasarActivity;
-  float *DynamicalTime; 
-  int *QuasarSubstep;
-  float *GridColdGas;
-  int *LenMergerGal;
-  float *GridBHMass;      
-  float *GridReionMod;
-  float *GridDustColdGas;
-  float *GridDustHotGas;
-  float *GridDustEjectedMass;
   int32_t *GridType;
+  int32_t *GridFoFHaloNr;
+  int32_t *GridHistory;
+  float   *GridColdGas;
+  float   *GridHotGas;
+  float   *GridEjectedMass;
+  float   *GridDustColdGas;
+  float   *GridDustHotGas;
+  float   *GridDustEjectedMass;
+  float   *GridStellarMass;
+  float   *GridBHMass;
+  float   *GridSFR;
+  float   *GridZ;
+  float   *GridFoFMass;
+  float   *EjectedFraction;
+  int32_t *LenHistory;
+  float   *GridOutflowRate;
+  float   *GridInfallRate;
+  int32_t *QuasarActivity;
+  int32_t *QuasarSubstep;
+  float   *DynamicalTime; 
+  int32_t *LenMergerGal;
+  float   *GridReionMod;
+  float   *GridNgamma_HI;
+  float   *Gridfesc;
  
-  double StellarAge_Numerator;
-  double StellarAge_Denominator;
-  double Total_SF_Time;
-  double Total_Stars;
-
   int IsMerged;
   double GrandSum;
   int IsMalloced;
@@ -173,12 +173,30 @@ struct GALAXY
   float mass_stars_recycled;
   float mass_metals_new; 
   float NSN; // Number of supernova within a time step.  Can be fractional. 
+  double *SN_Stars; 
+
+  double StellarAge_Numerator;
+  double StellarAge_Denominator;
+  double Total_SN_SF_Time;
+  double Total_SN_Stars;
  
   // Dust Properties
   float DustColdGas;
   float DustHotGas;
   float DustEjectedMass;
 
+  // Quasar Activity Tracking 
+
+  int32_t QuasarActivityToggle;
+  float TargetQuasarTime;
+  float QuasarBoostActiveTime;
+  float QuasarFractionalPhotons;
+
+  // Stellar Age Tracking To Determine Nion.
+  float *Stellar_Stars; // Keep this separate from the Stars of the delayed SN.
+                        // Its possible tat we want to do tracking of stellar ages to determine Nion but not do delayed SN (or vice versa).
+  double Total_Stellar_SF_Time;
+  double Total_Stellar_Stars;
 }
 *Gal, *HaloGal, *MergedGal;
 
@@ -234,6 +252,7 @@ struct SELFCON_GRID_STRUCT
 
   int32_t GridSize;   
   int32_t NumCellsTotal;  
+  float Nion_HI_Total;
 
   float *Nion_HI;
   int32_t *GalCount;
@@ -418,5 +437,30 @@ extern long count_gal;
 
 extern int32_t LowSnap;
 extern int32_t HighSnap;
+
+extern float Ngamma_HI_Total;
+
+// Delayed Supernovae Lookup Tables
+
+extern float *IMF_massgrid_eta;
+extern float *IMF_massgrid_m;
+extern float m_IMFbins_low;
+extern float m_IMFbins_high;
+extern float m_IMFbins_delta;
+extern float N_massbins;
+
+extern float *coreburning_times;
+extern float coreburning_tbins_low;
+extern float coreburning_tbins_high;
+extern float coreburning_tbins_delta;
+extern float N_tbins;
+
+// Ionizing Photon Lookup Tables
+
+extern float *stars_tbins;
+extern float *stars_Ngamma;
+extern int32_t PhotonPrescription;
+extern double TimeResolutionStellar; 
+extern int32_t StellarTracking_Len; 
 
 #endif  // #ifndef ALLVARS_H

@@ -16,34 +16,6 @@ void save_galaxies(int filenr, int tree)
 {
   char buf[1024];
   int32_t i, n, max_snap, j;
-
-  int OutputGalCount[MAXSNAPS], *OutputGalOrder;
-  
-  OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
-  assert( OutputGalOrder );
-
-  // reset the output galaxy count and order
-  for(i = 0; i < MAXSNAPS; i++)
-    OutputGalCount[i] = 0;
-  for(i = 0; i < NumGals; i++)
-    OutputGalOrder[i] = -1;
-
-  // first update mergeIntoID to point to the correct galaxy in the output
-  for(n = 0; n < NOUT; n++)
-  {
-    for(i = 0; i < NumGals; i++)
-    {
-      if(HaloGal[i].SnapNum == ListOutputSnaps[n])
-      {
-        OutputGalOrder[i] = OutputGalCount[n];
-        OutputGalCount[n]++;
-      }
-    }
-  }
-    
-  for(i = 0; i < NumGals; i++)
-    if(HaloGal[i].mergeIntoID > -1)
-      HaloGal[i].mergeIntoID = OutputGalOrder[HaloGal[i].mergeIntoID];    
   
   // now prepare and write galaxies
   for(n = 0; n < NOUT; n++)
@@ -60,12 +32,11 @@ void save_galaxies(int filenr, int tree)
 				ABORT(0);
       }
 
+      int32_t number_header_values = 5 + (6+MAXSNAPS)*2 + Ntrees;
 			// write out placeholders for the header data.
-			size_t size = (Ntrees + 2)*sizeof(int);
-			int* tmp_buf = (int*)malloc( size );
-			memset( tmp_buf, 0, size );
-			fwrite( tmp_buf, sizeof(int), Ntrees + 2, save_fd[n] );
-			free( tmp_buf );
+			int32_t *tmp_buf = calloc(number_header_values, sizeof(int32_t));
+			fwrite(tmp_buf, sizeof(int), number_header_values, save_fd[n]);
+			free(tmp_buf);
 		}
     
     // There are some galaxies that aren't at the root redshift but do not have any descendants.
@@ -86,19 +57,15 @@ void save_galaxies(int filenr, int tree)
         } 
       }
 
-      if(HaloGal[i].SnapNum == max_snap && Halo[HaloGal[i].HaloNr].Descendant == -1)
+      if(HaloGal[i].SnapNum == max_snap && Halo[HaloGal[i].HaloNr].Descendant == -1) 
       {
-          write_temporal_arrays(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
-          TotGalaxies[n]++;
-          TreeNgals[n][tree]++;          
+        write_temporal_arrays(&HaloGal[i], save_fd[n]); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
+        TotGalaxies[n]++;
+        TreeNgals[n][tree]++;          
       } 
-
+    
     } // NumGals loop.
   } // NOUT loop.
-
-  // don't forget to free the workspace.
-  free( OutputGalOrder );
-
 }
 
 void finalize_galaxy_file(void)
@@ -112,8 +79,20 @@ void finalize_galaxy_file(void)
 
     // seek to the beginning.
     fseek( save_fd[n], 0, SEEK_SET );
-    
-    myfwrite(&Ntrees, sizeof(int), 1, save_fd[n]); 
+  
+    int32_t steps = STEPS;
+ 
+    myfwrite(&steps, sizeof(int32_t), 1, save_fd[n]); 
+    myfwrite(&MAXSNAPS, sizeof(int32_t), 1, save_fd[n]);
+    myfwrite(ZZ, sizeof(*(ZZ)), MAXSNAPS, save_fd[n]); 
+    myfwrite(&Hubble_h, sizeof(double), 1, save_fd[n]);
+    myfwrite(&Omega, sizeof(double), 1, save_fd[n]);
+    myfwrite(&OmegaLambda, sizeof(double), 1, save_fd[n]);
+    myfwrite(&BaryonFrac, sizeof(double), 1, save_fd[n]);
+    myfwrite(&PartMass, sizeof(double), 1, save_fd[n]);
+    myfwrite(&BoxSize, sizeof(double), 1, save_fd[n]);
+    myfwrite(&GridSize, sizeof(int32_t), 1, save_fd[n]);
+    myfwrite(&Ntrees, sizeof(int32_t), 1, save_fd[n]); 
     myfwrite(&TotGalaxies[n], sizeof(int), 1, save_fd[n]);
     myfwrite(TreeNgals[n], sizeof(int), Ntrees, save_fd[n]);
 
@@ -129,22 +108,8 @@ void save_merged_galaxies(int filenr, int tree)
 {
   char buf[1000];
   int i;
-  //struct GALAXY_OUTPUT galaxy_output;
-
-  int OutputGalCount, *OutputGalOrder;
-  
-  OutputGalOrder = (int*)malloc( MergedNr*sizeof(int) );
-  assert( OutputGalOrder );
-
-  // reset the output galaxy count and order 
-  OutputGalCount = 0;
-  for(i = 0; i < MergedNr; i++)
-  {
-    OutputGalOrder[i] = i;
-    OutputGalCount++;
-  }
-
-  if( !save_fd2 )
+   
+  if(!save_fd2)
   { 
     sprintf(buf, "%s/%s_MergedGalaxies_%d", OutputDir, FileNameGalaxies, filenr);
 
@@ -155,12 +120,13 @@ void save_merged_galaxies(int filenr, int tree)
       ABORT(0);
     }
 
+    int32_t number_header_values = 5 + (6+MAXSNAPS)*2 + Ntrees;
     // write out placeholders for the header data.
-    size_t size = (Ntrees + 2)*sizeof(int);
-    int* tmp_buf = (int*)malloc( size );
-    memset( tmp_buf, 0, size );
-    fwrite( tmp_buf, sizeof(int), Ntrees + 2, save_fd2);
-    free( tmp_buf );
+    int32_t *tmp_buf = calloc(number_header_values, sizeof(int32_t));
+    fwrite(tmp_buf, sizeof(int), number_header_values, save_fd2);
+
+    // write out placeholders for the header data.
+    free(tmp_buf);
   }
 
   for(i = 0; i < MergedNr; i++)
@@ -170,10 +136,6 @@ void save_merged_galaxies(int filenr, int tree)
     TotMerged++;
     TreeNMergedgals[tree]++;
   }
-
-  // don't forget to free the workspace.
-  free( OutputGalOrder );
-
 }
 
 void finalize_merged_galaxy_file(void)
@@ -184,6 +146,19 @@ void finalize_merged_galaxy_file(void)
 
   // seek to the beginning.
   fseek( save_fd2, 0, SEEK_SET );
+
+  int32_t steps = STEPS;
+ 
+  myfwrite(&steps, sizeof(int32_t), 1, save_fd2); 
+  myfwrite(&MAXSNAPS, sizeof(int32_t), 1, save_fd2);
+  myfwrite(ZZ, sizeof(*(ZZ)), MAXSNAPS, save_fd2); 
+  myfwrite(&Hubble_h, sizeof(double), 1, save_fd2);
+  myfwrite(&Omega, sizeof(double), 1, save_fd2);
+  myfwrite(&OmegaLambda, sizeof(double), 1, save_fd2);
+  myfwrite(&BaryonFrac, sizeof(double), 1, save_fd2);
+  myfwrite(&PartMass, sizeof(double), 1, save_fd2);
+  myfwrite(&BoxSize, sizeof(double), 1, save_fd2);
+  myfwrite(&GridSize, sizeof(int32_t), 1, save_fd2);
 
   myfwrite(&Ntrees, sizeof(int), 1, save_fd2);
   myfwrite(&TotMerged, sizeof(int), 1, save_fd2);

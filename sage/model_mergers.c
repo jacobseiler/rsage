@@ -155,6 +155,18 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
         Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject all of the cold gas and 50% of the hot gas. 
         Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
 
+        if (fescPrescription == 4 && Gal[gal].LenMergerGal[Halo[Gal[gal].HaloNr].SnapNum] > HaloPartCut)
+        {
+          Gal[gal].QuasarActivityToggle += 1; // We do +1 to account for the case in which a quasar goes off while fesc is still boosted.
+          Gal[gal].TargetQuasarTime = Gal[gal].Rvir / Gal[gal].Vvir * N_dyntime; // This will be the time the fesc boost lasts for.
+          if(Gal[gal].QuasarActivityToggle == 1)
+          {
+            Gal[gal].QuasarFractionalPhotons = (STEPS - step) / STEPS; // Quasars can trigger partway through a snapshot.  Boost for a fraction of the time in that case.
+                                                                             // We do the +1.0 because we measure from the END of a substep.  
+                                                                             // i.e., if a merger goes off when step == 4, There is 50% of the snapshot remaining, not 60%.
+          }
+        }
+        
       }
       else
       {
@@ -206,6 +218,19 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
       Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject cold+hot gas.
       Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
 
+      if (fescPrescription == 4 && Gal[gal].LenMergerGal[Halo[Gal[gal].HaloNr].SnapNum] > HaloPartCut)
+      {
+        Gal[gal].QuasarActivityToggle += 1; // We do +1 to account for the case in which a quasar goes off while fesc is still boosted.
+        Gal[gal].TargetQuasarTime = Gal[gal].Rvir / Gal[gal].Vvir * N_dyntime; // This will be the time the fesc boost lasts for.
+        if(Gal[gal].QuasarActivityToggle == 1)
+          Gal[gal].QuasarFractionalPhotons = (STEPS - (step)) / STEPS; // Quasars can trigger partway through a snapshot.  Boost for a fraction of the time in that case.
+                                                                           // We do the +1.0 because we measure from the END of a substep.  
+                                                                           // i.e., if a merger goes off when step == 4, There is 50% of the snapshot remaining, not 60%.          
+
+      
+      }
+
+
     }
   }
 
@@ -254,13 +279,15 @@ void add_galaxies_together(int t, int p)
 
   // Our delayed SN scheme requires the stars formed by current galaxy and also its progenitors; so need to go back through the central galaxy of the merger and add all the stars from the merging galaxy.
 
-  for(i = 0; i < SN_Array_Len; ++i) // Careful that we add up to the current snapshot number (inclusive) as we need to account for the stars just formed.
+  if (IRA == 0)
   {
-    Gal[t].Stars[i] += Gal[p].Stars[i];
+    for(i = 0; i < SN_Array_Len; ++i) // Careful that we add up to the current snapshot number (inclusive) as we need to account for the stars just formed.
+    {
+      Gal[t].SN_Stars[i] += Gal[p].SN_Stars[i];
 
+    } 
+    Gal[t].Total_SN_Stars += Gal[p].Total_SN_Stars;
   }
- 
-  Gal[t].Total_Stars += Gal[p].Total_Stars;
  
 }
 
@@ -325,12 +352,7 @@ void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int 
     stars *= factor; 
   }
 
-  if (IRA == 0)
-    update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, false); 
-  else
-    update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, true);
-
-  //update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal, false); 
+  update_from_star_formation(merger_centralgal, stars, dt, step, true, tree, ngal); 
  
   update_from_SN_feedback(merger_centralgal, merger_centralgal, reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new, NSN, dt);
 
@@ -378,10 +400,25 @@ void add_galaxy_to_merger_list(int p)
 
   ++mergedgal_mallocs;
 
+  if (fescPrescription == 4)
+  {
+    MergedGal[MergedNr].QuasarFractionalPhotons = 0.0;
+    Gal[p].QuasarFractionalPhotons = 0.0;
+  }
+
   for (j = 0; j < MAXSNAPS; ++j)
   {
+    MergedGal[MergedNr].GridType[j] = Gal[p].GridType[j];
+    MergedGal[MergedNr].GridFoFHaloNr[j] = Gal[p].GridFoFHaloNr[j];
     MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
+    MergedGal[MergedNr].GridColdGas[j] = Gal[p].GridColdGas[j];
+    MergedGal[MergedNr].GridHotGas[j] = Gal[p].GridHotGas[j];
+    MergedGal[MergedNr].GridEjectedMass[j] = Gal[p].GridEjectedMass[j];
+    MergedGal[MergedNr].GridDustColdGas[j] = Gal[p].GridDustColdGas[j];
+    MergedGal[MergedNr].GridDustHotGas[j] = Gal[p].GridDustHotGas[j];
+    MergedGal[MergedNr].GridDustEjectedMass[j] = Gal[p].GridDustEjectedMass[j];
     MergedGal[MergedNr].GridStellarMass[j] = Gal[p].GridStellarMass[j];
+    MergedGal[MergedNr].GridBHMass[j] = Gal[p].GridBHMass[j];
     MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
     MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
     MergedGal[MergedNr].GridFoFMass[j] = Gal[p].GridFoFMass[j];
@@ -389,24 +426,23 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
     MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j];
     MergedGal[MergedNr].GridInfallRate[j] = Gal[p].GridInfallRate[j];
-    MergedGal[MergedNr].GridEjectedMass[j] = Gal[p].GridEjectedMass[j];
     MergedGal[MergedNr].QuasarActivity[j] = Gal[p].QuasarActivity[j];
-    MergedGal[MergedNr].DynamicalTime[j] = Gal[p].DynamicalTime[j];
     MergedGal[MergedNr].QuasarSubstep[j] = Gal[p].QuasarSubstep[j];
-    MergedGal[MergedNr].GridColdGas[j] = Gal[p].GridColdGas[j];
+    MergedGal[MergedNr].DynamicalTime[j] = Gal[p].DynamicalTime[j];
     MergedGal[MergedNr].LenMergerGal[j] = Gal[p].LenMergerGal[j];
-    MergedGal[MergedNr].GridBHMass[j] = Gal[p].GridBHMass[j];
     MergedGal[MergedNr].GridReionMod[j] = Gal[p].GridReionMod[j];
-    MergedGal[MergedNr].GridDustColdGas[j] = Gal[p].GridDustColdGas[j];
-    MergedGal[MergedNr].GridDustHotGas[j] = Gal[p].GridDustHotGas[j];
-    MergedGal[MergedNr].GridDustEjectedMass[j] = Gal[p].GridDustEjectedMass[j];
-    MergedGal[MergedNr].GridType[j] = Gal[p].GridType[j];
+    MergedGal[MergedNr].GridNgamma_HI[j] = Gal[p].GridNgamma_HI[j];
+    MergedGal[MergedNr].Gridfesc[j] = Gal[p].Gridfesc[j];
   }
 
-  for (j = 0; j < SN_Array_Len; ++j)
+  if (IRA == 0)
   {
-    MergedGal[MergedNr].Stars[j] = Gal[p].Stars[j];
+    for (j = 0; j < SN_Array_Len; ++j)
+    {
+      MergedGal[MergedNr].SN_Stars[j] = Gal[p].SN_Stars[j];
+    }
   }
+
   ++MergedNr;  
   Gal[p].IsMerged = 1;
 

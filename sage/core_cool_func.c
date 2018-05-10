@@ -42,7 +42,7 @@ static double CoolRate[8][TABSIZE];
 void read_cooling_functions(void)
 {
   FILE *fd;
-  char buf[200];
+  char buf[MAX_STRING_LEN];
   int i, n;
   float sd_logT, sd_ne, sd_nh, sd_nt, sd_logLnet,
     sd_logLnorm, sd_logU, sd_logTau, sd_logP12, sd_logRho24, sd_ci, sd_mubar;
@@ -52,7 +52,7 @@ void read_cooling_functions(void)
 
   for(i = 0; i < 8; i++)
   {
-    sprintf(buf, "/home/jseiler/SAGE-stuff/extra/CoolFunctions/%s", name[i]);
+    snprintf(buf, MAX_STRING_LEN - 1, ROOT_DIR "/extra/CoolFunctions/%s", name[i]);
 
     if(!(fd = fopen(buf, "r")))
     {
@@ -79,7 +79,6 @@ void read_cooling_functions(void)
     printf("cooling functions read\n\n");
 
 }
-
 
 
 double get_metaldependent_cooling_rate(double logTemp, double logZ)  // pass: log10(temperatue/Kelvin), log10(metallicity) 

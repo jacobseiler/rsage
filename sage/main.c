@@ -140,8 +140,8 @@ int main(int argc, char **argv)
   }
 
   init();
-
-  if (self_consistent == 1)  
+ 
+  if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
     status = init_selfcon_grid();
   if(ReionizationOn == 2)
   {
@@ -233,48 +233,21 @@ int main(int argc, char **argv)
     free_tree_table();
     printf("\ndone file %d\n\n", filenr);
 
-    if (self_consistent == 1)
+    if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
     {
-
-      if (ReionizationOn == 3 || ReionizationOn == 4)
+      status = free_reion_lists(filenr);
+      if (status != EXIT_SUCCESS)
       {
-        status = free_reion_lists(filenr);
-        if (status != EXIT_SUCCESS)
-        {
-          ABORT(EXIT_FAILURE);
-        } 
+        ABORT(EXIT_FAILURE);
       }
     }
-
   } // filenr loop
-  XASSERT((gal_mallocs == gal_frees) && (mergedgal_mallocs == mergedgal_frees), "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees);
-  exitfail = 0;
- 
-  gsl_rng_free(random_generator); 
 
-  if (ReionizationOn == 2 )
+  status = final_cleanup(argv);
+  if (status != EXIT_SUCCESS)
   {
-    status = free_grid();
-  } 
-
-  // Copy the parameter file to the output directory. 
-  char copy_command[MAXLEN];
-  snprintf(copy_command, MAXLEN - 1, "cp %s %s", argv[1], OutputDir); 
-  system(copy_command);
-  
-  if (self_consistent == 1)
-  {
-
-    status = save_selfcon_grid();
-    if (status != EXIT_SUCCESS)
-    {
-      ABORT(EXIT_FAILURE);
-    }
-
-    free_selfcon_grid(SelfConGrid);
+    ABORT(EXIT_FAILURE);
   }
-
-  print_final_memory();
 
   return 0;
   

@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,13 +19,14 @@
 struct SELFCON_GRID_STRUCT *MPI_sum_grids(void);
 #endif
 // Local Variables //
+FILE *fesc_file = NULL;
+
+#define STARBURSTSTEP 0.1 // This is the step size for the Starburst99 data (in Myr). 
 
 // Local Proto-Types //
 
 void determine_fesc_constants(void);
 int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *grid);
-int32_t determine_nion(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
-int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local);
 int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite);
 
 // External Functions //
@@ -91,6 +94,14 @@ int32_t init_selfcon_grid(void)
     printf("\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
     XASSERT(fesc_low < fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 6), we require fesc_low < fesc_high\n", fesc_low, fesc_high);
   }
+  else if (fescPrescription == 7)
+  {
+#ifdef MPI
+    if (ThisTask == 0)
+#endif
+    printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\nThis takes the form A*fej^B.\n");
+    determine_fesc_constants();
+  }
   else
   {
     printf("\n\nOnly escape fraction prescriptions 0 to 6 (exlucding 1) are permitted.\n");
@@ -132,9 +143,9 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
 
   int32_t status;
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII, fesc_local;
-  float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
+  char fesc_fname[MAX_STRING_LEN];
 
-  status = determine_nion(g->GridSFR[snapshot] * SFR_conversion, g->GridZ[snapshot], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
+  status = determine_nion(g, snapshot, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
   if (status != EXIT_SUCCESS)
   {
     return EXIT_FAILURE;
@@ -148,9 +159,29 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
 
   if (Ngamma_HI > 0.0)
   {
-    SelfConGrid->Nion_HI[grid_idx] += pow(10, Ngamma_HI - 50.0) * fesc_local; // Keep the number of ionizing photons in units of 10^50 photons/s. 
+    SelfConGrid->Nion_HI[grid_idx] += Ngamma_HI * fesc_local; // Ngamma_HI is already in units of 1.0e50 photons/s. 
+    SelfConGrid->Nion_HI_Total += Ngamma_HI * fesc_local; 
+  }
+  
+  if (fesc_file == NULL)
+  {
+    snprintf(fesc_fname, MAX_STRING_LEN - 1, "%s/properties/misc_properties_%03d_%d", GridOutputDir, HighSnap, g->FileNr);
+    fesc_file = fopen(fesc_fname, "w");
+    if (fesc_file == NULL)
+    {
+      fprintf(stderr, "Could not open file %s\n", fesc_fname);
+      return EXIT_FAILURE;
+    }
   }
 
+  if (fesc_file == NULL)
+  {
+    fprintf(stderr, "Attempted to write to the fesc properties file (%s) but it is not opened.\n", fesc_fname);
+    return EXIT_FAILURE;
+  }
+
+  fprintf(fesc_file, "%.4f %.4f %d %.4e %.4e %.4e %.4e\n", fesc_local, g->EjectedFraction[snapshot], g->Len, get_virial_mass(g->HaloNr), get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup), g->StellarMass, Ngamma_HI); 
+ 
   ++(SelfConGrid->GalCount[grid_idx]);
 
   return EXIT_SUCCESS;
@@ -192,6 +223,11 @@ int32_t save_selfcon_grid()
     free_selfcon_grid(master_grid);    
 #endif
 
+  if (fesc_file != NULL)
+  {
+    fclose(fesc_file);
+  }
+
   return EXIT_SUCCESS;
 
 }
@@ -202,18 +238,22 @@ void determine_fesc_constants(void)
 { 
   
   double A, B, log_A;
-  
-  if (fescPrescription == 2)
-  { 
-    log_A = (log10(fesc_high) - (log10(fesc_low)*log10(MH_high)/log10(MH_low))) * pow(1 - (log10(MH_high) / log10(MH_low)), -1);
-    B = (log10(fesc_low) - log_A) / log10(MH_low);
-    A = pow(10, log_A);
-    
-    alpha = A;
-    beta = B;
-    
-    printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
-    printf("This gives a power law with constants A = %.4e, B = %.4e\n", alpha, beta);
+ 
+
+  switch(fescPrescription)
+  {
+    case 2:
+    case 7: 
+      log_A = (log10(fesc_high) - (log10(fesc_low)*log10(MH_high)/log10(MH_low))) * pow(1 - (log10(MH_high) / log10(MH_low)), -1);
+      B = (log10(fesc_low) - log_A) / log10(MH_low);
+      A = pow(10, log_A);
+      
+      alpha = A;
+      beta = B;
+      
+      printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
+      printf("This gives a power law with constants A = %.4e, B = %.4e\n", alpha, beta);
+      break;
   }
  
 }
@@ -241,6 +281,7 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 
   my_grid->GridSize = GridSize;
   my_grid->NumCellsTotal = CUBE(GridSize);
+  my_grid->Nion_HI_Total = 0.0;
 
   ALLOCATE_GRID_MEMORY(my_grid->Nion_HI, my_grid->NumCellsTotal);
   ALLOCATE_GRID_MEMORY(my_grid->GalCount, my_grid->NumCellsTotal);
@@ -250,62 +291,156 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
     my_grid->Nion_HI[cell_idx] = 0.0;
     my_grid->GalCount[cell_idx] = 0;
   }
-
+  
   return EXIT_SUCCESS;
 
 #undef ALLOCATE_GRID_MEMORY
 
 }
 
-int32_t determine_nion(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
+/*
+
+Calculates the ionizing photon rate for a given galaxy at a specified snapshot.
+
+Depending on the value of `PhotonPrescription` specified, the prescription to calculate this will change.
+
+0: Assumes a continuous SFR over the Snapshot and assigns an ionizing photon rate proportional to log(SFR)
+1: Uses the results of STARBURST99 to assign an ionizing photon rate that depends upon the age of previous SF episodes. 
+
+**Important** See Units. 
+
+Parameters
+----------
+
+g: struct GALAXY.  See `core_allvars.h` for the struct architecture.
+  Galaxy that we are calculating ionizing photons for.
+
+snapshot: Integer. 
+  The snapshot number we are calculating 
+
+*Ngamma_HI, *Ngamma_HeI, *Ngamma_HeII: Float Pointers.
+  Pointers that will store the number of hydrogen, helium and helium II ionizing photons. 
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  For `PhotonPrescription == 0`, only EXIT_SUCCESS can be returned (no fail conditions).
+  For `PhotonPrescription == 1`, if the number of ionizing photons is negative, EXIT_FAILURE is returned.  Otherwise EXIT_SUCCESS is returned. 
+  For any other `PhotonPrescription`, EXIT_FAILURE is returned.  
+
+Pointer Updates
+----------
+
+*Ngamma_HI, *Ngamma_HeI, *Ngamma_HeII.
+
+Units  
+----------
+
+The ionizing photon rate is returned in units of 1.0e50 Photons/s.
+Star formation rate is converted from internal code units to Msun/yr.
+Metallicity is in absolute metallicity (not solar).
+
+*/
+
+int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
 {
 
-  if (SFR == 0)
+  switch (PhotonPrescription)
   {
-    *Ngamma_HI = 0;
-    *Ngamma_HeI = 0;
-    *Ngamma_HeII = 0;
-  }
-  else if (Z < 0.0025) // 11
-  {
-    *Ngamma_HI = log10(SFR) + 53.354;
-    *Ngamma_HeI = log10(SFR) + 52.727;
-    *Ngamma_HeII = log10(SFR) + 48.941;
-  }
-  else if (Z >= 0.0025 && Z < 0.006) // 12
-  {
-    *Ngamma_HI = log10(SFR) + 53.290;
-    *Ngamma_HeI = log10(SFR) + 52.583;
-    *Ngamma_HeII = log10(SFR) + 49.411;
-  }
-  else if (Z>= 0.006 && Z < 0.014) // 13
-  {
-    *Ngamma_HI = log10(SFR) + 53.248;
-    *Ngamma_HeI = log10(SFR) + 52.481;
-    *Ngamma_HeII = log10(SFR) + 49.254;
-  }
-  else if (Z >= 0.014 && Z < 0.030) // 14
-  {
-    *Ngamma_HI = log10(SFR) + 53.166;
-    *Ngamma_HeI = log10(SFR) + 52.319;
-    *Ngamma_HeII = log10(SFR) + 48.596;
-  }
-  else // 15
-  {
-    *Ngamma_HI = log10(SFR) + 53.041;
-    *Ngamma_HeI = log10(SFR) + 52.052;
-    *Ngamma_HeII = log10(SFR) + 47.939;
-  }
+    case 0: ;
+      
+      const double SFR_CONVERSION = UnitMass_in_g/UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS/STEPS; // Conversion from the SFR over one snapshot to Msun/yr. 
 
-  if (SFR != 0)
-  {
-    assert(*Ngamma_HI > 0.0);
-    assert(*Ngamma_HeI > 0.0);
-    assert(*Ngamma_HeII > 0.0);
+      double SFR = g->GridSFR[snapshot] * SFR_CONVERSION;
+      double Z = g->GridZ[snapshot];
+
+      if (SFR == 0)
+      {
+        *Ngamma_HI = 0;
+        *Ngamma_HeI = 0;
+        *Ngamma_HeII = 0;
+        return EXIT_SUCCESS;
+      }
+      else if (Z < 0.0025) // 11
+      {
+        *Ngamma_HI = log10(SFR) + 53.154;
+        *Ngamma_HeI = log10(SFR) + 52.727;
+        *Ngamma_HeII = log10(SFR) + 48.941;
+      }
+      else if (Z >= 0.0025 && Z < 0.006) // 12
+      {
+        *Ngamma_HI = log10(SFR) + 53.090;
+        *Ngamma_HeI = log10(SFR) + 52.583;
+        *Ngamma_HeII = log10(SFR) + 49.411;
+      }
+      else if (Z>= 0.006 && Z < 0.014) // 13
+      {
+        *Ngamma_HI = log10(SFR) + 53.048;
+        *Ngamma_HeI = log10(SFR) + 52.481;
+        *Ngamma_HeII = log10(SFR) + 49.254;
+      }
+      else if (Z >= 0.014 && Z < 0.030) // 14
+      {
+        *Ngamma_HI = log10(SFR) + 52.966;
+        *Ngamma_HeI = log10(SFR) + 52.319;
+        *Ngamma_HeII = log10(SFR) + 48.596;
+      }
+      else // 15
+      {
+        *Ngamma_HI = log10(SFR) + 52.941;
+        *Ngamma_HeI = log10(SFR) + 52.052;
+        *Ngamma_HeII = log10(SFR) + 47.939;
+      }
+
+      *Ngamma_HI = exp10(*Ngamma_HI - 50.0);
+      return EXIT_SUCCESS;
+
+    case 1: ;
+
+      double t;
+      int32_t i ,lookup_idx;
+      const double lookuptable_mass = 1.0e-4*Hubble_h;
+
+      *Ngamma_HI = 0;
+      *Ngamma_HeI = 0;
+      *Ngamma_HeII = 0;
+
+      for (i = 0; i < StellarTracking_Len - 1; ++i)
+      {
+        if (g->Stellar_Stars[i] < 1e-10)
+          continue;
+
+        t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
+        lookup_idx = (t / 0.1); // Find the index in the lookup table. 
+        
+        *Ngamma_HI += exp10(log10(g->Stellar_Stars[i] / lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);  
+      }
+
+      // The units of Ngamma are 1.0e50 photons/s.  Hence a negative value is not allowed.
+      if (*Ngamma_HI < 0.0)
+      {
+        fprintf(stderr, "Got an NgammaHI value of %.4e.  This MUST be a positive value.\nPrinting out information for every element used to calculate Ngamma.\n", *Ngamma_HI);
+
+        // Print out information for every element of the array so we can try identify the problem.       
+        for (i = 0; i < StellarTracking_Len; ++i)
+        {
+          t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
+          lookup_idx = (t / 0.1); // Find the index in the lookup table. 
+
+          double total = 0.0;
+          total += exp10(log10(g->Stellar_Stars[i] / lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);  
+          printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_Ngamma[lookup_idx] %.4e\tRunningTotal %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_Ngamma[lookup_idx], total); 
+        }
+        return EXIT_FAILURE;
+      }
+
+      return EXIT_SUCCESS;
+
+    default:
+      fprintf(stderr, "The specified PhotonPrescription value is not valid.");
+      return EXIT_FAILURE;
   }
-
-  return EXIT_SUCCESS;
-
 }
 
 int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
@@ -313,6 +448,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
   float halomass = g->GridFoFMass[snapshot] * 1.0e10 / Hubble_h;
   float ejectedfraction = g->EjectedFraction[snapshot];
+  float quasarfrac = g->QuasarFractionalPhotons;
 
   switch(fescPrescription)
   {
@@ -331,12 +467,11 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
     case 3:
       *fesc_local = alpha * ejectedfraction + beta;
       break;
-
-    /*
+    
     case 4:
-      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
+      *fesc_local = quasar_baseline * (1 - quasarfrac)  + quasar_boosted * quasarfrac;
       break;
-    */
+    
     case 5:
       *fesc_local = pow(fesc_low * (fesc_low/fesc_high),(-log10(halomass/MH_low)/log10(MH_high/MH_low)));
       if (*fesc_local > fesc_low)
@@ -353,6 +488,10 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       }
       break;
 
+    case 7:
+      *fesc_local = alpha * pow(ejectedfraction, beta);
+      break;
+
     default:
       fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `determine_fesc` in `selfcon_grid.c`.\nPlease add it there.\n");
       return EXIT_FAILURE;
@@ -361,12 +500,15 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
   if (*fesc_local > 1.0 || *fesc_local < 0.0)
   {
-    fprintf(stderr, "Had fesc_local = %.4f with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1) and Ejected Fraction %.4e\n", *fesc_local, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(g->GridSFR[snapshot]), ejectedfraction);
+    fprintf(stderr, "Had fesc_local = %.4f with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1), Ejected Fraction %.4e and QuasarFractionalPhotons %.4f\n", *fesc_local, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(g->GridSFR[snapshot]), ejectedfraction, quasarfrac);
     return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;
 }
+
+
+// Local Functions //
 
 #ifdef MPI
 
@@ -390,6 +532,7 @@ struct SELFCON_GRID_STRUCT *MPI_sum_grids(void)
   }
 
   MPI_Reduce(SelfConGrid->Nion_HI, master_grid->Nion_HI, SelfConGrid->NumCellsTotal, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&SelfConGrid->Nion_HI_Total, &master_grid->Nion_HI_Total, 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
 
   if (ThisTask == 0)
     return master_grid;
@@ -421,17 +564,21 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
       break;
 
     case 3:
-      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.2f_%.2f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
       break;
 
-    /*
+
     case 4:
-      *fesc_local = quasar_baseline * (1 - QuasarFractionalPhoton[p])  + quasar_boosted * QuasarFractionalPhoton[p];
+      snprintf(tag, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
       break;
-    */
+
     case 5:
     case 6:
       snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
+      break;
+
+    case 7:
+      snprintf(tag, MAX_STRING_LEN - 1, "ejectedpower_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
       break;
 
     default:
@@ -456,6 +603,9 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
     return EXIT_FAILURE;
   }
   fclose(file_HI);
+
+  printf("Successfully wrote Nion grid to %s\n", fname_HI);
+  printf("The total number of ionizing photons emitted at Snapshot %d was %.4ee50 photons/s\n", HighSnap, grid_towrite->Nion_HI_Total); 
 
   return EXIT_SUCCESS;
 

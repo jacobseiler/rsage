@@ -62,6 +62,11 @@ int32_t update_grid_properties(int32_t filenr)
             return EXIT_FAILURE;
           } 
 
+          if (fabs(fesc_local - GalGrid[gal_idx].Gridfesc[snapshot_idx]) > 0.05) 
+          {
+            printf("Grid %.4e\tSAGE %.4e\tSnap %d\tGal %ld\tTree %d\tFoFNr %d\tGridPos %ld\n",  fesc_local, GalGrid[gal_idx].Gridfesc[snapshot_idx], snapshot_idx, (long)gal_idx, GalGrid[gal_idx].TreeNr, GalGrid[gal_idx].FoFNr[snapshot_idx], (long)grid_position);
+          }
+
 #ifdef DEBUG_PYTHON_C
           int32_t count = 0;
           if (count < 10)
@@ -268,6 +273,10 @@ int32_t calculate_fesc(int p, int i, int filenr, float *fesc_local)
     }
 
   } 
+  else if (fescPrescription == 7)
+  {
+    *fesc_local = alpha * pow(ejectedfraction, beta); 
+  }
 	
   if (*fesc_local > 1.0)
   {
