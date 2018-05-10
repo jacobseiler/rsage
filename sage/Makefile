@@ -36,10 +36,21 @@ INCL   =	./core_allvars.h  \
 
 OPT := -DROOT_DIR='"${ROOT_DIR}"'
 
+ON_CI := false
+ifeq ($(CI), true)
+    ON_CI := true
+endif
+
+ifeq ($(TRAVIS), true)
+    ON_CI := true
+endif
+
 USE-MPI = yes# set this if you want to run in 
 ifdef USE-MPI
+ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service. 
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
+endif
 else
     CC = gcc  # sets the C-compiler
 endif
