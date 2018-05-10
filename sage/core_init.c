@@ -255,13 +255,13 @@ int32_t init_nionlookup(void)
     fprintf(stderr, "Could not allocate memory for the Ngamma HI bins for the tracking of stellar populations.\n");
     return EXIT_FAILURE;
   }
-
+  printf("File opened");
   while (i < 8)
   {
     fgets(buf, MAX_STRING_LEN, niontable);
     ++i;
   }
-
+  printf("Pointer moved\n");
   while (fscanf(niontable, "%f %f %f %f %f %f %f %f", &t, &HI, &HI_L, &HeI, &HeI_L, &HeII, &HeII_L, &L) == 8) 
   {
 
@@ -275,8 +275,8 @@ int32_t init_nionlookup(void)
       return EXIT_FAILURE;
     }  
   }
-
   fclose(niontable);
+  printf("file read and clsoed\n");
   // Check that the Nion lookup table had enough datapoints to cover the time we're tracking the ages for. 
   if (stars_tbins[num_lines - 1] / 1.0e6 < FINALTIME)
   {
@@ -285,11 +285,13 @@ int32_t init_nionlookup(void)
     return EXIT_FAILURE;
   }
 
+  printf("riei\n");
   float Time_Stellar = 0.0; 
 
   StellarTracking_Len = 0;
   while(Time_Stellar < FINALTIME)
   {
+    printf(".%4f\n", Time_Stellar);
     Time_Stellar += TimeResolutionStellar; // The resolution on which we do the tracking is specified in the .ini file. 
     ++StellarTracking_Len;
   }
