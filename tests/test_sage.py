@@ -77,40 +77,38 @@ def get_trees():
 
     return downloaded_repo
 
-
-def run_my_sage():
+def check_sage_dirs(galaxy_name="test"):
     """
     """
-
-    print("Now running my version of SAGE (not full R-SAGE yet).")
-    print("")
 
     print("First checking that the required output directories are present.")
+    print("")
     
     directory = "{0}/test_output/galaxies/".format(test_dir)
-    output_file = "{0}/test_output/galaxies/test_z0.000_0".format(test_dir) 
-    output_file_merged = "{0}/test_output/galaxies/test_MergedGalaxies" \
-                         .format(test_dir)
     if not os.path.exists(directory):
         os.makedirs(directory)
     else:
-        if os.path.isfile(output_file):
-            print("Removing old output file {0}".format(output_file))
-            subprocess.call(["rm", output_file])
 
-        if os.path.isfile(output_file_merged):
-            print("Removing old output file {0}".format(output_file_merged))
-            subprocess.call(["rm", output_file_merged])
+        # Get rid of any old runs.
+        print("Cleaning up old output files.")
+        command = "rm {0}/test_output/galaxies/{1}_*".format(test_dir,
+                                                             galaxy_name) 
+        subprocess.call(command, shell=True)
 
     directory = "{0}/test_output/grids/".format(test_dir) 
     if not os.path.exists(directory):
         os.makedirs(directory)
         
     print("Done.")
-    print("Executing SAGE.")    
+    print("")
+
+def run_my_sage(ini_name="test_mini_millennium.ini"):
+
+    print("Executing SAGE.")
+    print("")
 
     path_to_sage = "{0}/../sage/sage".format(test_dir)
-    path_to_ini = "{0}/test_ini_files/test_mini_millennium.ini".format(test_dir)
+    path_to_ini = "{0}/test_ini_files/{1}".format(test_dir, ini_name)
     returncode = subprocess.call([path_to_sage, path_to_ini])
 
     if returncode != 0:
@@ -118,9 +116,9 @@ def run_my_sage():
         raise RuntimeError
 
     print("Done")
+    print("")
 
-
-def check_smf():
+def check_smf(galaxy_name="test"):
 
     print("")
     print("Now checking the stellar mass function for the final snapshot of "
@@ -130,11 +128,14 @@ def check_smf():
     max_snap = len(AllVars.SnapZ) - 1
 
     # First check that the output of the test run can be read. 
+   
+    gal_name = "{0}/test_output/galaxies/{1}_z0.000".format(test_dir,
+                                                            galaxy_name) 
+    Gals, Gals_Desc = ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
 
-    Gals, Gals_Desc = ReadScripts.ReadGals_SAGE("test_output/galaxies/test_z0.000",
-                                                0, max_snap + 1)
-    Gals_Merged, _= ReadScripts.ReadGals_SAGE("test_output/galaxies/test_MergedGalaxies",
-                                                0, max_snap + 1)
+    gal_name = "{0}/test_output/galaxies/{1}_MergedGalaxies".format(test_dir,
+                                                                    galaxy_name) 
+    Gals_Merged, _= ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
     Gals = ReadScripts.Join_Arrays(Gals, Gals_Merged, Gals_Desc)
 
     # Gals is now a recarray containing all galaxies at all snapshots. #
@@ -205,9 +206,16 @@ def test_run():
 
     downloaded_repo = get_trees() #  Download mini-millennium tree if we needed 
 
-    run_my_sage() #  Run my version of SAGE (not full R-SAGE yet).
+    ini_files = ["PhotonPrescription0_mini_millennium.ini", 
+                 "PhotonPrescription1_mini_millennium.ini"]
+    galaxy_names = ["PhotonPrescription0",
+                    "PhotonPrescription1"] 
 
-    check_smf() #  Attempt to make a stellar mass function.
+    for ini_file, galaxy_name in zip(ini_files, galaxy_names):
+
+        check_sage_dirs(galaxy_name) # First check that directories for output are present. 
+        run_my_sage(ini_file) #  Run my version of SAGE (not full R-SAGE yet).
+        check_smf(galaxy_name) #  Attempt to make a stellar mass function.
 
     print("Done")
     print("")
@@ -232,9 +240,14 @@ def cleanup(downloaded_repo):
 
     print("Cleaning up files.")
    
+    # If we downloaded the git repo, remove the uneeded files. 
+    files = []   
+
     if downloaded_repo:
         subprocess.call(["rm", "README.rst", "LICENSE", ".gitignore"]) 
 
+    # Remove all the output galaxy files.
+   
     print("Done")
     print("")
 
