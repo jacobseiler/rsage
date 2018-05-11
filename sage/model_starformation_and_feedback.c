@@ -348,7 +348,7 @@ double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax)
     epsilon_energy = alpha_energy * (0.5 + pow(Vmax/V_energy, -beta_energy));
   }
 
-  double reheated_energy = 0.5 * Delta_Eta * (stars * 1.0e10 / Hubble_h) * epsilon_energy * EnergySN; // Delta_Eta was in Msun so need to convert to stars to Msun. 
+  double reheated_energy = 0.5 * Delta_Eta * stars * epsilon_energy * EnergySN; // Delta_Eta was in Msun so need to convert to stars to Msun. 
  
   return reheated_energy; 
 
@@ -399,30 +399,32 @@ double calculate_coreburning(double t)
 //
 // Note: Be aware here that a number of unit changes have occurred.
 // This is necessary because of how Joules are defined. 
-// Possible TODO: Derive a factor so the jumping around of units is unecessary. 
 
 double calculate_ejected_mass(double *reheated_mass, double reheated_energy, double Vvir) 
 {
   double ejected_mass;
   double Delta_Ehot;
+  const double Joule_to_erg = 0.5 * SOLAR_MASS / 1.0e3 * 1.0e3 * 1.0e3 * 1.0e7; // Note: This is ergs assuming the mass used is in kg.
+                                                                                // As we use 1.0e10 Msun/h our energy isn't quite ergs.
+                                                                                // However we have kept this consistent throughout allowing the factor to be cancelled.
+  const double inv_Joule_to_erg = 1.0 / Joule_to_erg;
+ 
   if(Vvir > 0.0)
   {
-    Delta_Ehot = (0.5 * (*reheated_mass * 1.0e10 / Hubble_h * SOLAR_MASS / 1.0e3) * (Vvir * 1.0e3) * (Vvir * 1.0e3)) * 1.0e7; // Change in the thermal energy of the hot resevoir in erg..
+    Delta_Ehot = *reheated_mass * Vvir * Vvir * Joule_to_erg; // Change in the thermal energy of the hot resevoir in erg..
     // Note the units here. Want final answer in Ergs (which is 1e-7 Joules) which has SI units of kg m^2 s^-2.
     // We change the mass from 1.0e10Msun/h to kg.  Change virial velocity from km/s to m/s. Finally change Joules to erg. 
 
     if(reheated_energy > Delta_Ehot) // Have enough energy to have some ejected mass.
     {
-    	ejected_mass = (reheated_energy - Delta_Ehot) * 1.0e-7/(0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Balance between the excess thermal energy and the thermal energy of the hot gas.
-	// Energy changed from erg to Joules (kg m^2 s^-2) then divided by virial velocity (converted to m/s) giving final units of kg.
+    	ejected_mass = (reheated_energy - Delta_Ehot) * inv_Joule_to_erg / (Vvir * Vvir); // Balance between the excess thermal energy and the thermal energy of the hot gas.
+      // Energy changed from erg to Joules (kg m^2 s^-2) then divided by virial velocity (converted to m/s) giving final units of kg.
 
-      ejected_mass = ejected_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; // Convert back from kg to 1.0e10*Msun/h. 
     }
     else // Not enough energy to eject mass. 
     {
       ejected_mass = 0.0;
-      *reheated_mass = reheated_energy * 1.0e-7 / (0.5 * Vvir * 1.0e3 * Vvir * 1.0e3); // Amount of mass that can be reheated to virial temperature of the hot halo.
-      *reheated_mass = *reheated_mass * 1.0e3 / SOLAR_MASS / 1.0e10 * Hubble_h; 
+      *reheated_mass = reheated_energy * inv_Joule_to_erg / (Vvir * Vvir); // Amount of mass that can be reheated to virial temperature of the hot halo.
     }
 
   } 					
