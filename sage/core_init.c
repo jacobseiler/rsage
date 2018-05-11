@@ -179,7 +179,7 @@ int32_t init_delayedSN(void)
   for (bin_idx = 0; bin_idx < N_tbins; ++bin_idx)
   {
     double t = coreburning_tbins_low + ((double)bin_idx * coreburning_tbins_delta); 
-    coreburning_times[bin_idx] = pow(10, a/log10(t) + b * exp(c/log10(t)) + d); 
+    coreburning_times[bin_idx] = exp10(a/log10(t) + b * exp(c/log10(t)) + d); 
   }
 
   // Now need to know given a mass range (defined by the timestep) what is the number and mass fraction of SN that go supernova. 
@@ -291,7 +291,6 @@ int32_t init_nionlookup(void)
   StellarTracking_Len = 0;
   while(Time_Stellar < FINALTIME)
   {
-    printf(".%4f\n", Time_Stellar);
     Time_Stellar += TimeResolutionStellar; // The resolution on which we do the tracking is specified in the .ini file. 
     ++StellarTracking_Len;
   }
