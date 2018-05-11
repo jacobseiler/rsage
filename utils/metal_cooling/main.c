@@ -97,11 +97,11 @@ int32_t main(int argc, char **argv)
 
   double Tlow = 3.0;
   double Thigh = 7.0;
-  double dT = 0.01;
+  double dT = 0.0001;
 
   double logZlow = -10.0;
   double logZhigh = 1.0;
-  double dlogZ = 0.01;
+  double dlogZ = 0.0001;
 
   double *results;
 
@@ -124,7 +124,8 @@ int32_t main(int argc, char **argv)
     fprintf(stderr, "Could not open file %s\n", fname);
     return EXIT_FAILURE;
   }
- 
+
+
   fwrite(&Tlow, sizeof(double), 1, filetowrite);
   fwrite(&Thigh, sizeof(double), 1, filetowrite);
   fwrite(&dT, sizeof(double), 1, filetowrite);
@@ -132,7 +133,7 @@ int32_t main(int argc, char **argv)
   fwrite(&logZlow, sizeof(double), 1, filetowrite);
   fwrite(&logZhigh, sizeof(double), 1, filetowrite);
   fwrite(&dlogZ, sizeof(double), 1, filetowrite);
- 
+
   for (temp = Tlow; temp < Thigh; temp += dT)
   {
     for (logZ = logZlow; logZ < logZhigh; logZ += dlogZ)
@@ -140,7 +141,10 @@ int32_t main(int argc, char **argv)
       lambda = get_metaldependent_cooling_rate(temp, logZ);
       x = PROTONMASS * BOLTZMANN * pow(10, temp) / lambda; // now this has units sec g/cm^3  
       x /= (UnitDensity_in_cgs * UnitTime_in_s); // now in internal units 
+//Galaxy temperature 5.1348e+05   Galaxy Metallicity -3.3109e+00  Old x 2.8723e-01        New x 9.8322e-02
 
+//      if (temp > log10(9.1899e4) && temp < log10(1e5) && logZ > -3.01 && logZ < -2.9)
+//        printf("Temp %.4e\tZ %.4e\tx %.4e\n", temp, logZ, x);
       fwrite(&x, sizeof(double), 1, filetowrite);
 
       ++count;

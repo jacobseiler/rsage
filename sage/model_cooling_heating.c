@@ -47,6 +47,16 @@ double cooling_recipe(int gal, double dt)
     x = PROTONMASS * BOLTZMANN * temp / lambda;        // now this has units sec g/cm^3  
     x /= (UnitDensity_in_cgs * UnitTime_in_s);         // now in internal units 
 #endif
+
+    double lambda = get_metaldependent_cooling_rate(log10(temp), logZ);
+    double x_old = PROTONMASS * BOLTZMANN * temp / lambda;        // now this has units sec g/cm^3  
+    x_old /= (UnitDensity_in_cgs * UnitTime_in_s);         // now in internal units 
+
+    double diff = fabs(x - x_old) / x_old;
+    if (diff > 0.01)
+    {
+      printf("Galaxy temperature %.4e\tGalaxy Metallicity %.4e\tOld x %.4e\tNew x %.4e\tFracDiff %.4f\n", temp, logZ, x_old, x, diff);
+    }
     rho_rcool = x / tcool * 0.885;  // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
 
     // an isothermal density profile for the hot gas is assumed here 

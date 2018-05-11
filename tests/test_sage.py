@@ -107,7 +107,7 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     print("Executing SAGE.")
     print("")
 
-    path_to_sage = "{0}/../sage/sage".format(test_dir)
+    path_to_sage = "{0}/../sage/opt_sage".format(test_dir)
     path_to_ini = "{0}/test_ini_files/{1}".format(test_dir, ini_name)
     returncode = subprocess.call([path_to_sage, path_to_ini])
 
@@ -149,7 +149,7 @@ def check_smf(galaxy_name="test"):
         print("Found grid cells that had indices outside of the allowed "
               "values.")
         print("The indices must be between 0 and {0}".format(pow(256,3)))
-        print("Galaxies {0} had indices {1}.".format(w_gal[w_wrong],
+        print("Galaxies {1} had indices {1}.".format(w_gal[w_wrong],
                                               position[w_wrong]))
         raise RuntimeError
 
@@ -165,7 +165,15 @@ def check_smf(galaxy_name="test"):
     # Now let's check compare the mass of the test to the data. 
 
     mass_data = np.loadtxt("./mini_millennium_testmass.txt") 
-   
+  
+    if len(mass_test) != len(mass_data):
+        print("For the test data we had {0} galaxies at Snapshot 63 with > 0 "
+              "Stellar Mass.  This is compared to {1} galaxies for the "
+              "CORRECT mass data.".format(len(mass_test), len(mass_data)))
+        print(mass_test[0:10])
+        print(mass_data[0:10])
+        raise RuntimeError
+ 
     mass_difference = mass_test - mass_data
     w_wrong = np.where(mass_difference > 3e-3)[0]
     if (len(w_wrong) > 0):
