@@ -114,14 +114,6 @@ void init(void)
       ABORT(EXIT_FAILURE);
     }  
   }
-
-#ifdef LOOKUP_METALCOOL
-  int32_t status = init_metalcooling();
-  if (status != EXIT_SUCCESS)
-  {
-    ABORT(EXIT_FAILURE);
-  }  
-#endif
  
   mergedgal_mallocs = 0;
   gal_mallocs = 0 ;
@@ -310,59 +302,6 @@ int32_t init_nionlookup(void)
 #undef MAXBINS
 #undef FINALTIME
 
-}
-
-int32_t init_metalcooling(void)
-{
-
-  char fname[MAX_STRING_LEN];
-  FILE *lookuptable;
-  int32_t nread;  
- 
-  snprintf(fname, MAX_STRING_LEN - 1, ROOT_DIR "/extra/CoolFunctions/lookuptable");
-
-  lookuptable = fopen(fname, "rb");
-  if (lookuptable == NULL)
-  {
-    fprintf(stderr, "Could not open file %s\n", fname);
-    return EXIT_FAILURE;
-  }
-
-  printf("Reading in the metal-cooling lookup table.\n");
-
-  fread(&Tlow, sizeof(double), 1, lookuptable); 
-  fread(&Thigh, sizeof(double), 1, lookuptable); 
-  fread(&dT, sizeof(double), 1, lookuptable); 
-
-  fread(&Zlow, sizeof(double), 1, lookuptable); 
-  fread(&Zhigh, sizeof(double), 1, lookuptable); 
-  fread(&dZ, sizeof(double), 1, lookuptable); 
-  
-  printf("Bounds are:\n");
-  printf("TempLow %.3f\tTempHigh %.3f\tdT %.3f\n", Tlow, Thigh, dT);
-  printf("Zlow %.3f\tZhigh %.3f\tdz %.3f\n", Zlow, Zhigh, dZ);
-
-  N_T = (Thigh - Tlow) / dT + 1;
-  N_Z = (Zhigh - Zlow) / dZ + 1;
-  N = N_T * N_Z;
-  printf("There are %d elements in the lookup table.\n", N);
-
-  MetalCool_Lookup = malloc(N * sizeof(double));
-  if (MetalCool_Lookup == NULL)
-  {
-    fprintf(stderr, "Could not allocate memory for the metalcooling lookup table.\n");
-    return EXIT_FAILURE;
-  }
-
-  nread = fread(MetalCool_Lookup, sizeof(double), N, lookuptable);
-  if (nread != N)
-  {
-    fprintf(stderr, "Only read %d from the Metal Cooling lookup table whereas we expected to read %d\n", nread, N);
-    return EXIT_FAILURE;
-  }
-  
-  fclose(lookuptable);
-  return EXIT_SUCCESS; 
 }
 
 void set_units(void)

@@ -463,11 +463,4 @@ extern int32_t PhotonPrescription;
 extern double TimeResolutionStellar; 
 extern int32_t StellarTracking_Len; 
 
-#ifdef LOOKUP_METALCOOL
-extern double Tlow, Thigh, dT; // These are the binning parameters for the Temperature and Metallicity.
-extern double Zlow, Zhigh, dZ; // In log units (Kelvin and absolute units respectively).
-extern int32_t N, N_Z, N_T;
-extern double *MetalCool_Lookup;
-#endif
-
 #endif  // #ifndef ALLVARS_H

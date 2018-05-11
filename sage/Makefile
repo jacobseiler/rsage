@@ -55,7 +55,6 @@ else
     CC = gcc  # sets the C-compiler
 endif
 
-OPT += -DLOOKUP_METALCOOL
 #OPT += -DDEBUG_SELFCON 
 
 GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
