@@ -11,7 +11,7 @@
 
 double cooling_recipe(int gal, double dt)
 {
-  double tcool, x, logZ, lambda, rcool, rho_rcool, rho0, temp, coolingGas;
+  double tcool, x, logZ, rcool, rho_rcool, rho0, temp, coolingGas;
 
   if(Gal[gal].HotGas > 0.0 && Gal[gal].Vvir > 0.0)
   {
@@ -23,9 +23,30 @@ double cooling_recipe(int gal, double dt)
     else
       logZ = -10.0;
 
-    lambda = get_metaldependent_cooling_rate(log10(temp), logZ);
+#ifdef LOOKUP_METALCOOL
+    const double inv_dT = 1.0/dT;
+    const double inv_dZ = 1.0/dZ;
+
+    double Tindex = (log10(temp) - Tlow) * inv_dT; 
+    if (Tindex < 0)
+      Tindex = 0;
+    if (Tindex >= N_T)
+      Tindex = N_T - 1;
+
+    double Zindex = (logZ - Zlow) * inv_dZ; 
+    if (Zindex < 0)
+      Zindex = 0;
+    if (Zindex >= N_Z)
+      Zindex = N_Z - 1;
+
+    int32_t index = Tindex * N_Z + Zindex;
+    x = MetalCool_Lookup[index]; 
+ 
+#else
+    double lambda = get_metaldependent_cooling_rate(log10(temp), logZ);
     x = PROTONMASS * BOLTZMANN * temp / lambda;        // now this has units sec g/cm^3  
     x /= (UnitDensity_in_cgs * UnitTime_in_s);         // now in internal units 
+#endif
     rho_rcool = x / tcool * 0.885;  // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
 
     // an isothermal density profile for the hot gas is assumed here 

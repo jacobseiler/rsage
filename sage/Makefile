@@ -1,6 +1,6 @@
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-EXEC   = sage 
+EXEC   = opt_sage 
 
 OBJS   = 	./main.o \
 			./core_read_parameter_file.o \
@@ -55,6 +55,7 @@ else
     CC = gcc  # sets the C-compiler
 endif
 
+OPT += -DLOOKUP_METALCOOL
 #OPT += -DDEBUG_SELFCON 
 
 GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
