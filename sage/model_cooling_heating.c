@@ -12,7 +12,7 @@
 double cooling_recipe(int gal, double dt)
 {
   double tcool, x, lambda, logZ, rcool, rho_rcool, rho0, temp, coolingGas;
-  const double code_density = PROTONMASS * BOLTZMANN / (UnitDensity_in_cgs * UnitTime_in_s) * 0.885; // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas.
+  const double code_density = PROTONMASS * BOLTZMANN / (UnitDensity_in_cgs * UnitTime_in_s); 
 
   if(Gal[gal].HotGas > 0.0 && Gal[gal].Vvir > 0.0)
   {
@@ -28,7 +28,7 @@ double cooling_recipe(int gal, double dt)
     x = temp / lambda; // now this has units sec g/cm^3  
     x *= code_density; // now in internal units 
 
-    rho_rcool = x / tcool; 
+    rho_rcool = x / tcool * 0.885; // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas.
 
     // an isothermal density profile for the hot gas is assumed here 
     rho0 = Gal[gal].HotGas / (4 * M_PI * Gal[gal].Rvir);
