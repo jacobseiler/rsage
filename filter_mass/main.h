@@ -16,6 +16,7 @@ do {                                                                \
 struct SAGE_PARAMETERS
 {
 
+  char *FileNameGalaxies; 
   char *TreeDir;
   char *TreeName;
   char *PhotoionDir;

@@ -81,7 +81,7 @@ int32_t parse_params(int32_t argc, char **argv, struct SAGE_PARAMETERS *params)
 
   printf("\n\n");
   printf("==================================================\n");
-  printf("Executing with\nTree Directory: %s\nTree Name: %s\nNumber of Tree Files: %d\nPhotoionization Directory: %s\nPhotoionization Name: %s\nReionization Redshift Name: %s\nGridSize: %d\nSnapshot Number: %d\nFirst Run Flag: %d\n", params->TreeDir, params->TreeName, params->LastFile - params->FirstFile + 1, params->PhotoionDir, params->PhotoionName, params->ReionRedshiftName, params->GridSize, ThisSnap, first_run); 
+  printf("Executing with\nGalaxy Name: %s\nTree Directory: %s\nTree Name: %s\nNumber of Tree Files: %d\nPhotoionization Directory: %s\nPhotoionization Name: %s\nReionization Redshift Name: %s\nGridSize: %d\nSnapshot Number: %d\nFirst Run Flag: %d\n", params->FileNameGalaxies, params->TreeDir, params->TreeName, params->LastFile - params->FirstFile + 1, params->PhotoionDir, params->PhotoionName, params->ReionRedshiftName, params->GridSize, ThisSnap, first_run); 
   printf("==================================================\n\n");
   printf("\n\n");
  

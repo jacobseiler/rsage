@@ -30,7 +30,7 @@ int32_t init_reion_lists(int32_t filenr)
     return EXIT_SUCCESS;
   }
 
-  snprintf(ListFile_name, MAXLEN, "%s/reionization_modifiers/treefile_%03d", PhotoionDir, filenr);    
+  snprintf(ListFile_name, MAXLEN, "%s/reionization_modifiers/%s_treefile_%03d", PhotoionDir, FileNameGalaxies, filenr);    
 
   ListFile = fopen(ListFile_name, "rb");
   if (ListFile == NULL)
@@ -200,12 +200,6 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increm
 
   search_idx = ceil(number_search_IDs / 2.0) - 1; 
 
-  if (match_HaloID == 38654705745)
-  {
-    printf("search_idx = %ld\t number_search_IDs = %d\n", (long)search_idx, number_search_IDs);
-  }
-
-
   while (is_found == 0)
   {
     ++count;
@@ -240,13 +234,6 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increm
     {
       search_idx = number_search_IDs -1;
     }
-
-
-    if (match_HaloID == 38654705745)
-    {
-      printf("search_idx = %ld\t search_HaloID = %ld\tcount = %ld\n", (long)search_idx, (long)search_HaloID, (long)count);
-    }
-
   }
 
   if (is_found == 1)
@@ -267,8 +254,4 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increm
   }
 
   return reionization_modifier;
-
 }
-
-
-

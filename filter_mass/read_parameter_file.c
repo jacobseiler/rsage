@@ -23,12 +23,16 @@ int32_t read_parameter_file(char *fname, struct SAGE_PARAMETERS *params)
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
-  char TreeDir_tmp[MAXLEN], TreeName_tmp[MAXLEN], PhotoionDir_tmp[MAXLEN], PhotoionName_tmp[MAXLEN], ReionRedshiftName_tmp[MAXLEN], SnapListFile_tmp[MAXLEN];
+  char TreeDir_tmp[MAXLEN], TreeName_tmp[MAXLEN], PhotoionDir_tmp[MAXLEN], PhotoionName_tmp[MAXLEN], ReionRedshiftName_tmp[MAXLEN], SnapListFile_tmp[MAXLEN], GalaxyName_tmp[MAXLEN];
   int32_t FirstFile_tmp, LastFile_tmp, LastSnapshotNr_tmp, GridSize_tmp;
   double BoxSize_tmp, Hubble_h_tmp;
 
   printf("\nreading parameter file:\n\n");
-  
+ 
+  strcpy(tag[nt], "FileNameGalaxies");
+  addr[nt] = GalaxyName_tmp;
+  id[nt++] = STRING;
+ 
   strcpy(tag[nt], "TreeName");
   addr[nt] = TreeName_tmp;
   id[nt++] = STRING;
@@ -140,6 +144,7 @@ int32_t read_parameter_file(char *fname, struct SAGE_PARAMETERS *params)
   }
 	printf("\n");
 
+  params->FileNameGalaxies = GalaxyName_tmp;
   params->TreeDir = TreeDir_tmp;
   params->TreeName = TreeName_tmp;
   params->PhotoionDir = PhotoionDir_tmp;
