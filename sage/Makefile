@@ -1,6 +1,6 @@
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-EXEC   = opt_sage 
+EXEC   = sage 
 
 OBJS   = 	./main.o \
 			./core_read_parameter_file.o \
@@ -88,6 +88,9 @@ $(EXEC): $(OBJS)
 	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
 
 $(OBJS): $(INCL) 
+
+tests: $(EXEC)
+	../tests/test_sage.sh
 
 clean:
 	rm -f $(OBJS)
