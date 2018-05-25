@@ -2,9 +2,9 @@
 %----- SAGE output file information -------
 %------------------------------------------
 
-FileNameGalaxies       no_tracking 
-OutputDir              /lustre/projects/p004_swin/jseiler/kali/tracking/galaxies
-GridOutputDir          /lustre/projects/p004_swin/jseiler/kali/tracking/grids/nion
+FileNameGalaxies       tmp 
+OutputDir              /fred/oz004/jseiler/kali/self_consistent_output/tmp/galaxies
+GridOutputDir          /fred/oz004/jseiler/kali/self_consistent_output/tmp/grids/nion
 
 FirstFile         0 
 LastFile          0 
@@ -24,8 +24,8 @@ HighSnap          60
 
 TreeName              subgroup_trees   ; assumes the trees are named TreeName.n where n is the file number
 TreeExtension         .dat 
-SimulationDir         /lustre/projects/p134_swin/jseiler/kali/subfind_results/trees/trees/vertical/ 
-FileWithSnapList      /lustre/projects/p134_swin/jseiler/kali/a_list.txt 
+SimulationDir         /fred/oz004/jseiler/kali/trees/
+FileWithSnapList      /fred/oz004/jseiler/kali/a_list.txt 
 LastSnapShotNr        98
 
 Omega           0.30199980735778809
