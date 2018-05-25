@@ -164,7 +164,7 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   
   if (fesc_file == NULL)
   {
-    snprintf(fesc_fname, MAX_STRING_LEN - 1, "%s/properties/misc_properties_%03d_%d", GridOutputDir, HighSnap, g->FileNr);
+    snprintf(fesc_fname, MAX_STRING_LEN - 1, "%s/properties/%s_misc_properties_%03d_%d", GridOutputDir, FileNameGalaxies, HighSnap, g->FileNr);
     fesc_file = fopen(fesc_fname, "w");
     if (fesc_file == NULL)
     {
