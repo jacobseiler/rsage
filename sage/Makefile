@@ -55,6 +55,8 @@ else
     CC = gcc  # sets the C-compiler
 endif
 
+GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+OPT += -DVERSION=\"$(GIT_VERSION)\"
 #OPT += -DDEBUG_SELFCON 
 
 GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
