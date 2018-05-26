@@ -247,7 +247,6 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &TimeResolutionStellar;
   id[nt++] = DOUBLE;
 
-
   strcpy(tag[nt], "fescPrescription");
   addr[nt] = &fescPrescription;
   id[nt++] = INT;
@@ -288,7 +287,19 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &N_dyntime;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "fesc");
+  strcpy(tag[nt], "fesc_Mstar_low");
+  addr[nt] = &N_dyntime;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_Mstar_high");
+  addr[nt] = &N_dyntime;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_Mstar");
+  addr[nt] = &fesc;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_not_Mstar");
   addr[nt] = &fesc;
   id[nt++] = DOUBLE;
 

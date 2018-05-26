@@ -452,13 +452,16 @@ def read_SAGE_ini(fname):
          ('quasar_baseline', np.float64),
          ('quasar_boosted', np.float64),
          ('N_dyntime', np.float64),
+         ('fesc_Mstar_low', np.float64),
+         ('fesc_Mstar_high', np.float64),
+         ('fesc_Mstar', np.float64),
+         ('fesc_not_Mstar', np.float64),
          ('HaloPartCut', np.int32),
          ('UnitLength_in_cm', np.float64),
          ('UnitMass_in_g', np.float64),
          ('UnitVelocity_in_cm_per_s', np.float64)
          ]
-    
-                            
+
     print("Reading in SAGE ini file") 
 
     names = [SAGE_params_full[i][0] for i in range(len(SAGE_params_full))]

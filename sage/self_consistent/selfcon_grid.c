@@ -34,77 +34,125 @@ int32_t init_selfcon_grid(void)
 {
 
   int32_t status;
+  char tag[MAX_STRING_LEN];
 
 #ifdef MPI
   if (ThisTask == 0)
 #endif
   printf("Initializing the grids for the self_consistent run.\n");
 
-  if (fescPrescription == 0)
+  switch(fescPrescription)
   {
-#ifdef MPI
-    if (ThisTask == 0)
-#endif
-    printf("\n\nUsing a constant escape fraction of %.4f\n", fesc); 
+    case 0:
+      snprintf(tag, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", fesc, HaloPartCut);
+      break;
+
+    case 1:
+      return EXIT_FAILURE; 
+
+    case 2:
+      snprintf(tag, MAX_STRING_LEN - 1, "MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
+      break;
+
+    case 3:
+      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      break;
+
+
+    case 4:
+      snprintf(tag, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
+      break;
+
+    case 5:
+    case 6:
+      snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
+      break;
+
+    case 7:
+      snprintf(tag, MAX_STRING_LEN - 1, "ejectedpower_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
+      break;
+
+    default:
+      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `save_selfcon_grid` in `selfcon_grid.c`.\nPlease add it there.\n");
+      return EXIT_FAILURE;
+
   }
-  else if (fescPrescription == 1)
+
+  switch(fescPrescription)
   {
-    fprintf(stderr, "\n\nDeprecated! Use a different value for fescPrescription one!\n");
-    return EXIT_FAILURE;
-  } 
-  else if (fescPrescription == 2)
-  {
+
+    case 0:
 #ifdef MPI
-    if (ThisTask == 0)
+      if (ThisTask == 0)
 #endif
-    printf("\n\nUsing an fesc prescription that scales with halo mass.\n\n");
-    determine_fesc_constants();
-  }
-  else if (fescPrescription == 3)
-  {
+      printf("\n\nUsing a constant escape fraction of %.4f\n", fesc); 
+      break;
+
+    case 1:
+      fprintf(stderr, "\n\nfescPrescription = 1 is deprecated! Use a different value!\n");
+      return EXIT_FAILURE;
+
+    case 2:
 #ifdef MPI
-    if (ThisTask == 0)
+      if (ThisTask == 0)
 #endif
-    printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\nThis takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta); 
-  }
-  else if (fescPrescription == 4)
-  {
+      printf("\n\nUsing an fesc prescription that scales with halo mass.\n\n");
+      determine_fesc_constants();
+      break;
+
+    case 3:
 #ifdef MPI
-    if (ThisTask == 0)
+      if (ThisTask == 0)
 #endif
-    {
-      printf("\n\nUsing an fesc prescription that depends upon quasar activity.\n");
-      printf("\nFor a galaxy that had a quasar event within %.2f dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
-    }
-  }
-  else if (fescPrescription == 5)
-  {    
+      printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\nThis takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta); 
+      break;
+
+    case 4:
 #ifdef MPI
-    if (ThisTask == 0)
+      if (ThisTask == 0)
 #endif
-    printf("\n\nUsing Anne's functional form for an escape fraction that decreases for increasing halo mass.\n");
-    XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 5), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
-  }
-  else if (fescPrescription == 6)
-  {
+      {
+        printf("\n\nUsing an fesc prescription that depends upon quasar activity.\n");
+        printf("\nFor a galaxy that had a quasar event within %.2f dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
+      }
+      break;
+
+    case 5:
 #ifdef MPI
-    if (ThisTask == 0)
+      if (ThisTask == 0)
 #endif
-    printf("\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
-    XASSERT(fesc_low < fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 6), we require fesc_low < fesc_high\n", fesc_low, fesc_high);
-  }
-  else if (fescPrescription == 7)
-  {
+      printf("\n\nUsing Anne's functional form for an escape fraction that decreases for increasing halo mass.\n");
+      XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 5), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
+      break;
+
+    case 6:
 #ifdef MPI
-    if (ThisTask == 0)
+      if (ThisTask == 0)
 #endif
-    printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\nThis takes the form A*fej^B.\n");
-    determine_fesc_constants();
-  }
-  else
-  {
-    printf("\n\nOnly escape fraction prescriptions 0 to 6 (exlucding 1) are permitted.\n");
-    return EXIT_FAILURE;
+      printf("\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
+      XASSERT(fesc_low < fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 6), we require fesc_low < fesc_high\n", fesc_low, fesc_high);
+      break;
+  
+    case 7:
+#ifdef MPI
+      if (ThisTask == 0)
+#endif
+      printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\nThis takes the form A*fej^B.\n");
+      determine_fesc_constants();
+      break;
+
+    case 8:
+#ifdef MPI
+      if (ThisTask == 0)
+#endif
+      printf("\n\nUsing an fesc prescription that is (partly) dependant on Stellar Mass.\n"
+             "For galaxies between %.4e and %.4e Msun the fesc = %.4f otherwise fesc = %.4f.\n", 
+             fesc_Mstar_low, fesc_Mstar_high, fesc_Mstar, fesc_not_Mstar); 
+      break;
+
+    default:
+      printf("\n\nOnly escape fraction prescriptions 0 to 8 (inclusive, exlucding 1) are permitted.\n");
+      return EXIT_FAILURE;
   }
 
 
@@ -445,9 +493,10 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
 int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 {
 
-  float halomass = g->GridFoFMass[snapshot] * 1.0e10 / Hubble_h;
+  float halomass = g->GridFoFMass[snapshot] * 1.0e10 / Hubble_h; // Halo Mass (of the background FoF) in Msun.
   float ejectedfraction = g->EjectedFraction[snapshot];
   float quasarfrac = g->QuasarFractionalPhotons;
+  float stellarmass = g->GridStellarMass[snapshot] * 1.0e10 / Hubble_h; // Stellar mass in Msun.
 
   switch(fescPrescription)
   {
@@ -489,6 +538,17 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
     case 7:
       *fesc_local = alpha * pow(ejectedfraction, beta);
+      break;
+
+    case 8:
+      if (stellarmass > fesc_Mstar_low && stellarmass < fesc_Mstar_high)
+      {
+        *fesc_local = fesc_Mstar;
+      }
+      else
+      {
+        *fesc_local = fesc_not_Mstar;
+      }
       break;
 
     default:
@@ -578,6 +638,10 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
 
     case 7:
       snprintf(tag, MAX_STRING_LEN - 1, "ejectedpower_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
+      break;
+
+    case 8:
+      snprintf(tag, MAX_STRING_LEN - 1, "mstar_%.3e_%.3e_%.2f_%.2f_HaloPartCut%d", fesc_Mstar_low, fesc_Mstar_high, fesc_Mstar, fesc_not_Mstar, HaloPartCut);
       break;
 
     default:
