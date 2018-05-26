@@ -7,7 +7,6 @@ import os
 import argparse
 
 sys.path.append('/home/jseiler/self_consistent_SAGE/output/')
-import PlotScripts
 import ReadScripts
 import AllVars
 
@@ -187,13 +186,15 @@ def increment_ini(args):
 
 def concat_properties(SAGE_params):
 
-    command = "cat {0}/properties/misc_properties_{1:03d}_*" \
+    command = "cat {0}/properties/{2}_misc_properties_{1:03d}_*" \
                  .format(SAGE_params["GridOutputDir"][0],
-                 SAGE_params["HighSnap"][0])
+                 SAGE_params["HighSnap"][0],
+                 SAGE_params["FileNameGalaxies"][0])
 
-    fname = "{0}/properties/misc_properties_{1:03d}" \
+    fname = "{0}/properties/{2}_misc_properties_{1:03d}" \
                  .format(SAGE_params["GridOutputDir"][0],
-                 SAGE_params["HighSnap"][0])
+                 SAGE_params["HighSnap"][0],
+                 SAGE_params["FileNameGalaxies"][0])
     
     f = open(fname, "w")
     subprocess.call(command, stdout=f, shell=True)

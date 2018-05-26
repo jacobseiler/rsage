@@ -62,7 +62,6 @@ def Set_Params_Plot():
     global_axiswidth = 2
 
     matplotlib.rcdefaults()
-    plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
     plt.rc('lines', linewidth=global_linewidth)
     plt.rc('font', weight='bold') 
     plt.rc('legend', numpoints=1, fontsize='x-large')

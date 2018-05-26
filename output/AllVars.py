@@ -533,7 +533,8 @@ def Set_Params_Kali():
     Y = 0.24   
     PartMass = 7.8436e6# Msun/h 
 
-    a = np.loadtxt("/lustre/projects/p134_swin/jseiler/kali/a_list.txt")
+    #a = np.loadtxt("/lustre/projects/p134_swin/jseiler/kali/a_list.txt")
+    a = np.loadtxt("/fred/oz004/jseiler/kali/a_list.txt")
     a = a[:99]
     SnapZ = 1.0/a - 1
 

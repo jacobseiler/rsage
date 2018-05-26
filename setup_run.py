@@ -20,7 +20,6 @@ import argparse
 import subprocess
 
 sys.path.append('./output/')
-import PlotScripts
 import ReadScripts
 import AllVars
 

@@ -2,9 +2,6 @@
 from __future__ import print_function
 
 import sys
-print(sys.path)
-
-
 import numpy as np
 from numpy import *
 np.set_printoptions(threshold = np.nan, linewidth = 1000000)
@@ -56,9 +53,6 @@ AllVars.Set_Constants()
 AllVars.Set_Constants()
 PlotScripts.Set_Params_Plot()
 matplotlib.rcdefaults()
-plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
-plt.rc('lines', linewidth='2.0')
-# plt.rc('font', variant='monospace')
 plt.rc('legend', numpoints=1, fontsize='x-large')
 plt.rc('text', usetex=True)
 
@@ -452,7 +446,6 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, plot_time, labels, OutputDir, o
     ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))	
     ax1.set_ylim([-0.1, 1.1])
 	
-	#ax1.set_yscale('log', nonposy='clip')
 	#ax1.text(0.075, 0.965, '(c)', horizontalalignment='center', verticalalignment='center', transform = ax1.transAxes)
 	
     plt.tight_layout()
@@ -995,7 +988,7 @@ def plot_bubble_MC(ZZ, fractions_HI, simulation_norm, model_tags, file_tags, Nce
     for q in range(0, len(model_tags)):
         ax1.plot(nan, nan, ls = PlotScripts.linestyles[q], label = model_tags[q], color = 'k', lw = 2)
 
-    ax1.set_xscale('log', nonposy='clip')
+    ax1.set_xscale('log')
     ax1.set_xlim([1e-0, 100])
     ax1.set_ylim([0.0, 0.7])
 
@@ -1120,8 +1113,7 @@ def find_max_bubble(MC_ZZ, fractions_HI, MC_mode, model_HI_fractions, model_tags
     #	ax1.set_xlim([0, BoxSize])
     #	ax1.set_ylim([0.0, 0.7])
 
-    ax1.set_yscale('log', nonposy='clip')
-    #ax1.set_xscale('log', nonposy='clip')
+    ax1.set_yscale('log')
 
     #ax1.set_xlabel(r'$x_\mathrm{HI}$', fontsize = label_size)
     ax1.set_xlabel(r"$z$", size = label_size)
@@ -1131,13 +1123,10 @@ def find_max_bubble(MC_ZZ, fractions_HI, MC_mode, model_HI_fractions, model_tags
     ax2.set_xlabel(r"$z$", size = label_size)
     ax2.set_ylabel(r'$\mathrm{Bubble \: Amplitude}$', fontsize = label_size)
 
-    ax2.set_yscale('log', nonposy='clip')
-    #ax2.set_xscale('log', nonposy='clip')
+    ax2.set_yscale('log') 
 
     ax3.set_xlabel(r"$z$", size = label_size)
-    ax3.set_ylabel(r"$\langle x_{HI}\rangle$", size = label_size)      
-
-    #ax3.set_yscale('log', nonposy='clip')
+    ax3.set_ylabel(r"$\langle x_{HI}\rangle$", size = label_size)
 
     plt.tight_layout()
 
@@ -1247,8 +1236,8 @@ def plot_power(fractions_HI, k_21, Power_21, Error_21, k_XHII, Power_XHII, Error
     #ax1.set_ylabel( r'$\bar{\delta T_b^2} \Delta_{21}^2 \left[\mathrm{mK}^2\right]$', size = label_size + extra_size)
     ax1.set_ylabel( r'$\log_{10} \Delta_{21}^2 \left[\mathrm{mK}^2\right]$', size = label_size + extra_size)
     
-    ax1.set_xscale('log', nonposy='clip')
-    #ax1.set_yscale('log', nonposy='clip')
+    ax1.set_xscale('log')
+
     leg = ax1.legend(loc='lower right', numpoints=1,
          labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
@@ -1299,7 +1288,7 @@ def plot_power(fractions_HI, k_21, Power_21, Error_21, k_XHII, Power_XHII, Error
     ax1.set_xlabel(r'$k \: \left[\mathrm{Mpc}^{-1}h\right]$', size = label_size + extra_size)
     ax1.set_ylabel( r'$\log_{10} \Delta_\mathrm{XHII}^2$', size = label_size + extra_size)
     
-    ax1.set_xscale('log', nonposy='clip')
+    ax1.set_xscale('log')
     leg = ax1.legend(loc='lower center', numpoints=1,
          labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
@@ -2376,11 +2365,13 @@ if __name__ == '__main__':
     #model_tags = [r"$Constant$", r"$fej$", r"$fejpower$", 
     #              r"$fejpower 0.3$", r"$fejpower 0.5 cut$"]
 
-    model_tags = [r"$Constant$", r"$Quasar$"]
+    model_tags = [r"$f_\mathrm{esc} = 0.35$", 
+                  r"$f_\mathrm{base} = 0.25$",
+                  r"$f_\mathrm{ej} = 0.7$"]
 
-    output_tags = [r"Base Reion On", r"Base Reion Off", r"Consistent"]
+    output_tags = [r"Base Reion On"]
 
-    number_models = 2
+    number_models = 3
 
     simulation_model1 = 6 # Which simulation are we using?
     # 0 : Mysim (Manodeep's original simulation run).
@@ -2389,37 +2380,43 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'self_consistent_quasar'
+    model = 'fej'
 
     GridSize_model1 = 256
         
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
    
-    filepath_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/cifog/XHII"
-    filepath_model2 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent/grids/cifog/XHII"
-    filepath_model4 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/cifog/XHII"
-    filepath_model5 = "/lustre/projects/p004_swin/jseiler/kali/quasar_self_consistent/grids/cifog/0.1_1.0_2.5_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/newphoton_SF0.03_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/newphoton_SF0.03_0.2_1.00_2.50_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/oldphoton_SF0.03_0.10_1.00_2.50_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/newphoton_SF0.03_0.25_1.00_2.50_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.4_XHII"
+    filepath_model6="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_XHII"
 
-    filepath_nion_model1 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
-    filepath_nion_model2 = "/lustre/projects/p004_swin/jseiler/kali/base_reionization_off/grids/nion/base_fesc0.20_HaloPartCut32_nionHI"
-    filepath_nion_model4 = "/lustre/projects/p004_swin/jseiler/kali/self_consistent_1024_subsampled_256/grids/nion/tmp_fesc0.20_HaloPartCut32_nionHI"
-    filepath_nion_model5 = "/lustre/projects/p004_swin/jseiler/kali/quasar_self_consistent/grids/nion/0.1_1.0_2.5_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI"
- 
- 
-    filepath_density_model1 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/averaged/snap"
-    filepath_density_model4 = "/lustre/projects/p134_swin/jseiler/kali/density_fields/1024_subsampled_256/snap"
+    filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/newphoton_SF0.03_fesc0.35_HaloPartCut32_nionHI"
+    filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.2_1.00_2.50_quasar_0.20_1.00_2.50_HaloPartCut32_nionHI"
+    filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/oldphoton_SF0.03_0.10_1.00_2.50_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI"
+    filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.25_1.00_2.50_quasar_0.25_1.00_2.50_HaloPartCut32_nionHI"
+    filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/nion/newphoton_SF0.03_fej0.4_ejected_0.400_0.000_HaloPartCut32_nionHI"
+    filepath_nion_model6="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/nion/newphoton_SF0.03_fej0.7_ejected_0.700_0.000_HaloPartCut32_nionHI"
+  
+    filepath_density_model1="/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"
 
     simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1, simulation_model1]
     precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
-    ionized_cells_filepath_array = [filepath_model4,
-                                    filepath_model5]
-    nion_filepath_array = [filepath_nion_model4,
-                           filepath_nion_model5]
-    density_filepath_array = [filepath_density_model4,
-                              filepath_density_model4]
-    #photofield_filepath_array = [filepath_photofield_model1, filepath_photofield_model2]
-    
+    ionized_cells_filepath_array = [filepath_model1,
+                                    filepath_model4,
+                                    filepath_model6]
+    nion_filepath_array = [filepath_nion_model1,
+                           filepath_nion_model4,
+                           filepath_nion_model6]
+
+    density_filepath_array = [filepath_density_model1,
+                              filepath_density_model1,
+                              filepath_density_model1,
+                              filepath_density_model1]
+
     ###########################      
     
     cosmo = AllVars.Set_Params_Kali()
@@ -2428,10 +2425,7 @@ if __name__ == '__main__':
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 
-    #snaplist = np.arange(0, len(AllVars.SnapZ)) 
-    #snaplist = np.arange(0, 70)
-    snaplist = np.arange(28, 98) 
-    #snaplist = np.arange(20, 50)
+    snaplist = np.arange(28, 98)     
 
     z_index = 0 
 
@@ -2634,7 +2628,10 @@ if __name__ == '__main__':
             plotting_HI = volume_frac_array 
 
     #plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
-    plot_power(fractions_HI, wavenumber_array, powerspectra_array, powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array, powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir, "PowerSpectrum_Anne")
+    plot_power(fractions_HI, wavenumber_array, powerspectra_array,
+               powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array,
+               powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir,
+               "PowerSpectrum_Anne_new")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)
