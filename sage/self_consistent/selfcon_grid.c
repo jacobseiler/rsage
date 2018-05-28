@@ -30,54 +30,42 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite);
 
 // External Functions //
 
+/*
+Prints out some useful information regarding `fescPrescription` and initializes the Nion grid.
+
+If `fescPrescription` == 2 or 7, determines the constants for the fesc function (see `determine_fesc_constants()`). 
+
+Parameters
+----------
+
+None.  All variables used/adjusted are global.
+
+Returns
+----------
+
+None. All variables adjusted are global.
+
+Pointer Updates
+----------
+
+None.
+
+Units  
+----------
+
+None.
+*/
+
 int32_t init_selfcon_grid(void)
 {
 
   int32_t status;
-  char tag[MAX_STRING_LEN];
 
 #ifdef MPI
   if (ThisTask == 0)
 #endif
   printf("Initializing the grids for the self_consistent run.\n");
-
-  switch(fescPrescription)
-  {
-    case 0:
-      snprintf(tag, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", fesc, HaloPartCut);
-      break;
-
-    case 1:
-      return EXIT_FAILURE; 
-
-    case 2:
-      snprintf(tag, MAX_STRING_LEN - 1, "MH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
-      break;
-
-    case 3:
-      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
-      break;
-
-
-    case 4:
-      snprintf(tag, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
-      break;
-
-    case 5:
-    case 6:
-      snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
-      break;
-
-    case 7:
-      snprintf(tag, MAX_STRING_LEN - 1, "ejectedpower_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);
-      break;
-
-    default:
-      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `save_selfcon_grid` in `selfcon_grid.c`.\nPlease add it there.\n");
-      return EXIT_FAILURE;
-
-  }
-
+  
   switch(fescPrescription)
   {
 
@@ -122,6 +110,7 @@ int32_t init_selfcon_grid(void)
       if (ThisTask == 0)
 #endif
       printf("\n\nUsing Anne's functional form for an escape fraction that decreases for increasing halo mass.\n");
+      printf("MH_low = %.4e\tMH_high = %.4e\tfesc_low = %.4f\tfesc_high =  %.4f.\n", MH_low, MH_high, fesc_low, fesc_high);
       XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 5), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
       break;
 
@@ -155,7 +144,6 @@ int32_t init_selfcon_grid(void)
       return EXIT_FAILURE;
   }
 
-
   SelfConGrid = malloc(sizeof(*(SelfConGrid)));
   if (SelfConGrid == NULL)
   {
@@ -173,9 +161,35 @@ int32_t init_selfcon_grid(void)
 
 }
 
+/*
+Frees the Nion grid using calls to `myfree()` to keep track of memory usage.
+
+Parameters
+----------
+
+*grid_to_free: struct SELFCON_GRID_STRUCT pointer. See `core_allvars.h` for full struct contents.
+  Pointer to the Nion grid that we are freeing.
+
+Returns
+----------
+
+EXIT_SUCCESS.
+
+Pointer Updates
+----------
+
+None.
+
+Units  
+----------
+
+None.
+*/
+
 int32_t free_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_to_free)
 { 
 
+  // First free the inner arrays.
   myfree(grid_to_free->Nion_HI, sizeof(*(grid_to_free->Nion_HI)) * grid_to_free->NumCellsTotal);
   myfree(grid_to_free->GalCount, sizeof(*(grid_to_free->GalCount)) * grid_to_free->NumCellsTotal);
   
@@ -184,6 +198,49 @@ int32_t free_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_to_free)
   return EXIT_SUCCESS;
 
 }
+
+/*
+Updates an Nion grid cell for the current galaxy.  
+
+This funtion calculates the number of ionizing photons emitted, and the number that escape (using the galaxy specific of fesc).
+
+Also saves the photon properties (e.g., value of fesc/Ngamma) of the galaxy to an ASCII file.  This file is either opened if it's
+yet to be, otherwise the data is appended to the already opened file.
+
+Parameters
+----------
+
+*g: struct GALAXY pointer.  See `core_allvars.h` for the struct architecture.
+  Pointer to the galaxy that we are calculating ionizing photons for.
+
+grid_idx: Integer.
+  The 1-Dimensional grid index that corresponds to the galaxy position. 
+  See `determine_1D_idx()` in `model_misc.c` for full details.
+
+snapshot: Integer. 
+  The snapshot number we are calculating for. 
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  If `determine_nion()` returns EXIT_FAILURE, also returns EXIT_FAILURE.
+  If `determine_fesc()` returns EXIT_FAILURE, also returns EXIT_FAILURE.
+  If the photon properties file cannot be opened (e.g., invalid pth), EXIT_FAILURE is returned.
+  If the photon properties file is not opened prior to `fprintf` attempt, EXIT_FAILURE is returned. 
+ 
+  Otherwise EXIT_SUCCESS is returned.
+
+Pointer Updates
+----------
+
+None.
+
+Units  
+----------
+
+The number of ionizing photons (Ngamma) is kept in units of 1.0e50 photons/s.
+*/
 
 int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot)
 {
@@ -234,7 +291,40 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   return EXIT_SUCCESS;
 }
 
-int32_t save_selfcon_grid()
+/*
+Wrapper function that writes out the Nion grid, frees the grid and then closes the photon properties file. 
+This function is called at the end of the script, before final cleanup.
+
+If RSAGE has been built using MPI, then each rank will have its own Nion grid.  In this case, this function calls `MPI_sum_grid()`
+to sum all the grids onto rank 0 which is then subsequently written and freed.
+ 
+Parameters
+----------
+
+None. All the grids are kept global.
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  All non-rank 0 processors return EXIT_SUCCESS.  
+  `MPI_sum_grids()` returns a NULL pointer for all non-rank 0 processors.  However if rank 0 also returns NULL, EXIT_FAILURE is returned by this function.
+  If `write_selfcon_grid()` returns EXIT_FAILURE, also returns EXIT_FAILURE.
+ 
+  Otherwise EXIT_SUCCESS is returned.
+
+Pointer Updates
+----------
+
+None.
+
+Units  
+----------
+
+None.
+*/
+
+int32_t save_selfcon_grid(void)
 {
 
   int32_t status;
@@ -255,7 +345,6 @@ int32_t save_selfcon_grid()
   }
   else
     status = EXIT_SUCCESS;
-
 #else
   status = write_selfcon_grid(SelfConGrid);
 #endif
@@ -276,17 +365,42 @@ int32_t save_selfcon_grid()
   }
 
   return EXIT_SUCCESS;
-
 }
 
 // Local Functions //
+
+/*
+For some escape fraction prescriptions, the functional form is a power law with the constants calculated using two fixed points.
+This function determines these constants based on the fixed points specified.
+
+Refer to the .ini file or `determine_fesc()` function for full details on each `fescPrescription`.
+
+Parameters
+----------
+
+None.  All variables used/adjusted are global.
+
+Returns
+----------
+
+None. All variables adjusted are global.
+
+Pointer Updates
+----------
+
+None.
+
+Units  
+----------
+
+The Halo Masses used to specify the fixed points (MH_low and MH_high) are in Msun.
+*/
 
 void determine_fesc_constants(void)
 { 
   
   double A, B, log_A;
  
-
   switch(fescPrescription)
   {
     case 2:
@@ -301,9 +415,40 @@ void determine_fesc_constants(void)
       printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
       printf("This gives a power law with constants A = %.4e, B = %.4e\n", alpha, beta);
       break;
-  }
- 
+  } 
 }
+
+/*
+Allocates memory and initializes values for the Nion grid.
+ 
+Parameters
+----------
+
+*my_grid: struct SELFCON_GRID_STRUCT pointer. See `core_allvars.h` for full struct architecture..
+  Nion grid that is being allocated.
+  **IMPORTANT** This pointer must be allocated before being passed to this function.
+  If `*my_grid` is passed as a NULL pointer, EXIT_FAILURE is returned.
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  If `*my_grid` is passed as an unallocated NULL, EXIT_FAILURE is returned. 
+  If memory cannot be allocated for `Nion_HI` or `GalCount`, EXIT_FAILURE is returned.
+   
+  Otherwise EXIT_SUCCESS is returned.
+
+Pointer Updates
+----------
+
+The inner arrays of `*my_grid` are allocated memory and initialized to 0.
+See `core_allvars.h` for full architecture of `SELFCON_GRID_STRUCT`.
+
+Units  
+----------
+
+None.
+*/
 
 int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 {
@@ -346,7 +491,6 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 }
 
 /*
-
 Calculates the ionizing photon rate for a given galaxy at a specified snapshot.
 
 Depending on the value of `PhotonPrescription` specified, the prescription to calculate this will change.
@@ -359,11 +503,11 @@ Depending on the value of `PhotonPrescription` specified, the prescription to ca
 Parameters
 ----------
 
-g: struct GALAXY.  See `core_allvars.h` for the struct architecture.
-  Galaxy that we are calculating ionizing photons for.
+g: struct GALAXY pointer.  See `core_allvars.h` for the struct architecture.
+  Pointer to the galaxy that we are calculating ionizing photons for.
 
 snapshot: Integer. 
-  The snapshot number we are calculating 
+  The snapshot number we are calculating for. 
 
 *Ngamma_HI, *Ngamma_HeI, *Ngamma_HeII: Float Pointers.
   Pointers that will store the number of hydrogen, helium and helium II ionizing photons. 
@@ -387,7 +531,6 @@ Units
 The ionizing photon rate is returned in units of 1.0e50 Photons/s.
 Star formation rate is converted from internal code units to Msun/yr.
 Metallicity is in absolute metallicity (not solar).
-
 */
 
 int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII)
@@ -490,6 +633,61 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
   }
 }
 
+/*
+Calculates the value of fesc for this galaxy for a specific snapshot.
+
+Depending on the value of `PhotonPrescription` specified, the prescription to calculate this will change.
+
+0: Assigns a single value of fesc to all galaxies, regardless of properties.
+   Value is given by `fesc`. 
+1: DEPRECATED.
+2: Power law as a function of halo mass, fesc = alpha*MH^beta. 
+   The values of `alpha` and `beta` are given by specifying two fixed points: (MH_low, fesc_low) and (MH_high, fesc_high).
+   These fixed points are specified in units of Msun; see `calculate_fesc_constants()` for exact equation. 
+3: Linear relationship as a function of the fraction of ejected baryons in the galaxy, fesc = alpha*fej + beta.
+   The values of `alpha` and `beta` are specified directly by the variables `alpha` and `beta` in the .ini file.
+4: The value of fesc is boosted by recent quasar activity. Each galaxy has a baselines fesc of `quasar_baseline`.
+   Following a quasar event that ejects all gas from a galaxy, the galaxy is given an fesc value `quasar_boosted` for `N_dyntime` dynamical times.
+   After this, it falls back to `quasar_baseline`.
+5,6: fesc either increases/decreases as a function of Halo Mass using Anne's specified functional forms.
+   Ths fixed points are specified by giving (MH_low, fesc_low) and (MH_high, fesc_high).
+7: Same as 3 except the relationship is a power law of the form fesc = alpha*fej^beta.
+8: For galaxies with stellar mass between `fest_Mstar_low` and `fesc_Mstar_high` the value of fesc is set to `fesc_Mstar`.
+   All other galaxies are set to fesc = `fesc_not_Mstar`.
+
+Parameters
+----------
+
+g: struct GALAXY pointer.  See `core_allvars.h` for the struct architecture.
+  Pointer to the galaxy that we are calculating value of fesc for.
+
+snapshot: Integer. 
+  The snapshot number we are calculating for. 
+
+*fesc_local: Float Pointers.
+  Pointer that will store the value of fesc for this galaxy at this snapshot. 
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  If the value of `fescPrescription` is any value other than [0, 8] excluding 1, EXIT_FAILURE is returned.
+  If `fesc_local` is assigned a value less than 0 or greater than 1.0 EXIT_FAILURE is returned.
+  Otherwise, EXIT_SUCCESS is returned.
+
+Pointer Updates
+----------
+
+*fesc_local.
+
+Units  
+----------
+
+Halo masses are calculated in Msun.
+Stellar masses are calculated in Msun.
+Ejected fraction is the fraction of baryons (unitless).
+*/
+
 int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 {
 
@@ -506,7 +704,8 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
     case 1:
       *fesc_local = pow(10,1.0 - 0.2*log10(halomass)); // Deprecated.
-      break;
+      printf("The value of fescPrescription == 1 is deprecated.  Please select another fesc prescription.\n");
+      return EXIT_FAILURE
 
     case 2:
       *fesc_local = alpha * pow((halomass), beta);
@@ -566,10 +765,38 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
   return EXIT_SUCCESS;
 }
 
-
-// Local Functions //
-
 #ifdef MPI
+
+/*
+If RSAGE is built with MPI, then each processor will have its own Nion grid.  
+Since we wish to write out a single grid, we need to sum all the grids across processors.  
+This function allocates a single master grid on rank 0 and then sums everything into that grid. 
+ 
+Parameters
+----------
+
+None. All grids are kept global.
+
+Returns
+----------
+
+All non-rank 0 processors return NULL.
+ 
+If memory could not be allocated for the master_grid (see `malloc_selfcon_grid()`), NULL is returned for rank 0. 
+Otherwise:
+   *master_grid: struct SELFCON_GRID_STRUCT pointer.
+    The summed master grid on rank 0. 
+
+Pointer Updates
+----------
+
+None.
+
+Units  
+----------
+
+None.
+*/
 
 struct SELFCON_GRID_STRUCT *MPI_sum_grids(void)
 {
@@ -602,6 +829,39 @@ struct SELFCON_GRID_STRUCT *MPI_sum_grids(void)
 
 #endif
 
+/*
+Function to write the Nion grid to disk as binary. The name of the file depends on the value of `fescPrescription` specified.
+In general, the filename will capture the variables that were specified in the .ini file in addition to a tag to specify what `fescPrescription` was used. 
+
+If RSAGE is built with MPI, this function will only be called by rank 0.
+ 
+Parameters
+----------
+
+*grid_towrite: struct SELFCON_GRID_STRUCT pointer. See `core_allvars.h` for full struct architecture..
+  Nion grid that is being written.
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  If the value of `fescPrescription` is any value other than [0, 8] excluding 1, EXIT_FAILURE is returned.
+  If the output file could not be opened, EXIT_FAILURE is returned.
+  If the file could not be written to, EXIT_FAILURE is returned. 
+
+  Otherwise EXIT_SUCCESS is returned.
+
+Pointer Updates
+----------
+
+None.
+
+Units  
+----------
+
+None.
+*/
+
 int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
 { 
 
@@ -616,6 +876,7 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
       break;
 
     case 1:
+      printf("The value of fescPrescription == 1 is deprecated.  Please select another fesc prescription.\n");
       return EXIT_FAILURE; 
 
     case 2:
@@ -673,4 +934,3 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
   return EXIT_SUCCESS;
 
 }
-
