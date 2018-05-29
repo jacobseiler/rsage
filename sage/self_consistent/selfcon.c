@@ -1,3 +1,15 @@
+/*
+This file contains functions that control the reionization feedback for the self-consistent RSAGE model.
+
+In the RSAGE model, all halos with a `ReionizationModifier` less than 1 are saved in a file with a unique 64 bit ID (left-most 32 bits are the `treenr` and the right-most 32 bits are the tree-local `HaloID`).
+Whenever `ReionizationModifier` is needed we search through this file to see if the specified halo has a reionization modifier less than 1. 
+
+Since we need to remember the history of `ReionizationModifier`, we load in all the `ReionizationModifier` lists for the current snapshot iteration in addition to all previous snapshots. 
+
+Author: Jacob Seiler
+Version: 0.0.1
+*/
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +29,53 @@
 // Local Proto-Types //
 
 // External Functions //
+
+/*
+Initializes the array (`ReionMod_List`) to hold the halos with `ReionizationModifier` less than 1.  
+Also reads the file that holds the `ReionizationModifier` values and their unique 64 bit ID.
+
+Parameters
+----------
+
+filenr: Integer. 
+  The current tree file number. 
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  If this is the first iteration of the self-consistent model (as RSAGE is run for every snapshot), EXIT_SUCCESS is returned (no reionization has occurred). 
+
+  If the `ReionizationModifier` file cannot be opened, EXIT_FAILURE is returned. 
+  If memory cannot be allocated for the outer struct (REIONMOD_STRUCT), EXIT_FAILURE is returned. 
+  If memory cannot be allocated for the inner struct (REIONMOD_LIST), EXIT_FAILURE is returned. 
+  If memory cannot be allocated for the `HaloID` and `ReionMod` arrays for each snapshot, EXIT_FAILURE is returned.
+
+  The data structure of the `ReionizationModifier` file is:
+  <Snapshot Number (int32_t)> 
+  <Number of Reionized Halos in this Snapshot (int32_t, NHalos)>
+  <NHalos HaloIDs (int64_t)>
+  <NHalos ReionizationModifier Values (32 bit float)>
+  
+  <...Next Snapshot Number...> 
+
+  If this data structure is not correct, EXIT_FAILURE is returned.
+
+  Otherwise EXIT_SUCCESS is returned.
+
+Pointer Updates
+----------
+
+`ReionList` is allocated memory.
+`ReionList.ReionMod_List` is allocated enough memoery to hold lists for the current snapshot and all previous ones.
+For each snapshot, `ReionList->ReionMod_List.HaloID` and `ReionList->ReionMod_List.ReionMod` are allocated memory to hold all of the `HaloIDs` and `ReionizationModifier` values for all halos in ionized regions. 
+
+Units  
+----------
+
+The `HaloID` variable is unique and defined as `int64_t ((int32_t) treenr << 32) | (int32_t) ForestSpecificHaloID`.
+The `ReionizationModifier` variable is unitless and specifies the suppression of baryonic infall. 
+*/
 
 int32_t init_reion_lists(int32_t filenr)
 {
@@ -51,6 +110,11 @@ int32_t init_reion_lists(int32_t filenr)
   ReionList->NumLists = ReionSnap; 
 
   ReionList->ReionMod_List = malloc(sizeof(struct REIONMOD_LIST) * ReionList->NumLists);
+  if (ReionList == NULL)
+  {
+    fprintf(stderr, "Cannot allocate memory for the ReionMod_List struct\n");
+    return EXIT_FAILURE;
+  }
 
   for (SnapNum = 0; SnapNum < ReionList->NumLists; ++SnapNum)
   {
@@ -74,6 +138,11 @@ int32_t init_reion_lists(int32_t filenr)
     }
    
     ReionList->ReionMod_List[SnapNum].HaloID = mycalloc(ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID))); 
+    if (ReionList->ReionMod_List[SnapNum].HaloID == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memoery for ReionMod_List.HaloID for Snapshot Number %d\n", SnapNum);
+      return EXIT_FAILURE;
+    }
 
     fread(ReionList->ReionMod_List[SnapNum].HaloID, sizeof(*(ReionList->ReionMod_List[SnapNum].HaloID)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
 
@@ -88,16 +157,51 @@ int32_t init_reion_lists(int32_t filenr)
 #endif
 
     ReionList->ReionMod_List[SnapNum].ReionMod = mycalloc(ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod))); 
+    if (ReionList->ReionMod_List[SnapNum].ReionMod == NULL)
+    {
+      fprintf(stderr, "Cannot allocate memoery for ReionMod_List.ReionMod for Snapshot Number %d\n", SnapNum);
+      return EXIT_FAILURE;
+    }
 
-    fread(ReionList->ReionMod_List[SnapNum].ReionMod, sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);
-  
-    
+    fread(ReionList->ReionMod_List[SnapNum].ReionMod, sizeof(*(ReionList->ReionMod_List[SnapNum].ReionMod)), ReionList->ReionMod_List[SnapNum].NHalos_Ionized, ListFile);      
   }
   fclose(ListFile);
  
   return EXIT_SUCCESS;
-
 }
+
+/*
+Frees the unique `HaloID` and `ReionizationModifier` arrays. 
+
+Parameters
+----------
+
+filenr: Integer. 
+  The current tree file number. 
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  If this is the first iteration of the self-consistent model (as RSAGE is run for every snapshot), EXIT_SUCCESS is returned (no reionization has occurred). 
+
+  As this function is called after all galaxies have been fully evolved, all halos in the `ReionMod_List` struct MUST have been found in the main code.
+  If there were halos that were not found in the main code, EXIT_FAILURE is returned. 
+   
+  Otherwise EXIT_SUCCESS is returned.
+
+Pointer Updates
+----------
+
+For each snapshot, `ReionList->ReionMod_List.HaloID` and `ReionList->ReionMod_List.ReionMod` are freed. 
+`ReionList.ReionMod_List` is freed for the current snapshot and all previous ones.
+`ReionList` is freed.
+
+Units  
+----------
+
+None.
+*/
 
 int32_t free_reion_lists(int32_t filenr)
 {
@@ -132,6 +236,53 @@ int32_t free_reion_lists(int32_t filenr)
   return EXIT_SUCCESS;
 
 }
+
+/*
+For a given halo, determines if the halo requires checking for a non-one `ReionizationModifier` value.  As RSAGE is iterated over snapshots, halos at snapshots later than the one being processed are ignored.
+E.g., if we are processing Snapshot 40, a halo at Snapshot 45 will have a `ReionizationModifier` value of 1.
+
+If the halo needs to be checked, the `search_for_modifier()` function is called to check the `ReionList` struct for a matching unique 64 bit `HaloID`.
+If the halo is found in the list, the corresponding value for `ReionizationModifier` is used, otherwise a value of 1 is used. 
+
+**NOTE** If ``ReionizationOn`` = 4, we do not use the `ReionizationModifier` value in the list.  Instead we use the value from the Gnedin Analytic formulat (see `do_reionization()` in `model_infall.c`).
+
+Parameters
+----------
+
+gal: Integer.
+  The local galaxy index.  Used to reference the galaxy property arrays.
+
+halonr: Integer. 
+  The background FoF Halo. 
+  **IMPORTANT**: This is the BACKGROUND FOF HALO. This has important consequences for satellite galaxies/halos (see https://github.com/jacobseiler/self_consistent_SAGE/issues/6).
+
+increment_counter: Integer.  
+  This function is called multiple times for an individual halo.  Since we keep track of the number of halos successfully found in the list, we only want to increment this counter once.
+  This flag denotes whether we have accounted for this halo being found yet.
+
+*reionization modifier: Double pointer.
+  Pointer that stores the value for the reionization modifier for this galaxy.
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  If this is the first iteration of the self-consistent model (as RSAGE is run for every snapshot), EXIT_SUCCESS is returned (no reionization has occurred). 
+  If the halo is at a snapshot greater than the current snapshot being processed, EXIT_SUCCESS is returned. 
+  If the halo is found in the `ReionMod_List` struct, we do a check to ensure all the indices line up.  If they don't, EXIT_FAILURE is returned.
+  
+  Otherwise EXIT_SUCCESS is returned.
+
+Pointer Updates
+----------
+
+The `*reionization_modifier` pointer is updated with the suppressed value for this halo.
+
+Units  
+----------
+
+None.
+*/
 
 int32_t do_self_consistent_reionization(int32_t gal, int32_t halonr, int32_t increment_counter, double *reionization_modifier)
 {
@@ -179,12 +330,51 @@ int32_t do_self_consistent_reionization(int32_t gal, int32_t halonr, int32_t inc
     return EXIT_FAILURE; 
   } 
 
- 
   return EXIT_SUCCESS; 
-
 }
 
 // Local Functions //
+
+/*
+Given a unique HaloID, does a binary search for a matching HaloID in the `ReionMod_List` struct.
+If the halo is found, uses the `ReionMod` value in the list, otherwise a value of 1 will be used.
+
+
+Parameters
+----------
+
+match_HaloID: 64 bit Integer. 
+  The unique HaloID we're searching for.
+
+SnapNum: Integer. 
+  Snapshot the halo is at.
+
+increment_counter: Integer.  
+  This function is called multiple times for an individual halo.  Since we keep track of the number of halos successfully found in the list, we only want to increment this counter once.
+  This flag denotes whether we have accounted for this halo being found yet.
+
+*found_idx: 64 bit Integer pointer. 
+  Pointer that stores the index in the `ReionMod_List` array that corresponds to the found halo.
+  If the halo is not in the list, this will be -1.  
+
+Returns
+----------
+
+reionization_modifier: Double.
+  If the Halo is found, the associated reionization_modifier in the list. 
+  Otherwise, the halo is not in an ionized region and reionization_modifier = 1. 
+
+Pointer Updates
+----------
+
+The `*found_idx` pointer is updated with the `ReionMod_List` index that corresponds to the found halo.
+If the halo is not found, this will be -1.
+
+Units  
+----------
+
+None.
+*/
 
 double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increment_counter, int64_t *found_idx)
 {

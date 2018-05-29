@@ -1,3 +1,14 @@
+/*
+This file contains function that deal with the self_consistent coupling of the RSAGE model.
+Specifically, it handles the updating of the `self_consistent_grid` (commonly referred to as the Nion grid)
+that tracks the number of HI ionizing photons for the specified snapshot.
+
+This ionizing photon grid is then fed into `cifog` to determine the ionization regions.
+
+Author: Jacob Seiler
+Version: 0.0.1
+*/
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -424,10 +435,10 @@ Allocates memory and initializes values for the Nion grid.
 Parameters
 ----------
 
-*my_grid: struct SELFCON_GRID_STRUCT pointer. See `core_allvars.h` for full struct architecture..
+*my_grid: struct SELFCON_GRID_STRUCT pointer. See `core_allvars.h` for full struct architecture.
   Nion grid that is being allocated.
   **IMPORTANT** This pointer must be allocated before being passed to this function.
-  If `*my_grid` is passed as a NULL pointer, EXIT_FAILURE is returned.
+  If `*my_grid` is passed as NULL, EXIT_FAILURE is returned.
 
 Returns
 ----------
@@ -453,14 +464,14 @@ None.
 int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 {
 
-#define ALLOCATE_GRID_MEMORY(name, length) \
-{                                          \
-  name = mycalloc(length, sizeof(*(name)));  \
-  if (name == NULL)                        \
-  {                                        \
+#define ALLOCATE_GRID_MEMORY(name, length)  \
+{                                           \
+  name = mycalloc(length, sizeof(*(name))); \
+  if (name == NULL)                         \
+  {                                         \
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate"#name".\n", sizeof(*(name)* length)); \
-    return EXIT_FAILURE;                   \
-  }                                        \
+    return EXIT_FAILURE;                    \
+  }                                         \
 }
 
   int32_t cell_idx;
