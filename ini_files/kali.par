@@ -102,7 +102,7 @@ ReionSnap           60
 PhotonPrescription  1  ; 0: for photons emitted based on Halos (using Source Efficiency parameter); 1: Using the photons from STARBURST spectra.
 TimeResolutionStellar 1 ;
 Verbose         1 ;
-fescPrescription 0 ; 
+fescPrescription 8 ; 
 % 0: For constant f_esc (given by fesc) 
 % 1: Scaling with Halo Mass (function from Kimm et al 2016) DEPRECATED 
 % 2: Power Law as a function of halo mass. Fixed points of the curve are defined by (MH_low, fesc_low) and (MH_high, fesc_high).

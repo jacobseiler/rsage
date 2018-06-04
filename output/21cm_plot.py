@@ -233,21 +233,29 @@ if __name__ == '__main__':
     PlotScripts.Set_Params_Plot()
 
     fname_ionized=["/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/newphoton_SF0.03_XHII",
-                   "/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/newphoton_SF0.03_0.25_1.00_2.50_XHII"]
+                   "/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/cifog/mstar_1e7_1e8_XHII",
+                   "/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/cifog/mstar_1e8_1e9_XHII",
+                   "/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/cifog/mstar_1e9_1e10_XHII"]
+                   #"/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/newphoton_SF0.03_0.25_1.00_2.50_XHII"]
 
     fname_density=["/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"]
-    precision = [2,2]
+    precision = [2, 2, 2, 2]
 
-    GridSize = [256,256]
-    model_tags = ["Constant", "Quasar"]
-    
+    GridSize = [256, 256, 256, 256]
+    model_tags = ["Constant", 
+                  r"$10^7 - 10^8$",
+                  r"$10^8 - 10^9$",
+                  r"$10^9 - 10^10$"]
+
     snaplist = np.arange(28, 98)
 
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're always using
                                       #  Kali.
 
-    OutputDir = "./21cm_plots/constant"
+    OutputDir = "./21cm_plots/mstar"
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 
@@ -279,8 +287,7 @@ if __name__ == '__main__':
             T0 = T_naught(AllVars.SnapZ[snap], AllVars.Hubble_h,
                           AllVars.Omega_m, AllVars.Omega_b)
                   
-            tmp_k, tmp_PowSpec, tmp_Error = \
-            calculate_power_spectrum(XHII, density, GridSize[model_number])
+            tmp_k, tmp_PowSpec, tmp_Error = calculate_power_spectrum(XHII, density) 
 
             k.append(tmp_k)
             P21.append(T0*T0 * tmp_PowSpec * tmp_k**3 * 2.0 * np.pi)

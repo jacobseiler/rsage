@@ -675,8 +675,10 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, 
         ax.text(7.8, 0.22, r"$f_\mathrm{esc, base}$", color = 'k', 
                 size = PlotScripts.global_fontsize)
 
-        ax.set_xlabel(r'$\log_{10}\ M_*\ [M_{\odot}]$', size = PlotScripts.global_fontsize) 
-        ax.set_ylabel(r'$f_\mathrm{esc}$', size = PlotScripts.global_fontsize)
+        ax.set_xlabel(r'$\log_{10}\ M_*\ [M_{\odot}]$', 
+                      size = PlotScripts.global_fontsize) 
+        ax.set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
+                      size = PlotScripts.global_labelsize)
         ax.set_xlim([6.8, 10])
         ax.set_ylim([0.05, 0.65])
 

@@ -15,7 +15,7 @@ module load gcc/6.4.0
 
 ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/anne/"
 log_dir="/home/jseiler/self_consistent_SAGE/logs/anne/"
-run_prefix="1e8_1e12_1.0e-4_0.70" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
+run_prefix="1e8_1e12_0.01_0.50" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
 
 LowSnap=27
 HighSnap=97

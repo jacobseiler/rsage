@@ -288,19 +288,19 @@ int32_t read_parameter_file(char *fname)
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "fesc_Mstar_low");
-  addr[nt] = &N_dyntime;
+  addr[nt] = &fesc_Mstar_low;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "fesc_Mstar_high");
-  addr[nt] = &N_dyntime;
+  addr[nt] = &fesc_Mstar_high;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "fesc_Mstar");
-  addr[nt] = &fesc;
+  addr[nt] = &fesc_Mstar;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "fesc_not_Mstar");
-  addr[nt] = &fesc;
+  addr[nt] = &fesc_not_Mstar;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "HaloPartCut");

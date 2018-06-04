@@ -35,6 +35,7 @@ from astropy import cosmology
 import matplotlib.ticker as mtick
 import itertools
 from matplotlib import patches
+from scipy import stats
 
 from mpi4py import MPI
 
@@ -1196,7 +1197,7 @@ def Power_Spectrum(ionized_cells, Ncell):
 
 ##########
 
-def plot_power(fractions_HI, k_21, Power_21, Error_21, k_XHII, Power_XHII, Error_XHII, fraction_idx_array, model_tags, OutputDir, output_tag, full_debug = 0):
+def plot_power(fractions_HI, k_21, Power_21, Error_21, k_XHII, Power_XHII, Error_XHII, fraction_idx_array, model_tags, OutputDir, output_tag, full_debug=0):
     ## TODO: Update this function header string.
 
     ax1 = plt.subplot(111)
@@ -1216,20 +1217,43 @@ def plot_power(fractions_HI, k_21, Power_21, Error_21, k_XHII, Power_XHII, Error
             print("len(k[p]) = {0}".format(len(k_21[p])))
             print("q = {0}".format(q))
             print("")
+        
         w = np.where((k_21[p][q] > 9e-2))[0]
-        ax1.plot(k_21[p][q][w], np.log10(Power_21[p][q][w]), color = PlotScripts.colors[q], ls = PlotScripts.linestyles[p], label = label, lw = 2, rasterized=True) 
+
+        bins = np.logspace(np.log10(k_21[p][q][w[0]]), 
+                           np.log10(k_21[p][q][w[-1]]), 
+                           num = int(len(k_21[p][q][w])/1.5))
+        mean_power, bin_edges, bin_number = stats.binned_statistic(k_21[p][q][w], 
+                                                                   np.log10(Power_21[p][q][w]), 
+                                                                   statistic='mean', 
+                                                                   bins = bins)
+
+       
+        log_cutoff = 15 #  This is the transition where we want to plot the mean
+                        #  of the log bins.  Represents where our uncertainty
+                        #  because basically 0.
+
+        ax1.plot(bin_edges[35:-1], mean_power[35:], color = PlotScripts.colors[q], ls = PlotScripts.linestyles[p], label = label, lw = 2, rasterized=True) 
+        ax1.plot(k_21[p][q][w[0]:w[log_cutoff]],
+                 np.log10(Power_21[p][q][w[0]:w[log_cutoff]]), 
+                 color = PlotScripts.colors[q], 
+                 ls = PlotScripts.linestyles[p], 
+                 lw = 2, rasterized=True) 
+        #ax1.plot(k_21[p][q][w], np.log10(Power_21[p][q][w]), color = PlotScripts.colors[q], ls = PlotScripts.linestyles[p], label = label, lw = 2, rasterized=True) 
         if (p == 0):
-            error = Error_21[p][q][w] * Power_21[p][q][w] 
-            ax1.fill_between(k_21[p][q][w], np.log10(Power_21[p][q][w] - error), np.log10(Power_21[p][q][w] + error), color = PlotScripts.colors[q], alpha = 0.3)	
+            error = Error_21[p][q][w[0]:w[log_cutoff]] * Power_21[p][q][w[0]:w[log_cutoff]] 
+            ax1.fill_between(k_21[p][q][w[0]:w[log_cutoff]], 
+                             np.log10(Power_21[p][q][w[0]:w[log_cutoff]] - error), 
+                             np.log10(Power_21[p][q][w[0]:w[log_cutoff]] + error), 
+                             color = PlotScripts.colors[q], alpha = 0.3)	
 
     for p in range(0, len(model_tags)):
         ax1.plot(-1, -5, ls = PlotScripts.linestyles[p], label = model_tags[p], color = 'k', lw = 2)
 
     ax1.text(0.1, 1.7, r"$\mathrm{Large \: Scales}$", color = 'k', size = PlotScripts.global_fontsize - 2)    
-    ax1.text(1.4, 1.7, r"$\mathrm{Small \: Scales}$", color = 'k', size = PlotScripts.global_fontsize - 2)   
-    #ax1.text(0.2, 1.0, r"$\mathrm{Error \: Dominated}$", color = 'k', size = PlotScripts.global_fontsize - 2)   
+    ax1.text(1.4, 1.7, r"$\mathrm{Small \: Scales}$", color = 'k', size = PlotScripts.global_fontsize - 2)       
     ax1.arrow(0.2, 1.65, -0.05, 0.0, head_width = 0.01, head_length = 0.005, fc = 'k', ec = 'k') 
-    ax1.arrow(1.7, 1.65, 0.7, 0.0, head_width = 0.05, head_length = 0.05, fc = 'k', ec = 'k') 
+    ax1.arrow(1.8, 1.65, 0.7, 0.0, head_width = 0.01, head_length = 0.1, fc = 'k', ec = 'k') 
     #ax1.axvspan(7e-2, 0.5, color = 'k', alpha = 0.5) 
     ax1.set_xlabel(r'$k \: \left[\mathrm{Mpc}^{-1}h\right]$', size = label_size + extra_size)
     #plt.ylabel( r'$P\left(k\right) \: \: \left[\mathrm{Mpc}^3 h^{-3}\right]$', size = label_size + extra_size)
@@ -2345,7 +2369,8 @@ def calculate_power_spectrum(ionized_cells, density, GridSize, mode):
 
 def check_fractions(ionized_fraction, HI_fraction_high, HI_fraction_low):
     for i in range(0, len(HI_fraction_high)):
-        if (ionized_fraction >= HI_fraction_low[i] and ionized_fraction <= HI_fraction_high[i]):
+        if (ionized_fraction <=  1.0 - HI_fraction_low[i] and 
+            ionized_fraction >= 1.0 - HI_fraction_high[i]):            
             return i
 
     return -1
@@ -2365,9 +2390,15 @@ if __name__ == '__main__':
     #model_tags = [r"$Constant$", r"$fej$", r"$fejpower$", 
     #              r"$fejpower 0.3$", r"$fejpower 0.5 cut$"]
 
+    #model_tags = [r"$f_\mathrm{esc} = Constant$",
+    #              r"$f_\mathrm{esc} \: \propto \:  \mathrm{Quasar}$"]
+    #              r"$f_\mathrm{esc} \: \propto \:  M_*$"]
     model_tags = [r"$f_\mathrm{esc} = 0.35$", 
                   r"$f_\mathrm{base} = 0.25$",
-                  r"$f_\mathrm{ej} = 0.7$"]
+                  #r"$M_H \mathrm{Decreasing}$"]
+                  r"$M_H \mathrm{Increasing}$"]
+                  #r"$f_\mathrm{M_*} = 10^7 - 10^8$"]
+                  #r"$f_\mathrm{M_*} = 10^9 - 10^{10}$"]
 
     output_tags = [r"Base Reion On"]
 
@@ -2380,7 +2411,7 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'fej'
+    model = 'anne_increasing'
 
     GridSize_model1 = 256
         
@@ -2392,6 +2423,15 @@ if __name__ == '__main__':
     filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/newphoton_SF0.03_0.25_1.00_2.50_XHII"
     filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.4_XHII"
     filepath_model6="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_XHII"
+    filepath_model7="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/cifog/mstar_1e8_1e9_XHII"
+    filepath_model8="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/cifog/mstar_1e7_1e8_XHII"
+    filepath_model9="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/cifog/mstar_1e9_1e10_XHII"
+    filepath_model10="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.05_XHII"
+    filepath_model11="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.95_XHII"
+    filepath_model12="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_XHII"
+    filepath_model13="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_1.0e-4_0.95_XHII"
+    filepath_model14="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_1.0e-4_0.70_XHII"
+    filepath_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_XHII"
 
     filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/newphoton_SF0.03_fesc0.35_HaloPartCut32_nionHI"
     filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.2_1.00_2.50_quasar_0.20_1.00_2.50_HaloPartCut32_nionHI"
@@ -2399,6 +2439,15 @@ if __name__ == '__main__':
     filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.25_1.00_2.50_quasar_0.25_1.00_2.50_HaloPartCut32_nionHI"
     filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/nion/newphoton_SF0.03_fej0.4_ejected_0.400_0.000_HaloPartCut32_nionHI"
     filepath_nion_model6="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/nion/newphoton_SF0.03_fej0.7_ejected_0.700_0.000_HaloPartCut32_nionHI"
+    filepath_nion_model7="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/nion/mstar_1e8_1e9_mstar_1.000e+08_1.000e+09_0.70_0.20_HaloPartCut32_nionHI"
+    filepath_nion_model8="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/nion/mstar_1e7_1e8_mstar_1.000e+07_1.000e+08_0.60_0.20_HaloPartCut32_nionHI"
+    filepath_nion_model9="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/nion/mstar_1e9_1e10_mstar_1.000e+09_1.000e+10_0.80_0.20_HaloPartCut32_nionHI"
+    filepath_nion_model10="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.99_0.05_AnneMH_1.000e+08_0.99_1.000e+12_0.05_HaloPartCut32_nionHI"
+    filepath_nion_model11="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.01_0.95_AnneMH_1.000e+08_0.01_1.000e+12_0.95_HaloPartCut32_nionHI"
+    filepath_nion_model12="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.99_0.10_AnneMH_1.000e+08_0.99_1.000e+12_0.10_HaloPartCut32_nionHI"
+    filepath_nion_model13="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_1.0e-4_0.95_AnneMH_1.000e+08_0.00_1.000e+12_0.95_HaloPartCut32_nionHI"
+    filepath_nion_model14="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_1.0e-4_0.70_AnneMH_1.000e+08_0.00_1.000e+12_0.70_HaloPartCut32_nionHI"
+    filepath_nion_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI"
   
     filepath_density_model1="/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"
 
@@ -2407,15 +2456,23 @@ if __name__ == '__main__':
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
     ionized_cells_filepath_array = [filepath_model1,
                                     filepath_model4,
-                                    filepath_model6]
+                                    filepath_model15]
+    #ionized_cells_filepath_array = [filepath_model1,
+    #                                filepath_model4,
+    #                                filepath_model6]
     nion_filepath_array = [filepath_nion_model1,
                            filepath_nion_model4,
-                           filepath_nion_model6]
+                           filepath_nion_model15]
+    #nion_filepath_array = [filepath_nion_model1,
+    #                       filepath_nion_model4,
+    #                       filepath_nion_model6]
 
     density_filepath_array = [filepath_density_model1,
                               filepath_density_model1,
-                              filepath_density_model1,
                               filepath_density_model1]
+    #density_filepath_array = [filepath_density_model1,
+    #                          filepath_density_model1,
+    #                          filepath_density_model1,
 
     ###########################      
     
@@ -2425,7 +2482,7 @@ if __name__ == '__main__':
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 
-    snaplist = np.arange(28, 98)     
+    snaplist = np.arange(28, 98)
 
     z_index = 0 
 
@@ -2463,11 +2520,14 @@ if __name__ == '__main__':
     #fractions_HI = np.arange(0.75, 0.25, -0.05) 
     #delta_HI = np.full(len(fractions_HI), 0.025)
   
-    #fractions_HI = [0.75, 0.50, 0.25]
-    #delta_HI = [0.03, 0.03, 0.03]
+    #fractions_HI = [0.75]
+    #delta_HI = [0.015]
+
+    #fractions_HI = [0.75, 0.50]
+    #delta_HI = [0.015, 0.03]
 
     fractions_HI = [0.75, 0.50, 0.25]
-    delta_HI = [0.03, 0.03, 0.03]
+    delta_HI = [0.015, 0.03, 0.03]
 
     HI_fraction_high = np.add(fractions_HI, delta_HI) 
     HI_fraction_low= np.subtract(fractions_HI, delta_HI) 
@@ -2484,7 +2544,8 @@ if __name__ == '__main__':
     calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calculate it. 
 
     do_hoshen = 0
-    
+   
+    wtf = 0 
     for count, snapshot_idx in enumerate(snaplist):
 
         do_power_array = np.zeros((number_models))	
@@ -2560,7 +2621,6 @@ if __name__ == '__main__':
                     MC_Snaps[model_number, fraction_idx] = snapshot_idx
 
                     print("Model {0} reached x_HI = {1:.3f} at Snapshot {2} (z = {3:.2f})".format(model_number, 1 - fractions_HI[fraction_idx], snapshot_idx, AllVars.SnapZ[snapshot_idx]))
-
                     do_MC = 1
                     do_power_array[model_number] = 1
           
@@ -2608,10 +2668,11 @@ if __name__ == '__main__':
     if (rank == 0): 
         plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction")
         plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array,
-                        simulation_norm, 1, model_tags, OutputDir, "nioncut")
+                        simulation_norm, 1, model_tags, OutputDir,
+                        "nioncut_0.01_0.50")
         plot_optical_depth(AllVars.SnapZ[snaplist], volume_frac_array, model_tags, OutputDir, "OpticalDepth")
 
-        plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+        #plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
 
         if(plot_MC == 1):
             plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ))
@@ -2631,7 +2692,7 @@ if __name__ == '__main__':
     plot_power(fractions_HI, wavenumber_array, powerspectra_array,
                powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array,
                powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir,
-               "PowerSpectrum_Anne_new")
+               "PowerSpectrum")
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)

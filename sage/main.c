@@ -93,8 +93,6 @@ int32_t check_tree_file(int32_t filenr, int32_t *treestyle)
 
 }
 
-
-
 int main(int argc, char **argv)
 {
   int filenr, tree, halonr;

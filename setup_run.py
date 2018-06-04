@@ -233,7 +233,7 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["HaloPartCut"][0])
 
     elif fesc_prescription == 5 or fesc_prescription == 6:
-        nion_fname = "{0}_Anne_MH_{1:.3e}_{2:.3e}_{3:.3e}_{4:.3e}_HaloPartCut{5}_nionHI" \
+        nion_fname = "{0}_AnneMH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"][0],
                              SAGE_params["MH_low"][0],
                              SAGE_params["fesc_low"][0],
@@ -250,6 +250,15 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["fesc_high"][0],
                              SAGE_params["HaloPartCut"][0])
         
+    elif fesc_prescription == 8:
+        nion_fname = "{0}_mstar_{1:.3e}_{2:.3e}_{3:.2f}_{4:.2f}_HaloPartCut{5}_nionHI" \
+                     .format(SAGE_params["FileNameGalaxies"][0],
+                             SAGE_params["fesc_Mstar_low"][0],
+                             SAGE_params["fesc_Mstar_high"][0],
+                             SAGE_params["fesc_Mstar"][0],
+                             SAGE_params["fesc_not_Mstar"][0],
+                             SAGE_params["HaloPartCut"][0])
+
     else:
         print("Select a valid fescPrescription (0 to 7 inclusive).")
         raise ValueError
