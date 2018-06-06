@@ -239,6 +239,14 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &RescaleSN;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "PhotonPrescription");
+  addr[nt] = &PhotonPrescription;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "TimeResolutionStellar");
+  addr[nt] = &TimeResolutionStellar;
+  id[nt++] = DOUBLE;
+
   strcpy(tag[nt], "fescPrescription");
   addr[nt] = &fescPrescription;
   id[nt++] = INT;
@@ -279,8 +287,20 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &N_dyntime;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "fesc");
-  addr[nt] = &fesc;
+  strcpy(tag[nt], "fesc_Mstar_low");
+  addr[nt] = &fesc_Mstar_low;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_Mstar_high");
+  addr[nt] = &fesc_Mstar_high;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_Mstar");
+  addr[nt] = &fesc_Mstar;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "fesc_not_Mstar");
+  addr[nt] = &fesc_not_Mstar;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "HaloPartCut");

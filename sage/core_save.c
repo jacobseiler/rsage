@@ -16,34 +16,6 @@ void save_galaxies(int filenr, int tree)
 {
   char buf[1024];
   int32_t i, n, max_snap, j;
-
-  int OutputGalCount[MAXSNAPS], *OutputGalOrder;
-  
-  OutputGalOrder = (int*)malloc( NumGals*sizeof(int) );
-  assert( OutputGalOrder );
-
-  // reset the output galaxy count and order
-  for(i = 0; i < MAXSNAPS; i++)
-    OutputGalCount[i] = 0;
-  for(i = 0; i < NumGals; i++)
-    OutputGalOrder[i] = -1;
-
-  // first update mergeIntoID to point to the correct galaxy in the output
-  for(n = 0; n < NOUT; n++)
-  {
-    for(i = 0; i < NumGals; i++)
-    {
-      if(HaloGal[i].SnapNum == ListOutputSnaps[n])
-      {
-        OutputGalOrder[i] = OutputGalCount[n];
-        OutputGalCount[n]++;
-      }
-    }
-  }
-    
-  for(i = 0; i < NumGals; i++)
-    if(HaloGal[i].mergeIntoID > -1)
-      HaloGal[i].mergeIntoID = OutputGalOrder[HaloGal[i].mergeIntoID];    
   
   // now prepare and write galaxies
   for(n = 0; n < NOUT; n++)
@@ -62,10 +34,9 @@ void save_galaxies(int filenr, int tree)
 
       int32_t number_header_values = 5 + (6+MAXSNAPS)*2 + Ntrees;
 			// write out placeholders for the header data.
-			int32_t *tmp_buf = malloc(number_header_values * sizeof(int32_t));
-			memset( tmp_buf, 0, number_header_values * sizeof(int32_t));
-			fwrite( tmp_buf, sizeof(int), number_header_values, save_fd[n] );
-			free( tmp_buf );
+			int32_t *tmp_buf = calloc(number_header_values, sizeof(int32_t));
+			fwrite(tmp_buf, sizeof(int), number_header_values, save_fd[n]);
+			free(tmp_buf);
 		}
     
     // There are some galaxies that aren't at the root redshift but do not have any descendants.
@@ -95,10 +66,6 @@ void save_galaxies(int filenr, int tree)
     
     } // NumGals loop.
   } // NOUT loop.
-
-  // don't forget to free the workspace.
-  free( OutputGalOrder );
-
 }
 
 void finalize_galaxy_file(void)
@@ -141,22 +108,8 @@ void save_merged_galaxies(int filenr, int tree)
 {
   char buf[1000];
   int i;
-  //struct GALAXY_OUTPUT galaxy_output;
-
-  int OutputGalCount, *OutputGalOrder;
-  
-  OutputGalOrder = (int*)malloc( MergedNr*sizeof(int) );
-  assert( OutputGalOrder );
-
-  // reset the output galaxy count and order 
-  OutputGalCount = 0;
-  for(i = 0; i < MergedNr; i++)
-  {
-    OutputGalOrder[i] = i;
-    OutputGalCount++;
-  }
-
-  if( !save_fd2 )
+   
+  if(!save_fd2)
   { 
     sprintf(buf, "%s/%s_MergedGalaxies_%d", OutputDir, FileNameGalaxies, filenr);
 
@@ -167,15 +120,13 @@ void save_merged_galaxies(int filenr, int tree)
       ABORT(0);
     }
 
-
     int32_t number_header_values = 5 + (6+MAXSNAPS)*2 + Ntrees;
     // write out placeholders for the header data.
-    int32_t *tmp_buf = malloc(number_header_values * sizeof(int32_t));
-    memset( tmp_buf, 0, number_header_values * sizeof(int32_t));
-    fwrite( tmp_buf, sizeof(int), number_header_values, save_fd2);
+    int32_t *tmp_buf = calloc(number_header_values, sizeof(int32_t));
+    fwrite(tmp_buf, sizeof(int), number_header_values, save_fd2);
 
     // write out placeholders for the header data.
-    free( tmp_buf );
+    free(tmp_buf);
   }
 
   for(i = 0; i < MergedNr; i++)
@@ -185,10 +136,6 @@ void save_merged_galaxies(int filenr, int tree)
     TotMerged++;
     TreeNMergedgals[tree]++;
   }
-
-  // don't forget to free the workspace.
-  free( OutputGalOrder );
-
 }
 
 void finalize_merged_galaxy_file(void)

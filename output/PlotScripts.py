@@ -54,7 +54,7 @@ def Set_Params_Plot():
     global_labelsize = 30
     global_fontsize = 22
     global_legendsize = 20
-    global_linewidth = 3
+    global_linewidth = 4
     global_tickinterval = 0.25
     global_tickwidth = 2
     global_ticklength = 6
@@ -62,7 +62,6 @@ def Set_Params_Plot():
     global_axiswidth = 2
 
     matplotlib.rcdefaults()
-    plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
     plt.rc('lines', linewidth=global_linewidth)
     plt.rc('font', weight='bold') 
     plt.rc('legend', numpoints=1, fontsize='x-large')

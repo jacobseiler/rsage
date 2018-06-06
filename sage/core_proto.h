@@ -6,12 +6,11 @@ int myfseek(FILE *stream, long offset, int whence);
 
 void construct_galaxies(int halonr, int tree, int filenr);
 void evolve_galaxies(int halonr, int ngal, int tree);
-int  join_galaxies_of_progenitors(int treenr, int halonr, int nstart);
+int  join_galaxies_of_progenitors(int treenr, int halonr, int nstart, int32_t filenr);
 
 void init(void);
 int32_t init_grid(void);
 int32_t init_reion_lists(int32_t filenr);
-void set_units(void);
 
 void load_tree_table(int filenr, int32_t treestyle);
 void load_tree(int nr);
@@ -32,6 +31,7 @@ void *mycalloc(size_t n, size_t size);
 void *myrealloc(void *p, size_t new_n, size_t old_n); 
 void myfree(void *p, size_t size);
 void print_final_memory(void);
+int32_t final_cleanup(char **argv);
 
 void myexit(int signum);
 
@@ -41,7 +41,7 @@ void finalize_merged_galaxy_file(void);
 
 void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal);
 void add_galaxies_together(int t, int p);
-void init_galaxy(int treenr, int p, int halonr);
+void init_galaxy(int treenr, int p, int halonr, int32_t filenr);
 double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr);
 void add_infall_to_hot(int centralgal, double infallingGas);
 double cooling_recipe(int centralgal, double dt);
@@ -58,7 +58,7 @@ int32_t do_self_consistent_reionization(int gal, int halonr, int infall, double 
 
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool);
 void collisional_starburst_recipe(double mass_ratio, int merger_centralgal, int centralgal, double time, double dt, int halonr, int mode, int step, int tree, int ngal);
-void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal, bool update_stars);
+void update_from_star_formation(int p, double stars, double dt, int step, bool ismerger, int tree, int ngal);
 void update_from_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double metallicity);
 void make_bulge_from_burst(int p);
 void grow_black_hole(int merger_centralgal, double mass_ratio, int32_t step);
@@ -76,7 +76,6 @@ double get_virial_mass(int halonr);
 double get_disk_radius(int halonr, int p);
 
 void read_output_snaps(void);
-void read_snap_list(void);
 void read_cooling_functions(void);
 double get_metaldependent_cooling_rate(double logTemp, double logZ);
 double get_rate(int tab, double logTemp);
@@ -107,4 +106,3 @@ double calculate_reheated_energy(double Delta_Eta, double stars, double Vmax);
 double calculate_ejected_mass(double *reheated_mass, double reheated_energy, double Vvir);
 double calculate_coreburning(double t);
 void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double ejected_mass, double mass_stars_recycled, double mass_metals_new, double NSN, double dt);
-void  update_stars_array(int p, double stars, double dt, int tree, int ngal);

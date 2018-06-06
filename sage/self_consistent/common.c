@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +24,7 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 {
   int32_t grid_position, step, status;
   int32_t SnapCurr = Halo[halonr].SnapNum;
+
   // NOTE: We use the Snapshot number of the FOF-Halo (i.e. the main halo the galaxy belongs to) because the snapshot number of the galaxy has been shifted by -1. //
   // This is consistent with the end of the 'evolve_galaxies' function which shifts Gal[p].SnapNum by +1. //
 
@@ -79,15 +81,15 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 
   Gal[p].DynamicalTime[SnapCurr] = Gal[p].Rvir / Gal[p].Vvir; 
 
-  float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII;
 
-  status = determine_nion(Gal[p].GridSFR[SnapCurr] * SFR_conversion, Gal[p].GridZ[SnapCurr], &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
+  status = determine_nion(&Gal[p], SnapCurr, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
   if (status != EXIT_SUCCESS)
   {
     ABORT(EXIT_FAILURE); 
   }
-  Gal[p].GridNgamma_HI[SnapCurr] = Ngamma_HI;
+  Gal[p].GridNgamma_HI[SnapCurr] = (Ngamma_HI - 50.0);
+  Ngamma_HI_Total += Ngamma_HI; 
 
   float fesc_local;
 
@@ -98,7 +100,7 @@ void update_temporal_array(int p, int halonr, int steps_completed)
   }
   Gal[p].Gridfesc[SnapCurr] = fesc_local; 
 
-  if (self_consistent == 1 && SnapCurr == HighSnap)
+  if (self_consistent == 1 && SnapCurr == HighSnap && Gal[p].Len > HaloPartCut)
   {
     status = update_selfcon_grid(&Gal[p], grid_position, SnapCurr);
     if (status != EXIT_SUCCESS)
@@ -116,13 +118,13 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
 {
 
 #define ALLOCATE_ARRAY_MEMORY(name, length) \
-{                                          \
-  name = mycalloc(length, sizeof(*(name)));  \
-  if (name == NULL)                        \
-  {                                        \
+{                                           \
+  name = mycalloc(length, sizeof(*(name))); \
+  if (name == NULL)                         \
+  {                                         \
     fprintf(stderr, "Out of memory allocating %ld bytes, could not allocate"#name".\n", sizeof(*(name)* length)); \
-    return EXIT_FAILURE;                   \
-  }                                        \
+    return EXIT_FAILURE;                    \
+  }                                         \
 }
 
   ALLOCATE_ARRAY_MEMORY(g->GridType,            MAXSNAPS);
@@ -141,7 +143,6 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
   ALLOCATE_ARRAY_MEMORY(g->GridFoFMass,         MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->EjectedFraction,     MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->LenHistory,          MAXSNAPS);
-  ALLOCATE_ARRAY_MEMORY(g->Stars,               SN_Array_Len);
   ALLOCATE_ARRAY_MEMORY(g->GridOutflowRate,     MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridInfallRate,      MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->QuasarActivity,      MAXSNAPS);
@@ -150,7 +151,17 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
   ALLOCATE_ARRAY_MEMORY(g->LenMergerGal,        MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridReionMod,        MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridNgamma_HI,       MAXSNAPS);
-  ALLOCATE_ARRAY_MEMORY(g->Gridfesc,       MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->Gridfesc,            MAXSNAPS);
+
+  if (IRA == 0)
+  {
+    ALLOCATE_ARRAY_MEMORY(g->SN_Stars,            SN_Array_Len);
+  }
+
+  if (PhotonPrescription == 1)
+  {
+    ALLOCATE_ARRAY_MEMORY(g->Stellar_Stars,       StellarTracking_Len);
+  }
 
   g->IsMalloced = 1; // This way we can check that we're not freeing memory that hasn't been allocated.
 
@@ -166,7 +177,7 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridFoFHaloNr,       sizeof(*(g->GridFoFHaloNr)) * MAXSNAPS);
   myfree(g->GridHistory,         sizeof(*(g->GridHistory)) * MAXSNAPS);
   myfree(g->GridColdGas,         sizeof(*(g->GridColdGas)) * MAXSNAPS);
-  myfree(g->GridHotGas,          sizeof(*(g->GridColdGas)) * MAXSNAPS);
+  myfree(g->GridHotGas,          sizeof(*(g->GridHotGas)) * MAXSNAPS);
   myfree(g->GridEjectedMass,     sizeof(*(g->GridEjectedMass)) * MAXSNAPS);
   myfree(g->GridDustColdGas,     sizeof(*(g->GridDustColdGas)) * MAXSNAPS);
   myfree(g->GridDustHotGas,      sizeof(*(g->GridDustHotGas)) * MAXSNAPS);
@@ -178,7 +189,6 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridFoFMass,         sizeof(*(g->GridFoFMass)) * MAXSNAPS);
   myfree(g->EjectedFraction,     sizeof(*(g->EjectedFraction)) * MAXSNAPS);
   myfree(g->LenHistory,          sizeof(*(g->LenHistory)) * MAXSNAPS);
-  myfree(g->Stars,               sizeof(*(g->Stars)) * SN_Array_Len);
   myfree(g->GridOutflowRate,     sizeof(*(g->GridOutflowRate)) * MAXSNAPS);
   myfree(g->GridInfallRate,      sizeof(*(g->GridInfallRate)) * MAXSNAPS);
   myfree(g->QuasarActivity,      sizeof(*(g->QuasarActivity)) * MAXSNAPS);
@@ -189,12 +199,24 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridNgamma_HI,       sizeof(*(g->GridNgamma_HI)) * MAXSNAPS);
   myfree(g->Gridfesc,            sizeof(*(g->Gridfesc)) * MAXSNAPS);
 
+  if (IRA == 0)
+  {
+    myfree(g->SN_Stars,          sizeof(*(g->SN_Stars)) * SN_Array_Len);
+  }
+
+  if (PhotonPrescription == 1)
+  {
+    myfree(g->Stellar_Stars,     sizeof(*(g->Stellar_Stars)) * StellarTracking_Len);
+  }
+
+
   g->IsMalloced = 0;
 }
 
 void write_temporal_arrays(struct GALAXY *g, FILE *fp)
 {
 
+// This macro writes out a property in code units.
 #define WRITE_GRID_PROPERTY(name, length)    \
 {                                            \
   XASSERT(name != NULL, #name" has a NULL pointer.\n"); \
@@ -203,6 +225,9 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
           length, nwritten);                 \
 }
 
+// This macro writes out a property in non-code units.
+// It's necessary to specify both the conversion factor (`conversion`) and the data-type (`type`) of the written property.
+// Specifying the data type is necessary to cast the void pointer.
 #define WRITE_CONVERTED_GRID_PROPERTY(name, length, conversion, type)    \
 {                                            \
   XASSERT(name != NULL, #name" has a NULL pointer.\n"); \
@@ -218,11 +243,11 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
   free(buffer); \
 }
 
-  float SFR_conversion = UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / STEPS; 
   int j;  
   int32_t nwritten;
-  void *buffer;
- 
+  void *buffer; 
+  const double SFR_CONVERSION = UnitMass_in_g/UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS/STEPS; // Conversion from the SFR over one snapshot to Msun/yr. 
+
   nwritten = fwrite(&g->TreeNr, sizeof(g->TreeNr), 1, fp);
  
   XASSERT(g->IsMalloced == 1, "We are trying to write out the grid arrays for a galaxies who has already been freed.\n");
@@ -238,7 +263,7 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
   WRITE_GRID_PROPERTY(g->GridDustEjectedMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridBHMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridStellarMass, MAXSNAPS);
-  WRITE_CONVERTED_GRID_PROPERTY(g->GridSFR, MAXSNAPS, SFR_conversion, typeof(*(g->GridSFR))); 
+  WRITE_CONVERTED_GRID_PROPERTY(g->GridSFR, MAXSNAPS, SFR_CONVERSION, typeof(*(g->GridSFR))); 
   WRITE_GRID_PROPERTY(g->GridZ, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridFoFMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->EjectedFraction, MAXSNAPS);

@@ -9,11 +9,13 @@
 #include "core_allvars.h"
 #include "core_proto.h"
 
-void init_galaxy(int p, int halonr, int treenr)
+void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
 {
   int32_t j, step, status;
   
 	assert(halonr == Halo[halonr].FirstHaloInFOFgroup);
+
+  Gal[p].FileNr = filenr;
 
   Gal[p].Type = 0;
   Gal[p].TreeNr = treenr;
@@ -124,14 +126,6 @@ void init_galaxy(int p, int halonr, int treenr)
     Gal[p].Gridfesc[j] = 0.0;
   }
 
-  for (j = 0; j < SN_Array_Len; ++j)
-  {
-    Gal[p].Stars[j] = 0.0;
-  }
-
-  Gal[p].Total_SF_Time = 0.0;
-  Gal[p].Total_Stars = 0.0;
-
   Gal[p].GrandSum = 0.0;
  
   Gal[p].StellarAge_Numerator = 0.0;
@@ -143,9 +137,40 @@ void init_galaxy(int p, int halonr, int treenr)
   Gal[p].mass_metals_new = 0.0; 
   Gal[p].NSN = 0.0;
 
+  if (IRA == 0)
+  {
+    for (j = 0; j < SN_Array_Len; ++j)
+    {
+      Gal[p].SN_Stars[j] = 0.0;
+    }
+  }
+  Gal[p].Total_SN_SF_Time = 0.0;
+  Gal[p].Total_SN_Stars = 0.0;
+
+  // Dust Reservoirs.
+
   Gal[p].DustColdGas = 0.0;
   Gal[p].DustHotGas = 0.0;
   Gal[p].DustEjectedMass = 0.0;
+
+  // Quasar Activity Tracking 
+  
+  Gal[p].QuasarActivityToggle = 0;
+  Gal[p].TargetQuasarTime = 0.0;
+  Gal[p].QuasarBoostActiveTime = 0.0;
+  Gal[p].QuasarFractionalPhotons = 0.0;
+
+  // Stellar Age Tracking
+
+  if (PhotonPrescription == 1)
+  {
+    for (j = 0; j < StellarTracking_Len; ++j)
+    {
+      Gal[p].Stellar_Stars[j] = 0.0;
+    }
+  }
+  Gal[p].Total_Stellar_SF_Time = 0.0;
+  Gal[p].Total_Stellar_Stars = 0.0;
 
 }
 
