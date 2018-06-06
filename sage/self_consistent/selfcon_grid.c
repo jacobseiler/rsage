@@ -716,7 +716,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
     case 1:
       *fesc_local = pow(10,1.0 - 0.2*log10(halomass)); // Deprecated.
       printf("The value of fescPrescription == 1 is deprecated.  Please select another fesc prescription.\n");
-      return EXIT_FAILURE
+      return EXIT_FAILURE;
 
     case 2:
       *fesc_local = alpha * pow((halomass), beta);
