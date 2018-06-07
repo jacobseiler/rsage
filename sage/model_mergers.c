@@ -422,6 +422,7 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
     MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
     MergedGal[MergedNr].GridFoFMass[j] = Gal[p].GridFoFMass[j];
+    MergedGal[MergedNr].GridHaloMass[j] = Gal[p].GridHaloMass[j];
     MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
     MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
     MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j];

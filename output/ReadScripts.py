@@ -140,6 +140,7 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('GridSFR', (np.float32, MAXSNAPS)),
          ('GridZ', (np.float32, MAXSNAPS)),
          ('GridFoFMass', (np.float32, MAXSNAPS)),
+         ('GridHaloMass', (np.float32, MAXSNAPS)),
          ('EjectedFraction', (np.float32, MAXSNAPS)),  
          ('LenHistory', (np.int32, MAXSNAPS)),
          ('QuasarActivity', (np.int32, MAXSNAPS)),

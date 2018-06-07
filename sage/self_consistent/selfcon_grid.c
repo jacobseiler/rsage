@@ -702,7 +702,8 @@ Ejected fraction is the fraction of baryons (unitless).
 int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 {
 
-  float halomass = g->GridFoFMass[snapshot] * 1.0e10 / Hubble_h; // Halo Mass (of the background FoF) in Msun.
+  //float halomass = g->GridFoFMass[snapshot] * 1.0e10 / Hubble_h; // Halo Mass (of the background FoF) in Msun.
+  float halomass = g->GridHaloMass[snapshot] * 1.0e10 / Hubble_h; // Halo Mass (of the host halo, NOT BACKGROUND FOF) in Msun.
   float ejectedfraction = g->EjectedFraction[snapshot];
   float quasarfrac = g->QuasarFractionalPhotons;
   float stellarmass = g->GridStellarMass[snapshot] * 1.0e10 / Hubble_h; // Stellar mass in Msun.

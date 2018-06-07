@@ -56,6 +56,7 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 
   Gal[p].GridZ[SnapCurr] = get_metallicity(Gal[p].ColdGas, Gal[p].MetalsColdGas); // Metallicity at this snapshot.
   Gal[p].GridFoFMass[SnapCurr] = get_virial_mass(Halo[Gal[p].HaloNr].FirstHaloInFOFgroup); // Virial mass of the central galaxy (i.e. virial mass of the host halo).  
+  Gal[p].GridHaloMass[SnapCurr] = get_virial_mass(Gal[p].HaloNr); // Virial mass of host halo (NOT the background FoF Halo). 
 
   if((Gal[p].EjectedMass < 0.0) || ((Gal[p].HotGas + Gal[p].ColdGas + Gal[p].EjectedMass) == 0.0))
   {
@@ -141,6 +142,7 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
   ALLOCATE_ARRAY_MEMORY(g->GridSFR,             MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridZ,               MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridFoFMass,         MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridHaloMass,        MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->EjectedFraction,     MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->LenHistory,          MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridOutflowRate,     MAXSNAPS);
@@ -187,6 +189,7 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridSFR,             sizeof(*(g->GridSFR)) * MAXSNAPS);
   myfree(g->GridZ,               sizeof(*(g->GridZ)) * MAXSNAPS);
   myfree(g->GridFoFMass,         sizeof(*(g->GridFoFMass)) * MAXSNAPS);
+  myfree(g->GridHaloMass,        sizeof(*(g->GridHaloMass)) * MAXSNAPS);
   myfree(g->EjectedFraction,     sizeof(*(g->EjectedFraction)) * MAXSNAPS);
   myfree(g->LenHistory,          sizeof(*(g->LenHistory)) * MAXSNAPS);
   myfree(g->GridOutflowRate,     sizeof(*(g->GridOutflowRate)) * MAXSNAPS);
@@ -266,6 +269,7 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
   WRITE_CONVERTED_GRID_PROPERTY(g->GridSFR, MAXSNAPS, SFR_CONVERSION, typeof(*(g->GridSFR))); 
   WRITE_GRID_PROPERTY(g->GridZ, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridFoFMass, MAXSNAPS);
+  WRITE_GRID_PROPERTY(g->GridHaloMass, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->EjectedFraction, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->LenHistory, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->QuasarActivity, MAXSNAPS);

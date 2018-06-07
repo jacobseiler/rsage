@@ -151,6 +151,7 @@ struct GALAXY
   float   *GridSFR;
   float   *GridZ;
   float   *GridFoFMass;
+  float   *GridHaloMass;
   float   *EjectedFraction;
   int32_t *LenHistory;
   float   *GridOutflowRate;

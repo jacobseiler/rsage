@@ -113,6 +113,7 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
     Gal[p].GridSFR[j] = 0.0;
     Gal[p].GridZ[j] = 0.0;
     Gal[p].GridFoFMass[j] = 0.0;
+    Gal[p].GridHaloMass[j] = 0.0;
     Gal[p].EjectedFraction[j] = 0.0;
     Gal[p].LenHistory[j] = -1;
     Gal[p].GridOutflowRate[j] = 0.0;
