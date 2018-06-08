@@ -73,6 +73,7 @@ int self_consistent;
 double EnergySNcode, EnergySN;
 
 // recipe flags 
+int QuasarRecipeOn;
 int ReionizationOn;
 int SupernovaRecipeOn;
 int DiskInstabilityOn;

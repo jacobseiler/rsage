@@ -101,6 +101,8 @@ struct GALAXY
   float BulgeMass;
   float HotGas;
   float EjectedMass;
+  float EjectedMassSN;
+  float EjectedMassQSO;
   float BlackHoleMass;
   float ICS;
 
@@ -153,6 +155,8 @@ struct GALAXY
   float   *GridFoFMass;
   float   *GridHaloMass;
   float   *EjectedFraction;
+  float   *EjectedFractionSN;
+  float   *EjectedFractionQSO;
   int32_t *LenHistory;
   float   *GridOutflowRate;
   float   *GridInfallRate;
@@ -313,6 +317,7 @@ extern double Hubble_h;
 extern double EnergySNcode, EnergySN;
 
 // recipe flags 
+extern int    QuasarRecipeOn;
 extern int    ReionizationOn;
 extern int    SupernovaRecipeOn;
 extern int    DiskInstabilityOn;

@@ -38,8 +38,44 @@ void reincorporate_gas(int centralgal, double dt)
     Gal[centralgal].MetalsHotGas += metallicity * reincorporated;
     Gal[centralgal].DustHotGas += dust_fraction_ejected * reincorporated;
 
+    Gal[centralgal].EjectedMassSN -= reincorporated/2.0;
+    Gal[centralgal].EjectedMassQSO -= reincorporated/2.0;
+    
+    // In the case that one of the channels did not enough gas to be fully reincorporated, we subtract the
+    // remaining gas from the other channel.
+    if (Gal[centralgal].EjectedMassSN < 0.0 && Gal[centralgal].EjectedMassQSO < 0.0)
+    {
+      Gal[centralgal].EjectedMassSN = Gal[centralgal].EjectedMassQSO = 0.0;
+    }
+    else if (Gal[centralgal].EjectedMassSN < 0.0)
+    {
+      Gal[centralgal].EjectedMassQSO += Gal[centralgal].EjectedMassSN;
+      Gal[centralgal].EjectedMassSN = 0.0;
+
+      if (Gal[centralgal].EjectedMassQSO <= 0.0 && Gal[centralgal].EjectedMass < 1.0e-6) 
+      {
+        Gal[centralgal].EjectedMassQSO = Gal[centralgal].EjectedMass;
+      }
+
+    }
+    else if (Gal[centralgal].EjectedMassQSO < 0.0)
+    {
+      Gal[centralgal].EjectedMassSN += Gal[centralgal].EjectedMassQSO;
+      Gal[centralgal].EjectedMassQSO = 0.0;
+
+      if (Gal[centralgal].EjectedMassSN <= 0.0 && Gal[centralgal].EjectedMass < 1.0e-6) 
+      {
+        Gal[centralgal].EjectedMassSN = Gal[centralgal].EjectedMass;
+      }
+
+    }
+
     if (Gal[centralgal].DustEjectedMass < 0.0)
       Gal[centralgal].DustEjectedMass = 0.0;
+
+    //if (Gal[centralgal].EjectedMass > 1e-10)
+    //  XASSERT(Gal[centralgal].EjectedMass / (Gal[centralgal].EjectedMassSN + Gal[centralgal].EjectedMassQSO) > 0.95, "EjectedMass %.4e\tSN %.4e\tQSO %.4e\tRatio %.4e\n", Gal[centralgal].EjectedMass, Gal[centralgal].EjectedMassSN, Gal[centralgal].EjectedMassQSO, Gal[centralgal].EjectedMass / (Gal[centralgal].EjectedMassSN + Gal[centralgal].EjectedMassQSO));
+
 
   }
 

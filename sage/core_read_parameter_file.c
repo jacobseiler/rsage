@@ -13,6 +13,11 @@
 #define MAXTAGS 300
 
 
+// Local Proto-Types //
+
+int32_t check_ini_parameters(void);
+
+// Extern Functions // 
 
 int32_t read_parameter_file(char *fname)
 {
@@ -49,7 +54,6 @@ int32_t read_parameter_file(char *fname)
   strcpy(tag[nt], "TreeExtension");
   addr[nt] = TreeExtension;
   id[nt++] = STRING;
-
 
   strcpy(tag[nt], "SimulationDir");
   addr[nt] = SimulationDir;
@@ -133,6 +137,10 @@ int32_t read_parameter_file(char *fname)
 
   strcpy(tag[nt], "AGNrecipeOn");
   addr[nt] = &AGNrecipeOn;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "QuasarRecipeOn");
+  addr[nt] = &QuasarRecipeOn;
   id[nt++] = INT;
 
   strcpy(tag[nt], "BaryonFrac");
@@ -409,6 +417,19 @@ int32_t read_parameter_file(char *fname)
 		printf("\n");
 	}
 
+  int32_t status = check_ini_parameters();
+  if (status != EXIT_SUCCESS)
+  {
+    return EXIT_FAILURE;
+  }
+ 
+  return EXIT_SUCCESS;
+}
+
+// Local Functions //
+
+int32_t check_ini_parameters(void)
+{
   if (GridSize > 1024)
   {
     fprintf(stderr, "The grid size cannot be greater than 1024.\n");
@@ -420,8 +441,12 @@ int32_t read_parameter_file(char *fname)
     fprintf(stderr, "The reionization prescription chosen was for the self-consistent run. However the snapshot chosen for the current reionization iteration (snapshot %d) is smaller/larger than the range we are calculating over (LowSnap to SnapHigh, %d to %d).\n", ReionSnap, LowSnap, HighSnap);
     return EXIT_FAILURE;
   }
-  
+
+  if (QuasarRecipeOn < 1 || QuasarRecipeOn > 2)
+  {
+    fprintf(stderr, "The only valid options for QuasarRecipeOn are 1 or 2. You entered %d\n", QuasarRecipeOn);
+    return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
-
 }

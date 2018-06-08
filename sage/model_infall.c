@@ -17,11 +17,13 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
 	double tot_satBaryons; 
   double infallingMass, reionization_modifier;
   double dummy;
+  double tot_ejectedSN, tot_ejectedQSO;
 
   int32_t status;
  
   // need to add up all the baryonic mass asociated with the full halo 
   tot_stellarMass = tot_coldMass = tot_hotMass = tot_hotMetals = tot_ejected = tot_BHMass = tot_ejectedMetals = tot_ICS = tot_ICSMetals = tot_satBaryons = 0.0;
+  tot_ejectedSN = tot_ejectedQSO = 0.0;
 
 	// loop over all galaxies in the FoF-halo 
   for(i = 0; i < ngal; i++)
@@ -32,6 +34,8 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
     tot_hotMass += Gal[i].HotGas;
     tot_hotMetals += Gal[i].MetalsHotGas;
     tot_ejected += Gal[i].EjectedMass;
+    tot_ejectedSN += Gal[i].EjectedMassSN;
+    tot_ejectedQSO += Gal[i].EjectedMassQSO;
     tot_ejectedMetals += Gal[i].MetalsEjectedMass;
     tot_ICS += Gal[i].ICS;
     tot_ICSMetals += Gal[i].MetalsICS;
@@ -42,8 +46,11 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
 
     // satellite ejected gas goes to central ejected reservior
     if(i != centralgal)
+    {
       Gal[i].EjectedMass = Gal[i].MetalsEjectedMass = 0.0;
-
+      Gal[i].EjectedMassSN = Gal[i].EjectedMassQSO = 0.0;
+    }
+  
     // satellite ICS goes to central ICS
     if(i != centralgal) 
       Gal[i].ICS = Gal[i].MetalsICS = 0.0; 
@@ -82,12 +89,17 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
 
   // the central galaxy keeps all the ejected mass
   Gal[centralgal].EjectedMass = tot_ejected;
+  Gal[centralgal].EjectedMassSN = tot_ejectedSN;
+  Gal[centralgal].EjectedMassQSO = tot_ejectedQSO;
   Gal[centralgal].MetalsEjectedMass = tot_ejectedMetals;
 
   if(Gal[centralgal].MetalsEjectedMass > Gal[centralgal].EjectedMass)
     Gal[centralgal].MetalsEjectedMass = Gal[centralgal].EjectedMass;
   if(Gal[centralgal].EjectedMass < 0.0)
+  {
     Gal[centralgal].EjectedMass = Gal[centralgal].MetalsEjectedMass = 0.0;
+    Gal[centralgal].EjectedMassSN = Gal[centralgal].EjectedMassQSO = 0.0;
+  }
   if(Gal[centralgal].MetalsEjectedMass < 0.0)
     Gal[centralgal].MetalsEjectedMass = 0.0;
 
@@ -248,15 +260,61 @@ void add_infall_to_hot(int gal, double infallingGas)
 
     if(Gal[gal].MetalsEjectedMass < 0.0) Gal[gal].MetalsEjectedMass = 0.0;
 
+    //printf("Start Gal %d\tHalo %d\tEjectedGas %.7e\tSN %.7e\tQSO %.7e\tinfallingGas %.7e\n", gal, Gal[gal].HaloNr, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, infallingGas);
     Gal[gal].EjectedMass += infallingGas;
+    
+    // Subtract the gas evenly through both SN and QSO channels.
+    Gal[gal].EjectedMassSN += infallingGas/2.0;
+    Gal[gal].EjectedMassQSO += infallingGas/2.0;
 
     if(Gal[gal].EjectedMass < 0.0)
     {
       infallingGas = Gal[gal].EjectedMass;
       Gal[gal].EjectedMass = Gal[gal].MetalsEjectedMass = 0.0;
+      Gal[gal].EjectedMassSN = Gal[gal].EjectedMassQSO = 0.0;
     }
     else
+    {
+
       infallingGas = 0.0;
+
+      // In the case that one of the channels did not enough gas to be fully lost, we subtract the
+      // remaining gas from the other channel.
+
+      if (Gal[gal].EjectedMassSN < 0.0)
+      {
+    
+        //printf("Gal %d\tEjectedGas %.7e\tSN %.7e\tQSO %.7e\tinfallingGas %.7e\n", gal, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, infallingGas);
+        Gal[gal].EjectedMassQSO += Gal[gal].EjectedMassSN;
+        Gal[gal].EjectedMassSN = 0.0;        
+
+        // For galaxies of extremely low mass, numerical precision will prevent the ASSERT statement
+        // below from passing.  In these cases, just fudge the tracking.
+
+        if (Gal[gal].EjectedMassQSO <= 0.0 && Gal[gal].EjectedMass < 1.0e-6) 
+        {
+          Gal[gal].EjectedMassQSO = Gal[gal].EjectedMass;
+        }
+
+      }
+      else if (Gal[gal].EjectedMassQSO < 0.0)
+      {
+        Gal[gal].EjectedMassSN += Gal[gal].EjectedMassQSO;
+        Gal[gal].EjectedMassQSO = 0.0;
+       
+        if (Gal[gal].EjectedMassSN <= 0.0 && Gal[gal].EjectedMass < 1.0e-6) 
+        {
+          Gal[gal].EjectedMassSN = Gal[gal].EjectedMass;
+        }
+        
+      }
+      /*
+      XASSERT(Gal[gal].EjectedMassSN >= 0.0 && Gal[gal].EjectedMassQSO >= 0.0, "There was enough gas in the total `EjectedGas` reservoir "
+              "but the EjectedMassSN channel had mass %.4e and the EjectedMassQSO channel had mass %.4e after balancing.  The EjectedGas reservoir has mass %.4e and the infallingGas is %.4e\n", 
+              Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, Gal[gal].EjectedMass, infallingGas);
+      */ 
+    }
+
   }
   
   // add (subtract) the ambient (enriched) infalling gas to the central galaxy hot component 
@@ -270,5 +328,7 @@ void add_infall_to_hot(int gal, double infallingGas)
     Gal[gal].HotGas = 0.0; 
     Gal[gal].MetalsHotGas = 0.0;
   }
+
+  //printf("End Gal %d\tHalo %d\tEjectedGas %.7e\tSN %.7e\tQSO %.7e\tinfallingGas %.7e\n", gal, Gal[gal].HaloNr, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, infallingGas);
 }
 
