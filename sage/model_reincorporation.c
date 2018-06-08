@@ -51,15 +51,31 @@ void reincorporate_gas(int centralgal, double dt)
     {
       Gal[centralgal].EjectedMassQSO += Gal[centralgal].EjectedMassSN;
       Gal[centralgal].EjectedMassSN = 0.0;
+
+      if (Gal[centralgal].EjectedMassQSO <= 0.0 && Gal[centralgal].EjectedMass < 1.0e-6) 
+      {
+        Gal[centralgal].EjectedMassQSO = Gal[centralgal].EjectedMass;
+      }
+
     }
     else if (Gal[centralgal].EjectedMassQSO < 0.0)
     {
       Gal[centralgal].EjectedMassSN += Gal[centralgal].EjectedMassQSO;
       Gal[centralgal].EjectedMassQSO = 0.0;
+
+      if (Gal[centralgal].EjectedMassSN <= 0.0 && Gal[centralgal].EjectedMass < 1.0e-6) 
+      {
+        Gal[centralgal].EjectedMassSN = Gal[centralgal].EjectedMass;
+      }
+
     }
 
     if (Gal[centralgal].DustEjectedMass < 0.0)
       Gal[centralgal].DustEjectedMass = 0.0;
+
+    if (Gal[centralgal].EjectedMass > 1e-10)
+      XASSERT(Gal[centralgal].EjectedMass / (Gal[centralgal].EjectedMassSN + Gal[centralgal].EjectedMassQSO) > 0.95, "EjectedMass %.4e\tSN %.4e\tQSO %.4e\tRatio %.4e\n", Gal[centralgal].EjectedMass, Gal[centralgal].EjectedMassSN, Gal[centralgal].EjectedMassQSO, Gal[centralgal].EjectedMass / (Gal[centralgal].EjectedMassSN + Gal[centralgal].EjectedMassQSO));
+
 
   }
 

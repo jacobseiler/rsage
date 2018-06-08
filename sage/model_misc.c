@@ -107,8 +107,6 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
     Gal[p].GridColdGas[j] = 0.0;
     Gal[p].GridHotGas[j] = 0.0;
     Gal[p].GridEjectedMass[j] = 0.0;
-    Gal[p].GridEjectedMassSN[j] = 0.0;
-    Gal[p].GridEjectedMassQSO[j] = 0.0;
     Gal[p].GridDustColdGas[j] = 0.0;
     Gal[p].GridDustHotGas[j] = 0.0;
     Gal[p].GridDustEjectedMass[j] = 0.0;
@@ -119,6 +117,8 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
     Gal[p].GridFoFMass[j] = 0.0;
     Gal[p].GridHaloMass[j] = 0.0;
     Gal[p].EjectedFraction[j] = 0.0;
+    Gal[p].EjectedFractionSN[j] = 0.0;
+    Gal[p].EjectedFractionQSO[j] = 0.0;
     Gal[p].LenHistory[j] = -1;
     Gal[p].GridOutflowRate[j] = 0.0;
     Gal[p].GridInfallRate[j] = 0.0;

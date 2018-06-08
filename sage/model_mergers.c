@@ -118,10 +118,19 @@ void grow_black_hole(int merger_centralgal, double mass_ratio, int32_t step)
   }
 }
 
+// For the Quasar Winds there are two recipes for ejection.
+// QuasarRecipeOn == 1 corresponds to ejection of ALL hot/cold gas ONLY if there is enough thermal
+// energy.
+// QuasarRecipeOn == 2 corresponds to fractional ejection starting with the cold gas.  That is, the
+// energy of the quasar is compared to the thermal energy of the cold gas.  If there's sufficient
+// energy to blow it all out, we then compare the excess energy to the thermal energy of the hot
+// gas and eject a fraction of hot gas equal to the fraction of excess energy to hot energy.
+// Otherwise we ejected a fraction of cold gas equal to the fraction of quasar energy to cold
+// energy.
+
 void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
 {
   float quasar_energy, cold_gas_energy, hot_gas_energy, cold_energy_ratio, remaining_energy, hot_energy_ratio;
-  int32_t fractional_ejection = 0;
 
   // work out total energies in quasar wind (eta*m*c^2), cold and hot gas (1/2*m*Vvir^2)
   
@@ -131,12 +140,14 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
 
   cold_energy_ratio = quasar_energy / cold_gas_energy;
 
-  if (fractional_ejection == 1)
+  if (QuasarRecipeOn == 2)
   {
     if (cold_energy_ratio > 1.0)
     {
       Gal[gal].EjectedMass += Gal[gal].ColdGas;
       Gal[gal].MetalsEjectedMass += Gal[gal].MetalsColdGas;
+
+      Gal[gal].EjectedMassQSO += Gal[gal].ColdGas; 
 
       Gal[gal].ColdGas = 0.0;
       Gal[gal].MetalsColdGas = 0.0;
@@ -148,6 +159,8 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
       {
         Gal[gal].EjectedMass += Gal[gal].HotGas;
         Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas; 
+
+        Gal[gal].EjectedMassQSO += Gal[gal].HotGas; 
 
         Gal[gal].HotGas = 0.0;
         Gal[gal].MetalsHotGas = 0.0;
@@ -173,9 +186,11 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
         Gal[gal].EjectedMass += Gal[gal].HotGas * hot_energy_ratio;
         Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas * hot_energy_ratio; 
 
+        Gal[gal].EjectedMassQSO += Gal[gal].HotGas * hot_energy_ratio;
+
         Gal[gal].HotGas -= Gal[gal].HotGas * hot_energy_ratio;
         Gal[gal].MetalsHotGas -= Gal[gal].HotGas * hot_energy_ratio;
-   
+  
       } 
 
     }
@@ -183,6 +198,8 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
     {
         Gal[gal].EjectedMass += Gal[gal].ColdGas * cold_energy_ratio;
         Gal[gal].MetalsEjectedMass += Gal[gal].MetalsColdGas * cold_energy_ratio;
+
+        Gal[gal].EjectedMassQSO += Gal[gal].ColdGas * cold_energy_ratio;
 
         Gal[gal].ColdGas -= Gal[gal].ColdGas * cold_energy_ratio;
         Gal[gal].MetalsColdGas -= Gal[gal].MetalsColdGas * cold_energy_ratio;  
@@ -420,8 +437,6 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].GridColdGas[j]         = Gal[p].GridColdGas[j];
     MergedGal[MergedNr].GridHotGas[j]          = Gal[p].GridHotGas[j];
     MergedGal[MergedNr].GridEjectedMass[j]     = Gal[p].GridEjectedMass[j];
-    MergedGal[MergedNr].GridEjectedMassSN[j]   = Gal[p].GridEjectedMassSN[j];
-    MergedGal[MergedNr].GridEjectedMassQSO[j]  = Gal[p].GridEjectedMassQSO[j];
     MergedGal[MergedNr].GridDustColdGas[j]     = Gal[p].GridDustColdGas[j];
     MergedGal[MergedNr].GridDustHotGas[j]      = Gal[p].GridDustHotGas[j];
     MergedGal[MergedNr].GridDustEjectedMass[j] = Gal[p].GridDustEjectedMass[j];
@@ -432,6 +447,8 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].GridFoFMass[j]         = Gal[p].GridFoFMass[j];
     MergedGal[MergedNr].GridHaloMass[j]        = Gal[p].GridHaloMass[j];
     MergedGal[MergedNr].EjectedFraction[j]     = Gal[p].EjectedFraction[j]; 
+    MergedGal[MergedNr].EjectedFractionSN[j]   = Gal[p].EjectedFractionSN[j];
+    MergedGal[MergedNr].EjectedFractionQSO[j]  = Gal[p].EjectedFractionQSO[j];
     MergedGal[MergedNr].LenHistory[j]          = Gal[p].LenHistory[j];
     MergedGal[MergedNr].GridOutflowRate[j]     = Gal[p].GridOutflowRate[j];
     MergedGal[MergedNr].GridInfallRate[j]      = Gal[p].GridInfallRate[j];

@@ -285,9 +285,14 @@ def test_run():
     # Need all the names of the ini files and the name of the galaxies they
     # produce. 
     ini_files = ["PhotonPrescription0_mini_millennium.ini",
-                 "PhotonPrescription1_mini_millennium.ini"]
+                 "PhotonPrescription1_mini_millennium.ini",
+                 "QuasarRecipe2_mini_millennium.ini"]
     galaxy_names = ["PhotonPrescription0",
-                    "PhotonPrescription1"] 
+                    "PhotonPrescription1", 
+                    "QuasarRecipe2"]
+
+    #ini_files=["QuasarRecipe2_mini_millennium.ini"]
+    #galaxy_names=["QuasarRecipe2"]
 
     for ini_file, galaxy_name in zip(ini_files, galaxy_names):
 

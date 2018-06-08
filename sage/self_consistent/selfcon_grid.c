@@ -150,6 +150,22 @@ int32_t init_selfcon_grid(void)
              fesc_Mstar_low, fesc_Mstar_high, fesc_Mstar, fesc_not_Mstar); 
       break;
 
+    case 9:
+#ifdef MPI
+      if (ThisTask == 0)
+#endif
+      printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass DUE TO SUPERNOVAE activity.\n"
+             "This takes the form A*fej_SN + B with A = %.4e and B = %.4e\n", alpha, beta); 
+      break;
+
+    case 10:
+#ifdef MPI
+      if (ThisTask == 0)
+#endif
+      printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass DUE TO SUPERNOVAE activity.\n"
+             "This takes the form A*fej_SN + B with A = %.4e and B = %.4e\n", alpha, beta); 
+      break;
+
     default:
       printf("\n\nOnly escape fraction prescriptions 0 to 8 (inclusive, exlucding 1) are permitted.\n");
       return EXIT_FAILURE;
@@ -704,11 +720,30 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
   //float halomass = g->GridFoFMass[snapshot] * 1.0e10 / Hubble_h; // Halo Mass (of the background FoF) in Msun.
   float halomass = g->GridHaloMass[snapshot] * 1.0e10 / Hubble_h; // Halo Mass (of the host halo, NOT BACKGROUND FOF) in Msun.
-  float ejectedfraction = g->EjectedFraction[snapshot];
   float quasarfrac = g->QuasarFractionalPhotons;
   float stellarmass = g->GridStellarMass[snapshot] * 1.0e10 / Hubble_h; // Stellar mass in Msun.
+  float ejectedfraction = 0.0; // Initialize to prevent warnings.
 
-  switch(fescPrescription)
+  switch (fescPrescription)
+  {
+    case 3:
+      ejectedfraction = g->EjectedFraction[snapshot];
+      break;
+
+    case 9: 
+      ejectedfraction = g->EjectedFractionSN[snapshot];
+      break;
+
+    case 10: 
+      ejectedfraction = g->EjectedFractionQSO[snapshot];
+      break;
+
+    default:
+      break;
+  }
+
+
+  switch (fescPrescription)
   {
     case 0:
       *fesc_local = fesc;
@@ -724,6 +759,8 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       break;
 
     case 3:
+    case 9:
+    case 10:
       *fesc_local = alpha * ejectedfraction + beta;
       break;
     
@@ -899,7 +936,6 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
       snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
       break;
 
-
     case 4:
       snprintf(tag, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
       break;
@@ -915,6 +951,14 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
 
     case 8:
       snprintf(tag, MAX_STRING_LEN - 1, "mstar_%.3e_%.3e_%.2f_%.2f_HaloPartCut%d", fesc_Mstar_low, fesc_Mstar_high, fesc_Mstar, fesc_not_Mstar, HaloPartCut);
+      break;
+
+    case 9:
+      snprintf(tag, MAX_STRING_LEN - 1, "ejectedSN_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      break;
+
+    case 10:
+      snprintf(tag, MAX_STRING_LEN - 1, "ejectedQSO_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
       break;
 
     default:
