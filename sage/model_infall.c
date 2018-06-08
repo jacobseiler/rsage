@@ -308,10 +308,11 @@ void add_infall_to_hot(int gal, double infallingGas)
         }
         
       }
-     
+      /*
       XASSERT(Gal[gal].EjectedMassSN >= 0.0 && Gal[gal].EjectedMassQSO >= 0.0, "There was enough gas in the total `EjectedGas` reservoir "
               "but the EjectedMassSN channel had mass %.4e and the EjectedMassQSO channel had mass %.4e after balancing.  The EjectedGas reservoir has mass %.4e and the infallingGas is %.4e\n", 
-              Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, Gal[gal].EjectedMass, infallingGas); 
+              Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, Gal[gal].EjectedMass, infallingGas);
+      */ 
     }
 
   }

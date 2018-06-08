@@ -154,6 +154,8 @@ int32_t init_selfcon_grid(void)
 #ifdef MPI
       if (ThisTask == 0)
 #endif
+      printf("This option has been disabled.  See Pull Request #10 on Github for more information.\n");
+      return EXIT_FAILURE;
       printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass DUE TO SUPERNOVAE activity.\n"
              "This takes the form A*fej_SN + B with A = %.4e and B = %.4e\n", alpha, beta); 
       break;
@@ -162,6 +164,8 @@ int32_t init_selfcon_grid(void)
 #ifdef MPI
       if (ThisTask == 0)
 #endif
+      printf("This option has been disabled.  See Pull Request #10 on Github for more information.\n");
+      return EXIT_FAILURE;
       printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass DUE TO SUPERNOVAE activity.\n"
              "This takes the form A*fej_SN + B with A = %.4e and B = %.4e\n", alpha, beta); 
       break;
