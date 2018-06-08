@@ -101,6 +101,8 @@ struct GALAXY
   float BulgeMass;
   float HotGas;
   float EjectedMass;
+  float EjectedMassSN;
+  float EjectedMassQSO;
   float BlackHoleMass;
   float ICS;
 
@@ -143,6 +145,8 @@ struct GALAXY
   float   *GridColdGas;
   float   *GridHotGas;
   float   *GridEjectedMass;
+  float   *GridEjectedMassSN;
+  float   *GridEjectedMassQSO;
   float   *GridDustColdGas;
   float   *GridDustHotGas;
   float   *GridDustEjectedMass;

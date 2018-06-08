@@ -134,6 +134,8 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
   ALLOCATE_ARRAY_MEMORY(g->GridColdGas,         MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridHotGas,          MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridEjectedMass,     MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridEjectedMassSN,   MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->GridEjectedMassQSO,  MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridDustColdGas,     MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridDustHotGas,      MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridDustEjectedMass, MAXSNAPS);
@@ -175,41 +177,43 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
 
 void free_temporal_arrays(struct GALAXY *g)
 {
-  myfree(g->GridType,            sizeof(*(g->GridType)) * MAXSNAPS);
-  myfree(g->GridFoFHaloNr,       sizeof(*(g->GridFoFHaloNr)) * MAXSNAPS);
-  myfree(g->GridHistory,         sizeof(*(g->GridHistory)) * MAXSNAPS);
-  myfree(g->GridColdGas,         sizeof(*(g->GridColdGas)) * MAXSNAPS);
-  myfree(g->GridHotGas,          sizeof(*(g->GridHotGas)) * MAXSNAPS);
-  myfree(g->GridEjectedMass,     sizeof(*(g->GridEjectedMass)) * MAXSNAPS);
-  myfree(g->GridDustColdGas,     sizeof(*(g->GridDustColdGas)) * MAXSNAPS);
-  myfree(g->GridDustHotGas,      sizeof(*(g->GridDustHotGas)) * MAXSNAPS);
+  myfree(g->GridType,            sizeof(*(g->GridType))            * MAXSNAPS);
+  myfree(g->GridFoFHaloNr,       sizeof(*(g->GridFoFHaloNr))       * MAXSNAPS);
+  myfree(g->GridHistory,         sizeof(*(g->GridHistory))         * MAXSNAPS);
+  myfree(g->GridColdGas,         sizeof(*(g->GridColdGas))         * MAXSNAPS);
+  myfree(g->GridHotGas,          sizeof(*(g->GridHotGas))          * MAXSNAPS);
+  myfree(g->GridEjectedMass,     sizeof(*(g->GridEjectedMass))     * MAXSNAPS);
+  myfree(g->GridEjectedMassSN,   sizeof(*(g->GridEjectedMassSN))   * MAXSNAPS);
+  myfree(g->GridEjectedMassQSO,  sizeof(*(g->GridEjectedMassQSO))  * MAXSNAPS);
+  myfree(g->GridDustColdGas,     sizeof(*(g->GridDustColdGas))     * MAXSNAPS);
+  myfree(g->GridDustHotGas,      sizeof(*(g->GridDustHotGas))      * MAXSNAPS);
   myfree(g->GridDustEjectedMass, sizeof(*(g->GridDustEjectedMass)) * MAXSNAPS);
-  myfree(g->GridStellarMass,     sizeof(*(g->GridStellarMass)) * MAXSNAPS);
-  myfree(g->GridBHMass,          sizeof(*(g->GridBHMass)) * MAXSNAPS);
-  myfree(g->GridSFR,             sizeof(*(g->GridSFR)) * MAXSNAPS);
-  myfree(g->GridZ,               sizeof(*(g->GridZ)) * MAXSNAPS);
-  myfree(g->GridFoFMass,         sizeof(*(g->GridFoFMass)) * MAXSNAPS);
-  myfree(g->GridHaloMass,        sizeof(*(g->GridHaloMass)) * MAXSNAPS);
-  myfree(g->EjectedFraction,     sizeof(*(g->EjectedFraction)) * MAXSNAPS);
-  myfree(g->LenHistory,          sizeof(*(g->LenHistory)) * MAXSNAPS);
-  myfree(g->GridOutflowRate,     sizeof(*(g->GridOutflowRate)) * MAXSNAPS);
-  myfree(g->GridInfallRate,      sizeof(*(g->GridInfallRate)) * MAXSNAPS);
-  myfree(g->QuasarActivity,      sizeof(*(g->QuasarActivity)) * MAXSNAPS);
-  myfree(g->QuasarSubstep,       sizeof(*(g->QuasarSubstep)) * MAXSNAPS);
-  myfree(g->DynamicalTime,       sizeof(*(g->DynamicalTime)) * MAXSNAPS);
-  myfree(g->LenMergerGal,        sizeof(*(g->LenMergerGal)) * MAXSNAPS);
-  myfree(g->GridReionMod,        sizeof(*(g->GridReionMod)) * MAXSNAPS);
-  myfree(g->GridNgamma_HI,       sizeof(*(g->GridNgamma_HI)) * MAXSNAPS);
-  myfree(g->Gridfesc,            sizeof(*(g->Gridfesc)) * MAXSNAPS);
+  myfree(g->GridStellarMass,     sizeof(*(g->GridStellarMass))     * MAXSNAPS);
+  myfree(g->GridBHMass,          sizeof(*(g->GridBHMass))          * MAXSNAPS);
+  myfree(g->GridSFR,             sizeof(*(g->GridSFR))             * MAXSNAPS);
+  myfree(g->GridZ,               sizeof(*(g->GridZ))               * MAXSNAPS);
+  myfree(g->GridFoFMass,         sizeof(*(g->GridFoFMass))         * MAXSNAPS);
+  myfree(g->GridHaloMass,        sizeof(*(g->GridHaloMass))        * MAXSNAPS);
+  myfree(g->EjectedFraction,     sizeof(*(g->EjectedFraction))     * MAXSNAPS);
+  myfree(g->LenHistory,          sizeof(*(g->LenHistory))          * MAXSNAPS);
+  myfree(g->GridOutflowRate,     sizeof(*(g->GridOutflowRate))     * MAXSNAPS);
+  myfree(g->GridInfallRate,      sizeof(*(g->GridInfallRate))      * MAXSNAPS);
+  myfree(g->QuasarActivity,      sizeof(*(g->QuasarActivity))      * MAXSNAPS);
+  myfree(g->QuasarSubstep,       sizeof(*(g->QuasarSubstep))       * MAXSNAPS);
+  myfree(g->DynamicalTime,       sizeof(*(g->DynamicalTime))       * MAXSNAPS);
+  myfree(g->LenMergerGal,        sizeof(*(g->LenMergerGal))        * MAXSNAPS);
+  myfree(g->GridReionMod,        sizeof(*(g->GridReionMod))        * MAXSNAPS);
+  myfree(g->GridNgamma_HI,       sizeof(*(g->GridNgamma_HI))       * MAXSNAPS);
+  myfree(g->Gridfesc,            sizeof(*(g->Gridfesc))            * MAXSNAPS);
 
   if (IRA == 0)
   {
-    myfree(g->SN_Stars,          sizeof(*(g->SN_Stars)) * SN_Array_Len);
+    myfree(g->SN_Stars,          sizeof(*(g->SN_Stars))            * SN_Array_Len);
   }
 
   if (PhotonPrescription == 1)
   {
-    myfree(g->Stellar_Stars,     sizeof(*(g->Stellar_Stars)) * StellarTracking_Len);
+    myfree(g->Stellar_Stars,     sizeof(*(g->Stellar_Stars))       * StellarTracking_Len);
   }
 
 

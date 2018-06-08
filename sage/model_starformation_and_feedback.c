@@ -85,8 +85,9 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
  
   Gal[centralgal].EjectedMass += ejected_mass;
   Gal[centralgal].MetalsEjectedMass += ejected_mass * metallicityHot;
-
   Gal[centralgal].DustEjectedMass += ejected_mass * dust_fraction_hot; 
+
+  Gal[centralgal].EjectedMassSN += ejected_mass;
 
   Gal[p].GridOutflowRate[Halo[Gal[centralgal].HaloNr].SnapNum] += ejected_mass / dt; 
 

@@ -192,12 +192,12 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
   else
   {
 
-
     // compare quasar wind and cold gas energies and eject cold
     if(quasar_energy > cold_gas_energy)
     {
       Gal[gal].EjectedMass += Gal[gal].ColdGas;
       Gal[gal].MetalsEjectedMass += Gal[gal].MetalsColdGas;
+      Gal[gal].EjectedMassQSO += Gal[gal].ColdGas;
 
       Gal[gal].ColdGas = 0.0;
       Gal[gal].MetalsColdGas = 0.0;
@@ -211,6 +211,7 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
 
       Gal[gal].EjectedMass += Gal[gal].HotGas;
       Gal[gal].MetalsEjectedMass += Gal[gal].MetalsHotGas; 
+      Gal[gal].EjectedMassQSO += Gal[gal].HotGas;
 
       Gal[gal].HotGas = 0.0;
       Gal[gal].MetalsHotGas = 0.0;
@@ -255,7 +256,10 @@ void add_galaxies_together(int t, int p)
   
   Gal[t].EjectedMass += Gal[p].EjectedMass;
   Gal[t].MetalsEjectedMass += Gal[p].MetalsEjectedMass;
-  
+  Gal[t].EjectedMassSN += Gal[p].EjectedMassSN;
+  Gal[t].EjectedMassQSO += Gal[p].EjectedMassQSO;
+ 
+ 
   Gal[t].ICS += Gal[p].ICS;
   Gal[t].MetalsICS += Gal[p].MetalsICS;
 
@@ -373,6 +377,8 @@ void disrupt_satellite_to_ICS(int centralgal, int gal, int tree)
   
   Gal[centralgal].EjectedMass += Gal[gal].EjectedMass;
   Gal[centralgal].MetalsEjectedMass += Gal[gal].MetalsEjectedMass;
+  Gal[centralgal].EjectedMassSN += Gal[gal].EjectedMassSN;
+  Gal[centralgal].EjectedMassQSO += Gal[gal].EjectedMassQSO;
   
   Gal[centralgal].ICS += Gal[gal].ICS;
   Gal[centralgal].MetalsICS += Gal[gal].MetalsICS;
@@ -408,32 +414,34 @@ void add_galaxy_to_merger_list(int p)
 
   for (j = 0; j < MAXSNAPS; ++j)
   {
-    MergedGal[MergedNr].GridType[j] = Gal[p].GridType[j];
-    MergedGal[MergedNr].GridFoFHaloNr[j] = Gal[p].GridFoFHaloNr[j];
-    MergedGal[MergedNr].GridHistory[j] = Gal[p].GridHistory[j];
-    MergedGal[MergedNr].GridColdGas[j] = Gal[p].GridColdGas[j];
-    MergedGal[MergedNr].GridHotGas[j] = Gal[p].GridHotGas[j];
-    MergedGal[MergedNr].GridEjectedMass[j] = Gal[p].GridEjectedMass[j];
-    MergedGal[MergedNr].GridDustColdGas[j] = Gal[p].GridDustColdGas[j];
-    MergedGal[MergedNr].GridDustHotGas[j] = Gal[p].GridDustHotGas[j];
+    MergedGal[MergedNr].GridType[j]            = Gal[p].GridType[j];
+    MergedGal[MergedNr].GridFoFHaloNr[j]       = Gal[p].GridFoFHaloNr[j];
+    MergedGal[MergedNr].GridHistory[j]         = Gal[p].GridHistory[j];
+    MergedGal[MergedNr].GridColdGas[j]         = Gal[p].GridColdGas[j];
+    MergedGal[MergedNr].GridHotGas[j]          = Gal[p].GridHotGas[j];
+    MergedGal[MergedNr].GridEjectedMass[j]     = Gal[p].GridEjectedMass[j];
+    MergedGal[MergedNr].GridEjectedMassSN[j]   = Gal[p].GridEjectedMassSN[j];
+    MergedGal[MergedNr].GridEjectedMassQSO[j]  = Gal[p].GridEjectedMassQSO[j];
+    MergedGal[MergedNr].GridDustColdGas[j]     = Gal[p].GridDustColdGas[j];
+    MergedGal[MergedNr].GridDustHotGas[j]      = Gal[p].GridDustHotGas[j];
     MergedGal[MergedNr].GridDustEjectedMass[j] = Gal[p].GridDustEjectedMass[j];
-    MergedGal[MergedNr].GridStellarMass[j] = Gal[p].GridStellarMass[j];
-    MergedGal[MergedNr].GridBHMass[j] = Gal[p].GridBHMass[j];
-    MergedGal[MergedNr].GridSFR[j] = Gal[p].GridSFR[j];
-    MergedGal[MergedNr].GridZ[j] = Gal[p].GridZ[j];
-    MergedGal[MergedNr].GridFoFMass[j] = Gal[p].GridFoFMass[j];
-    MergedGal[MergedNr].GridHaloMass[j] = Gal[p].GridHaloMass[j];
-    MergedGal[MergedNr].EjectedFraction[j] = Gal[p].EjectedFraction[j]; 
-    MergedGal[MergedNr].LenHistory[j] = Gal[p].LenHistory[j];
-    MergedGal[MergedNr].GridOutflowRate[j] = Gal[p].GridOutflowRate[j];
-    MergedGal[MergedNr].GridInfallRate[j] = Gal[p].GridInfallRate[j];
-    MergedGal[MergedNr].QuasarActivity[j] = Gal[p].QuasarActivity[j];
-    MergedGal[MergedNr].QuasarSubstep[j] = Gal[p].QuasarSubstep[j];
-    MergedGal[MergedNr].DynamicalTime[j] = Gal[p].DynamicalTime[j];
-    MergedGal[MergedNr].LenMergerGal[j] = Gal[p].LenMergerGal[j];
-    MergedGal[MergedNr].GridReionMod[j] = Gal[p].GridReionMod[j];
-    MergedGal[MergedNr].GridNgamma_HI[j] = Gal[p].GridNgamma_HI[j];
-    MergedGal[MergedNr].Gridfesc[j] = Gal[p].Gridfesc[j];
+    MergedGal[MergedNr].GridStellarMass[j]     = Gal[p].GridStellarMass[j];
+    MergedGal[MergedNr].GridBHMass[j]          = Gal[p].GridBHMass[j];
+    MergedGal[MergedNr].GridSFR[j]             = Gal[p].GridSFR[j];
+    MergedGal[MergedNr].GridZ[j]               = Gal[p].GridZ[j];
+    MergedGal[MergedNr].GridFoFMass[j]         = Gal[p].GridFoFMass[j];
+    MergedGal[MergedNr].GridHaloMass[j]        = Gal[p].GridHaloMass[j];
+    MergedGal[MergedNr].EjectedFraction[j]     = Gal[p].EjectedFraction[j]; 
+    MergedGal[MergedNr].LenHistory[j]          = Gal[p].LenHistory[j];
+    MergedGal[MergedNr].GridOutflowRate[j]     = Gal[p].GridOutflowRate[j];
+    MergedGal[MergedNr].GridInfallRate[j]      = Gal[p].GridInfallRate[j];
+    MergedGal[MergedNr].QuasarActivity[j]      = Gal[p].QuasarActivity[j];
+    MergedGal[MergedNr].QuasarSubstep[j]       = Gal[p].QuasarSubstep[j];
+    MergedGal[MergedNr].DynamicalTime[j]       = Gal[p].DynamicalTime[j];
+    MergedGal[MergedNr].LenMergerGal[j]        = Gal[p].LenMergerGal[j];
+    MergedGal[MergedNr].GridReionMod[j]        = Gal[p].GridReionMod[j];
+    MergedGal[MergedNr].GridNgamma_HI[j]       = Gal[p].GridNgamma_HI[j];
+    MergedGal[MergedNr].Gridfesc[j]            = Gal[p].Gridfesc[j];
   }
 
   if (IRA == 0)
