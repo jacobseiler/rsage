@@ -162,8 +162,16 @@ int32_t init_selfcon_grid(void)
 #ifdef MPI
       if (ThisTask == 0)
 #endif
-      printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass DUE TO SUPERNOVAE activity.\n"
+      printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass DUE TO QUASAR activity.\n"
              "This takes the form A*fej_SN + B with A = %.4e and B = %.4e\n", alpha, beta); 
+      break;
+
+    case 11:
+#ifdef MPI
+      if (ThisTask == 0)
+#endif
+      printf("\n\nUsing an fesc prescription that scales with the SFR of a galaxy.\n"
+             "This takes the form A*log10(SFR) + B with A = %.4e and B = %.4e\n", alpha, beta); 
       break;
 
     default:
@@ -724,6 +732,12 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
   float stellarmass = g->GridStellarMass[snapshot] * 1.0e10 / Hubble_h; // Stellar mass in Msun.
   float ejectedfraction = 0.0; // Initialize to prevent warnings.
 
+  const double SFR_CONVERSION = UnitMass_in_g/UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS/STEPS; // Conversion from the SFR over one snapshot to Msun/yr. 
+  float sfr = g->GridSFR[snapshot] * SFR_CONVERSION; // Star formation rate in Msun yr^-1.
+
+  // We have the option to use either ALL the mass in the ejected reservoir (fescPrescription = 3),
+  // only the mass ejected due to SN (fescPrescription = 9) or only the mass ejected due to Quasars
+  // (fescPrescription = 10). 
   switch (fescPrescription)
   {
     case 3:
@@ -741,7 +755,6 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
     default:
       break;
   }
-
 
   switch (fescPrescription)
   {
@@ -799,6 +812,25 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       }
       break;
 
+    case 11:
+      if (sfr > 0.0)
+      {
+        *fesc_local = alpha * log10(sfr) + beta;
+        if (*fesc_local < 0.0)
+        {
+          *fesc_local = 0.0;
+        }
+        else if (*fesc_local > 1.0)
+        {
+          *fesc_local = 1.0;
+        }
+      }
+      else
+      {
+        *fesc_local = 0.0;
+      }
+      break;
+
     default:
       fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `determine_fesc` in `selfcon_grid.c`.\nPlease add it there.\n");
       return EXIT_FAILURE;
@@ -807,7 +839,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
 
   if (*fesc_local > 1.0 || *fesc_local < 0.0)
   {
-    fprintf(stderr, "Had fesc_local = %.4f with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1), Ejected Fraction %.4e and QuasarFractionalPhotons %.4f\n", *fesc_local, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(g->GridSFR[snapshot]), ejectedfraction, quasarfrac);
+    fprintf(stderr, "Had fesc_local = %.4f with halo mass %.4e (log Msun), Stellar Mass %.4e (log Msun), SFR %.4e (log Msun yr^-1), Ejected Fraction %.4e and QuasarFractionalPhotons %.4f\n", *fesc_local, log10(halomass * 1.0e10 / Hubble_h), log10(halomass * 1.0e10 / Hubble_h), log10(sfr), ejectedfraction, quasarfrac);
     return EXIT_FAILURE;
   }
 
@@ -959,6 +991,10 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
 
     case 10:
       snprintf(tag, MAX_STRING_LEN - 1, "ejectedQSO_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      break;
+
+    case 11:
+      snprintf(tag, MAX_STRING_LEN - 1, "SFR_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
       break;
 
     default:

@@ -42,7 +42,6 @@ void reincorporate_gas(int centralgal, double dt)
       channel_fractionQSO =  Gal[centralgal].EjectedMassQSO /  Gal[centralgal].EjectedMass; 
     }
 
-    //printf("Ejected %.4e\tSN %.4e\tQSO %.4e\tSNFrac %.4e\tQSOFrac %.4e\n", Gal[centralgal].EjectedMass, Gal[centralgal].EjectedMassSN, Gal[centralgal].EjectedMassQSO, channel_fractionSN, channel_fractionQSO);
  
     Gal[centralgal].EjectedMass -= reincorporated;
     Gal[centralgal].MetalsEjectedMass -= metallicity * reincorporated;
@@ -56,6 +55,8 @@ void reincorporate_gas(int centralgal, double dt)
     
     if (Gal[centralgal].DustEjectedMass < 0.0)
       Gal[centralgal].DustEjectedMass = 0.0;
+
+    //printf("Reincorporated Gal %d\tHalo %d\tEjected %.4e\tSN %.4e\tQSO %.4e\tSNFrac %.4e\tQSOFrac %.4e\n", centralgal, Gal[centralgal].HaloNr, Gal[centralgal].EjectedMass, Gal[centralgal].EjectedMassSN, Gal[centralgal].EjectedMassQSO, channel_fractionSN, channel_fractionQSO);
 
     if (Gal[centralgal].EjectedMass > 1e-10)
       XASSERT(Gal[centralgal].EjectedMass / (Gal[centralgal].EjectedMassSN + Gal[centralgal].EjectedMassQSO) > 0.95, "EjectedMass %.4e\tSN %.4e\tQSO %.4e\tRatio %.4e\n", Gal[centralgal].EjectedMass, Gal[centralgal].EjectedMassSN, Gal[centralgal].EjectedMassQSO, Gal[centralgal].EjectedMass / (Gal[centralgal].EjectedMassSN + Gal[centralgal].EjectedMassQSO));

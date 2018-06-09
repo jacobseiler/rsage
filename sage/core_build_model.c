@@ -315,8 +315,9 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
   for(step = 0; step < STEPS; step++)
   {
 
-    if (Gal[p].EjectedMass > 1e-10)
-    XASSERT(Gal[p].EjectedMass / (Gal[p].EjectedMassSN + Gal[p].EjectedMassQSO) > 0.99, "EjectedMass %.4e\tSN %.4e\tQSO %.4e\tRatio %.4e\n", Gal[p].EjectedMass, Gal[p].EjectedMassSN, Gal[p].EjectedMassQSO, Gal[p].EjectedMass / (Gal[p].EjectedMassSN + Gal[p].EjectedMassQSO));
+    //printf("Gal %d\tHaloNr %d\tEjectedMass %.4e\tSN %.4e\tQSO %.4e\tRatio %.4e\n", p, Gal[p].HaloNr, Gal[p].EjectedMass, Gal[p].EjectedMassSN, Gal[p].EjectedMassQSO, Gal[p].EjectedMass / (Gal[p].EjectedMassSN + Gal[p].EjectedMassQSO));
+    //if (Gal[p].EjectedMass > 1e-10)
+    //XASSERT(Gal[p].EjectedMass / (Gal[p].EjectedMassSN + Gal[p].EjectedMassQSO) > 0.99, "EjectedMass %.4e\tSN %.4e\tQSO %.4e\tRatio %.4e\n", Gal[p].EjectedMass, Gal[p].EjectedMassSN, Gal[p].EjectedMassQSO, Gal[p].EjectedMass / (Gal[p].EjectedMassSN + Gal[p].EjectedMassQSO));
     // Loop over all galaxies in the halo 
     for(p = 0; p < ngal; p++)
     {

@@ -272,6 +272,8 @@ void add_infall_to_hot(int gal, double infallingGas)
       channel_fractionQSO = Gal[gal].EjectedMassQSO / Gal[gal].EjectedMass; 
     }
 
+
+    //printf("Infall Gal %d\tHaloNr %d\tEjected %.4e\tSN %.4e\tQSO %.4e\tSNFrac %.4e\tQSOFrac %.4e\n", gal, Gal[gal].HaloNr, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, channel_fractionSN, channel_fractionQSO);
     if (Gal[gal].EjectedMassQSO > 0.0 && Gal[gal].EjectedMassSN > 0.0)
       XASSERT(channel_fractionSN + channel_fractionQSO > 0.99, "Start Gal %d\tHalo %d\tEjectedGas %.7e\tSN %.7e\tQSO %.7e\tinfallingGas %.7e\n", gal, Gal[gal].HaloNr, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, infallingGas);
 

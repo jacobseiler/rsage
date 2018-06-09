@@ -252,6 +252,9 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
     }
   }
 
+
+  //printf("SFR Gal %d\tHaloNr %d\tEjected %.4e\tSN %.4e\tQSO %.4e\n", gal, Gal[gal].HaloNr, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO); 
+
 }
 
 void add_galaxies_together(int t, int p)

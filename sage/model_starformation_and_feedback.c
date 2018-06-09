@@ -110,6 +110,8 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
     Gal[p].DustColdGas = 0.0;
   if (Gal[p].DustHotGas < 0.0)
     Gal[p].DustHotGas = 0.0;
+
+  //printf("SFR Gal %d\tHaloNr %d\tEjected %.4e\tSN %.4e\tQSO %.4e\n", p, Gal[p].HaloNr, Gal[p].EjectedMass, Gal[p].EjectedMassSN, Gal[p].EjectedMassQSO); 
  
 }
 
