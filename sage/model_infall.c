@@ -250,6 +250,8 @@ double do_reionization(int gal, double Zcurr, int ReturnMfilt)
 void add_infall_to_hot(int gal, double infallingGas)
 {
   float metallicity; 
+  double channel_fractionSN, channel_fractionQSO; 
+  channel_fractionSN = channel_fractionQSO = 0.0;
 
   // if the halo has lost mass, subtract baryons from the ejected mass first, then the hot gas
 
@@ -260,12 +262,24 @@ void add_infall_to_hot(int gal, double infallingGas)
 
     if(Gal[gal].MetalsEjectedMass < 0.0) Gal[gal].MetalsEjectedMass = 0.0;
 
-    //printf("Start Gal %d\tHalo %d\tEjectedGas %.7e\tSN %.7e\tQSO %.7e\tinfallingGas %.7e\n", gal, Gal[gal].HaloNr, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, infallingGas);
+    if (Gal[gal].EjectedMassSN > 0.0)
+    {
+      channel_fractionSN = Gal[gal].EjectedMassSN / Gal[gal].EjectedMass; 
+    }
+
+    if (Gal[gal].EjectedMassQSO > 0.0)
+    {
+      channel_fractionQSO = Gal[gal].EjectedMassQSO / Gal[gal].EjectedMass; 
+    }
+
+    if (Gal[gal].EjectedMassQSO > 0.0 && Gal[gal].EjectedMassSN > 0.0)
+      XASSERT(channel_fractionSN + channel_fractionQSO > 0.99, "Start Gal %d\tHalo %d\tEjectedGas %.7e\tSN %.7e\tQSO %.7e\tinfallingGas %.7e\n", gal, Gal[gal].HaloNr, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, infallingGas);
+
     Gal[gal].EjectedMass += infallingGas;
     
     // Subtract the gas evenly through both SN and QSO channels.
-    Gal[gal].EjectedMassSN += infallingGas/2.0;
-    Gal[gal].EjectedMassQSO += infallingGas/2.0;
+    Gal[gal].EjectedMassSN = Gal[gal].EjectedMass * channel_fractionSN;
+    Gal[gal].EjectedMassQSO = Gal[gal].EjectedMass * channel_fractionQSO;
 
     if(Gal[gal].EjectedMass < 0.0)
     {
@@ -275,44 +289,7 @@ void add_infall_to_hot(int gal, double infallingGas)
     }
     else
     {
-
       infallingGas = 0.0;
-
-      // In the case that one of the channels did not enough gas to be fully lost, we subtract the
-      // remaining gas from the other channel.
-
-      if (Gal[gal].EjectedMassSN < 0.0)
-      {
-    
-        //printf("Gal %d\tEjectedGas %.7e\tSN %.7e\tQSO %.7e\tinfallingGas %.7e\n", gal, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, infallingGas);
-        Gal[gal].EjectedMassQSO += Gal[gal].EjectedMassSN;
-        Gal[gal].EjectedMassSN = 0.0;        
-
-        // For galaxies of extremely low mass, numerical precision will prevent the ASSERT statement
-        // below from passing.  In these cases, just fudge the tracking.
-
-        if (Gal[gal].EjectedMassQSO <= 0.0 && Gal[gal].EjectedMass < 1.0e-6) 
-        {
-          Gal[gal].EjectedMassQSO = Gal[gal].EjectedMass;
-        }
-
-      }
-      else if (Gal[gal].EjectedMassQSO < 0.0)
-      {
-        Gal[gal].EjectedMassSN += Gal[gal].EjectedMassQSO;
-        Gal[gal].EjectedMassQSO = 0.0;
-       
-        if (Gal[gal].EjectedMassSN <= 0.0 && Gal[gal].EjectedMass < 1.0e-6) 
-        {
-          Gal[gal].EjectedMassSN = Gal[gal].EjectedMass;
-        }
-        
-      }
-      /*
-      XASSERT(Gal[gal].EjectedMassSN >= 0.0 && Gal[gal].EjectedMassQSO >= 0.0, "There was enough gas in the total `EjectedGas` reservoir "
-              "but the EjectedMassSN channel had mass %.4e and the EjectedMassQSO channel had mass %.4e after balancing.  The EjectedGas reservoir has mass %.4e and the infallingGas is %.4e\n", 
-              Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, Gal[gal].EjectedMass, infallingGas);
-      */ 
     }
 
   }
@@ -329,6 +306,5 @@ void add_infall_to_hot(int gal, double infallingGas)
     Gal[gal].MetalsHotGas = 0.0;
   }
 
-  //printf("End Gal %d\tHalo %d\tEjectedGas %.7e\tSN %.7e\tQSO %.7e\tinfallingGas %.7e\n", gal, Gal[gal].HaloNr, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO, infallingGas);
 }
 
