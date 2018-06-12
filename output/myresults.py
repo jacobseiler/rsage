@@ -618,17 +618,19 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
                 t.set_fontsize(PlotScripts.global_legendsize - 2)
 
             plt.tight_layout()
-            #adjustprops = dict(left=0.15, bottom=0.1, right=0.97, top=0.93, wspace=0.05, hspace=0.05)
-            #fig.subplots_adjust(**adjustprops)  
             outputFile = "{0}_paper{1}".format(output_tag, output_format) 
             plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
             print('Saved file to {0}'.format(outputFile))
+
             plt.close()
 
 
 ##
 
-def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, mean_halo_fesc, std_halo_fesc, N_halo_fesc, ResolutionLimit_mean, model_tags, output_tag):
+def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, 
+                     mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, 
+                     mean_halo_fesc, std_halo_fesc, N_halo_fesc, 
+                     ResolutionLimit_mean, model_tags, paper_plots, output_tag):
     """
     Plots the escape fraction as a function of stellar/halo mass.
     Parallel compatible.
@@ -647,14 +649,23 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, 
         3 : Extended Tiamat (down to z = 1.6ish).
         4 : Britton's Simulation
         5 : Kali
+
     mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc : Nested 3-dimensional array, mean_galaxy_fesc[model_number0][snapshot0]  = [bin0_meanfesc, ..., binN_meanfesc], with length equal to the number of models. 
         Mean/Standard deviation for fesc in each stellar mass bin, for each [model_number] and [snapshot_number]. N_galaxy_fesc is the number of galaxies placed into each mass bin.
+
     mean_halo_fesc, std_halo_fesc, N_halo_fesc  Nested 3-dimensional array, mean_halo_fesc[model_number0][snapshot0]  = [bin0_meanfesc, ..., binN_meanfesc], with length equal to the number of models. 
         Identical to previous except using the halo virial mass for the binning rather than stellar mass. 
+
     ResolutionLimit_mean : array of floats with the same shape as mean_galaxy_fesc.
-        This is the mean stellar mass for a halo with len (number of N-body simulation particles) between 'stellar_mass_halolen_lower' and 'stellar_mass_halolen_upper'. 
+        This is the mean stellar mass for a halo with len (number of N-body simulation particles) between 'stellar_mass_halolen_lower' and 'stellar_mass_halolen_upper'.
+ 
     model_tags : array of strings with length equal to the number of models.
         Strings that contain the tag for each model.  Will be placed on the plot.
+
+    paper_plots: Integer.
+        Flag to denote whether we should plot a full, 4 panel plot for the
+        RSAGE paper.
+
     output_tag : string
         Name of the file that will be generated.
 
@@ -718,6 +729,66 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, 
             t.set_fontsize('medium')
 
 
+    def adjust_paper_plots(ax, model_tags):
+
+        ax[1,0].set_xlabel(r'$\log_{10}\ M_*\ [M_{\odot}]$', 
+                      size = PlotScripts.global_fontsize)
+
+        ax[1,1].set_xlabel(r'$\log_{10}\ M_*\ [M_{\odot}]$', 
+                      size = PlotScripts.global_fontsize)
+
+        ax[0,0].set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
+                      size = PlotScripts.global_labelsize)
+
+        ax[1,0].set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
+                      size = PlotScripts.global_labelsize)
+
+        ax_x = [0, 0, 1, 1]
+        ax_y = [0, 1, 0, 1]
+
+        ax[0,0].set_xticklabels([])
+        ax[0,1].set_xticklabels([])
+    
+        for count, (x, y) in enumerate(zip(ax_x, ax_y)):
+
+            ax[x,y].set_xlim([6.8, 10])
+            ax[x,y].set_ylim([0.05, 0.65])
+
+            ax[x,y].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+            ax[x,y].xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+
+            ax[x,y].tick_params(which = 'both', direction='in', width =
+                            PlotScripts.global_tickwidth)
+
+            ax[x,y].tick_params(which = 'major', length = PlotScripts.global_ticklength)
+    
+            for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+                ax[x,y].spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+
+            label = model_tags[count]
+
+            ax[x,y].text(0.7, 0.8, label, transform = ax[x,y].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+  
+        tick_locs = np.arange(6.0, 11.0)
+        ax[1,0].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+                            fontsize = PlotScripts.global_fontsize)
+
+        ax[1,1].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+                            fontsize = PlotScripts.global_fontsize)
+
+        tick_locs = np.arange(0.0, 0.80, 0.10)
+        ax[0,0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+                            fontsize = PlotScripts.global_fontsize)
+        ax[1,0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+                            fontsize = PlotScripts.global_fontsize)
+
+        '''
+        labels = ax.yaxis.get_ticklabels()
+        locs = ax.yaxis.get_ticklocs()
+        for label, loc in zip(labels, locs):
+            print("{0} {1}".format(label, loc)) 
+        '''       
+
     print("Plotting fesc as a function of stellar mass.")
 
     ## Array initialization ##
@@ -725,15 +796,25 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, 
     master_mean_fesc_stellar, master_std_fesc_stellar, master_N_fesc_stellar, master_bin_middle_stellar = \
     collect_across_tasks(mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, 
                          SnapList, PlotSnapList, True, m_gal_low, m_gal_high)
-
  
     if rank == 0:
-        
-        fig = plt.figure()  
-        ax1 = fig.add_subplot(111)  
-               
-        for model_number in range(0, len(SnapList)):
 
+        if paper_plots == 0:        
+            fig = plt.figure()  
+            ax1 = fig.add_subplot(111)  
+            
+        else:
+            fig, ax = plt.subplots(nrows=2, ncols=2, sharex='col', sharey='row', figsize=(16, 6))
+
+            delta_fontsize = 0
+            caps = 5
+            ewidth = 1.5
+   
+        count_x = 0
+
+        for count, model_number in enumerate(range(0, len(SnapList))):
+            if count == 2:
+                count_x += 1
             print("There were a total of {0} galaxies over the entire redshift range.".format(sum(N_halo_fesc[model_number])))
             ## Normalization for each model. ##
             if (simulation_norm[model_number] == 0):
@@ -765,25 +846,40 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, mean_galaxy_fesc, 
                     w = np.where((master_N_fesc_stellar[model_number][snapshot_idx] < 4))[0] # If there are no galaxies in the bin we don't want to plot. 
                     master_mean_fesc_stellar[model_number][snapshot_idx][w] = np.nan 
 
-                    ax1.plot(master_bin_middle_stellar[model_number][snapshot_idx], 
-                             master_mean_fesc_stellar[model_number][snapshot_idx], 
-                             color = PlotScripts.colors[plot_count], 
-                             ls = PlotScripts.linestyles[model_number], 
-                             rasterized = True, label = label, 
-                             lw = PlotScripts.global_linewidth) 
+                    if paper_plots == 0:
+                        ax1.plot(master_bin_middle_stellar[model_number][snapshot_idx], 
+                                 master_mean_fesc_stellar[model_number][snapshot_idx], 
+                                 color = PlotScripts.colors[plot_count], 
+                                 ls = PlotScripts.linestyles[model_number], 
+                                 rasterized = True, label = label, 
+                                 lw = PlotScripts.global_linewidth)
+                    else:
+                        ax[count_x, count%2].plot(master_bin_middle_stellar[model_number][snapshot_idx], 
+                                 master_mean_fesc_stellar[model_number][snapshot_idx], 
+                                 color = PlotScripts.colors[plot_count], 
+                                 ls = PlotScripts.linestyles[0], 
+                                 rasterized = True, label = label, 
+                                 lw = PlotScripts.global_linewidth)
+         
 
                     plot_count += 1                
                     if (plot_count == len(PlotSnapList[model_number])):
                         break
 
-        #for model_number in range(0, len(SnapList)): # Just plot some garbage to get the legend labels correct.
-            #ax1.plot(np.nan, np.nan, color = 'k', linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)
-            #ax3.plot(np.nan, np.nan, color = 'k', linestyle = PlotScripts.linestyles[model_number], rasterized = True, label = model_tags[model_number], linewidth = PlotScripts.global_linewidth)
-
         ## Stellar Mass plots ##
 
-        adjust_stellarmass_plot(ax1)
- 
+        if paper_plots == 0:
+            adjust_stellarmass_plot(ax1)
+        else:
+            adjust_paper_plots(ax, model_tags) 
+
+            leg = ax[0,0].legend(loc="upper center", numpoints=1, labelspacing=0.1)
+            leg.draw_frame(False)  # Don't want a box frame
+            for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize('medium')
+
+            plt.tight_layout()
+            plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
         ## Output ##
 
         outputFile = './%s%s' %(output_tag, output_format)
@@ -3125,37 +3221,57 @@ def determine_MH_fesc_constants(low_MH, low_fesc, high_MH, high_fesc):
 if __name__ == '__main__':
 
     np.seterr(divide='ignore')
-    number_models = 1
+    number_models = 4
+    
+    galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/newphoton_SF0.03_fej0.4_z5.782'
+    merged_galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/newphoton_SF0.03_fej0.4_MergedGalaxies'
 
-    galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_z5.782'
-    merged_galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_MergedGalaxies'
-            
-    galaxies_filepath_array = [galaxies_model1]
-    merged_galaxies_filepath_array = [merged_galaxies_model1]
+    galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.40_z5.782'
+    merged_galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/SFR_0.20_0.40_MergedGalaxies'
+
+    galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_z5.782'
+    merged_galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_MergedGalaxies'
+
+    galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_1.0e-4_0.70_halo_z5.782'
+    merged_galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_1.0e-4_0.70_halo_MergedGalaxies'
+        
+    galaxies_filepath_array = [galaxies_model1,
+                               galaxies_model2,
+                               galaxies_model3,
+                               galaxies_model4]
+
+    merged_galaxies_filepath_array = [merged_galaxies_model1,
+                                      merged_galaxies_model2,
+                                      merged_galaxies_model3,
+                                      merged_galaxies_model4]
+
        
-    number_substeps = [10] # How many substeps does each model have (specified by STEPS variable within SAGE).
-    number_snapshots = [99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
+    number_substeps = [10, 10, 10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
+    number_snapshots = [99, 99, 99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
      
-    FirstFile = [0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [63] # The last file number THAT WE ARE PLOTTING.
-    NumFile = [64] # The number of files for this simulation (plotting a subset of these files is allowed).     
-    same_files = [0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
+    FirstFile = [0, 0, 0, 0] # The first file number THAT WE ARE PLOTTING.
+    LastFile = [0, 0, 0, 0] # The last file number THAT WE ARE PLOTTING.
+    NumFile = [64, 64, 64, 64] # The number of files for this simulation (plotting a subset of these files is allowed).     
+    same_files = [0, 0, 0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
     # This array will tell us if we should keep the files for the next model or otherwise throw them away. 
     # The files will be kept until same_files[current_model_number] = 0.
     # For example if we had 5 models we were plotting and model 1, 2, 3 shared the same files and models 4, 5 shared different files,
     # Then same_files = [1, 1, 0, 1, 0] would be the correct values.
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
-    model_tags = [r"$f_\mathrm{base} = 0.20$"]
+    model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: \mathrm{SFR}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: \mathrm{M_H}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: \mathrm{M_H}^{-1}}$"]
 
     ## Constants used for each model. ##
     # Need to add an entry for EACH model. #
 
-    halo_cut = [32, 32, 32] # Only calculate properties for galaxies whose host halos have at least this many particles.
+    halo_cut = [32, 32, 32, 32] # Only calculate properties for galaxies whose host halos have at least this many particles.
 
     ### fesc Stuff ###
-    fesc_prescription = [0] # This defines what escape fractions prescription we want to use for each mode. 
+    fesc_prescription = [0, 0, 0, 0] # This defines what escape fractions prescription we want to use for each mode. 
     # 0 is constant.
     # 1 is scaling with halo mass. 
     # 2 is scaling with ejected fraction. 
@@ -3164,7 +3280,7 @@ if __name__ == '__main__':
     # 5 is Anne's function form that scales with halo mass (larger fesc for higher halo mass).
 
     #fesc_normalization = [[0.2, 1.0, 2.5], [0.2, 1.0, 2.5]] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
-    fesc_normalization = [0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
+    fesc_normalization = [0.3, 0.3, 0.3, 0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
     # For prescription 0, requires a number that defines the constant fesc.
     # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
     # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
@@ -3176,13 +3292,17 @@ if __name__ == '__main__':
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
     #SnapList = [np.arange(20,99), np.arange(20, 99), np.arange(20, 99)]    
-    SnapList = [[33, 50, 64, 76, 93]]    
+    SnapList = [[33, 50, 64, 76, 93],
+                [33, 50, 64, 76, 93],
+                [33, 50, 64, 76, 93],
+                [33, 50, 64, 76, 93]]
+    
     #SnapList = [np.arange(20,99)]
     #PlotSnapList = [[30, 50, 64, 76, 93]]
     #PlotSnapList = [[93, 76, 64]]
     PlotSnapList = SnapList 
 
-    simulation_norm = [5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
+    simulation_norm = [5, 5, 5, 5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
     # 0 for MySim (Manodeep's old one).
     # 1 for Mini-Millennium.
     # 2 for Tiamat (up to z =5).
@@ -3192,7 +3312,7 @@ if __name__ == '__main__':
 
     stellar_mass_halolen_lower = [32, 95, 95, 95] # These limits are for the number of particles in a halo.  
     stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
-    calculate_observed_LF = [0, 0, 0] # Determines whether we want to account for dust extinction when calculating the luminosity function of each model.
+    calculate_observed_LF = [0, 0, 0, 0] # Determines whether we want to account for dust extinction when calculating the luminosity function of each model.
 
     paper_plots = 1 
     
@@ -3779,16 +3899,17 @@ if __name__ == '__main__':
     #                     model_tags, "ejectedfraction") 
    
     #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "SN_Prescription")
-    #plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
-    #                 mean_fesc_galaxy_array, std_fesc_galaxy_array, 
-    #                 N_galaxy_array, mean_fesc_halo_array, 
-    #                 std_fesc_halo_array,  N_halo_array,
-    #                 galaxy_halo_mass_mean, model_tags, "Quasar")
+    plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
+                     mean_fesc_galaxy_array, std_fesc_galaxy_array, 
+                     N_galaxy_array, mean_fesc_halo_array, 
+                     std_fesc_halo_array,  N_halo_array,
+                     galaxy_halo_mass_mean, model_tags, 
+                     paper_plots, "TestPaper")
 
-    plot_sfr_galaxy(SnapList, PlotSnapList, simulation_norm,
-                     mean_sfr_galaxy_array, std_sfr_galaxy_array, 
-                     mean_ssfr_galaxy_array, std_ssfr_galaxy_array, 
-                     N_galaxy_array, model_tags, "sSFR")
+    #plot_sfr_galaxy(SnapList, PlotSnapList, simulation_norm,
+    #                 mean_sfr_galaxy_array, std_sfr_galaxy_array, 
+    #                 mean_ssfr_galaxy_array, std_ssfr_galaxy_array, 
+    #                 N_galaxy_array, model_tags, "sSFR")
 
     #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_test") ## PARALELL COMPATIBLE
     #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 

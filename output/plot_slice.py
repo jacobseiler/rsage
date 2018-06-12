@@ -2394,15 +2394,17 @@ if __name__ == '__main__':
     #              r"$f_\mathrm{esc} \: \propto \:  \mathrm{Quasar}$"]
     #              r"$f_\mathrm{esc} \: \propto \:  M_*$"]
     model_tags = [r"$f_\mathrm{esc} = 0.35$", 
-                  r"$f_\mathrm{base} = 0.25$",
-                  #r"$M_H \mathrm{Decreasing}$"]
-                  r"$M_H \mathrm{Increasing}$"]
+                  #r"$f_\mathrm{base} = 0.25$",
+                  "$M_H \mathrm{Decreasing}$",
+                  r"$M_H \mathrm{Increasing}$",
+                  r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$",
                   #r"$f_\mathrm{M_*} = 10^7 - 10^8$"]
                   #r"$f_\mathrm{M_*} = 10^9 - 10^{10}$"]
+                  r"$f_\mathrm{esc} \: \propto \: \mathrm{SFR}$"]
 
     output_tags = [r"Base Reion On"]
 
-    number_models = 3
+    number_models = 5
 
     simulation_model1 = 6 # Which simulation are we using?
     # 0 : Mysim (Manodeep's original simulation run).
@@ -2411,7 +2413,7 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'anne_increasing'
+    model = 'paper'
 
     GridSize_model1 = 256
         
@@ -2432,6 +2434,8 @@ if __name__ == '__main__':
     filepath_model13="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_1.0e-4_0.95_XHII"
     filepath_model14="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_1.0e-4_0.70_XHII"
     filepath_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_XHII"
+    filepath_model16="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.60_XHII"
+    filepath_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.40_XHII"
 
     filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/newphoton_SF0.03_fesc0.35_HaloPartCut32_nionHI"
     filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.2_1.00_2.50_quasar_0.20_1.00_2.50_HaloPartCut32_nionHI"
@@ -2448,6 +2452,8 @@ if __name__ == '__main__':
     filepath_nion_model13="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_1.0e-4_0.95_AnneMH_1.000e+08_0.00_1.000e+12_0.95_HaloPartCut32_nionHI"
     filepath_nion_model14="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_1.0e-4_0.70_AnneMH_1.000e+08_0.00_1.000e+12_0.70_HaloPartCut32_nionHI"
     filepath_nion_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI"
+    filepath_nion_model16="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.60_SFR_0.200_0.600_HaloPartCut32_nionHI"
+    filepath_nion_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.40_SFR_0.200_0.400_HaloPartCut32_nionHI"
   
     filepath_density_model1="/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"
 
@@ -2455,19 +2461,25 @@ if __name__ == '__main__':
     precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
     GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
     ionized_cells_filepath_array = [filepath_model1,
-                                    filepath_model4,
-                                    filepath_model15]
+                                    filepath_model12,
+                                    filepath_model15,
+                                    filepath_model6,
+                                    filepath_model17]
     #ionized_cells_filepath_array = [filepath_model1,
     #                                filepath_model4,
     #                                filepath_model6]
     nion_filepath_array = [filepath_nion_model1,
-                           filepath_nion_model4,
-                           filepath_nion_model15]
+                           filepath_nion_model12,
+                           filepath_nion_model15,
+                           filepath_nion_model6,
+                           filepath_nion_model17]
     #nion_filepath_array = [filepath_nion_model1,
     #                       filepath_nion_model4,
     #                       filepath_nion_model6]
 
     density_filepath_array = [filepath_density_model1,
+                              filepath_density_model1,
+                              filepath_density_model1,
                               filepath_density_model1,
                               filepath_density_model1]
     #density_filepath_array = [filepath_density_model1,
