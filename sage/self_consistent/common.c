@@ -105,7 +105,7 @@ void update_temporal_array(int p, int halonr, int steps_completed)
   {
     ABORT(EXIT_FAILURE); 
   }
-  Gal[p].GridNgamma_HI[SnapCurr] = (Ngamma_HI - 50.0);
+  Gal[p].GridNgamma_HI[SnapCurr] = Ngamma_HI; 
   Ngamma_HI_Total += Ngamma_HI; 
 
   float fesc_local;
