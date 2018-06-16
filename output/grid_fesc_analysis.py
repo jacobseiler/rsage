@@ -385,7 +385,6 @@ AllVars.Lookback_Time[SnapList[model_number]])*1.0e3, nion[model_number], color 
 
         ax2 = ax1.twiny()
 
-
         t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
         z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
 
@@ -482,11 +481,13 @@ if __name__ == '__main__':
     #model_tags = [r"$\mathbf{f_{esc} \: \propto \: Quasar \: Activity}$", 
     #              r"$\mathbf{f_{esc} = 0.20}$"]
 
-    model_tags = [r"$f_\mathrm{esc} = 0.35$",     
-                  "$M_H \mathrm{Decreasing}$",
-                  r"$M_H \mathrm{Increasing}$",
-                  r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$",
-                  r"$f_\mathrm{esc} \: \propto \: \mathrm{SFR}$"]
+
+
+    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
  
     #fname =["/lustre/projects/p004_swin/jseiler/kali/base_reionization_on/grids/nion/base_quasar_0.10_1.00_2.50_HaloPartCut32_fescproperties"] 
     #fname = [fname[0]]
@@ -495,7 +496,7 @@ if __name__ == '__main__':
     filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.99_0.10_AnneMH_1.000e+08_0.99_1.000e+12_0.10_HaloPartCut32_nionHI"
     filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI"
     filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/nion/newphoton_SF0.03_fej0.7_ejected_0.700_0.000_HaloPartCut32_nionHI"
-    filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.40_SFR_0.200_0.400_HaloPartCut32_nionHI"
+    filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.30_SFR_0.200_0.300_HaloPartCut32_nionHI"
 
     SnapList = [np.arange(27,98),
                 np.arange(27,98),

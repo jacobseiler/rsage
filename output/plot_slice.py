@@ -382,15 +382,13 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, plot_time, labels, OutputDir, o
 ## Output ##
 # The output file will be of the form '*OutputDir*/*output_tag*_*z*.*output_format*'
 
-
     print("")
     print("Plotting the global fraction of HI.")
 
     legend_labels = []
 
-    fig = plt.figure()
-
-    ax1 = plt.subplot2grid((3,1), (0,0), rowspan =3)
+    fig = plt.figure(figsize = (8,8))
+    ax1 = fig.add_subplot(111) 
 	#ax3 = plt.subplot2grid((3,1), (2,0))
 
     t = np.empty(len(volume_frac[0]))
@@ -400,52 +398,62 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, plot_time, labels, OutputDir, o
 
     for i in range(0, len(volume_frac)):
 
-        '''
-        dt = (cosmo.lookback_time(MC_ZZ[i][0]).value - cosmo.lookback_time(MC_ZZ[i][-1]).value) * 1.0e3
-        if (i != 1):
-            tmp = r"%s, $\Delta t = %.2f \: \mathrm{Myr}$" %(labels[i], dt)
-        else:
-            tmp = r"%s, $\Delta t = %.2f \: \mathrm{Myr}$" %(labels[i], dt)
-            #tmp = r"%s, $\Delta t = \: ?$" %(labels[i]) 
-        '''
-
         if plot_time == 1:
-            ax1.plot(t, 1 - volume_frac[i], color = PlotScripts.colors[i], ls = PlotScripts.linestyles[0], lw = PlotScripts.global_linewidth, label = labels[i])
+            ax1.plot(t, 1 - volume_frac[i], color = PlotScripts.colors[i], 
+                     ls = PlotScripts.linestyles[i], 
+                     lw = PlotScripts.global_linewidth, label = labels[i])
             #ax1.plot(t, 1 -mass_frac[i], color = PlotScripts.colors[i], ls = PlotScripts.linestyles[1])
         else:
             ax1.plot(ZZ, 1 - volume_frac[i], color = PlotScripts.colors[i], ls = PlotScripts.linestyles[i], lw = 3, label = labels[i])
-        #ax3.plot(t, np.subtract(volume_frac[i], volume_frac[0]), color = PlotScripts.colors[i])	
-#    ax1.plot(np.nan, np.nan, color = 'k', ls = PlotScripts.linestyles[0], label = "Volume Average")	   
-#    ax1.plot(np.nan, np.nan, color = 'k', ls = PlotScripts.linestyles[1], label = "Mass Average")	   
  
-    if plot_time == 1: 
-        ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
+    if plot_time == 1:
+ 
+        ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", fontsize = PlotScripts.global_labelsize)
+        tick_locs = np.arange(200.0, 1000.0, 100.0)
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(PlotScripts.time_tickinterval))
+        tick_labels = [r"$\mathbf{%d}$" % x for x in tick_locs]
+        ax1.xaxis.set_major_locator(mtick.MultipleLocator(100))
+        ax1.set_xticklabels(tick_labels, fontsize = PlotScripts.global_fontsize)
+
         ax1.set_xlim(PlotScripts.time_xlim)
 
         ax2 = ax1.twiny()
 
         t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
-        z_labels = ["$%d$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
+        z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
 
-        ax2.set_xlabel(r"$z$", size = label_size)
+        ax2.set_xlabel(r"$\mathbf{z}$", fontsize = PlotScripts.global_labelsize)
         ax2.set_xlim(PlotScripts.time_xlim)
         ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
-        ax2.set_xticklabels(z_labels) # But label them as redshifts.
+        ax2.set_xticklabels(z_labels, fontsize = PlotScripts.global_fontsize) # But label them as redshifts.
 
-    else:
-	
-        ax1.set_xlabel(r"$z$", size = label_size)	
+    tick_locs = np.arange(-0.2, 1.1, 0.2)
+    ax1.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs],
+                        fontsize = PlotScripts.global_fontsize)
+    labels = ax1.yaxis.get_ticklabels()
+    locs = ax1.yaxis.get_ticklocs()
+    for label, loc in zip(labels, locs):
+        print("{0} {1}".format(label, loc))
+
+    for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+        ax1.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+        ax2.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+
+
+    for ax in [ax1, ax2]:
+        ax.tick_params(which = 'both', direction='in', width = PlotScripts.global_tickwidth)
+        ax.tick_params(which = 'major', length = PlotScripts.global_ticklength)
+        ax.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
 
 	
     leg = ax1.legend(loc='lower left', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size + 3)
+        t.set_fontsize(legend_size + 6)
 
-    ax1.set_ylabel(r"$\langle \chi_{HI}\rangle$", size = label_size)         
+    ax1.set_ylabel(r"$\mathbf{\langle \chi_{HI}\rangle}$", size = label_size+6)
     ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))	
-    ax1.set_ylim([-0.1, 1.1])
+    ax1.set_ylim([-0.05, 1.05])
 	
 	#ax1.text(0.075, 0.965, '(c)', horizontalalignment='center', verticalalignment='center', transform = ax1.transAxes)
 	
@@ -1197,16 +1205,51 @@ def Power_Spectrum(ionized_cells, Ncell):
 
 ##########
 
-def plot_power(fractions_HI, k_21, Power_21, Error_21, k_XHII, Power_XHII, Error_XHII, fraction_idx_array, model_tags, OutputDir, output_tag, full_debug=0):
+def plot_power(fractions_HI, k_21, Power_21, Error_21, 
+               k_XHII, Power_XHII, Error_XHII, 
+               fraction_idx_array, model_tags, OutputDir, output_tag, 
+               paper_plots, full_debug=0):
     ## TODO: Update this function header string.
 
-    ax1 = plt.subplot(111)
+    def adjust_paper_plots(ax, HI_labels, model_labels):
+
+        for i in range(5):
+            ax[i].set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$', size = label_size + extra_size)
+            ax[i].set_xscale('log')
+            ax[i].set_xlim([7e-2, 5.5])
+
+            label = r"$\mathbf{\langle x_{HI}\rangle = " + str(HI_labels[i]) + r"}$"
+            ax[i].text(0.05, 0.9, label, transform = ax[i].transAxes,
+                       fontsize = PlotScripts.global_fontsize) 
+
+            ax[i].tick_params(which = 'both', direction='in', 
+                              width = PlotScripts.global_tickwidth)
+
+            ax[i].tick_params(which = 'major', 
+                              length = PlotScripts.global_ticklength)
+
+            ax[i].tick_params(which = 'minor', 
+                              length = PlotScripts.global_ticklength - 2.5)
+
+            for axis in ['top','bottom','left','right']: 
+                ax[i].spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+
+
+
+        ax[0].set_ylabel( r'$\mathbf{log_{10} \Delta_{21}^2 \left[mK^2\right]}$', size = label_size)
+        ax[0].set_yscale('log', nonposy='clip')
+        #ax[0].set_ylim([0.9, 1.8])
+
+    if paper_plots == 0:
+        ax1 = plt.subplot(111)
+    else:
+        fig, ax = plt.subplots(nrows=1, ncols=5, sharey='row', figsize=(16, 6))
 
     if full_debug == 1:
             print("len(k) = {0}".format(len(k_21)))
             print("len(k[0]) = {0}".format(len(k_21[0])))
 
-    for p, q in itertools.product(range(len(k_21)), range(len(k_21[0]))): # Equivalent to a nested for loop over k and k[0]. 
+    for count, (p, q) in enumerate(itertools.product(range(len(k_21)), range(len(k_21[0])))): # Equivalent to a nested for loop over k and k[0]. 
         if p == 0:	
             label = r"$\langle \chi_\mathrm{HI}\rangle = %.2f$" %(fractions_HI[q])
         else:
@@ -1233,48 +1276,69 @@ def plot_power(fractions_HI, k_21, Power_21, Error_21, k_XHII, Power_XHII, Error
                         #  of the log bins.  Represents where our uncertainty
                         #  because basically 0.
 
-        ax1.plot(bin_edges[35:-1], mean_power[35:], color = PlotScripts.colors[q], ls = PlotScripts.linestyles[p], label = label, lw = 2, rasterized=True) 
-        ax1.plot(k_21[p][q][w[0]:w[log_cutoff]],
-                 np.log10(Power_21[p][q][w[0]:w[log_cutoff]]), 
-                 color = PlotScripts.colors[q], 
-                 ls = PlotScripts.linestyles[p], 
-                 lw = 2, rasterized=True) 
-        #ax1.plot(k_21[p][q][w], np.log10(Power_21[p][q][w]), color = PlotScripts.colors[q], ls = PlotScripts.linestyles[p], label = label, lw = 2, rasterized=True) 
-        if (p == 0):
+        if paper_plots == 0:
+            ax1.plot(bin_edges[35:-1], pow(10, mean_power[35:]), 
+                     color = PlotScripts.colors[q], 
+                     ls = PlotScripts.linestyles[p], label = label, lw = 2, 
+                     rasterized=True) 
+
+            ax1.plot(k_21[p][q][w[0]:w[log_cutoff]],
+                     np.log10(Power_21[p][q][w[0]:w[log_cutoff]]), 
+                     color = PlotScripts.colors[q], 
+                     ls = PlotScripts.linestyles[p], 
+                     lw = 2, rasterized=True) 
+        else:
+            ax[count].plot(bin_edges[35:-1], pow(10, mean_power[35:]), 
+                           color = PlotScripts.colors[q], 
+                           ls = PlotScripts.linestyles[p], label = label, 
+                           lw = 2, rasterized=True) 
+
+            ax[count].plot(k_21[p][q][w[0]:w[log_cutoff]],
+                           Power_21[p][q][w[0]:w[log_cutoff]], 
+                           color = PlotScripts.colors[q], 
+                           ls = PlotScripts.linestyles[p], 
+                           lw = 2, rasterized=True) 
+
+        if (p == 0 and paper_plots == 0):
             error = Error_21[p][q][w[0]:w[log_cutoff]] * Power_21[p][q][w[0]:w[log_cutoff]] 
             ax1.fill_between(k_21[p][q][w[0]:w[log_cutoff]], 
                              np.log10(Power_21[p][q][w[0]:w[log_cutoff]] - error), 
                              np.log10(Power_21[p][q][w[0]:w[log_cutoff]] + error), 
                              color = PlotScripts.colors[q], alpha = 0.3)	
 
-    for p in range(0, len(model_tags)):
-        ax1.plot(-1, -5, ls = PlotScripts.linestyles[p], label = model_tags[p], color = 'k', lw = 2)
+    if paper_plots == 0:
+        for p in range(0, len(model_tags)):
+            ax1.plot(-1, -5, ls = PlotScripts.linestyles[p], label = model_tags[p], color = 'k', lw = 2)
 
-    ax1.text(0.1, 1.7, r"$\mathrm{Large \: Scales}$", color = 'k', size = PlotScripts.global_fontsize - 2)    
-    ax1.text(1.4, 1.7, r"$\mathrm{Small \: Scales}$", color = 'k', size = PlotScripts.global_fontsize - 2)       
-    ax1.arrow(0.2, 1.65, -0.05, 0.0, head_width = 0.01, head_length = 0.005, fc = 'k', ec = 'k') 
-    ax1.arrow(1.8, 1.65, 0.7, 0.0, head_width = 0.01, head_length = 0.1, fc = 'k', ec = 'k') 
-    #ax1.axvspan(7e-2, 0.5, color = 'k', alpha = 0.5) 
-    ax1.set_xlabel(r'$k \: \left[\mathrm{Mpc}^{-1}h\right]$', size = label_size + extra_size)
-    #plt.ylabel( r'$P\left(k\right) \: \: \left[\mathrm{Mpc}^3 h^{-3}\right]$', size = label_size + extra_size)
-    #ax1.set_ylabel( r'$\bar{\delta T_b^2} \Delta_{21}^2 \left[\mathrm{mK}^2\right]$', size = label_size + extra_size)
-    ax1.set_ylabel( r'$\log_{10} \Delta_{21}^2 \left[\mathrm{mK}^2\right]$', size = label_size + extra_size)
-    
-    ax1.set_xscale('log')
+        ax1.text(0.1, 1.7, r"$\mathrm{Large \: Scales}$", color = 'k', size = PlotScripts.global_fontsize - 2)    
+        ax1.text(1.4, 1.7, r"$\mathrm{Small \: Scales}$", color = 'k', size = PlotScripts.global_fontsize - 2)       
+        ax1.arrow(0.2, 1.65, -0.05, 0.0, head_width = 0.01, head_length = 0.005, fc = 'k', ec = 'k') 
+        ax1.arrow(1.8, 1.65, 0.7, 0.0, head_width = 0.01, head_length = 0.1, fc = 'k', ec = 'k') 
+        #ax1.axvspan(7e-2, 0.5, color = 'k', alpha = 0.5) 
+        ax1.set_xlabel(r'$k \: \left[\mathrm{Mpc}^{-1}h\right]$', size = label_size + extra_size)
+        #plt.ylabel( r'$P\left(k\right) \: \: \left[\mathrm{Mpc}^3 h^{-3}\right]$', size = label_size + extra_size)
+        #ax1.set_ylabel( r'$\bar{\delta T_b^2} \Delta_{21}^2 \left[\mathrm{mK}^2\right]$', size = label_size + extra_size)
+        ax1.set_ylabel( r'$\log_{10} \Delta_{21}^2 \left[\mathrm{mK}^2\right]$', size = label_size + extra_size)
+        
+        ax1.set_xscale('log')
 
-    leg = ax1.legend(loc='lower right', numpoints=1,
-         labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size)
+        leg = ax1.legend(loc='lower right', numpoints=1,
+             labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(legend_size)
 
-    ax1.set_xlim([7e-2, 5.5])
-    #ax1.set_ylim([np.amin(np.log10(Power[:])), np.amax(np.log10(Power[:]))])	
-    ax1.set_ylim([0.9, 1.8])
-    #ax.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
-    #ax.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
+        ax1.set_xlim([7e-2, 5.5])
+        #ax1.set_ylim([np.amin(np.log10(Power[:])), np.amax(np.log10(Power[:]))])	
+        ax1.set_ylim([0.9, 1.8])
+        #ax.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
+        #ax.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
 
-    plt.tight_layout()
+    else:
+        adjust_paper_plots(ax, fractions_HI, model_tags)
+        plt.tight_layout()
+        plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
 
     outputFile = OutputDir + output_tag + output_format 			
     plt.savefig(outputFile)  # Save the figure
@@ -1954,9 +2018,6 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, precision, simulation_norm,
             print("Normalization should be < 6 and should have been caught during initialization instead of here (plot_nine_panel_slices).")
             exit()
 
-        print(snapshot_index)
-        print(ZZ)
-        print(len(ZZ))	
         if snapshot_index < 0 or snapshot_index > len(AllVars.SnapZ):	
             ionized_cells = np.zeros((GridSizes[model_index], GridSizes[model_index], GridSizes[model_index]))
             redshift = 0.00
@@ -1991,11 +2052,11 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, precision, simulation_norm,
             ax.set_title(title, fontsize = PlotScripts.global_labelsize) 
 
         if (model_index == 0): 
-            tmp = (r"$\langle \chi_\mathrm{HI}\rangle = %.2f$") %(1 - fractions_HI[count_index])
-            ax.text(-0.65,0.5, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize) 
+            tmp = (r"$\langle \chi_\mathrm{HI}\rangle = %.2f$") %(fractions_HI[count_index])
+            ax.text(-0.65,0.5, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize - 8) 
 
         tmp = r"$z = %.2f$" %(redshift)
-        txt = ax.text(0.55,0.9, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize, color = 'k')
+        txt = ax.text(0.55,0.9, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize - 10, color = 'k')
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
         plt.draw()
         frame1 = plt.gca()
@@ -2067,7 +2128,7 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
             ax.set_title(title, fontsize = legend_size + 6)
         if (i == 1 or i == 4 or i == 7):
             tmp = (r"$x_\mathrm{HI} = %.3f$") %(fractions_HI[count_index])
-            ax.text(10.0,0.5, tmp, transform = ax.transAxes, fontsize = legend_size + 6)
+            ax.text(10.0,0.5, tmp, transform = ax.transAxes, fontsize = legend_size - 4)
 
         frame1 = plt.gca()
         frame1.axes.get_xaxis().set_visible(False)
@@ -2087,14 +2148,52 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 
 ##########
 
-
-### TODO: Use mass-averaged ionization fraction instead of volume-averaged.
-def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
+def plot_optical_depth(ZZ, mass_frac, model_tags, OutputDir, output_tag):
 
     print("Plotting the optical depth")	
     def integrand(z):
         H = Hubble_Param(z, AllVars.Hubble_h, AllVars.Omega_m) / (AllVars.pc_to_m * 1.0e6 / 1.0e3) # Hubble Parameter in Mpc / s / Mpc. 
         return (((1 + z)**2) / H)
+
+    def adjust_plot(ax):
+
+        ax.set_xlabel(r"$\mathbf{z}$", size = label_size)
+        ax.set_ylabel(r"$\mathbf{\tau}$", size = label_size)
+
+        ax.set_ylim([0.04, 0.08])
+        ax.set_xlim([PlotScripts.z_plot[0], PlotScripts.z_plot[-1]])
+
+        ax.tick_params(which = 'both', direction='in',
+                          width = PlotScripts.global_tickwidth)
+
+        ax.tick_params(which = 'major',
+                          length = PlotScripts.global_ticklength)
+
+        ax.tick_params(which = 'minor',
+                          length = PlotScripts.global_ticklength - 2.5)
+
+        for axis in ['top','bottom','left','right']:
+            ax.spines[axis].set_linewidth(PlotScripts.global_axiswidth) 
+
+        labels = ax.xaxis.get_ticklabels()
+        locs = ax.xaxis.get_ticklocs()
+        for label, loc in zip(labels, locs):
+            print("{0} {1}".format(label, loc)) 
+
+        labels = ax.yaxis.get_ticklabels()
+        locs = ax.yaxis.get_ticklocs()
+        for label, loc in zip(labels, locs):
+            print("{0} {1}".format(label, loc)) 
+
+
+        #tick_locs = PlotScripts.z_plot 
+        #ax[0].set_yticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
+        #                     fontsize = PlotScripts.global_fontsize)
+
+        leg = ax.legend(loc='upper left', numpoints=1,labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(legend_size)
  
     tau_04 = integrate.quad(integrand, 0, 4)[0] # Tau for z = 0 to 4.
     tau_04 *= (1 + 2*AllVars.Y/(4 * (1-AllVars.Y)))
@@ -2108,14 +2207,14 @@ def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
     ax.fill_between(np.arange(0, 20, 0.01), 0.058 - 0.012, 0.058 + 0.012, color = 'k', alpha = 0.3) 
     ax.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
 
-    ax.text(12, 0.055, r"$\mathrm{Planck \: 2016}$")
+    ax.text(6.5, 0.055, r"$\mathrm{Planck \: 2016}$")
 
-    for p in range(0, len(volume_frac)):
+    for p in range(0, len(mass_frac)):
         tau = np.empty((len(ZZ)))
 
         for i in range(len(ZZ)-1, -1, -1):
-            if p < len(volume_frac):
-                XHII = volume_frac[p][i]
+            if p < len(mass_frac):
+                XHII = mass_frac[p][i]
             elif ZZ[i] < 8:
                 XHII = 0
             else:
@@ -2139,7 +2238,7 @@ def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
             ''' 
 
 
-        if p < len(volume_frac):
+        if p < len(mass_frac):
             label = model_tags[p]
         else:
             label = label_planck
@@ -2148,16 +2247,7 @@ def plot_optical_depth(ZZ, volume_frac, model_tags, OutputDir, output_tag):
         print("Tau = {0}".format(tau)) 
         ax.plot(ZZ, tau, label = label, color = PlotScripts.colors[p], ls = PlotScripts.linestyles[p], lw = paper_lineweight)	
 
-    ax.set_xlabel(r"$z$")
-    ax.set_ylabel(r"$\tau$")
-
-    ax.set_xlim([6, 13])
-    ax.set_ylim([0.04, 0.08])
-
-    leg = ax.legend(loc='upper left', numpoints=1,labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size)
+    adjust_plot(ax)
 
     plt.tight_layout()
     outputFile = OutputDir + output_tag + output_format 
@@ -2402,6 +2492,13 @@ if __name__ == '__main__':
                   #r"$f_\mathrm{M_*} = 10^9 - 10^{10}$"]
                   r"$f_\mathrm{esc} \: \propto \: \mathrm{SFR}$"]
 
+
+    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+
     output_tags = [r"Base Reion On"]
 
     number_models = 5
@@ -2413,7 +2510,7 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'paper'
+    model = 'paper_plots_SFR0.3'
 
     GridSize_model1 = 256
         
@@ -2436,6 +2533,7 @@ if __name__ == '__main__':
     filepath_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_XHII"
     filepath_model16="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.60_XHII"
     filepath_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.40_XHII"
+    filepath_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_XHII"
 
     filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/newphoton_SF0.03_fesc0.35_HaloPartCut32_nionHI"
     filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.2_1.00_2.50_quasar_0.20_1.00_2.50_HaloPartCut32_nionHI"
@@ -2454,6 +2552,7 @@ if __name__ == '__main__':
     filepath_nion_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI"
     filepath_nion_model16="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.60_SFR_0.200_0.600_HaloPartCut32_nionHI"
     filepath_nion_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.40_SFR_0.200_0.400_HaloPartCut32_nionHI"
+    filepath_nion_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.30_SFR_0.200_0.300_HaloPartCut32_nionHI"
   
     filepath_density_model1="/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"
 
@@ -2464,7 +2563,7 @@ if __name__ == '__main__':
                                     filepath_model12,
                                     filepath_model15,
                                     filepath_model6,
-                                    filepath_model17]
+                                    filepath_model18]
     #ionized_cells_filepath_array = [filepath_model1,
     #                                filepath_model4,
     #                                filepath_model6]
@@ -2472,7 +2571,7 @@ if __name__ == '__main__':
                            filepath_nion_model12,
                            filepath_nion_model15,
                            filepath_nion_model6,
-                           filepath_nion_model17]
+                           filepath_nion_model18]
     #nion_filepath_array = [filepath_nion_model1,
     #                       filepath_nion_model4,
     #                       filepath_nion_model6]
@@ -2538,8 +2637,12 @@ if __name__ == '__main__':
     #fractions_HI = [0.75, 0.50]
     #delta_HI = [0.015, 0.03]
 
-    fractions_HI = [0.75, 0.50, 0.25]
-    delta_HI = [0.015, 0.03, 0.03]
+    fractions_HI = [0.90, 0.75, 0.50, 0.25, 0.10]
+    delta_HI = [0.015, 0.03, 0.03, 0.03, 0.03]
+
+    #fractions_HI = [0.50, 0.25, 0.10]
+    #delta_HI = [0.03, 0.03, 0.03]
+
 
     HI_fraction_high = np.add(fractions_HI, delta_HI) 
     HI_fraction_low= np.subtract(fractions_HI, delta_HI) 
@@ -2553,7 +2656,7 @@ if __name__ == '__main__':
     #calculate_MC_snaps = np.arange(lowerZ, upperZ, 1)
     #MC_ZZ_snaps = [ZZ[i] for i in calculate_MC_snaps] 
  
-    calculate_power = 1 # 0 to NOT calculate the power spectra, 1 to calculate it. 
+    calculate_power = 0 # 0 to NOT calculate the power spectra, 1 to calculate it. 
 
     do_hoshen = 0
    
@@ -2682,9 +2785,10 @@ if __name__ == '__main__':
         plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array,
                         simulation_norm, 1, model_tags, OutputDir,
                         "nioncut_0.01_0.50")
-        plot_optical_depth(AllVars.SnapZ[snaplist], volume_frac_array, model_tags, OutputDir, "OpticalDepth")
+        plot_optical_depth(AllVars.SnapZ[snaplist], mass_frac_array, model_tags, OutputDir, "OpticalDepth")
 
-        #plot_nine_panel_slices(AllVars.SnapZ[snaplist], ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+        plot_nine_panel_slices(AllVars.SnapZ[snaplist],
+ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
 
         if(plot_MC == 1):
             plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ))
@@ -2700,11 +2804,21 @@ if __name__ == '__main__':
             plotting_MC_ZZ = MC_ZZ_snaps 
             plotting_HI = volume_frac_array 
 
+    paper_plots = 1
+
+    for i in range(5):
+        print("Model {0}".format(model_tags[i])) 
+        for val in fractions_HI:
+            idx = (np.abs(mass_frac_array[i] - val)).argmin()
+            print("HI Fract {0}: Nearest Idx {1} with value {2}".format(val, 
+                                                                        idx, 
+                                                                        mass_frac_array[i][idx]))
+
     #plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
-    plot_power(fractions_HI, wavenumber_array, powerspectra_array,
-               powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array,
-               powerspectra_XHII_error_array, fraction_idx_array, model_tags, OutputDir,
-               "PowerSpectrum")
+    #plot_power(fractions_HI, wavenumber_array, powerspectra_array,
+    #           powerspectra_error_array, wavenumber_XHII_array, powerspectra_XHII_array,
+    #           powerspectra_XHII_error_array, fraction_idx_array, model_tags, 
+    #           OutputDir, "PowerSpectrum", paper_plots)
 
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[0], (cosmo.lookback_time(MC_ZZ[0][0]).value - cosmo.lookback_time(MC_ZZ[0][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[0][0]).value, cosmo.lookback_time(MC_ZZ[0][-1]).value)
     #print "Duration of reionization for Model %s is %.4f Myr (%.4f Gyr - %.4f Gyr)" %(model_tags[1], (cosmo.lookback_time(MC_ZZ[1][0]).value - cosmo.lookback_time(MC_ZZ[1][-1]).value) * 1.0e3, cosmo.lookback_time(MC_ZZ[1][0]).value, cosmo.lookback_time(MC_ZZ[1][-1]).value)

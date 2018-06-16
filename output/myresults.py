@@ -65,6 +65,11 @@ bin_width = 0.2
 NB = int((m_high - m_low) / bin_width)
 NB_gal = int((m_gal_high - m_gal_low) / bin_width)
 
+fej_low = 0.0
+fej_high = 1.0
+fej_bin_width = 0.05
+NB_fej = int((fej_high - fej_low) / fej_bin_width)
+
 def raise_list_power(my_list, n):
     return [pow(x, n) for x in my_list]
 def raise_power_list(my_list, n):
@@ -206,7 +211,8 @@ def Std_Log(array, mean):
 
 
 def collect_across_tasks(mean_per_task, std_per_task, N_per_task, SnapList, 
-                         BinSnapList=[], binned=False, m_bin_low=0.0, m_bin_high=0.0):
+                         BinSnapList=[], binned=False, m_bin_low=0.0, 
+                         m_bin_high=0.0, my_bin_width=bin_width):
                 
     """
     Reduces arrays that are unique to each task onto the master task.
@@ -267,9 +273,9 @@ def collect_across_tasks(mean_per_task, std_per_task, N_per_task, SnapList,
                 if SnapList[model_number][snapshot_idx] == BinSnapList[model_number][count]:
                     master_mean[model_number], master_std[model_number], master_N[model_number] = calculate_pooled_stats(master_mean[model_number], master_std[model_number], master_N[model_number], mean_per_task[model_number][snapshot_idx], std_per_task[model_number][snapshot_idx], N_per_task[model_number][snapshot_idx])
                     master_bin_middle[model_number].append(np.arange(m_bin_low,
-                                                                     m_bin_high+bin_width, 
-                                                                     bin_width)[:-1] 
-                                                           + bin_width * 0.5)
+                                                                     m_bin_high+my_bin_width, 
+                                                                     my_bin_width)[:-1] 
+                                                           + my_bin_width* 0.5)
 
                     count += 1
 
@@ -630,7 +636,8 @@ def StellarMassFunction(SnapList, SMF, simulation_norm, FirstFile, LastFile, Num
 def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm, 
                      mean_galaxy_fesc, std_galaxy_fesc, N_galaxy_fesc, 
                      mean_halo_fesc, std_halo_fesc, N_halo_fesc, 
-                     ResolutionLimit_mean, model_tags, paper_plots, output_tag):
+                     ResolutionLimit_mean, model_tags, paper_plots,
+                     mass_global, fesc_global, Ngamma_global, output_tag):
     """
     Plots the escape fraction as a function of stellar/halo mass.
     Parallel compatible.
@@ -752,7 +759,7 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
         for count, (x, y) in enumerate(zip(ax_x, ax_y)):
 
             ax[x,y].set_xlim([4.8, 10.4])
-            ax[x,y].set_ylim([0.05, 0.65])
+            ax[x,y].set_ylim([0.00, 0.68])
 
             ax[x,y].yaxis.set_major_locator(mtick.MultipleLocator(0.1))
             ax[x,y].xaxis.set_major_locator(mtick.MultipleLocator(1.0))
@@ -764,13 +771,15 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
                             PlotScripts.global_tickwidth)
 
             ax[x,y].tick_params(which = 'major', length = PlotScripts.global_ticklength)
+            ax[x,y].tick_params(which = 'minor', 
+                                length = PlotScripts.global_ticklength - 2)
     
             for axis in ['top','bottom','left','right']: # Adjust axis thickness.
                 ax[x,y].spines[axis].set_linewidth(PlotScripts.global_axiswidth)
 
             label = model_tags[count]
 
-            ax[x,y].text(0.7, 0.8, label, transform = ax[x,y].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+            ax[x,y].text(0.05, 0.65, label, transform = ax[x,y].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
   
         tick_locs = np.arange(4.0, 11.0)
         ax[1,0].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
@@ -779,7 +788,7 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
         ax[1,1].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
                             fontsize = PlotScripts.global_fontsize)
 
-        tick_locs = np.arange(0.0, 0.80, 0.10)
+        tick_locs = np.arange(-0.1, 0.80, 0.10)
         ax[0,0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
                             fontsize = PlotScripts.global_fontsize)
         ax[1,0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
@@ -814,6 +823,7 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
             
         else:
             fig, ax = plt.subplots(nrows=2, ncols=2, sharex='col', sharey='row', figsize=(16, 6))
+            fig2, ax2 = plt.subplots(nrows=2, ncols=2, sharex='col', sharey='row', figsize=(16, 6))
 
             delta_fontsize = 0
             caps = 5
@@ -869,7 +879,19 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
                                  ls = PlotScripts.linestyles[0], 
                                  rasterized = True, label = label, 
                                  lw = PlotScripts.global_linewidth)
-         
+       
+                        w = np.random.randint(0,
+                                              len(mass_global[model_number][snapshot_idx][0]),
+                                              size=500)
+                        sc = ax2[count_x, count%2].scatter(mass_global[model_number][snapshot_idx][0][w], 
+                                                           fesc_global[model_number][snapshot_idx][0][w],
+                                                           c=np.log10(Ngamma_global[model_number][snapshot_idx][0][w]*1.0e50),
+                                                           alpha = 0.5,cmap='plasma')
+                        plt.colorbar(sc)
+                        #ax2[count_x, count%2].hexbin(mass_global[model_number][snapshot_idx], 
+                        #                            fesc_global[model_number][snapshot_idx],
+                        #                            C=Ngamma_global[model_number][snapshot_idx])
+ 
 
                     plot_count += 1                
                     if (plot_count == len(PlotSnapList[model_number])):
@@ -882,20 +904,36 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
         else:
             adjust_paper_plots(ax, model_tags) 
 
-            leg = ax[0,0].legend(loc="upper center", numpoints=1, labelspacing=0.1)
+            leg = ax[0,0].legend(loc="upper right", numpoints=1, labelspacing=0.1)
             leg.draw_frame(False)  # Don't want a box frame
             for t in leg.get_texts():  # Reduce the size of the text
                 t.set_fontsize('medium')
 
             plt.tight_layout()
             plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
+
+            leg = ax2[0,0].legend(loc="upper right", numpoints=1, labelspacing=0.1)
+            leg.draw_frame(False)  # Don't want a box frame
+            for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize('medium')
+
+            plt.tight_layout()
+            plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
         ## Output ##
 
         outputFile = './%s%s' %(output_tag, output_format)
         fig.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
 
-        plt.close(fig)        
+
+        outputFile = './%s_scatter%s' %(output_tag, output_format)
+        fig2.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile))
+
+        plt.close(fig)
+        plt.close(fig2)        
 
 ##
 
@@ -1386,6 +1424,150 @@ def plot_sfr_galaxy(SnapList, PlotSnapList, simulation_norm,
 
 
 ##
+
+def plot_fej_Ngamma(SnapList, PlotSnapList, simulation_norm,
+                    mean_Ngamma_fej, std_Ngamma_fej,
+                    N_fej, model_tags, output_tag): 
+    
+    def adjust_plot(ax):
+
+        ax.set_xlabel(r'$\mathbf{f_\mathrm{ej}}$',
+                           size = PlotScripts.global_fontsize)
+
+        ax.set_ylabel(r'$\mathbf{\log_{10}\langle N_\gamma\rangle_{f_{ej}}}$', 
+                      size = PlotScripts.global_labelsize)
+
+        ax.set_xlim([0.0, 1.0])
+        #ax.set_ylim([0.05, 0.45])
+
+        #ax.axhline(0.35, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')
+        #ax.text(9.1, 0.37, r"$f_\mathrm{esc} = 0.35$", color = 'k', 
+        #        size = PlotScripts.global_fontsize)
+
+        ax.xaxis.set_minor_locator(mtick.MultipleLocator(0.10))
+        #ax.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+
+        ax.tick_params(which = 'both', direction='in', width =
+                        PlotScripts.global_tickwidth)
+        ax.tick_params(which = 'major', length = PlotScripts.global_ticklength)
+        ax.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
+    
+        for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+            ax.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+   
+        #tick_locs = np.arange(6.0, 11.0)
+        #ax.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+        #                    fontsize = PlotScripts.global_fontsize)
+
+        #tick_locs = np.arange(0.0, 0.80, 0.10)
+        #ax.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+        #                    fontsize = PlotScripts.global_fontsize)
+
+       
+        labels = ax.xaxis.get_ticklabels()
+        locs = ax.xaxis.get_ticklocs()
+        for label, loc in zip(labels, locs):
+            print("{0} {1}".format(label, loc)) 
+        
+ 
+        leg = ax.legend(loc="upper right", numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+
+
+    ## Array initialization ##
+
+    master_mean_Ngamma_fej, master_std_Ngamma_fej, master_N_Ngamma_fej, master_bin_middle_fej = \
+    collect_across_tasks(mean_Ngamma_fej, std_Ngamma_fej, N_fej, 
+                         SnapList, PlotSnapList, True, fej_low, fej_high,
+                         fej_bin_width)
+ 
+    if rank == 0:
+
+        fig = plt.figure()  
+        ax1 = fig.add_subplot(111)  
+        ax2 = ax1.twinx()
+        for model_number in range(0, len(SnapList)):
+
+            ## Normalization for each model. ##
+            if (simulation_norm[model_number] == 0):
+                AllVars.Set_Params_Mysim()
+            elif (simulation_norm[model_number] == 1):
+                AllVars.Set_Params_MiniMill()
+            elif (simulation_norm[model_number] == 2):
+                AllVars.Set_Params_Tiamat()
+            elif (simulation_norm[model_number] == 3):
+                AllVars.Set_Params_Tiamat_extended()
+            elif (simulation_norm[model_number] == 4):
+                AllVars.Set_Params_Britton()       
+            elif(simulation_norm[model_number] == 5):
+                AllVars.Set_Params_Kali()
+
+            plot_count = 0
+            for snapshot_idx in range(0, len(SnapList[model_number])):
+                
+                if (SnapList[model_number][snapshot_idx] == PlotSnapList[model_number][plot_count]):
+
+                        label = model_tags[model_number]
+                    '''
+                    if (model_number == 0):
+                        label = r"$\mathbf{z = " + \
+                                str(int(round(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]))) +\
+                                "}$"                
+                    else:
+                        label = ""
+                    '''
+                    w = np.where((master_N_Ngamma_fej[model_number][snapshot_idx] < 4))[0] # If there are no galaxies in the bin we don't want to plot. 
+                    master_mean_Ngamma_fej[model_number][snapshot_idx][w] = np.nan 
+
+
+                    ax1.plot(master_bin_middle_fej[model_number][snapshot_idx],                     
+                             np.log10(master_mean_Ngamma_fej[model_number][snapshot_idx]*1.0e50),
+                             color = PlotScripts.colors[plot_count], 
+                             ls = PlotScripts.linestyles[model_number], 
+                             rasterized = True, label = label, 
+                             lw = PlotScripts.global_linewidth)
+
+                    #ax1.plot(master_bin_middle_fej[model_number][snapshot_idx],                     
+                    #         np.log10(master_mean_Ngamma_fej[model_number][snapshot_idx]*1.0e50
+                    #                  * master_N_Ngamma_fej[model_number][snapshot_idx]),
+                    #         color = PlotScripts.colors[plot_count], 
+                    #         ls = PlotScripts.linestyles[model_number], 
+                    #         rasterized = True, label = label, 
+                             #lw = PlotScripts.global_linewidth)
+
+                    '''
+                    ax2.plot(master_bin_middle_fej[model_number][snapshot_idx],                     
+                             np.log10(master_N_Ngamma_fej[model_number][snapshot_idx]), 
+                             color = PlotScripts.colors[plot_count], 
+                             ls = PlotScripts.linestyles[model_number], 
+                             rasterized = True, label = label, 
+                             lw = PlotScripts.global_linewidth)
+                    '''
+         
+                    plot_count += 1                
+                    if (plot_count == len(PlotSnapList[model_number])):
+                        break
+     
+      
+        adjust_plot(ax1)
+
+        leg = ax1.legend(loc="upper center", numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+
+        plt.tight_layout()
+
+        ## Output ##
+
+        outputFile = './%s%s' %(output_tag, output_format)
+        fig.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile))
+
+        plt.close(fig)        
+
 
 def plot_ejectedfraction(SnapList, PlotSnapList, simulation_norm, mean_mvir_ejected, 
                          std_mvir_ejected, N_ejected, mean_ejected_z,
@@ -3500,7 +3682,7 @@ def determine_MH_fesc_constants(low_MH, low_fesc, high_MH, high_fesc):
 if __name__ == '__main__':
 
     np.seterr(divide='ignore')
-    number_models = 1
+    number_models = 4
 
     galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_z5.782'
     merged_galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_MergedGalaxies'
@@ -3511,8 +3693,8 @@ if __name__ == '__main__':
     galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/newphoton_SF0.03_fej0.4_z5.782'
     merged_galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/newphoton_SF0.03_fej0.4_MergedGalaxies'
 
-    galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.40_z5.782'
-    merged_galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.40_MergedGalaxies'
+    galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_z5.782'
+    merged_galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_MergedGalaxies'
 
 
         
@@ -3521,21 +3703,21 @@ if __name__ == '__main__':
                                galaxies_model3,
                                galaxies_model4]
 
-    galaxies_filepath_array = [galaxies_model3]
+    #galaxies_filepath_array = [galaxies_model3]
 
     merged_galaxies_filepath_array = [merged_galaxies_model1,
                                       merged_galaxies_model2,
                                       merged_galaxies_model3,
                                       merged_galaxies_model4]
 
-    merged_galaxies_filepath_array = [merged_galaxies_model3]
+    #merged_galaxies_filepath_array = [merged_galaxies_model3]
        
     number_substeps = [10, 10, 10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
     number_snapshots = [99, 99, 99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
      
     FirstFile = [0, 0, 0, 0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [0, 63, 63, 63] # The last file number THAT WE ARE PLOTTING.
+    LastFile = [63, 63, 63, 63] # The last file number THAT WE ARE PLOTTING.
     NumFile = [64, 64, 64, 64] # The number of files for this simulation (plotting a subset of these files is allowed).     
     same_files = [0, 0, 0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
     # This array will tell us if we should keep the files for the next model or otherwise throw them away. 
@@ -3576,12 +3758,18 @@ if __name__ == '__main__':
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
     #SnapList = [np.arange(20,99), np.arange(20, 99), np.arange(20, 99)]    
-    SnapList = [[33, 50, 64, 76, 93],
-                [33, 50, 64, 76, 93],
-                [33, 50, 64, 76, 93],
-                [33, 50, 64, 76, 93]]
+    #SnapList = [[33, 50, 64, 76, 93],
+    #            [33, 50, 64, 76, 93],
+    #            [33, 50, 64, 76, 93],
+    #            [33, 50, 64, 76, 93]]
     
-    SnapList = [[33, 50, 64, 76, 93]]
+    SnapList = [[64],
+                [64],
+                [64],
+                [64]]
+
+    #SnapList = [[33, 50, 64, 76, 93]]
+    #SnapList = [[33]]
     #SnapList = [np.arange(20,99)]
     #PlotSnapList = [[30, 50, 64, 76, 93]]
     #PlotSnapList = [[93, 76, 64]]
@@ -3599,7 +3787,7 @@ if __name__ == '__main__':
     stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
     calculate_observed_LF = [0, 0, 0, 0] # Determines whether we want to account for dust extinction when calculating the luminosity function of each model.
 
-    paper_plots = 0 
+    paper_plots = 1 
     
     ##############################################################################################################
     ## Do a few checks to ensure all the arrays were specified properly. ##
@@ -3705,6 +3893,17 @@ if __name__ == '__main__':
     mean_ejected_z = [] # Mean ejected fraction as a function of redshift. 
     std_ejected_z = [] # Same as above but for standard deviation. 
 
+    ## Arrays that aren't functions of other variables. ##
+    Ngamma_global = []
+    mass_global = []
+    fesc_global = []
+
+    ## Arrays as a function of fej ##
+
+    mean_Ngamma_fej = []
+    std_Ngamma_fej = []
+    N_fej = []
+
     ## Now the outer arrays have been defined, set up the next nest level for the number of models. ##
 
     for model_number in range(0,number_models):
@@ -3770,6 +3969,16 @@ if __name__ == '__main__':
 
         mean_ejected_z.append([])
         std_ejected_z.append([])
+
+        ## Arrays that aren't functions ## 
+        Ngamma_global.append([])
+        mass_global.append([])
+        fesc_global.append([])
+
+        ## Arrays as a function of fej ##
+        mean_Ngamma_fej.append([]) 
+        std_Ngamma_fej.append([]) 
+        N_fej.append([]) 
 
         ## And then finally set up the inner most arrays ##
         ## NOTE: We do the counts as float so we can keep consistency when we're calling MPI operations (just use MPI.FLOAT rather than deciding if we need to use MPI.INT)
@@ -3841,6 +4050,16 @@ if __name__ == '__main__':
             mean_ejected_z[model_number].append(0.0)
             std_ejected_z[model_number].append(0.0)
 
+            
+            Ngamma_global[model_number].append([])
+            mass_global[model_number].append([])
+            fesc_global[model_number].append([])
+
+
+            ## Arrays as a function of fej. ##            
+            mean_Ngamma_fej[model_number].append(np.zeros((NB_fej), dtype = np.float32)) 
+            std_Ngamma_fej[model_number].append(np.zeros((NB_fej), dtype = np.float32)) 
+            N_fej[model_number].append(np.zeros((NB_fej), dtype = np.float32)) 
 
     ## Define structured arrays ##
 
@@ -4158,11 +4377,35 @@ if __name__ == '__main__':
                                               len(w_gal))
 
                     N_z[current_model_number][snapshot_idx] += len(w_gal)
-                                
+
+                    #### Arrays that are just kept across snapshots ##
+                    Ngamma_global[current_model_number][snapshot_idx].append(Ngamma_gal)
+                    mass_global[current_model_number][snapshot_idx].append(mass_gal)
+                    fesc_global[current_model_number][snapshot_idx].append(fesc)
+
+                    #### Arrays that are function of fej ##
+                    (mean_Ngamma_fej_local, std_Ngamma_fej_local, N_local,
+                     sum_Ngamma_fej_local, bin_middle) = AllVars.Calculate_2D_Mean(
+                                      ejected_fraction, Ngamma_gal,
+                                      fej_bin_width, fej_low, fej_high) 
+
+                    (mean_Ngamma_fej[current_model_number][snapshot_idx],
+                     std_Ngamma_fej[current_model_number][snapshot_idx]) = \
+                    update_cumulative_stats(mean_Ngamma_fej[current_model_number][snapshot_idx],
+                                            std_Ngamma_fej[current_model_number][snapshot_idx],
+                                            N_fej[current_model_number][snapshot_idx],
+                                            mean_Ngamma_fej_local,
+                                            std_Ngamma_fej_local,
+                                            N_local) 
+
+                    N_fej[current_model_number][snapshot_idx] += N_local
+
+
                 done_model[current_model_number] = 1
                 if (current_model_number < number_models):                
                     keep_files =  same_files[current_model_number] # Decide if we want to keep the files loaded or throw them out. 
                     current_model_number += 1 # Update the inner loop model number.
+
 
     #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile,
     #                    LastFile, NumFile, galaxy_halo_mass_mean, model_tags,
@@ -4188,23 +4431,28 @@ if __name__ == '__main__':
     #                     model_tags, "ejectedfraction") 
    
     #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "SN_Prescription")
-    plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
-                     mean_fesc_galaxy_array, std_fesc_galaxy_array, 
-                     N_galaxy_array, mean_fesc_halo_array, 
-                     std_fesc_halo_array,  N_halo_array,
-                     galaxy_halo_mass_mean, model_tags, 
-                     paper_plots, "fej")
-
+    #plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
+    #                 mean_fesc_galaxy_array, std_fesc_galaxy_array, 
+    #                 N_galaxy_array, mean_fesc_halo_array, 
+    #                 std_fesc_halo_array,  N_halo_array,
+    #                 galaxy_halo_mass_mean, model_tags, 
+    #                 paper_plots, mass_global, fesc_global, Ngamma_global, 
+    #                 "paper_fesc")
+    '''
     plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
                      mean_Ngamma_galaxy_array, std_Ngamma_galaxy_array, 
                      N_galaxy_array, model_tags, 
                      paper_plots, "Ngamma")
 
 
-    #plot_sfr_galaxy(SnapList, PlotSnapList, simulation_norm,
-    #                 mean_sfr_galaxy_array, std_sfr_galaxy_array, 
-    #                 mean_ssfr_galaxy_array, std_ssfr_galaxy_array, 
-    #                 N_galaxy_array, model_tags, "sSFR")
+    plot_sfr_galaxy(SnapList, PlotSnapList, simulation_norm,
+                     mean_sfr_galaxy_array, std_sfr_galaxy_array, 
+                     mean_ssfr_galaxy_array, std_ssfr_galaxy_array, 
+                     N_galaxy_array, model_tags, "sSFR")
+    '''
+    plot_fej_Ngamma(SnapList, PlotSnapList, simulation_norm,
+                    mean_Ngamma_fej, std_Ngamma_fej,
+                    N_fej, model_tags, "Ngamma_fej")
 
     #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_test") ## PARALELL COMPATIBLE
     #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
