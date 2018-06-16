@@ -1,19 +1,19 @@
 EXECS  := create_filter_mass 
 
-OBJS  := filter_mass/main.o \
-		 filter_mass/read_parameter_file.o \
-		 filter_mass/tree_io.o \
-		 filter_mass/reionization.o \
-		 filter_mass/save.o
+OBJS  := main.o \
+		 read_parameter_file.o \
+		 tree_io.o \
+		 reionization.o \
+		 save.o
  	 
-EXECS_OBJS := filter_mass/create_filter_mass.o 
+EXECS_OBJS := create_filter_mass.o 
 
 INCL  := ./Makefile \
-		 filter_mass/main.h \
-		 filter_mass/read_parmater_file.h \
-		 filter_mass/tree_io.h \
-		 filter_mass/reionization.h \
-		 filter_mass/save.h
+		 main.h \
+		 read_parmater_file.h \
+		 tree_io.h \
+		 reionization.h \
+		 save.h
 
 USE-MPI = yes
 
@@ -39,7 +39,7 @@ LIBS  += -g -lm  $(GSL_LIBS) -lgsl -lgslcblas
 
 all: $(EXECS)
 
-create_filter_mass: $(OBJS) filter_mass/main.o
+create_filter_mass: $(OBJS) main.o
 	$(CC) $(CFLAGS) $^ $(LIBS) -Xlinker -rpath -Xlinker $(GSL_LIBDIR) -o  $@
 
 clean:
