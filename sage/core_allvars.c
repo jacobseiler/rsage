@@ -45,8 +45,8 @@ char ReionRedshiftName[512];
 int  ReionSnap;
 
 int TotHalos;
-int TotGalaxies[ABSOLUTEMAXSNAPS];
-int *TreeNgals[ABSOLUTEMAXSNAPS];
+int TotGalaxies;
+int *TreeNgals;
 
 int LastSnapShotNr;
 
@@ -136,7 +136,6 @@ double AA[ABSOLUTEMAXSNAPS];
 double Age[ABSOLUTEMAXSNAPS];
 
 int MAXSNAPS;
-int NOUT;
 int Snaplistlen;
 
 gsl_rng *random_generator;

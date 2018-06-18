@@ -259,7 +259,7 @@ int32_t init_nionlookup(void)
     fprintf(stderr, "Could not allocate memory for the Ngamma HI bins for the tracking of stellar populations.\n");
     return EXIT_FAILURE;
   }
-  printf("File opened");
+
   while (i < 8)
   {
     fgets(buf, MAX_STRING_LEN, niontable);
@@ -298,7 +298,6 @@ int32_t init_nionlookup(void)
     ++StellarTracking_Len;
   }
 
-  printf("Lookup table read\n"); 
   return EXIT_SUCCESS;
 
 #undef MAXBINS

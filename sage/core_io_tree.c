@@ -16,7 +16,7 @@
 
 void load_tree_table(int filenr, int32_t treestyle)
 {
-  int i, n;
+  int32_t i;
   char buf[MAXLEN];
    
   if (treestyle == 0)
@@ -33,26 +33,20 @@ void load_tree_table(int filenr, int32_t treestyle)
     ABORT(EXIT_FAILURE);
   }
 
-  for(n = 0; n < NOUT; n++)
+  TreeNgals = mycalloc(Ntrees, sizeof(*(TreeNgals))); 
+  if (TreeNgals == NULL)
   {
-    TreeNgals[n] = mycalloc(Ntrees, sizeof(*(TreeNgals[n]))); 
-    if (TreeNgals[n] == NULL)
-    {
-      fprintf(stderr, "Could not allocate memory for `TreeNgals[%d]`.\n", n);
-      ABORT(EXIT_FAILURE);
-    }
+    fprintf(stderr, "Could not allocate memory for `TreeNgals`.\n");
+    ABORT(EXIT_FAILURE);
   }
- 
-  for(n = 0; n < NOUT; n++)
+   
+  for(i = 0; i < Ntrees; i++)
   {
-    for(i = 0; i < Ntrees; i++)
-    {
-      TreeNgals[n][i] = 0;
-      TreeNMergedgals[i] = 0;
-    }
+    TreeNgals[i] = 0;
+    TreeNMergedgals[i] = 0;
+  }
 
-    TotGalaxies[n] = 0;
-  }
+  TotGalaxies = 0;  
   TotMerged = 0;
 
 }
@@ -61,11 +55,10 @@ void load_tree_table(int filenr, int32_t treestyle)
 
 void free_tree_table(void)
 {
-  int n;
 
   myfree(TreeNMergedgals, sizeof(*(TreeNMergedgals)) * Ntrees); 
-  for(n = NOUT - 1; n >= 0; n--)
-    myfree(TreeNgals[n], sizeof(*(TreeNgals[n])) * Ntrees);
+
+  myfree(TreeNgals, sizeof(*(TreeNgals)) * Ntrees);
 
   myfree(TreeFirstHalo, sizeof(*(TreeFirstHalo)) * Ntrees);
   myfree(TreeNHalos, sizeof(*(TreeNHalos)) * Ntrees);

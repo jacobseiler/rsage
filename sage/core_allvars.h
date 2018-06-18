@@ -292,8 +292,8 @@ extern char   ReionRedshiftName[512];
 extern int    ReionSnap;
 
 extern int    TotHalos;
-extern int    TotGalaxies[ABSOLUTEMAXSNAPS];
-extern int    *TreeNgals[ABSOLUTEMAXSNAPS];
+extern int    TotGalaxies;
+extern int    *TreeNgals;
 
 extern int    *FirstHaloInSnap;
 
@@ -385,7 +385,6 @@ extern double AA[ABSOLUTEMAXSNAPS];
 extern double Age[ABSOLUTEMAXSNAPS];
 
 extern int    MAXSNAPS;
-extern int    NOUT;
 extern int    Snaplistlen;
 
 extern gsl_rng *random_generator;

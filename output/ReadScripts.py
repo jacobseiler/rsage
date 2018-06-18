@@ -395,7 +395,6 @@ def read_SAGE_ini(fname):
          ('GridOutputDir', '<U1024'),
          ('FirstFile', np.int32),
          ('LastFile', np.int32),
-         ('NumOutputs', np.int32),
          ('LowSnap', np.int32),
          ('HighSnap', np.int32),
          ('TreeName', '<U1024'),

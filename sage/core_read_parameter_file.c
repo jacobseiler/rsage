@@ -231,10 +231,6 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &ThresholdSatDisruption;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "NumOutputs");
-  addr[nt] = &NOUT;
-  id[nt++] = INT;
-
   strcpy(tag[nt], "LowSnap");
   addr[nt] = &LowSnap;
   id[nt++] = INT;
@@ -394,28 +390,9 @@ int32_t read_parameter_file(char *fname)
 	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
 	MAXSNAPS = LastSnapShotNr + 1;
 
-
-  XASSERT(NOUT == 1, "The number of outputs must be 1.  The only output will be the galaxies at the final snapshot or the galaxies that have merged before this time.\n");
+  ListOutputSnaps[0] = LastSnapShotNr;
 		
 	// read in the output snapshot list
-	if(NOUT == -1)
-	{
-		NOUT = MAXSNAPS;
-		for (i=NOUT-1; i>=0; i--)
-			ListOutputSnaps[i] = i;
-		printf("all %i snapshots selected for output\n", NOUT);
-	}
-	else
-	{
-		printf("%i snapshots selected for output: ", NOUT);
-		// reopen the parameter file
-		fd = fopen(fname, "r");
-		
-    ListOutputSnaps[0] = LastSnapShotNr;
-		fclose(fd);
-	
-		printf("\n");
-	}
 
   int32_t status = check_ini_parameters();
   if (status != EXIT_SUCCESS)
