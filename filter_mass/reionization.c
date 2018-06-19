@@ -166,7 +166,7 @@ int32_t determine_Mfilt(struct HALO_STRUCT Halo, struct GRID_STRUCT *Grid, struc
   double a = 0.17;
   double b = -2.1;
   double c = 2.0;
-  double d = 2.3;
+  double d = 2.5;
   double Mfilt, Mvir, PhotHI;
   double Zcurr = params->ZZ[Halo.SnapNum]; 
   
