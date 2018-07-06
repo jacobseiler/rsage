@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jacobseiler/self_consistent_SAGE.svg?branch=master)](https://travis-ci.org/jacobseiler/self_consistent_SAGE)
+[![Build Status](https://travis-ci.org/jacobseiler/rsage.svg?branch=development)](https://travis-ci.org/jacobseiler/rsage)
 
 # Description
 
