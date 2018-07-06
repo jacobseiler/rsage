@@ -64,8 +64,6 @@ double cooling_recipe(int gal, double dt)
 
 }
 
-
-
 double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, double rcool)
 {
   double AGNrate, EDDrate, AGNaccreted, AGNcoeff, AGNheating, metallicity, r_heat_new;
@@ -159,43 +157,42 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
     if(Gal[centralgal].MetalsHotGas < 0.0)
     {
         Gal[centralgal].MetalsHotGas = 0.0;
-    }
-    
-
+    }   
   }
-
   return coolingGas;
-
 }
-
-
 
 void cool_gas_onto_galaxy(int centralgal, double coolingGas)
 {
   double metallicity;
+  double dust_fraction_hot = get_dust_fraction(Gal[centralgal].HotGas, 
+                                               Gal[centralgal].DustHotGas);
 
   // add the fraction 1/STEPS of the total cooling gas to the cold disk 
-  if(coolingGas > 0.0)
+  if (coolingGas > 0.0)
   {
-    if(coolingGas < Gal[centralgal].HotGas)
+    if (coolingGas < Gal[centralgal].HotGas)
     {
       metallicity = get_metallicity(Gal[centralgal].HotGas, Gal[centralgal].MetalsHotGas);
       Gal[centralgal].ColdGas += coolingGas;
       Gal[centralgal].MetalsColdGas += metallicity * coolingGas;
       Gal[centralgal].HotGas -= coolingGas;
       Gal[centralgal].MetalsHotGas -= metallicity * coolingGas;
+
+      Gal[centralgal].DustHotGas -= dust_fraction_hot * coolingGas; 
+      Gal[centralgal].DustColdGas += dust_fraction_hot * coolingGas; 
+
     }
     else
     {
       Gal[centralgal].ColdGas += Gal[centralgal].HotGas;
       Gal[centralgal].MetalsColdGas += Gal[centralgal].MetalsHotGas;
+
+      Gal[centralgal].DustHotGas -= dust_fraction_hot * Gal[centralgal].HotGas; 
+      Gal[centralgal].DustColdGas += dust_fraction_hot * Gal[centralgal].HotGas; 
+
       Gal[centralgal].HotGas = 0.0;
       Gal[centralgal].MetalsHotGas = 0.0;
     }
-
-
   }
-
 }
-
-
