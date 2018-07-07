@@ -5,6 +5,7 @@ create_filter_mass
 # Don't want to keep any plots.
 *.png
 output/*.pdf
+output/*.npz
 
 # SAGE ignores.
 sage/sage
@@ -30,3 +31,4 @@ tests/millennium.a_list
 tests/test_output/galaxies/*
 tests/test_output/grids/*
 tests/*.txt
+tests/test_logs/*.log

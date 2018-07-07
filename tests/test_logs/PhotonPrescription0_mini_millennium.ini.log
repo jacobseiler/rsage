@@ -1,0 +1,88 @@
+Executing with /home/jseiler/self_consistent_SAGE/tests/../sage/sage /home/jseiler/self_consistent_SAGE/tests/test_ini_files/PhotonPrescription0_mini_millennium.ini
+
+reading parameter file:
+
+                   FileNameGalaxies	PhotonPrescription0
+                          OutputDir	test_output/galaxies
+                      GridOutputDir	test_ouput/grids
+                          FirstFile	         0
+                           LastFile	         0
+                            LowSnap	         0
+                           HighSnap	        63
+                           TreeName	 trees_063
+                      TreeExtension	      .dat
+                      SimulationDir	        ./
+                   FileWithSnapList	./millennium.a_list
+                     LastSnapShotNr	        63
+                              Omega	      0.25
+                        OmegaLambda	      0.75
+                         BaryonFrac	      0.17
+                           Hubble_h	      0.73
+                           PartMass	 0.0860657
+                            BoxSize	    108.96
+                           GridSize	       256
+                    self_consistent	         0
+                     ReionizationOn	         1
+                  SupernovaRecipeOn	         1
+                  DiskInstabilityOn	         1
+                     SFprescription	         0
+                        AGNrecipeOn	         2
+                     QuasarRecipeOn	         1
+                      SfrEfficiency	      0.01
+           FeedbackReheatingEpsilon	       3.0
+         FeedbackEjectionEfficiency	       0.3
+                                IRA	         0
+                   TimeResolutionSN	        10
+              ReIncorporationFactor	      0.15
+                RadioModeEfficiency	      0.08
+               QuasarModeEfficiency	      0.02
+                BlackHoleGrowthRate	     0.015
+                  ThreshMajorMerger	       0.3
+             ThresholdSatDisruption	       1.0
+                              Yield	     0.025
+                    RecycleFraction	      0.25
+                     FracZleaveDisk	       0.0
+                    Reionization_z0	       8.0
+                    Reionization_zr	       7.0
+                           EnergySN	    1.0e51
+                          RescaleSN	         1
+                                IMF	         2
+                        PhotoionDir	/lustre/projects/p004_swin/jseiler/kali/reionization_feedback/kali_delayed_noreionization/
+                       PhotoionName	photHI_delayed_noreionization_photHI1_sphere_fesc0.30
+                  ReionRedshiftName	reionization_redshift_27_98
+                          ReionSnap	        29
+                 PhotonPrescription	         0
+              TimeResolutionStellar	         1
+                   fescPrescription	         8
+                             MH_low	    3.96e9
+                           fesc_low	      1e-4
+                            MH_high	   3.16e11
+                          fesc_high	      0.95
+                              alpha	       0.7
+                               beta	       0.0
+                    quasar_baseline	      0.10
+                     quasar_boosted	      1.00
+                          N_dyntime	      2.50
+                     fesc_Mstar_low	     1.0e8
+                    fesc_Mstar_high	     1.0e9
+                         fesc_Mstar	      0.70
+                     fesc_not_Mstar	      0.20
+                        HaloPartCut	        32
+                   UnitLength_in_cm	3.08568e+24
+                      UnitMass_in_g	 1.989e+43
+           UnitVelocity_in_cm_per_s	    100000
+
+Git Version: 
+found 64 defined times in snaplist
+cooling functions read
+
+	task: 0	node: farnarkle2	file: 0	tree: 0 of 3432
+New highmark memory (Task 0): 16.6351 MB (was 0.0000 MB)
+New highmark memory (Task 0): 26.6353 MB (was 16.6351 MB)
+
+done file 0
+
+The highest peak memory usage was 26.6353 MB (0.0260 GB)
+Note: This is only updated every 10.0000 MB.
+To change this, adjust the variable 'MEMORY_THRESHOLD' in `core_mymallo.c`.
+There was a total of 9.6190e+07e50 Photon/s emitted (intrinsic, not necessarily escaped) over the entire simulation.
