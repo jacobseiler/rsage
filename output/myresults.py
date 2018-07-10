@@ -866,6 +866,7 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
                     master_mean_fesc_stellar[model_number][snapshot_idx][w] = np.nan 
 
                     if paper_plots == 0:
+                        print(master_mean_fesc_stellar[model_number][snapshot_idx])
                         ax1.plot(master_bin_middle_stellar[model_number][snapshot_idx], 
                                  master_mean_fesc_stellar[model_number][snapshot_idx], 
                                  color = PlotScripts.colors[plot_count], 
@@ -926,14 +927,13 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
         outputFile = './%s%s' %(output_tag, output_format)
         fig.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
-
-
-        outputFile = './%s_scatter%s' %(output_tag, output_format)
-        fig2.savefig(outputFile, bbox_inches='tight')  # Save the figure
-        print('Saved file to {0}'.format(outputFile))
-
         plt.close(fig)
-        plt.close(fig2)        
+
+        if paper_plots == 1:
+            outputFile = './%s_scatter%s' %(output_tag, output_format)
+            fig2.savefig(outputFile, bbox_inches='tight')  # Save the figure
+            print('Saved file to {0}'.format(outputFile))
+            plt.close(fig2)
 
 ##
 
@@ -998,7 +998,7 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
         ax.set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
                            size = PlotScripts.global_fontsize)
 
-        ax.set_ylabel(r'$\mathbf{\log_{10}\langle N_\gamma\rangle_{M_*}}$', 
+        ax.set_ylabel(r'$\mathbf{\log_{10}\langle f_{esc} N_\gamma\rangle_{M_*}}$', 
                       size = PlotScripts.global_labelsize)
 
         ax.set_xlim([6.8, 10])
@@ -1509,15 +1509,7 @@ def plot_fej_Ngamma(SnapList, PlotSnapList, simulation_norm,
                 
                 if (SnapList[model_number][snapshot_idx] == PlotSnapList[model_number][plot_count]):
 
-                        label = model_tags[model_number]
-                    '''
-                    if (model_number == 0):
-                        label = r"$\mathbf{z = " + \
-                                str(int(round(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]))) +\
-                                "}$"                
-                    else:
-                        label = ""
-                    '''
+                    label = model_tags[model_number]
                     w = np.where((master_N_Ngamma_fej[model_number][snapshot_idx] < 4))[0] # If there are no galaxies in the bin we don't want to plot. 
                     master_mean_Ngamma_fej[model_number][snapshot_idx][w] = np.nan 
 
@@ -3696,28 +3688,30 @@ if __name__ == '__main__':
     galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_z5.782'
     merged_galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_MergedGalaxies'
 
-
+    galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/quasar/galaxies/newphoton_SF0.03_0.25_1.00_2.50_z5.782'
+    merged_galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/quasar/galaxies/newphoton_SF0.03_0.25_1.00_2.50_MergedGalaxies'
         
     galaxies_filepath_array = [galaxies_model1,
                                galaxies_model2,
                                galaxies_model3,
                                galaxies_model4]
 
-    #galaxies_filepath_array = [galaxies_model3]
+    #galaxies_filepath_array = [galaxies_model5]
 
     merged_galaxies_filepath_array = [merged_galaxies_model1,
                                       merged_galaxies_model2,
                                       merged_galaxies_model3,
                                       merged_galaxies_model4]
 
-    #merged_galaxies_filepath_array = [merged_galaxies_model3]
+    #merged_galaxies_filepath_array = [merged_galaxies_model5]
        
     number_substeps = [10, 10, 10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
     number_snapshots = [99, 99, 99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
      
     FirstFile = [0, 0, 0, 0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [63, 63, 63, 63] # The last file number THAT WE ARE PLOTTING.
+    LastFile = [0, 63, 63, 63] # The last file number THAT WE ARE PLOTTING.
+    LastFile = [0, 0, 0, 0] # The last file number THAT WE ARE PLOTTING.
     NumFile = [64, 64, 64, 64] # The number of files for this simulation (plotting a subset of these files is allowed).     
     same_files = [0, 0, 0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
     # This array will tell us if we should keep the files for the next model or otherwise throw them away. 
@@ -3769,7 +3763,7 @@ if __name__ == '__main__':
                 [64]]
 
     #SnapList = [[33, 50, 64, 76, 93]]
-    #SnapList = [[33]]
+    #SnapList = [[64]]
     #SnapList = [np.arange(20,99)]
     #PlotSnapList = [[30, 50, 64, 76, 93]]
     #PlotSnapList = [[93, 76, 64]]
@@ -3787,7 +3781,7 @@ if __name__ == '__main__':
     stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
     calculate_observed_LF = [0, 0, 0, 0] # Determines whether we want to account for dust extinction when calculating the luminosity function of each model.
 
-    paper_plots = 1 
+    paper_plots = 0 
     
     ##############################################################################################################
     ## Do a few checks to ensure all the arrays were specified properly. ##
@@ -4167,13 +4161,15 @@ if __name__ == '__main__':
                                          * 1.0e10 / AllVars.Hubble_h)
 
                     fesc = G.Gridfesc[w_gal, current_snap]
-
+                    fesc[fesc < 0.0] = 0.0
                     Ngamma_gal = G.GridNgamma_HI[w_gal, current_snap]  # 1.0e50
                                                                        # photons/s.
 
-                    Ngamma_gal += 50.0  # Old versions of SAGE incorrectly
-                                        # subtracted 50.
+                    if model_number < 3:
+                        Ngamma_gal += 50.0  # Old versions of SAGE incorrectly
+                                            # subtracted 50.
 
+                    Ngamma_gal *= fesc
                     reionmod = G.GridReionMod[w_gal, current_snap]
                     mass_reionmod_central = mass_central[reionmod > -1]
                     reionmod = reionmod[reionmod > -1] # Some satellite galaxies that don't have HotGas and hence won't be stripped. As a result reionmod = -1 for these. Ignore them.        
@@ -4362,7 +4358,7 @@ if __name__ == '__main__':
 
                     ## fesc Value ## 
                     (mean_fesc_z_array[current_model_number][snapshot_idx], std_fesc_z_array[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_fesc_z_array[current_model_number][snapshot_idx], std_fesc_z_array[current_model_number][snapshot_idx], N_z[current_model_number][snapshot_idx], np.mean(fesc), np.std(fesc), len(w_gal)) # Updates the mean escape fraction for this redshift.
-
+                    
                     ## Reionization Modifier ##
                     (mean_reionmod_z[current_model_number][snapshot_idx], std_reionmod_z[current_model_number][snapshot_idx]) = update_cumulative_stats(mean_reionmod_z[current_model_number][snapshot_idx], std_reionmod_z[current_model_number][snapshot_idx], N_reionmod_z[current_model_number][snapshot_idx], np.mean(reionmod), np.std(reionmod), len(reionmod))
                     N_reionmod_z[current_model_number][snapshot_idx] += len(reionmod)
@@ -4431,29 +4427,32 @@ if __name__ == '__main__':
     #                     model_tags, "ejectedfraction") 
    
     #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "SN_Prescription")
-    #plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
-    #                 mean_fesc_galaxy_array, std_fesc_galaxy_array, 
-    #                 N_galaxy_array, mean_fesc_halo_array, 
-    #                 std_fesc_halo_array,  N_halo_array,
-    #                 galaxy_halo_mass_mean, model_tags, 
-    #                 paper_plots, mass_global, fesc_global, Ngamma_global, 
-    #                 "paper_fesc")
+
     '''
+    plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
+                     mean_fesc_galaxy_array, std_fesc_galaxy_array, 
+                     N_galaxy_array, mean_fesc_halo_array, 
+                     std_fesc_halo_array,  N_halo_array,
+                     galaxy_halo_mass_mean, model_tags, 
+                     paper_plots, mass_global, fesc_global, Ngamma_global, 
+                     "quasar_fesc")
+    '''
+
     plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
                      mean_Ngamma_galaxy_array, std_Ngamma_galaxy_array, 
                      N_galaxy_array, model_tags, 
                      paper_plots, "Ngamma")
 
-
+    '''
     plot_sfr_galaxy(SnapList, PlotSnapList, simulation_norm,
                      mean_sfr_galaxy_array, std_sfr_galaxy_array, 
                      mean_ssfr_galaxy_array, std_ssfr_galaxy_array, 
                      N_galaxy_array, model_tags, "sSFR")
-    '''
+
     plot_fej_Ngamma(SnapList, PlotSnapList, simulation_norm,
                     mean_Ngamma_fej, std_Ngamma_fej,
                     N_fej, model_tags, "Ngamma_fej")
-
+    '''
     #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_test") ## PARALELL COMPATIBLE
     #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 
