@@ -166,7 +166,7 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     print("")
 
 
-def check_smf(galaxy_name="test"):
+def check_smf(Gals, max_snap):
     """
     Checks the stellar mass of the galaxies.
 
@@ -176,8 +176,6 @@ def check_smf(galaxy_name="test"):
     Parameters
     ----------
 
-    galaxy_name: String. Optional, default: 'test'. 
-        Prefix name for the galaxies we are checking.        
 
     Returns
     ----------
@@ -200,22 +198,6 @@ def check_smf(galaxy_name="test"):
     print("Now checking the stellar mass function for the final snapshot of "
           "mini-millennium.")
 
-    AllVars.Set_Params_MiniMill()
-    max_snap = len(AllVars.SnapZ) - 1
-
-    # First check that the output of the test run can be read. 
-   
-    gal_name = "{0}/test_output/galaxies/{1}_z0.000".format(test_dir,
-                                                            galaxy_name) 
-    Gals, Gals_Desc = ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
-
-    gal_name = "{0}/test_output/galaxies/{1}_MergedGalaxies".format(test_dir,
-                                                                    galaxy_name) 
-    Gals_Merged, _= ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
-    Gals = ReadScripts.Join_Arrays(Gals, Gals_Merged, Gals_Desc)
-
-    # Gals is now a recarray containing all galaxies at all snapshots. 
-
     w_gal = np.where((Gals.GridHistory[:, max_snap] != -1) & 
                      (Gals.GridStellarMass[:, max_snap] > 0.0))[0]
         
@@ -230,12 +212,13 @@ def check_smf(galaxy_name="test"):
         raise RuntimeError
 
     mass_test = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / AllVars.Hubble_h)   
+    mass_test_nolog = Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / AllVars.Hubble_h 
     
-    w_wrong = np.where(mass_test <= 0.0)[0] 
+    w_wrong = np.where(mass_test_nolog <= 0.0)[0] 
     if (len(w_wrong) > 0):
         print("The mass of the acceptable galaxies must be greater than 0.0.")
         print("Galaxies {0} had stellar mass {1}.".format(w_gal[w_wrong],
-                                                          mass_test[w_wrong]))
+                                                          mass_test_nolog[w_wrong]))
         raise RuntimeError
 
     # Now let's check compare the mass of the test to the data. 
@@ -263,6 +246,50 @@ def check_smf(galaxy_name="test"):
         raise RuntimeError
 
 
+
+def load_gals(max_snap, galaxy_name="test"):
+
+    # First check that the output of the test run can be read. 
+   
+    gal_name = "{0}/test_output/galaxies/{1}_z0.000".format(test_dir,
+                                                            galaxy_name) 
+    Gals, Gals_Desc = ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
+
+    gal_name = "{0}/test_output/galaxies/{1}_MergedGalaxies".format(test_dir,
+                                                                    galaxy_name) 
+    Gals_Merged, _= ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
+    Gals = ReadScripts.Join_Arrays(Gals, Gals_Merged, Gals_Desc)
+
+    # Gals is now a recarray containing all galaxies at all snapshots. 
+
+    return Gals
+
+
+def check_photons(Gals, max_snap):
+   
+    for snap in [80]: 
+    
+        w_gal = np.where((Gals.GridHistory[:, snap] != -1) & 
+                         (Gals.GridStellarMass[:, snap] > 0.0))[0]
+    
+        print("{0} {1}".format(snap, len(w_gal)))
+        if len(w_gal) == 0:
+            continue
+
+        mass = np.log10(Gals.GridStellarMass[w_gal, snap] * 1.0e10 / AllVars.Hubble_h)
+        photons = Gals.GridNgamma_HI[w_gal, snap]
+
+        w_wrong = np.where((photons < 1e-6))[0]
+
+        if len(w_wrong) > 0:
+            print("For Snapshot {0} there are {1} galaxies that "
+                  "exist with nonzero stellar mass.".format(snap, len(w_gal)))
+            print("However for galaxies {0} with log stellar mass {1}, they " 
+                  "emitted {2} ionizing photons.  If there is a non-zero "
+                  "stellar mass we expect there to be ionizing " 
+                  "photons.".format(w_wrong, mass[w_wrong], photons[w_wrong]))
+            #raise RuntimeError
+
 def test_run():
     """
     Wrapper to run all the tests.
@@ -289,18 +316,25 @@ def test_run():
     # produce. 
     ini_files = ["PhotonPrescription0_mini_millennium.ini",
                  "PhotonPrescription1_mini_millennium.ini"]
-                 #"QuasarRecipe2_mini_millennium.ini"]
+
     galaxy_names = ["PhotonPrescription0",
                     "PhotonPrescription1"] 
-                    #"QuasarRecipe2"]
 
+    AllVars.Set_Params_MiniMill()
+    max_snap = len(AllVars.SnapZ) - 1
 
     for ini_file, galaxy_name in zip(ini_files, galaxy_names):
 
         check_sage_dirs(galaxy_name)  # First check that directories for output are present. 
         run_my_sage(ini_file)  # Run my version of SAGE (not full R-SAGE yet).
-        check_smf(galaxy_name)  # Attempt to make a stellar mass function.
 
+        Gals = load_gals(max_snap, galaxy_name)
+        check_smf(Gals, max_snap)  # Attempt to make a stellar mass function.
+
+        '''
+        if galaxy_name is "kali_test":
+            check_photons(Gals, max_snap)
+        '''
     print("Done")
     print("")
     
