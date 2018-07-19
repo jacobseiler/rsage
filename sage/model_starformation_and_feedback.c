@@ -36,6 +36,11 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   XASSERT((reheated_mass >= 0.0) && (ejected_mass >= 0.0) && (mass_stars_recycled >= 0.0) && (mass_metals_new >= 0.0), "When trying to update from the supernova feedback we got negative masses.\nReheated Mass = %.4e (1.0e10 Msun/h) \t Ejected Mass = %.4e (1.0e10 Msun/h) \t Mass of Stars Recycled = %.4e (1.0e10 Msun/h) \t Mass of Metals Added = %.4e (1.0e10 Msun/h)\n", reheated_mass, ejected_mass, mass_stars_recycled, mass_metals_new);
  
   Gal[p].StellarMass -= mass_stars_recycled; // The supernova remnants are instantly moved back into the cold ISM. 
+  Gal[p].Total_Stellar_Stars -= mass_stars_recycled;
+
+  if (Gal[p].Total_Stellar_Stars < 0.0)
+    Gal[p].Total_Stellar_Stars = 0.0;
+ 
   Gal[p].ColdGas += mass_stars_recycled; 
 
   Gal[p].DustColdGas += yd * NSN; // Dust is created by supernova (something) on cold gas. 
@@ -109,10 +114,7 @@ void update_from_SN_feedback(int p, int centralgal, double reheated_mass, double
   if (Gal[p].DustColdGas < 0.0)
     Gal[p].DustColdGas = 0.0;
   if (Gal[p].DustHotGas < 0.0)
-    Gal[p].DustHotGas = 0.0;
-
-  //printf("SFR Gal %d\tHaloNr %d\tEjected %.4e\tSN %.4e\tQSO %.4e\n", p, Gal[p].HaloNr, Gal[p].EjectedMass, Gal[p].EjectedMassSN, Gal[p].EjectedMassQSO); 
- 
+    Gal[p].DustHotGas = 0.0; 
 }
 
 
@@ -151,6 +153,8 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
     time_spanned = dt;
   }
   
+  //time_spanned = dt;
+
   if (IRA == 0)
   { 
     update_SN_stars_array(p, stars, time_spanned, tree, ngal);
@@ -158,7 +162,7 @@ void update_from_star_formation(int p, double stars, double dt, int step, bool i
 
   if (PhotonPrescription == 1)
   {
-    update_stellar_tracking(p, stars, time_spanned, tree, ngal);
+    update_stellar_tracking(p, stars, dt, tree, ngal);
   }
 
   // update gas and metals from star formation 
@@ -288,8 +292,6 @@ void calculate_Delta_Eta(double m_low, double m_high, double *Delta_Eta, double 
 
   *Delta_Eta = IMF_CONSTANT * (IMF_massgrid_eta[bin_idx_high] - IMF_massgrid_eta[bin_idx_low]);
   *Delta_m = IMF_CONSTANT * (IMF_massgrid_m[bin_idx_high] - IMF_massgrid_m[bin_idx_low]);
-
-  //printf("m_low %.4e\tm_high %.4e\tbin_idx_low %d\tbin_idx_high %d\tdelta_m %.4e\n", m_low, m_high, bin_idx_low, bin_idx_high, *Delta_m);
 
 }
 
@@ -514,7 +516,7 @@ void do_previous_SN(int p, int centralgal, double dt)
       // Since stars have gone supernova, need to update the number of stars remaining at that time. 
       if (PhotonPrescription == 1)
       {
-        Gal[p].Stellar_Stars[i] -= Delta_m * Gal[p].SN_Stars[i];
+        Gal[p].Stellar_Stars[i] -= Delta_m * Gal[p].SN_Stars[i];      
         if (Gal[p].Stellar_Stars[i] < 0.0)
           Gal[p].Stellar_Stars[i] = 0.0;
       }
@@ -628,7 +630,6 @@ void do_previous_recycling(int p, int centralgal, int step, double dt)
     calculate_Delta_Eta(m_low, m_high, &Delta_Eta, &Delta_m); // Calculate the number and mass fraction of stars from snapshot i that go nova in the snapshot we are evolving FROM. 
     mass_stars_recycled = Delta_m * Gal[p].StellarAge_Denominator; // Update the amount of stellar mass recycled from previous stars that have gone nova.
     NSN = Delta_Eta * Gal[p].StellarAge_Denominator * 1.0e10 / Hubble_h;
-    //printf("m_low %.4e\tm_high %.4e\tt_low %.4e\tt_high %.4e\tDelta_m %.4e\n", m_low, m_high, t_low, t_high, Delta_m);
     update_from_SN_feedback(p, centralgal, 0.0, 0.0, mass_stars_recycled, 0.0, NSN, dt);
   } 
 }
@@ -799,7 +800,6 @@ void update_stellar_tracking(int p, double stars, double dt, int tree, int ngal)
     return;
 
   int num_shuffled = round(Gal[p].Total_Stellar_SF_Time/TimeResolutionStellar); // How many cells will this SF event span.
-
   double stars_spread = Gal[p].Total_Stellar_Stars/num_shuffled; // We spread the stars evenly over time.
 
   int i;
@@ -811,7 +811,7 @@ void update_stellar_tracking(int p, double stars, double dt, int tree, int ngal)
       Gal[p].Stellar_Stars[i] = Gal[p].Stellar_Stars[i-num_shuffled]; // Shuffle the current elements of the array far enough along so we can store the new stars.
   }
   XPRINT(p < ngal, "We have the case where the galaxy p is greater than the number of galaxies.  p = %d \t ngal = %d\n", p, ngal);
-
+  
   for(i = 0; i < num_shuffled; ++i) 
   {
     Gal[p].Stellar_Stars[i] = stars_spread; // Update the vacated elements with the new stars.  

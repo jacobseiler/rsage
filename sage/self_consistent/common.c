@@ -129,6 +129,13 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 #endif
   }
 
+
+  double reff = 3.0 * Gal[p].DiskScaleRadius;
+
+  // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h 
+  double cold_crit = 0.19 * Gal[p].Vvir * reff;
+  Gal[p].ColdCrit[SnapCurr] = cold_crit;
+
 }
 
 int32_t malloc_temporal_arrays(struct GALAXY *g)
@@ -172,6 +179,7 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
   ALLOCATE_ARRAY_MEMORY(g->GridReionMod,        MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->GridNgamma_HI,       MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->Gridfesc,            MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->ColdCrit,            MAXSNAPS);
 
   if (IRA == 0)
   {
@@ -221,6 +229,7 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridReionMod,        sizeof(*(g->GridReionMod))        * MAXSNAPS);
   myfree(g->GridNgamma_HI,       sizeof(*(g->GridNgamma_HI))       * MAXSNAPS);
   myfree(g->Gridfesc,            sizeof(*(g->Gridfesc))            * MAXSNAPS);
+  myfree(g->ColdCrit,            sizeof(*(g->ColdCrit))            * MAXSNAPS);
 
   if (IRA == 0)
   {
@@ -231,7 +240,6 @@ void free_temporal_arrays(struct GALAXY *g)
   {
     myfree(g->Stellar_Stars,     sizeof(*(g->Stellar_Stars))       * StellarTracking_Len);
   }
-
 
   g->IsMalloced = 0;
 }
@@ -299,10 +307,10 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
   WRITE_GRID_PROPERTY(g->GridReionMod, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridNgamma_HI, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->Gridfesc, MAXSNAPS);
-
-#undef WRITE_GRID_PROPERTY
-#undef WRITE_CONVERTED_GRID_PROPERTY
+  WRITE_GRID_PROPERTY(g->ColdCrit, MAXSNAPS);
  
+#undef WRITE_GRID_PROPERTY
+#undef WRITE_CONVERTED_GRID_PROPERTY 
 }
 
 // Local Functions //

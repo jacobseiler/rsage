@@ -263,6 +263,10 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &beta;
   id[nt++] = DOUBLE;
 
+  strcpy(tag[nt], "fesc");
+  addr[nt] = &fesc;
+  id[nt++] = DOUBLE;
+
   strcpy(tag[nt], "MH_low");
   addr[nt] = &MH_low;
   id[nt++] = DOUBLE;

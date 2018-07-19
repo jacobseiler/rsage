@@ -167,6 +167,7 @@ struct GALAXY
   float   *GridReionMod;
   float   *GridNgamma_HI;
   float   *Gridfesc;
+  float   *ColdCrit;
  
   int IsMerged;
   double GrandSum;

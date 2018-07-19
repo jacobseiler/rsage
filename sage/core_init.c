@@ -43,7 +43,6 @@ void init(void)
   {
     ZZ[i] = 1 / AA[i] - 1;
     Age[i] = time_to_present(ZZ[i]);
-
   }
 
   a0 = 1.0 / (1.0 + Reionization_z0);

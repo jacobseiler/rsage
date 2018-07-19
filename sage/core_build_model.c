@@ -323,6 +323,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
         continue;
       deltaT = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
       substep_dt = deltaT / STEPS;
+
       time = Age[Gal[p].SnapNum] - (step + 0.5) * substep_dt; 
 
       Gal[p].Age = Age[Gal[p].SnapNum] - Age[Halo[halonr].SnapNum];
@@ -351,7 +352,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
       // Determine the cooling gas given the halo properties 
       coolingGas = cooling_recipe(p, substep_dt); 
       cool_gas_onto_galaxy(p, coolingGas);
- 
+
       starformation_and_feedback(p, centralgal, time, substep_dt, halonr, step, tree, ngal);
 
     }

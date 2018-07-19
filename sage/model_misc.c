@@ -129,6 +129,7 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
     Gal[p].GridReionMod[j] = -1.0;
     Gal[p].GridNgamma_HI[j] = 0.0;
     Gal[p].Gridfesc[j] = 0.0;
+    Gal[p].ColdCrit[j] = 0.0;
   }
 
   Gal[p].GrandSum = 0.0;

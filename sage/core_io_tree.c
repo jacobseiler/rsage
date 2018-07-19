@@ -27,7 +27,7 @@ void load_tree_table(int filenr, int32_t treestyle)
   load_tree_table_binary(buf); // Gets the total number of trees, halos and halos per tree.
 
   TreeNMergedgals = mycalloc(Ntrees, sizeof(*(TreeNMergedgals)));
-  if (TreeFirstHalo == NULL)
+  if (TreeNMergedgals == NULL)
   {
     fprintf(stderr, "Could not allocate memory for `TreeNMergedgals`.\n");
     ABORT(EXIT_FAILURE);

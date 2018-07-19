@@ -284,7 +284,14 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII, fesc_local;
   char fesc_fname[MAX_STRING_LEN];
 
+  printf("Calling in update_selfcon_grid\n");
   status = determine_nion(g, snapshot, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
+  /*
+  if (Ngamma_HI < 1e-6 && g->GridStellarMass[snapshot] > 0.0 && PhotonPrescription == 1)
+  {
+    return EXIT_FAILURE; 
+  }
+  */
   if (status != EXIT_SUCCESS)
   {
     return EXIT_FAILURE;
@@ -624,7 +631,7 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
     case 1: ;
 
       double t;
-      int32_t i ,lookup_idx;
+      int32_t i, lookup_idx;
       const double lookuptable_mass = 1.0e-4*Hubble_h;
 
       *Ngamma_HI = 0;
@@ -639,7 +646,7 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
         t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
         lookup_idx = (t / 0.1); // Find the index in the lookup table. 
         
-        *Ngamma_HI += exp10(log10(g->Stellar_Stars[i] / lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);  
+        *Ngamma_HI += exp10(log10(g->Stellar_Stars[i] / lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);        
       }
 
       // The units of Ngamma are 1.0e50 photons/s.  Hence a negative value is not allowed.

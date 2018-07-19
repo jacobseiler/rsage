@@ -251,10 +251,6 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
 
     }
   }
-
-
-  //printf("SFR Gal %d\tHaloNr %d\tEjected %.4e\tSN %.4e\tQSO %.4e\n", gal, Gal[gal].HaloNr, Gal[gal].EjectedMass, Gal[gal].EjectedMassSN, Gal[gal].EjectedMassQSO); 
-
 }
 
 void add_galaxies_together(int t, int p)
@@ -313,9 +309,16 @@ void add_galaxies_together(int t, int p)
     Gal[t].Total_SN_Stars += Gal[p].Total_SN_Stars;
   }
  
+  if (PhotonPrescription == 1)
+  {
+    for (i = 0; i < StellarTracking_Len; ++i)
+    {
+      Gal[t].Stellar_Stars[i] += Gal[p].Stellar_Stars[i]; 
+    }
+  
+    Gal[t].Total_Stellar_Stars += Gal[p].Total_Stellar_Stars; 
+  } 
 }
-
-
 
 void make_bulge_from_burst(int p)
 {
@@ -462,6 +465,7 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].GridReionMod[j]        = Gal[p].GridReionMod[j];
     MergedGal[MergedNr].GridNgamma_HI[j]       = Gal[p].GridNgamma_HI[j];
     MergedGal[MergedNr].Gridfesc[j]            = Gal[p].Gridfesc[j];
+    MergedGal[MergedNr].ColdCrit[j]            = Gal[p].ColdCrit[j];
   }
 
   if (IRA == 0)
@@ -469,6 +473,14 @@ void add_galaxy_to_merger_list(int p)
     for (j = 0; j < SN_Array_Len; ++j)
     {
       MergedGal[MergedNr].SN_Stars[j] = Gal[p].SN_Stars[j];
+    }
+  }
+
+  if (PhotonPrescription == 1)
+  {
+    for (j = 0; j < StellarTracking_Len; ++j)
+    {
+      MergedGal[MergedNr].Stellar_Stars[j] += Gal[p].Stellar_Stars[j]; 
     }
   }
 
