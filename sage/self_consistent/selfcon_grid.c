@@ -779,6 +779,18 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       break;
 
     case 3:
+      *fesc_local = alpha * ejectedfraction + beta;
+      if (*fesc_local < 0.0)
+      {
+        *fesc_local = 0.0;
+      }
+
+      if (*fesc_local > 1.0)
+      {
+        *fesc_local = 1.0;
+      }    
+      break;
+
     case 9:
     case 10:
       *fesc_local = alpha * ejectedfraction + beta;
