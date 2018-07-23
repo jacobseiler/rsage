@@ -158,7 +158,11 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     path_to_sage = "{0}/../sage/sage".format(test_dir)
     path_to_ini = "{0}/test_ini_files/{1}".format(test_dir, ini_name)
     path_to_log = "{0}/test_logs/{1}.log".format(test_dir, ini_name)
-    command = "{0} {1} &> {2}".format(path_to_sage, path_to_ini, path_to_log)
+    #command = "{0} {1} &> {2}".format(path_to_sage, path_to_ini, path_to_log)
+    command = "{0} {1}".format(path_to_sage, path_to_ini)    
+    returncode = subprocess.call(command, shell=True)
+
+    command = "ls {0}/test_output/galaxies/".format(test_dir)
     returncode = subprocess.call(command, shell=True)
 
     print("SAGE log file printed to {0}".format(path_to_log))
