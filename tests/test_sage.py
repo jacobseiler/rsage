@@ -162,8 +162,8 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     command = "{0} {1}".format(path_to_sage, path_to_ini)    
     returncode = subprocess.call(command, shell=True)
 
-    command = "ls {0}/test_output/galaxies/".format(test_dir)
-    returncode = subprocess.call(command, shell=True)
+    #command = "ls {0}/test_output/galaxies/".format(test_dir)
+    #returncode = subprocess.call(command, shell=True)
 
     print("SAGE log file printed to {0}".format(path_to_log))
     if returncode != 0:

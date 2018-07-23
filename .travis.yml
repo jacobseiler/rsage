@@ -7,7 +7,7 @@ env:
 notifications:
   email:
     recipients:
-      - jseiler94@gmail.com
+      - jseiler@swin.edu.au
     on_success: change
     on_failure: always
 
