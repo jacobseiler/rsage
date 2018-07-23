@@ -211,7 +211,7 @@ if __name__ == '__main__':
     GridSize_model1 = 256
     precision_model1 = 2
 
-    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/newphoton_SF0.03_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_XHII"
     filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_XHII"
     filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_XHII"
     filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_XHII"
@@ -234,7 +234,7 @@ if __name__ == '__main__':
                      filepath_model2,
                      filepath_model3,
                      filepath_model4,
-                     filepath_model5]
+                     filepath_model6]
 
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're using Kali.
 

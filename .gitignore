@@ -6,6 +6,9 @@ create_filter_mass
 *.png
 output/*.pdf
 output/*.npz
+output/21cm_plots/
+output/ionization_plots/
+output/scale_plots/
 
 # SAGE ignores.
 sage/sage
@@ -24,6 +27,7 @@ gridding/*.o
 
 # Misc. 
 output/__pycache__
+output/*.e
 
 # Test directory ignores.
 tests/trees*
@@ -32,3 +36,4 @@ tests/test_output/galaxies/*
 tests/test_output/grids/*
 tests/*.txt
 tests/test_logs/*.log
+tests/*.log

@@ -43,41 +43,14 @@ import PlotScripts
 import ReadScripts
 import AllVars
 
-
-
-
-comm= MPI.COMM_WORLD
-rank = comm.Get_rank()
-size = comm.Get_size()
 AllVars.Set_Constants()
 
-AllVars.Set_Constants()
 PlotScripts.Set_Params_Plot()
 matplotlib.rcdefaults()
-plt.rc('legend', numpoints=1, fontsize='x-large')
+
 plt.rc('text', usetex=True)
-
-label_size = 20 # 12 for paper.
-extra_size = 2
-legend_size = 16 # 20 for paper.
-paper_lineweight = 3
-plt.rc('xtick', labelsize=label_size)
-plt.rc('ytick', labelsize=label_size)
-plt.rc('text', usetex=True)
-
-
-
-
-cosmo = AllVars.Set_Params_Mysim()
-
-#time_xlim = [round((AllVars.t_BigBang - cosmo.lookback_time(z_plot[-1]).value) * 1.0e3), round((AllVars.t_BigBang - cosmo.lookback_time(z_plot[0]).value) * 1.0e3)]
-
-time_subplot_label = 350 # Location (in 'Time Since Big Bang [Myr^-1]) of subplot identifier (a), (b), (c) etc.
-
 cut_slice = 44
 
-#cosmo = cosmology.FlatLambdaCDM(H0 = AllVars.Hubble_h*100, Om0 = AllVars.Omega_m) 
-#t_BigBang = cosmo.lookback_time(100000).value # Lookback time to the Big Bang in Gyr.
 output_format = ".png"
 
 def linear_growth(z, OM, OL):
@@ -371,7 +344,8 @@ def calculate_total_nion(model_name, nion):
 #########
 
 
-def plot_global_frac(ZZ, mass_frac, volume_frac, plot_time, labels, OutputDir, output_tag):
+def plot_global_frac(ZZ, mass_frac, plot_time, labels, OutputDir,
+                     output_tag, ax1=None, save_plot=1):
 # This function will plot the global HI fraction as a function of redshift. The function accepts an array of arrays for the global HI fraction to allow plotting of multiple realizations on the same graph.
 
 ## Input ##
@@ -387,46 +361,32 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, plot_time, labels, OutputDir, o
 
     legend_labels = []
 
-    fig = plt.figure(figsize = (8,8))
-    ax1 = fig.add_subplot(111) 
-	#ax3 = plt.subplot2grid((3,1), (2,0))
-
-    t = np.empty(len(volume_frac[0]))
+    if not ax1:
+        fig = plt.figure(figsize = (8,8))
+        ax1 = fig.add_subplot(111) 
+    
+    t = np.empty(len(mass_frac[0]))
 	
-    for i in range(0, len(volume_frac[0])):
+    for i in range(0, len(mass_frac[0])):
         t[i] = (AllVars.t_BigBang - cosmo.lookback_time(ZZ[i]).value) * 1.0e3 	
 
-    for i in range(0, len(volume_frac)):
+    for i in range(0, len(mass_frac)):
 
         if plot_time == 1:
-            ax1.plot(t, 1 - volume_frac[i], color = PlotScripts.colors[i], 
+            ax1.plot(t, 1 - mass_frac[i], color = PlotScripts.colors[i], 
                      ls = PlotScripts.linestyles[i], 
                      lw = PlotScripts.global_linewidth, label = labels[i])
             #ax1.plot(t, 1 -mass_frac[i], color = PlotScripts.colors[i], ls = PlotScripts.linestyles[1])
         else:
-            ax1.plot(ZZ, 1 - volume_frac[i], color = PlotScripts.colors[i], ls = PlotScripts.linestyles[i], lw = 3, label = labels[i])
+            ax1.plot(ZZ, 1 - mass_frac[i], color = PlotScripts.colors[i], ls = PlotScripts.linestyles[i], lw = 3, label = labels[i])
  
     if plot_time == 1:
- 
+
+        ax2 = PlotScripts.add_time_z_axis(ax1, cosmo)
+
         ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", fontsize = PlotScripts.global_labelsize)
-        tick_locs = np.arange(200.0, 1000.0, 100.0)
-        ax1.xaxis.set_minor_locator(mtick.MultipleLocator(PlotScripts.time_tickinterval))
-        tick_labels = [r"$\mathbf{%d}$" % x for x in tick_locs]
-        ax1.xaxis.set_major_locator(mtick.MultipleLocator(100))
-        ax1.set_xticklabels(tick_labels, fontsize = PlotScripts.global_fontsize)
-
-        ax1.set_xlim(PlotScripts.time_xlim)
-
-        ax2 = ax1.twiny()
-
-        t_plot = (AllVars.t_BigBang - cosmo.lookback_time(PlotScripts.z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
-        z_labels = ["$\mathbf{%d}$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
-
         ax2.set_xlabel(r"$\mathbf{z}$", fontsize = PlotScripts.global_labelsize)
-        ax2.set_xlim(PlotScripts.time_xlim)
-        ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
-        ax2.set_xticklabels(z_labels, fontsize = PlotScripts.global_fontsize) # But label them as redshifts.
-
+       
     tick_locs = np.arange(-0.2, 1.1, 0.2)
     ax1.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs],
                         fontsize = PlotScripts.global_fontsize)
@@ -445,13 +405,14 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, plot_time, labels, OutputDir, o
         ax.tick_params(which = 'major', length = PlotScripts.global_ticklength)
         ax.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
 
-	
-    leg = ax1.legend(loc='lower left', numpoints=1, labelspacing=0.1)
+
+    leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size + 6)
+        t.set_fontsize(PlotScripts.global_legendsize)
 
-    ax1.set_ylabel(r"$\mathbf{\langle \chi_{HI}\rangle}$", size = label_size+6)
+    ax1.set_ylabel(r"$\mathbf{\langle \chi_{HI}\rangle}$", 
+                   size = PlotScripts.global_labelsize) 
     ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))	
     ax1.set_ylim([-0.05, 1.05])
 	
@@ -460,10 +421,11 @@ def plot_global_frac(ZZ, mass_frac, volume_frac, plot_time, labels, OutputDir, o
     plt.tight_layout()
 
     outputFile = OutputDir + output_tag + output_format 			
-    plt.savefig(outputFile)  # Save the figure
-    print('Saved file to {0}'.format(outputFile))	
-			
-    plt.close()	
+    if save_plot == 1:
+        plt.savefig(outputFile)  # Save the figure
+        print('Saved file to {0}'.format(outputFile))	
+                
+        plt.close()	
 
 ##########
 
@@ -479,18 +441,20 @@ def plot_photo_mean(ZZ, Photo_Mean, Photo_Std, labels, OutputDir, output_tag):
         leg = ax1.legend(loc='lower left', numpoints=1, labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts(): 
-            t.set_fontsize(legend_size)
+            t.set_fontsize(PlotScripts.global_legendsize)
 
-    ax2.set_xlabel(r"$\mathrm{z}$", size = label_size + extra_size)
-    ax1.set_ylabel(r"$\mathrm{log}_{10} \: \langle \Gamma_\mathrm{HI}\rangle \: \: [\mathrm{s}^{-1}]$", size = label_size + extra_size)
-    ax2.set_ylabel(r"$\mathrm{log}_{10} \: \langle \Gamma_\mathrm{HI}\rangle / \mathrm{log}_{10} \: \langle \Gamma_\mathrm{HI}\rangle_{N = 128^3}$", size = label_size - extra_size)
+    ax2.set_xlabel(r"$\mathrm{z}$", size = PlotScripts.global_labelsize)
+    ax1.set_ylabel(r"$\mathrm{log}_{10} \: \langle \Gamma_\mathrm{HI}\rangle \: \: [\mathrm{s}^{-1}]$", 
+                   size = 10) 
+    ax2.set_ylabel(r"$\mathrm{log}_{10} \: \langle \Gamma_\mathrm{HI}\rangle / \mathrm{log}_{10} \: \langle \Gamma_\mathrm{HI}\rangle_{N = 128^3}$", 
+                   size = 10) 
 
     ax1.get_xaxis().set_visible(False)
     #	plt.axis([6, 12, -16, -9.5])
-    ax1.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
-    ax2.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
-    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
-    ax2.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
+    #ax1.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
+    #ax2.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
+    #ax1.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
+    #ax2.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
 
     outputFile = OutputDir + output_tag + output_format 			
     plt.savefig(outputFile)  # Save the figure
@@ -558,11 +522,13 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
         ax1.fill_between(bouwens_z, bouwens_2sigma_lower, bouwens_2sigma_upper, color = 'k', alpha = 0.5, label = r"$\mathrm{Bouwens \: et \: al. \: (2015)}$")
 
     if plot_time == 1:
-        ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$", size = label_size)
+        ax1.set_xlabel(r"$\mathrm{Time \: Since \: Big \: Bang \: [Myr]}$",
+                       size = PlotScripts.global_labelsize)
         ax1.xaxis.set_minor_locator(mtick.MultipleLocator(PlotScripts.time_tickinterval))
         ax1.set_xlim(PlotScripts.time_xlim)
 
-        ax1.set_ylabel(r'$\sum f_\mathrm{esc}\dot{N}_\gamma \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$', fontsize = PlotScripts.global_fontsize)                 
+        ax1.set_ylabel(r'$\sum f_\mathrm{esc}\dot{N}_\gamma \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$', 
+                       size = PlotScripts.global_labelsize)
         #ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
         ax1.set_ylim([48.5, 51.5])
 
@@ -572,14 +538,15 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
         z_labels = ["$%d$" % x for x in PlotScripts.z_plot] # Properly Latex-ize the labels.
 
         print(z_labels)
-        ax2.set_xlabel(r"$z$", fontsize = label_size)
+        ax2.set_xlabel(r"$z$", size = PlotScripts.global_labelsize)
         ax2.set_xlim(PlotScripts.time_xlim)
         ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
         ax2.set_xticklabels(z_labels) # But label them as redshifts.
         
     else:
-        ax1.set_xlabel(r"$z$", size = label_size)
-        ax1.set_ylabel(r"$\mathrm{log}_{10} \: \dot{N}_{\mathrm{HI}} \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$", fontsize = label_size)
+        ax1.set_xlabel(r"$z$", size = PlotScripts.global_labelsize)
+        ax1.set_ylabel(r"$\mathrm{log}_{10} \: \dot{N}_{\mathrm{HI}} \: [\mathrm{s}^{-1}\mathrm{Mpc}^{-3}]$", 
+                       size = PlotScripts.global_labelsize)
         ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
         ax1.set_ylim([48.5, 51.5])
 
@@ -599,7 +566,7 @@ def plot_total_nion(ZZ, total_nion, simulation_norm, plot_time, labels, OutputDi
                      labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size + 3)
+        t.set_fontsize(PlotScripts.global_legendsize) 
 
     plt.tight_layout()
 
@@ -817,207 +784,6 @@ def plot_density_numbers(z, density, Ncells, OutputDir, output_tag):
 
     plt.close()
 ##########
-
-def calculate_bubble_MC(z, ionized_cells, Ncell, OutputDir, output_tag):
-# Calculate the size of ionized/neutral bubbles by choosing an ionized/neutral cell and measuring the distance to a cell of the opposite phase.
-
-## Input ##
-# z is the redshift we are doing the MC walk at.
-# ionized_cells is the array that contains the ionization state of a cell.
-
-## Output ##
-# The output file will be of the form '*OutputDir*/MC/*output_tag*_*z*.dat'
-
-    def MC_walk(cells, indices, phase, N, Ncell, outfile):
-        # Function for the MC walk to calculate bubble size.
-    
-        ## Input ##
-	# cells is the array that contains the ionization field (0 or 1).
-	# indices is a length 3 array containing the x,y,z indices of the cells that are neutral (phase = 0) or ionized (phase = 1)
-	# phase is 0 if we are starting with neutral or 1 if we are starting with ionized cell.
-	# N is the number of random points we select.
-    
-        ## Output ##
-        # A .dat file containing the results of the MC walk (number of steps until it encounters a phase transition).
-
-        radii = []
-
-        for j in range(0,int(N)):
-                        
-            if (j%20000 == 0):
-                print("On walk number {0}".format(j))
-    
-			## Select a random direction to walk through ##
-            direction = random.randint(1,6)
-
-            if direction == 1:
-                x = 1
-                y = 0
-                z = 0
-            elif direction == 2:
-                x = -1 
-                y = 0
-                z = 0
-            elif direction == 3:
-                x = 0
-                y = 1
-                z = 0
-            elif direction == 4:
-                x = 0
-                y = -1
-                z = 0
-            elif direction == 5:
-                x = 0
-                y = 0
-                z = 1
-            else:
-                x = 0
-                y = 0
-                z = -1
-
-			# Pick the x,y,z coordinates of a random ionized/neutral cell
-            random_index = random.randint(0,len(indices[0])-1)
-            walk_x = indices[0][random_index]
-            walk_y = indices[1][random_index]
-            walk_z = indices[2][random_index]
-
-            R = 0
-            phase_transition = phase
-
-            while (phase_transition == phase): # While we haven't changed phase yet.
-                R += 1 # Keep increasing the radius until we do.
-                phase_transition = cells[(walk_x + R*x) % Ncell, (walk_y + R*y) % Ncell, (walk_z + R*z) % Ncell]
-                if (phase_transition > 0.8):
-                    phase_transition = 1
-                else:
-                    phase_transition = 0	
-                if (R >= Ncell): # If the radius has gone beyond the number of available cells, 
-                    phase_transition = (phase + 1) % 2 # We force the change.
-
-            radii.append(R)
-			
-        np.savetxt(outfile, radii, delimiter = ',')
-        print("MC file saved as {0}".format(outfile))
-
-    print("")
-    print("Calculating bubble size using MC walk.")	
-
-    N = 1e5
-
-    start_time = time.time()
-
-    ionized_indices= np.where(ionized_cells > 0.8) # Calculate the array indices corresponding to neutral/ionized cells.
-    unionized_indices = np.where(ionized_cells < 0.2)
-
-    MCDir = OutputDir + 'MC/' 	
-    if not os.path.exists(MCDir):
-        os.makedirs(MCDir)
-    outfile = MCDir + output_tag + '_z_%.3f.dat' %(z)
-    MC_walk(ionized_cells, ionized_indices, 1, N, Ncell, outfile)
-
-    print("MC took {0} seconds.".format(time.time() - start_time))
-
-
-##########
-
-def plot_bubble_MC(ZZ, fractions_HI, simulation_norm, model_tags, file_tags, Ncell, OutputDir, output_tag):
-# Plot the results from the MC walk.  Note that input_tag and labels are arrays that contains the input file tag and label for different realizations.
-
-## Input ##
-# ZZ is the redshift range we are plotting the results over.
-# upperZ is the upper bound we are plotting to.
-# input_tag is an array with the file tags for the input MC file for different realizations #### NOTE: This should be the same as *output_tag* in calculate_bubble_MC
-# labels is an array that contains the graph labels for different realizations.
-
-## Output ##
-# The output file will be of the form '*OutputDir*/*output_tag*.*output_format*'
-
-    print("Plotting results from MC walk.")
-
-    MCDir = OutputDir + 'MC/'
-
-    ax1 = plt.subplot(111)
-    for p, q in itertools.product(range(len(fractions_HI)), range(len(file_tags))): # Equivalent to a nested for loop over fractions_HI and file_tags.			
-        if simulation_norm[q] == 0:
-            cosmo = AllVars.Set_Params_Mysim()
-        elif simulation_norm[q] == 2:
-            cosmo = AllVars.Set_Params_Tiamat()	
-        elif simulation_norm[q] == 5:
-            cosmo = AllVars.Set_Param_Britton()
-        elif simulation_norm[q] == 6:
-            cosmo = AllVars.Set_Params_Kali()
-        else:
-            print("Have yet to set this simulation parameter.  Should have been caught during initialization thought and no here (in plot_bubble_MC).")
-            exit()
-        
-       
-
-        infile = MCDir + file_tags[q] + '_z_%.3f.dat' %(ZZ[q][p])
-      
-     
-        if (os.path.exists(infile) == False):
-            print("Could not find file {0}.  Skipping and moving on".format(infile))
-            continue
-        fd = open(infile, 'rb')
-
-        print("Plotting Bubble size of file {0}".format(infile))
-        R = np.loadtxt(fd)
-        print("Maximum radius before scaling is {0} cells.".format(max(R)))
-        print("The ratio is: BoxSize = {0:.3f} Mpc/h, Ncell = {1} => 1cell = {2:.3f} Mpc/h".format(AllVars.BoxSize, Ncell[q], AllVars.BoxSize/float(Ncell[q])))		
-        R *= AllVars.BoxSize/float(Ncell[q])
-        print("Maximum radius after scaling is {0:.4f} Mpc/h.".format(max(R)))
-
-        binwidth = 6*AllVars.BoxSize/float(Ncell[q])
-
-        R_low = binwidth/2 
-        if max(R) > AllVars.BoxSize/2:
-            R_high = AllVars.BoxSize/2 + binwidth/2 
-        else:
-            R_high = max(R) + binwidth/2 
-
-        NB = int(np.ceil((R_high - R_low) / binwidth))
-
-        #print(R)
-        #print(R_low)
-        #print(R_high)
-        (counts, binedges) = np.histogram(R, range=(R_low, R_high), bins=NB, density = True)
-
-        # Set the x-axis values to be the centre of the bins
-        xaxeshisto = binedges[:-1] + 0.5 * binwidth
-        counts *= xaxeshisto
-            
-        if q == 0:		
-            label = r"$\langle x_\mathrm{HI}\rangle = %.2f$" %(fractions_HI[p])
-        else:
-            label = ""
-        ls = PlotScripts.linestyles[q%(len(PlotScripts.linestyles))]
-        #ax1.scatter(xaxeshisto, counts, label = label, color = PlotScripts.colors[p%len(PlotScripts.colors)], marker = markers[q%len(markers)])
-        ax1.plot(xaxeshisto, counts, label = label, color = PlotScripts.colors[p%len(PlotScripts.colors)], ls = ls) 
-
-    for q in range(0, len(model_tags)):
-        ax1.plot(nan, nan, ls = PlotScripts.linestyles[q], label = model_tags[q], color = 'k', lw = 2)
-
-    ax1.set_xscale('log')
-    ax1.set_xlim([1e-0, 100])
-    ax1.set_ylim([0.0, 0.7])
-
-    ax1.set_xlabel(r'$R \: [h^{-1}\mathrm{Mpc}]$', fontsize = label_size)
-    ax1.set_ylabel(r'$R \: \: dP/dR$', fontsize = label_size)
-
-    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.025))
-    leg = ax1.legend(loc='upper right', numpoints=1,
-         labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size)
-
-    plt.tight_layout()
-
-    outputFile = OutputDir + output_tag + output_format 
-    plt.savefig(outputFile)  # Save the figure
-    print('Saved file to {0}'.format(outputFile))				
-    plt.close()
-
 
 ##########
 
@@ -1326,7 +1092,7 @@ def plot_power(fractions_HI, k_21, Power_21, Error_21,
              labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
-            t.set_fontsize(legend_size)
+            t.set_fontsize(PlotScripts.global_legendsize)
 
         ax1.set_xlim([7e-2, 5.5])
         #ax1.set_ylim([np.amin(np.log10(Power[:])), np.amax(np.log10(Power[:]))])	
@@ -1381,7 +1147,7 @@ def plot_power(fractions_HI, k_21, Power_21, Error_21,
          labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size)
+        t.set_fontsize(PlotScripts.global_legendsize)
 
     ax1.set_xlim([7e-2, 5.5])
     ax1.set_ylim([-2.2, -1.3])
@@ -1465,7 +1231,7 @@ def photon_baryon(lowerZ, upperZ, ZZ, total_nion, Hubble_h, OB, Y, labels, Outpu
     leg = plt.legend(loc='upper right', numpoints=1,labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size)
+        t.set_fontsize(PlotScripts.global_legendsize)
 
     outputFile = OutputDir + output_tag + output_format 			
     plt.savefig(outputFile)  # Save the figure
@@ -1574,7 +1340,7 @@ def plot_density_redshift(ZZ, density_mean, density_std, labels, OutputDir, outp
     leg = plt.legend(loc='upper left', numpoints=1,labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size)
+        t.set_fontsize(PlotScripts.global_legendsize)
 
 
     outputFile = OutputDir + output_tag + output_format 		
@@ -1602,7 +1368,7 @@ def plot_density_photons(ZZ, nion, density, count, labels, OutputDir, output_tag
     leg = plt.legend(loc='upper left', numpoints=1,labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size)
+        t.set_fontsize(PlotScripts.global_legendsize)
 
     outputFile = OutputDir + output_tag + output_format 		
     plt.savefig(outputFile)  # Save the figure
@@ -1725,7 +1491,7 @@ def plot_deltat_deltax(ZZ, volume_frac, labels, OutputDir, output_tag):
     leg = plt.legend(loc='lower left', numpoints=1,labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for o in leg.get_texts():  # Reduce the size of the text
-        o.set_fontsize(legend_size)
+        o.set_fontsize(PlotScripts.global_legendsize)
 
     ax.xaxis.set_minor_locator(mtick.MultipleLocator(25))
     ax.yaxis.set_minor_locator(mtick.MultipleLocator(0.0005))
@@ -1790,7 +1556,7 @@ def plot_deltat_deltaN(ZZ, Nion, labels, OutputDir, output_tag):
     leg = plt.legend(loc='upper right', numpoints=1,labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(legend_size)
+        t.set_fontsize(PlotScripts.global_legendsize)
 
     ax.text(0.075, 0.965, '(b)', horizontalalignment='center', verticalalignment='center', transform = ax.transAxes)		
 
@@ -1992,15 +1758,17 @@ def plot_combined_global_nion(ZZ, total_nion, volume_frac, labels, OutputDir, ou
 
 ##########
 
-
-def plot_nine_panel_slices(ZZ, filepaths, GridSizes, precision, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, output_tag):	
+def plot_nine_panel_slices(ZZ, filepaths, GridSizes, precision, 
+                           simulation_norm, MC_Snaps, fractions_HI, 
+                           model_tags, OutputDir, output_tag, num_rows=3):	
     ## TODO: Update the function header string.
 
     fig = plt.figure(figsize = (16, 12))
-    gs1 = gridspec.GridSpec(3,len(filepaths))
-    gs1.update(wspace=0.00, hspace=0.0) # set the spacing between axes. 
-    for i in range(1, 3*len(filepaths) + 1):
-        ax = plt.subplot(gs1[i-1]) 
+    #gs1 = gridspec.GridSpec(num_rows,len(filepaths))
+    #gs1.update(wspace=-0.175, hspace=0.0) # set the spacing between axes. 
+
+    for i in range(1, num_rows*len(filepaths) + 1):
+        ax = plt.subplot(num_rows, len(filepaths), i)
 
         model_index = int((i-1) % len(filepaths)) # Every 3rd step it flips back to the first model.
         count_index = int(floor((i-1)/len(filepaths))) # Every 3rd step it increments to the next fraction we're plotting.	
@@ -2049,14 +1817,16 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, precision, simulation_norm,
 
         if (i <= len(filepaths)): 
             title = r"%s" %(model_tags[i-1])
-            ax.set_title(title, fontsize = PlotScripts.global_labelsize) 
+            ax.set_title(title, size = PlotScripts.global_labelsize - 20) 
 
         if (model_index == 0): 
             tmp = (r"$\langle \chi_\mathrm{HI}\rangle = %.2f$") %(fractions_HI[count_index])
-            ax.text(-0.65,0.5, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize - 8) 
+            ax.text(-0.75,0.5, tmp, transform = ax.transAxes, 
+                    size = PlotScripts.global_labelsize - 8) 
 
         tmp = r"$z = %.2f$" %(redshift)
-        txt = ax.text(0.55,0.9, tmp, transform = ax.transAxes, fontsize = PlotScripts.global_labelsize - 10, color = 'k')
+        txt = ax.text(0.55,0.9, tmp, transform = ax.transAxes, 
+                      size = PlotScripts.global_labelsize - 16, color = 'k')
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
         plt.draw()
         frame1 = plt.gca()
@@ -2068,7 +1838,8 @@ def plot_nine_panel_slices(ZZ, filepaths, GridSizes, precision, simulation_norm,
     cbar = fig.colorbar(im, cax=cax, ticks = np.arange(-8.0, 1.0, 1.0))
     cbar.ax.set_ylabel(r'$\mathrm{log}_{10}\left(\chi_\mathrm{HI}\right)$', rotation = 90, size = PlotScripts.global_labelsize)
     cbar.ax.tick_params(labelsize = PlotScripts.global_legendsize + 10)
-    fig.subplots_adjust(right = None, hspace = 0.0, wspace = 0.0)
+
+    fig.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile = OutputDir + output_tag + output_format 
     plt.savefig(outputFile)  # Save the figure
@@ -2125,10 +1896,11 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 
         if (i == 1 or i == 2 or i == 3):
             title = r"%s" %(model_tags[i-1])
-            ax.set_title(title, fontsize = legend_size + 6)
+            ax.set_title(title, fontsize = PlotScripts.global_legendsize)
         if (i == 1 or i == 4 or i == 7):
             tmp = (r"$x_\mathrm{HI} = %.3f$") %(fractions_HI[count_index])
-            ax.text(10.0,0.5, tmp, transform = ax.transAxes, fontsize = legend_size - 4)
+            ax.text(10.0,0.5, tmp, transform = ax.transAxes, 
+                    fontsize = PlotScripts.global_legendsize- 4)
 
         frame1 = plt.gca()
         frame1.axes.get_xaxis().set_visible(False)
@@ -2137,8 +1909,9 @@ def plot_nine_panel_photHI(ZZ, filepaths, GridSizes, MC_Snaps, fractions_HI, mod
 
     cax = fig.add_axes([0.9, 0.1, 0.03, 0.8])
     cbar = fig.colorbar(im, cax=cax, ticks = np.arange(-15, -7))
-    cbar.ax.set_ylabel(r"$\log_{10} \: \Gamma \: [\mathrm{s}^{-1}]$",  rotation = 90, fontsize = legend_size)		
-    cbar.ax.tick_params(labelsize = legend_size - 2)
+    cbar.ax.set_ylabel(r"$\log_{10} \: \Gamma \: [\mathrm{s}^{-1}]$",  
+                       rotation = 90, fontsize = PlotScripts.global_legendsize)		
+    cbar.ax.tick_params(labelsize = PlotScripts.global_legendsize - 2)
 
     outputFile = OutputDir + output_tag + output_format 
     plt.savefig(outputFile)  # Save the figure	
@@ -2155,13 +1928,21 @@ def plot_optical_depth(ZZ, mass_frac, model_tags, OutputDir, output_tag):
         H = Hubble_Param(z, AllVars.Hubble_h, AllVars.Omega_m) / (AllVars.pc_to_m * 1.0e6 / 1.0e3) # Hubble Parameter in Mpc / s / Mpc. 
         return (((1 + z)**2) / H)
 
-    def adjust_plot(ax):
+    def adjust_plot(ax, ax2):
 
-        ax.set_xlabel(r"$\mathbf{z}$", size = label_size)
-        ax.set_ylabel(r"$\mathbf{\tau}$", size = label_size)
+        ax.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr}]$", 
+                      size = PlotScripts.global_labelsize)
 
-        ax.set_ylim([0.04, 0.08])
-        ax.set_xlim([PlotScripts.z_plot[0], PlotScripts.z_plot[-1]])
+        #ax.xaxis.set_label_coords(-0.05, -0.06)
+        ax.set_ylabel(r"$\mathbf{\tau}$", 
+                      size = PlotScripts.global_labelsize) 
+
+        ax2.set_xlabel(r"$\mathbf{z}$", 
+                       size = PlotScripts.global_labelsize) 
+
+        #ax2.xaxis.set_label_coords(-0.10, 1.075)
+
+        ax.set_ylim([0.042, 0.072])
 
         ax.tick_params(which = 'both', direction='in',
                           width = PlotScripts.global_tickwidth)
@@ -2186,15 +1967,20 @@ def plot_optical_depth(ZZ, mass_frac, model_tags, OutputDir, output_tag):
             print("{0} {1}".format(label, loc)) 
 
 
-        #tick_locs = PlotScripts.z_plot 
-        #ax[0].set_yticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
-        #                     fontsize = PlotScripts.global_fontsize)
+        tick_locs = np.arange(0.04, 0.075, 0.005)
+        ax.set_yticklabels([r"$\mathbf{%.3f}$" % x for x in tick_locs],
+                            fontsize = PlotScripts.global_fontsize)
 
-        leg = ax.legend(loc='upper left', numpoints=1,labelspacing=0.1)
+        ax.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012, color = 'k', alpha = 0.3) 
+        ax.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
+
+        ax.text(850, 0.0575, r"$\mathrm{Planck \: 2016}$")
+
+        leg = ax.legend(loc='upper right', numpoints=1, labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
         for t in leg.get_texts():  # Reduce the size of the text
-            t.set_fontsize(legend_size)
- 
+            t.set_fontsize(PlotScripts.global_legendsize)
+
     tau_04 = integrate.quad(integrand, 0, 4)[0] # Tau for z = 0 to 4.
     tau_04 *= (1 + 2*AllVars.Y/(4 * (1-AllVars.Y)))
 
@@ -2202,12 +1988,18 @@ def plot_optical_depth(ZZ, mass_frac, model_tags, OutputDir, output_tag):
     tau_46 *= (1 + AllVars.Y/(4* (1-AllVars.Y)))
 
     tau_06 = tau_04 + tau_46
+   
+    fig = plt.figure(figsize = (16,8))
+    ax1 = fig.add_subplot(121)
 
-    ax = plt.subplot(111)
-    ax.fill_between(np.arange(0, 20, 0.01), 0.058 - 0.012, 0.058 + 0.012, color = 'k', alpha = 0.3) 
-    ax.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
+    plot_global_frac(ZZ, mass_frac, 1, model_tags, OutputDir, output_tag, ax1, 0)
 
-    ax.text(6.5, 0.055, r"$\mathrm{Planck \: 2016}$")
+    ax2 = fig.add_subplot(122)
+    ax3 = PlotScripts.add_time_z_axis(ax2, cosmo)
+
+    t = np.empty(len(mass_frac[0]))
+    for i in range(0, len(mass_frac[0])):
+        t[i] = (AllVars.t_BigBang - cosmo.lookback_time(ZZ[i]).value) * 1.0e3 	
 
     for p in range(0, len(mass_frac)):
         tau = np.empty((len(ZZ)))
@@ -2245,13 +2037,15 @@ def plot_optical_depth(ZZ, mass_frac, model_tags, OutputDir, output_tag):
         tau *= n_HI(0, AllVars.Hubble_h, AllVars.Omega_b, AllVars.Y) * AllVars.c_in_ms * AllVars.Sigmat
    
         print("Tau = {0}".format(tau)) 
-        ax.plot(ZZ, tau, label = label, color = PlotScripts.colors[p], ls = PlotScripts.linestyles[p], lw = paper_lineweight)	
+        ax2.plot(t, tau, label = label, color = PlotScripts.colors[p], ls = PlotScripts.linestyles[p], 
+                 lw = PlotScripts.global_linewidth)	
 
-    adjust_plot(ax)
+    adjust_plot(ax2, ax3)
 
     plt.tight_layout()
+    plt.subplots_adjust(wspace = 0.175, hspace = 0.0)
     outputFile = OutputDir + output_tag + output_format 
-    plt.savefig(outputFile)	
+    fig.savefig(outputFile)	
     print('Saved file to {0}'.format(outputFile))	
             
     plt.close()
@@ -2278,7 +2072,7 @@ def hoshen_kopelman(ionized_cells):
 	n = len(ionized_cells)
 	
 
-	max_labels = l*m*n / 2 # The maximum number of discrete ionized regions.
+	max_labels = int(l*m*n / 2) # The maximum number of discrete ionized regions.
 	labels = np.zeros((max_labels), dtype = np.int)
 
 	test = np.zeros((l, m, n), dtype = np.int32)
@@ -2472,32 +2266,13 @@ def check_fractions(ionized_fraction, HI_fraction_high, HI_fraction_low):
 if __name__ == '__main__':
 
     ###########################   
-    
-    PlotScripts.Set_Params_Plot()
-
-    ## Kali ## 
-   
-    #model_tags = [r"$Constant$", r"$fej$", r"$fejpower$", 
-    #              r"$fejpower 0.3$", r"$fejpower 0.5 cut$"]
-
-    #model_tags = [r"$f_\mathrm{esc} = Constant$",
-    #              r"$f_\mathrm{esc} \: \propto \:  \mathrm{Quasar}$"]
-    #              r"$f_\mathrm{esc} \: \propto \:  M_*$"]
-    model_tags = [r"$f_\mathrm{esc} = 0.35$", 
-                  #r"$f_\mathrm{base} = 0.25$",
-                  "$M_H \mathrm{Decreasing}$",
-                  r"$M_H \mathrm{Increasing}$",
-                  r"$f_\mathrm{esc} \: \propto \: f_\mathrm{ej}$",
-                  #r"$f_\mathrm{M_*} = 10^7 - 10^8$"]
-                  #r"$f_\mathrm{M_*} = 10^9 - 10^{10}$"]
-                  r"$f_\mathrm{esc} \: \propto \: \mathrm{SFR}$"]
-
-
+       
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+                  #r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+                  r"$\mathbf{f_\mathrm{esc} = 0.35, photHI2}$"] 
 
     output_tags = [r"Base Reion On"]
 
@@ -2510,13 +2285,13 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'paper_plots_SFR0.3'
+    model = 'photHI2_new'
 
     GridSize_model1 = 256
         
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
    
-    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/newphoton_SF0.03_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_XHII"
     filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/newphoton_SF0.03_0.2_1.00_2.50_XHII"
     filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/oldphoton_SF0.03_0.10_1.00_2.50_XHII"
     filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/newphoton_SF0.03_0.25_1.00_2.50_XHII"
@@ -2534,8 +2309,9 @@ if __name__ == '__main__':
     filepath_model16="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.60_XHII"
     filepath_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.40_XHII"
     filepath_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_XHII"
-
-    filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/newphoton_SF0.03_fesc0.35_HaloPartCut32_nionHI"
+    filepath_model19="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_XHII"
+    
+    filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/const0.35_fesc0.35_HaloPartCut32_nionHI"
     filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.2_1.00_2.50_quasar_0.20_1.00_2.50_HaloPartCut32_nionHI"
     filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/oldphoton_SF0.03_0.10_1.00_2.50_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI"
     filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.25_1.00_2.50_quasar_0.25_1.00_2.50_HaloPartCut32_nionHI"
@@ -2553,37 +2329,58 @@ if __name__ == '__main__':
     filepath_nion_model16="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.60_SFR_0.200_0.600_HaloPartCut32_nionHI"
     filepath_nion_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.40_SFR_0.200_0.400_HaloPartCut32_nionHI"
     filepath_nion_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.30_SFR_0.200_0.300_HaloPartCut32_nionHI"
-  
+    filepath_nion_model19="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/const0.35_photHI2_fesc0.35_HaloPartCut32_nionHI"
+ 
+    filepath_phot_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI"
+    filepath_phot_model12="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_photHI"
+    filepath_phot_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_photHI"
+    filepath_phot_model6="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_photHI"
+    filepath_phot_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_photHI"
+    filepath_phot_model19="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_photHI"
+    
     filepath_density_model1="/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"
 
-    simulation_norm = [simulation_model1, simulation_model1, simulation_model1, simulation_model1, simulation_model1]
-    precision_array = [precision_model1, precision_model1, precision_model1, precision_model1, precision_model1]
-    GridSize_array = [GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1, GridSize_model1]
+    simulation_norm = [simulation_model1, 
+                       simulation_model1, 
+                       simulation_model1, 
+                       simulation_model1, 
+                       simulation_model1]
+
+    precision_array = [precision_model1, 
+                       precision_model1, 
+                       precision_model1, 
+                       precision_model1, 
+                       precision_model1]
+
+    GridSize_array = [GridSize_model1, 
+                      GridSize_model1, 
+                      GridSize_model1, 
+                      GridSize_model1, 
+                      GridSize_model1]
+
     ionized_cells_filepath_array = [filepath_model1,
                                     filepath_model12,
                                     filepath_model15,
                                     filepath_model6,
-                                    filepath_model18]
-    #ionized_cells_filepath_array = [filepath_model1,
-    #                                filepath_model4,
-    #                                filepath_model6]
+                                    filepath_model19]
+
     nion_filepath_array = [filepath_nion_model1,
                            filepath_nion_model12,
                            filepath_nion_model15,
                            filepath_nion_model6,
-                           filepath_nion_model18]
-    #nion_filepath_array = [filepath_nion_model1,
-    #                       filepath_nion_model4,
-    #                       filepath_nion_model6]
+                           filepath_nion_model19]
+
+    photofield_filepath_array = [filepath_phot_model1,
+                                 filepath_phot_model12,
+                                 filepath_phot_model15,
+                                 filepath_phot_model6,
+                                 filepath_phot_model19]
 
     density_filepath_array = [filepath_density_model1,
                               filepath_density_model1,
                               filepath_density_model1,
                               filepath_density_model1,
                               filepath_density_model1]
-    #density_filepath_array = [filepath_density_model1,
-    #                          filepath_density_model1,
-    #                          filepath_density_model1,
 
     ###########################      
     
@@ -2625,24 +2422,11 @@ if __name__ == '__main__':
 
         fraction_idx_array.append([]) 
 
-    #fractions_HI = [0.90, 0.01]
-    #delta_HI = [0.01, 0.01]
-
-    #fractions_HI = np.arange(0.75, 0.25, -0.05) 
-    #delta_HI = np.full(len(fractions_HI), 0.025)
-  
-    #fractions_HI = [0.75]
-    #delta_HI = [0.015]
-
-    #fractions_HI = [0.75, 0.50]
-    #delta_HI = [0.015, 0.03]
-
     fractions_HI = [0.90, 0.75, 0.50, 0.25, 0.10]
     delta_HI = [0.015, 0.03, 0.03, 0.03, 0.03]
 
     #fractions_HI = [0.50, 0.25, 0.10]
     #delta_HI = [0.03, 0.03, 0.03]
-
 
     HI_fraction_high = np.add(fractions_HI, delta_HI) 
     HI_fraction_low= np.subtract(fractions_HI, delta_HI) 
@@ -2659,8 +2443,14 @@ if __name__ == '__main__':
     calculate_power = 0 # 0 to NOT calculate the power spectra, 1 to calculate it. 
 
     do_hoshen = 0
-   
-    wtf = 0 
+
+    # Neutral fractions that denote when reionization stars and ends.
+    start_reion = 0.99
+    end_reion = 0.01
+
+    start_snap = np.zeros((number_models))
+    end_snap = np.zeros((number_models))
+
     for count, snapshot_idx in enumerate(snaplist):
 
         do_power_array = np.zeros((number_models))	
@@ -2709,8 +2499,8 @@ if __name__ == '__main__':
             #density_path = "{0}.dens.dat".format(density_filepath_array[model_number])  
             density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))
             
-            #photofield_path = "{0}_{1:02d}".format(photofield_filepath_array[model_number], snapshot_idx) 
-            #photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
+            photofield_path = "{0}_{1:03d}".format(photofield_filepath_array[model_number], snapshot_idx) 
+            photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
 
             #tag = "{0}_{1:03d}".format(output_tags[model_number], snapshot_idx)
             #plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, tag) 
@@ -2720,6 +2510,14 @@ if __name__ == '__main__':
             nion_total_array[model_number][count] = calculate_total_nion(model_tags[model_number], nion_array[model_number])
             volume_frac_model = volume_frac_array[model_number][count]	
 
+            if (1.0-volume_frac_model < start_reion) and \
+               start_snap[model_number] == 0:
+                start_snap[model_number] = snapshot_idx 
+
+            if (1.0-volume_frac_model < end_reion) and \
+               end_snap[model_number] == 0:
+                end_snap[model_number] = snapshot_idx 
+                
             if(do_hoshen == 1):
                 hoshen_array[model_number][count] = hoshen_kopelman(ionized_cells_array[model_number])	
         
@@ -2770,9 +2568,10 @@ if __name__ == '__main__':
 
             #plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
 
-            #photo_mean_array[model_number][count] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
-            #photo_std_array[model_number][count] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
-         
+            photo_mean_array[model_number][count] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
+            photo_std_array[model_number][count] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
+
+        assert(nion_array[0].all() == nion_array[4].all())
         #print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
 
     
@@ -2780,39 +2579,46 @@ if __name__ == '__main__':
     #    if (MC_ZZ[model_number][-1] < 5 or MC_ZZ[model_number][-1] > 1000):
     #        MC_ZZ[model_number][-1] = ZZ[-1]
 
-    if (rank == 0): 
-        plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, volume_frac_array, 1, model_tags, OutputDir, "GlobalFraction")
-        plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array,
-                        simulation_norm, 1, model_tags, OutputDir,
-                        "nioncut_0.01_0.50")
-        plot_optical_depth(AllVars.SnapZ[snaplist], mass_frac_array, model_tags, OutputDir, "OpticalDepth")
+    plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, 1, model_tags, OutputDir, "GlobalFraction")
+    plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array,
+                    simulation_norm, 1, model_tags, OutputDir,
+                    "nioncut_0.01_0.50")
+    plot_optical_depth(AllVars.SnapZ[snaplist], mass_frac_array, model_tags, OutputDir, "OpticalDepth")
 
-        plot_nine_panel_slices(AllVars.SnapZ[snaplist],
-ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, MC_Snaps, fractions_HI, model_tags, OutputDir, "3PanelSlice")
+    plot_nine_panel_slices(AllVars.SnapZ[snaplist],
+                           ionized_cells_filepath_array, GridSize_array, 
+                           precision_array, simulation_norm, 
+                           MC_Snaps, fractions_HI, model_tags, OutputDir, 
+                           "3PanelSlice", len(fractions_HI))
 
-        if(plot_MC == 1):
-            plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ))
-            plotting_HI = np.zeros(np.shape(fractions_HI))
-            for i in range((number_models)):
-                for j in range(1, len(MC_ZZ)+1):
-                    print(plotting_MC_ZZ)
-                    print(MC_ZZ[i][-j%len(MC_ZZ)])
-                    plotting_MC_ZZ[i][j-1] = MC_ZZ[i][-j%len(MC_ZZ)]
-#            plotting_MC_ZZ = MC_ZZ
-            plotting_HI = fractions_HI
-        elif(plot_MC == 2):
-            plotting_MC_ZZ = MC_ZZ_snaps 
-            plotting_HI = volume_frac_array 
+    if(plot_MC == 1):
+        plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ))
+        plotting_HI = np.zeros(np.shape(fractions_HI))
+        for i in range((number_models)):
+            for j in range(1, len(MC_ZZ)+1):
+                print(plotting_MC_ZZ)
+                print(MC_ZZ[i][-j%len(MC_ZZ)])
+                plotting_MC_ZZ[i][j-1] = MC_ZZ[i][-j%len(MC_ZZ)]
 
-    paper_plots = 1
+        plotting_HI = fractions_HI
+    elif(plot_MC == 2):
+        plotting_MC_ZZ = MC_ZZ_snaps 
+        plotting_HI = volume_frac_array 
 
-    for i in range(5):
-        print("Model {0}".format(model_tags[i])) 
-        for val in fractions_HI:
-            idx = (np.abs(mass_frac_array[i] - val)).argmin()
-            print("HI Fract {0}: Nearest Idx {1} with value {2}".format(val, 
-                                                                        idx, 
-                                                                        mass_frac_array[i][idx]))
+    print("The duration of reionization is:")
+
+    for model_number in range(len(start_snap)):
+        start_z = AllVars.SnapZ[int(start_snap[model_number])]
+        end_z = AllVars.SnapZ[int(end_snap[model_number])]
+
+        dt = (cosmo.lookback_time(start_z).value -
+             cosmo.lookback_time(end_z).value) * 1.0e3
+
+        print("")
+        print("{0}: {1:.4f} Myr".format(model_tags[model_number], dt)) 
+        print("z_start {0}, z_end {1}".format(start_z, end_z))
+        print("")
+    #plot_hoshen(hoshen_array, volume_frac_array, model_tags, OutputDir, "Hoshen")   
 
     #plot_bubble_MC(plotting_MC_ZZ, plotting_HI, simulation_norm, model_tags, output_tags, GridSize_array, OutputDir, "BubbleSizes") 
     #plot_power(fractions_HI, wavenumber_array, powerspectra_array,
@@ -2830,12 +2636,12 @@ ionized_cells_filepath_array, GridSize_array, precision_array, simulation_norm, 
     #save_redshifts(redshift_array_model2, OutputDir, "ReionizationRedshift_" + output_tags[1])
     #save_redshifts(redshift_array_model3, OutputDir, "ReionizationRedshift_" + output_tags[2])
 
-    #plot_hoshen(hoshen_array, volume_frac_array, model_tags, OutputDir, "Hoshen")
     #find_max_bubble(plotting_MC_ZZ, plotting_HI, plot_MC, volume_frac_array,  model_tags, output_tags, GridSize_array, OutputDir, "MaxBubble_withNB_z_ylog")
 
     #photon_baryon(lowerZ, upperZ, ZZ, [nion_total_model1, nion_total_model2], Hubble_h, OB, Y, model_tags, OutputDir, "nion_total2")
-    #analytic_HII(nion_total_model1, ZZ, upperZ, snaplist, OutputDir, "Q_Analytic")	
-    #plot_photo_mean(ZZ, photo_mean_array, photo_std_array, model_tags, OutputDir, "Mean_Photo")
+    #analytic_HII(nion_total_model1, ZZ, upperZ, snaplist, OutputDir, "Q_Analytic")
+    print(photo_mean_array)
+    plot_photo_mean(AllVars.SnapZ[snaplist], photo_mean_array, photo_std_array, model_tags, OutputDir, "Mean_Photo")
 
     #plot_deltat_deltax(ZZ, volume_frac_array, model_tags, OutputDir, "ReionizationSpeed")
     #plot_deltat_deltaN(ZZ, nion_array, model_tags, OutputDir, "NionSpeed")

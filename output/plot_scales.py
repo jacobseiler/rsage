@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import matplotlib
+import matplotlib.ticker as mtick
 matplotlib.use('Agg')
 
 import pylab as plt
@@ -18,7 +19,7 @@ import AllVars
 import misc_func as misc 
 
 label_size = 20
-output_format = ".png"
+output_format = ".pdf"
 
 def T_naught(z, h, OM, OB):
     """
@@ -218,26 +219,57 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
                             #fontsize = PlotScripts.global_fontsize)
 
         if mode == 0:            
-            ax1.set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = 0.2h Mpc^{-1})}$', size = label_size-2)
+            ax1.set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = 0.2Mpc^{-1}h)}$', size = label_size-2)
 
             if plot_mode == 0:
-                ax2.set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = 1.0h Mpc^{-1})}$', size = label_size-2)
+                ax2.set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = 1.0Mpc^{-1}h)}$', size = label_size-2)
             else:
-                ax1.set_xlabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = 1.0h Mpc^{-1})}$', size = label_size-2)
+                ax1.set_xlabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = 1.0Mpc^{-1}h)}$', size = label_size-2)
         else:
-            ax1.set_ylabel(r'$\mathbf{\Delta_{XHII}^2 \left[mK^2\right] (k = 0.2h Mpc^{-1})}$', size = label_size-2)
+            ax1.set_ylabel(r'$\mathbf{\Delta_{XHII}^2 \left[mK^2\right] (k = 0.2Mpc^{-1}h)}$', size = label_size-2)
             if plot_mode == 0: 
-                ax2.set_ylabel(r'$\mathbf{\Delta_{XHII}^2 \left[mK^2\right] (k = 1.0h Mpc^{-1})}$', size = label_size-2) 
+                ax2.set_ylabel(r'$\mathbf{\Delta_{XHII}^2 \left[mK^2\right] (k = 1.0Mpc^{-1}h)}$', size = label_size-2) 
             else:
-                ax1.set_xlabel(r'$\mathbf{\Delta_{XHII}^2 \left[mK^2\right] (k= 1.0h Mpc^{-1})}$', size = label_size-2)
+                ax1.set_xlabel(r'$\mathbf{\Delta_{XHII}^2 \left[mK^2\right] (k = 1.0Mpc^{-1}h)}$', size = label_size-2)
             
-        if mode == 0:
-            ax1.set_ylim([0.0, 33.0])
-            ax1.set_xlim([0.0, 39.0])
-
+        if mode == 0:   	
             if plot_mode == 0:
                 ax1.set_xlim([0.0, 1.00])
+                ax1.set_ylim([0.0, 33.0])
+
                 ax2.set_ylim([0.0, 39.0])
+
+                ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+            else:
+                ax1.set_xlim([0.0, 39.0])
+                ax1.set_ylim([0.0, 33.0])
+
+                ax1.xaxis.set_minor_locator(mtick.MultipleLocator(1))
+                ax1.yaxis.set_minor_locator(mtick.MultipleLocator(1))
+
+                print("Ax1 xaxis")
+                labels = ax1.xaxis.get_ticklabels()
+                locs = ax1.xaxis.get_ticklocs()
+                for label, loc in zip(labels, locs):
+                    print("{0} {1}".format(label, loc)) 
+                
+                print("Ax1 yaxis")
+                labels = ax1.yaxis.get_ticklabels()
+                locs = ax1.yaxis.get_ticklocs()
+                for label, loc in zip(labels, locs):
+                    print("{0} {1}".format(label, loc)) 
+
+                tick_locs = np.arange(0.0, 45, 10.0)
+                ax1.set_yticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
+                                     fontsize = PlotScripts.global_fontsize)
+
+                ax1.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
+                                     fontsize = PlotScripts.global_fontsize)
+
+                ax1.text(15, 2, r"$\mathbf{Start}$", 
+                         fontsize = PlotScripts.global_fontsize-4)
+                ax1.text(1, 5, r"$\mathbf{End}$",
+                         fontsize = PlotScripts.global_fontsize-4)
         else:       
             #ax1.set_ylim([0.0, 0.045])
             #ax1.set_xlim([0.0, 0.03])
@@ -246,21 +278,7 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
                 ax1.set_xlim([0.0, 1.00])
                 ax2.set_ylim([0.0, 0.045])
 
-        #tick_locs = np.arange(0.0, 5.5, 1.0)
-        #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-                             #fontsize = PlotScripts.global_fontsize)
 
-        print("Ax1 xaxis")
-        labels = ax1.xaxis.get_ticklabels()
-        locs = ax1.xaxis.get_ticklocs()
-        for label, loc in zip(labels, locs):
-            print("{0} {1}".format(label, loc)) 
-        
-        print("Ax1 yaxis")
-        labels = ax1.yaxis.get_ticklabels()
-        locs = ax1.yaxis.get_ticklocs()
-        for label, loc in zip(labels, locs):
-            print("{0} {1}".format(label, loc)) 
        
     fig = plt.figure() 
     ax1 = fig.add_subplot(111) 
@@ -277,20 +295,23 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
                      P_largescale[model_number], 
                      color = PlotScripts.colors[model_number],
                      ls = '-', 
-                     lw = 2, rasterized=True, label = label)
+                     lw = PlotScripts.global_linewidth - 2, rasterized=True, 
+                     label = label)
 
             ax2.plot(XHII_fraction[model_number],
                      P_smallscale[model_number], 
                      color = PlotScripts.colors[model_number],
                      ls = '--', 
-                     lw = 2, rasterized=True, label = label)
+                     lw = PlotScripts.global_linewidth-2, rasterized=True, 
+                     label = label)
 
         else:
             ax1.plot(P_smallscale[model_number],
                      P_largescale[model_number], 
                      color = PlotScripts.colors[model_number],
                      ls = '-', 
-                     lw = 2, rasterized=True, label = label)
+                     lw = PlotScripts.global_linewidth-2, rasterized=True, 
+                     label = label)
 
             for count, val in enumerate(target_XHII_fraction):
 
@@ -363,27 +384,39 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
 
 def load_and_plot(target_XHII_fraction):
 
+    w = [0,2,3,4,5]
+
     XHII_fraction = np.load("./XHII_fraction.npz")["arr_0"]
+    XHII_fraction = XHII_fraction[w]
 
     P21_smallscale = np.load("./P21_smallscale.npz")["arr_0"]
+    P21_smallscale = P21_smallscale[w]
     P21_largescale = np.load("./P21_largescale.npz")["arr_0"]
+    P21_largescale = P21_largescale[w]
 
     PHII_smallscale = np.load("./PHII_smallscale.npz")["arr_0"]
+    PHII_smallscale = PHII_smallscale[w]
     PHII_largescale= np.load("./PHII_largescale.npz")["arr_0"]
+    PHII_largescale = PHII_largescale[w]
 
     model_tags = np.load("./model_tags.npz")["arr_0"]
+    model_tags = model_tags[w]
+
+    print(model_tags)
+    print(model_tags[0])
+    print(model_tags[1])
 
     plot_power(XHII_fraction, P21_smallscale, P21_largescale, model_tags, 
-               "scale_plots", 0, 0)
+               "scale_plots_paper", 0, 0)
 
     plot_power(XHII_fraction, PHII_smallscale, PHII_largescale, model_tags, 
-               "scale_plots", 1, 0)
+               "scale_plots_paper", 1, 0)
 
     plot_power(XHII_fraction, P21_smallscale, P21_largescale, model_tags, 
-               "scale_plots", 0, 1, target_XHII_fraction)
+               "scale_plots_paper", 0, 1, target_XHII_fraction)
 
     plot_power(XHII_fraction, PHII_smallscale, PHII_largescale, model_tags, 
-               "scale_plots", 1, 1, target_XHII_fraction)
+               "scale_plots_paper", 1, 1, target_XHII_fraction)
 
 
 if __name__ == '__main__':
@@ -418,12 +451,12 @@ if __name__ == '__main__':
     GridSize = [256, 256, 256, 256, 256, 256]
 
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
-                  r"$\mathbf{f_\mathrm{esc} = 0.30}$",
+                  #r"$\mathbf{f_\mathrm{esc} = 0.30}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  #r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
-                  "photHI2"] 
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+                  #"photHI2"] 
 
     endsnap = 98 
     SnapList = [np.arange(28, endsnap), np.arange(28, endsnap), 
@@ -440,9 +473,9 @@ if __name__ == '__main__':
     target_HI_fraction = [0.90, 0.75, 0.50, 0.25, 0.10]
 
 
-    misc.determine_close_idx(fname_ionized, fname_density, SnapList, GridSize,
-                             precision, target_HI_fraction, model_tags) 
-    exit()
+    #misc.determine_close_idx(fname_ionized, fname_density, SnapList, GridSize,
+    #                         precision, target_HI_fraction, model_tags) 
+    #exit()
 
     XHII_fraction = [[] for x in range(len(SnapList))]
 

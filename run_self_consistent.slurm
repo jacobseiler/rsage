@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=self_consistent_SN_fej
+#SBATCH --job-name=fej_alpha0.4_beta0.05
 
 #SBATCH --ntasks=32
 #SBATCH --time=10:00:00
@@ -14,14 +14,18 @@ module load numpy/1.14.1-python-3.6.4
 module load openmpi/3.0.0
 module load gcc/6.4.0
 
-ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/SFR/"
-log_dir="/home/jseiler/self_consistent_SAGE/logs/SFR/"
-run_prefix="SFR_0.20_0.30" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
+ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/new_fej/" # Directory the .ini files are kept.
+log_dir="/home/jseiler/self_consistent_SAGE/logs/new_fej/" # Directory to place the output log files.
+run_prefix="fej_alpha0.4_beta0.05" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
 
 LowSnap=27
 HighSnap=97
 
 NUMPROC=32
+
+# All files have been setup, time to run! #
+
+## DO NOT TOUCH BELOW THIS LINE ##
 
 for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
 {

@@ -82,3 +82,13 @@ def determine_close_idx(fname_HII, fname_density, SnapList, GridSize,
             print("HI Fract {0}: Nearest Idx {1} with value {2}".format(val, 
                                                                         idx, 
                                                                         XHII_fraction[model_number][idx]))
+
+
+def determine_MH_fesc_constants(low_MH, low_fesc, high_MH, high_fesc):
+    
+    log_A = (np.log10(high_fesc) - (np.log10(low_fesc)*np.log10(high_MH)/np.log10(low_MH))) * pow(1 - (np.log10(high_MH) / np.log10(low_MH)), -1)
+    B = (np.log10(low_fesc) - log_A) / np.log10(low_MH)
+    A = pow(10, log_A)
+
+    return A, B
+

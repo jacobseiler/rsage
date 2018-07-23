@@ -198,7 +198,7 @@ def get_nion_fname(SAGE_params):
     fesc_prescription = SAGE_params["fescPrescription"]
     
     if fesc_prescription == 0:
-        nion_fname = "{0}_fesc{1}_HaloPartCut{2}_nionHI" \
+        nion_fname = "{0}_fesc{1:.2f}_HaloPartCut{2}_nionHI" \
                       .format(SAGE_params["FileNameGalaxies"][0],
                               SAGE_params["fesc"][0],
                               SAGE_params["HaloPartCut"][0])

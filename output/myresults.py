@@ -29,7 +29,9 @@ import matplotlib.ticker as mtick
 import PlotScripts
 import ReadScripts
 import AllVars
+import GalaxyPhotoion as photo
 import ObservationalData as Obs
+
 
 from mpi4py import MPI
 
@@ -777,6 +779,7 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
             for axis in ['top','bottom','left','right']: # Adjust axis thickness.
                 ax[x,y].spines[axis].set_linewidth(PlotScripts.global_axiswidth)
 
+            print(model_tags[count])
             label = model_tags[count]
 
             ax[x,y].text(0.05, 0.65, label, transform = ax[x,y].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
@@ -881,14 +884,14 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
                                  rasterized = True, label = label, 
                                  lw = PlotScripts.global_linewidth)
        
-                        w = np.random.randint(0,
-                                              len(mass_global[model_number][snapshot_idx][0]),
-                                              size=500)
-                        sc = ax2[count_x, count%2].scatter(mass_global[model_number][snapshot_idx][0][w], 
-                                                           fesc_global[model_number][snapshot_idx][0][w],
-                                                           c=np.log10(Ngamma_global[model_number][snapshot_idx][0][w]*1.0e50),
-                                                           alpha = 0.5,cmap='plasma')
-                        plt.colorbar(sc)
+                        #w = np.random.randint(0,
+                        #                      len(mass_global[model_number][snapshot_idx][0]),
+                        #                      size=500)
+                        #sc = ax2[count_x, count%2].scatter(mass_global[model_number][snapshot_idx][0][w], 
+                        #                                   fesc_global[model_number][snapshot_idx][0][w],
+                        #                                   c=np.log10(Ngamma_global[model_number][snapshot_idx][0][w]*1.0e50),
+                        #                                   alpha = 0.5,cmap='plasma')
+                        #plt.colorbar(sc)
                         #ax2[count_x, count%2].hexbin(mass_global[model_number][snapshot_idx], 
                         #                            fesc_global[model_number][snapshot_idx],
                         #                            C=Ngamma_global[model_number][snapshot_idx])
@@ -914,10 +917,10 @@ def plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
             plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
 
-            leg = ax2[0,0].legend(loc="upper right", numpoints=1, labelspacing=0.1)
-            leg.draw_frame(False)  # Don't want a box frame
-            for t in leg.get_texts():  # Reduce the size of the text
-                t.set_fontsize('medium')
+            #leg = ax2[0,0].legend(loc="upper right", numpoints=1, labelspacing=0.1)
+            #leg.draw_frame(False)  # Don't want a box frame
+            #for t in leg.get_texts():  # Reduce the size of the text
+            #    t.set_fontsize('medium')
 
             plt.tight_layout()
             plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
@@ -1040,7 +1043,7 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
             t.set_fontsize('medium')
 
 
-    def adjust_paper_plots(ax, model_tags):
+    def adjust_paper_plots(ax, z_tags):
 
         ax[1,0].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
                            size = PlotScripts.global_fontsize)
@@ -1048,11 +1051,11 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
         ax[1,1].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
                            size = PlotScripts.global_fontsize)
 
-        ax[0,0].set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
-                      size = PlotScripts.global_labelsize)
+        ax[0,0].set_ylabel(r'$\mathbf{\Sigma log_{10}\langle f_{esc} N_\gamma\rangle_{M_*}}$', 
+                      size = PlotScripts.global_labelsize - 10)
 
-        ax[1,0].set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
-                      size = PlotScripts.global_labelsize)
+        ax[1,0].set_ylabel(r'$\mathbf{\Sigma log_{10}\langle f_{esc} N_\gamma\rangle_{M_*}}$', 
+                      size = PlotScripts.global_labelsize - 10)
 
         ax_x = [0, 0, 1, 1]
         ax_y = [0, 1, 0, 1]
@@ -1060,12 +1063,12 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
         for count, (x, y) in enumerate(zip(ax_x, ax_y)):
 
             ax[x,y].set_xlim([4.8, 10.4])
-            ax[x,y].set_ylim([0.05, 0.65])
+            ax[x,y].set_ylim([47, 55])
 
-            ax[x,y].yaxis.set_major_locator(mtick.MultipleLocator(0.1))
+            #ax[x,y].yaxis.set_major_locator(mtick.MultipleLocator(0.1))
             ax[x,y].xaxis.set_major_locator(mtick.MultipleLocator(1.0))
 
-            ax[x,y].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+            #ax[x,y].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
             ax[x,y].xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
 
             ax[x,y].tick_params(which = 'both', direction='in', width =
@@ -1076,7 +1079,10 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
             for axis in ['top','bottom','left','right']: # Adjust axis thickness.
                 ax[x,y].spines[axis].set_linewidth(PlotScripts.global_axiswidth)
 
-            label = model_tags[count]
+            print(z_tags[count])
+            label = r"$\mathbf{z = " + \
+                    str(int(round(float(z_tags[count])))) +\
+                    "}$"                
 
             ax[x,y].text(0.7, 0.8, label, transform = ax[x,y].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
   
@@ -1087,11 +1093,11 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
         ax[1,1].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
                             fontsize = PlotScripts.global_fontsize)
 
-        tick_locs = np.arange(0.0, 0.80, 0.10)
-        ax[0,0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
-                            fontsize = PlotScripts.global_fontsize)
-        ax[1,0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
-                            fontsize = PlotScripts.global_fontsize)
+        #tick_locs = np.arange(0.0, 0.80, 0.10)
+        #ax[0,0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+        #                    fontsize = PlotScripts.global_fontsize)
+        #ax[1,0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+        #                    fontsize = PlotScripts.global_fontsize)
 
     
         print("x")
@@ -1106,7 +1112,7 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
         for label, loc in zip(labels, locs):
             print("{0} {1}".format(label, loc)) 
 
-    print("Plotting fesc as a function of stellar mass.")
+    print("Plotting Ngamma*fesc as a function of stellar mass.")
 
     ## Array initialization ##
 
@@ -1126,13 +1132,11 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
             delta_fontsize = 0
             caps = 5
             ewidth = 1.5
-   
-        count_x = 0
-
-        for count, model_number in enumerate(range(0, len(SnapList))):
-            if count == 2:
-                count_x += 1
-
+  
+            z_tags = np.zeros_like(model_tags, dtype=np.float32)
+ 
+        for model_number in range(0, len(SnapList)):
+            count_x = 0
             ## Normalization for each model. ##
             if (simulation_norm[model_number] == 0):
                 AllVars.Set_Params_Mysim()
@@ -1148,16 +1152,13 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
                 AllVars.Set_Params_Kali()
 
             plot_count = 0
-            for snapshot_idx in range(0, len(SnapList[model_number])):
-                
+            for count, snapshot_idx in enumerate(range(0, len(SnapList[model_number]))):
                 if (SnapList[model_number][snapshot_idx] == PlotSnapList[model_number][plot_count]):
+                    if count == 2:
+                        count_x += 1
+                    label = model_tags[model_number] 
 
-                    if (model_number == 0):
-                        label = r"$\mathbf{z = " + \
-                                str(int(round(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]))) +\
-                                "}$"                
-                    else:
-                        label = ""
+                    z_tags[count] = float(AllVars.SnapZ[SnapList[model_number][snapshot_idx]])
 
                     ## Plots as a function of stellar mass ##
                     w = np.where((master_N_Ngamma_stellar[model_number][snapshot_idx] < 4))[0] # If there are no galaxies in the bin we don't want to plot. 
@@ -1172,12 +1173,11 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
                                  lw = PlotScripts.global_linewidth)
                     else:
                         ax[count_x, count%2].plot(master_bin_middle_stellar[model_number][snapshot_idx], 
-                                 master_mean_fesc_stellar[model_number][snapshot_idx], 
-                                 color = PlotScripts.colors[plot_count], 
-                                 ls = PlotScripts.linestyles[0], 
+                                 np.log10(master_mean_Ngamma_stellar[model_number][snapshot_idx]*1.0e50), 
+                                 color = PlotScripts.colors[model_number], 
+                                 ls = PlotScripts.linestyles[model_number], 
                                  rasterized = True, label = label, 
                                  lw = PlotScripts.global_linewidth)
-         
 
                     plot_count += 1                
                     if (plot_count == len(PlotSnapList[model_number])):
@@ -1188,9 +1188,9 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
         if paper_plots == 0:
             adjust_stellarmass_plot(ax1)
         else:
-            adjust_paper_plots(ax, model_tags) 
+            adjust_paper_plots(ax, z_tags) 
 
-            leg = ax[0,0].legend(loc="upper center", numpoints=1, labelspacing=0.1)
+            leg = ax[0,0].legend(loc="upper left", numpoints=1, labelspacing=0.1)
             leg.draw_frame(False)  # Don't want a box frame
             for t in leg.get_texts():  # Reduce the size of the text
                 t.set_fontsize('medium')
@@ -1204,6 +1204,185 @@ def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
         print('Saved file to {0}'.format(outputFile))
 
         plt.close(fig)        
+
+##
+
+def plot_photo_galaxy(SnapList, PlotSnapList, simulation_norm, 
+                     mean_photo_galaxy, std_photo_galaxy, N_photo_galaxy, 
+                     model_tags, paper_plots, output_tag):
+    """
+    Plots the photoionization rate as a function of galaxy stellar mass.
+    Parallel compatible.
+    Accepts 3D arrays of the escape fraction binned into Stellar Mass bins to plot the escape fraction for multiple models. 
+    Mass units are log(Msun) 
+
+    Parameters
+    ---------
+    SnapList : Nested array, SnapList[model_number0] = [snapshot0_model0, ..., snapshotN_model0], with length equal to the number of models.
+        Snapshots for each model. 
+    simulation_norm : array with length equal to the number of models.
+        Denotes which simulation each model uses.  
+        0 : MySim
+        1 : Mini-Millennium
+        2 : Tiamat (down to z = 5)
+        3 : Extended Tiamat (down to z = 1.6ish).
+        4 : Britton's Simulation
+        5 : Kali
+
+    mean_photo_galaxy, std_photo_galaxy, N_photo_galaxy : Nested
+        3-dimensional array, mean_photo_galaxy[model_number0][snapshot0] =
+        [bin0_meanphoto, ..., binN_meanphoto], with length equal to the number of models. 
+        Mean/Standard deviation for Photionization Rate in each stellar mass 
+        bin, for each [model_number] and [snapshot_number]. N_photo_galaxy is 
+        the number of galaxies placed into each mass bin.
+
+    model_tags : array of strings with length equal to the number of models.
+        Strings that contain the tag for each model.  Will be placed on the plot.
+
+    paper_plots: Integer.
+        Flag to denote whether we should plot a full, 4 panel plot for the
+        RSAGE paper.
+
+    output_tag : string
+        Name of the file that will be generated.
+
+    Returns
+    -------
+    No returns.
+    Generates and saves the plot (named via output_tag).  
+
+    Units
+    -----
+
+    Mass units are log(Msun).
+    Ngamma units are 1.0e50 photons/s. 
+    """
+    
+    def adjust_stellarmass_plot(ax):
+
+        ax.set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
+                           size = PlotScripts.global_fontsize)
+
+        ax.set_ylabel(r'$\mathbf{log_{10} \: \Gamma \: [s^{-1}}$',
+                      size = PlotScripts.global_labelsize)
+
+        ax.set_xlim([4.8, 10])
+        #ax.set_ylim([0.05, 0.45])
+
+        ax.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+        #ax.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+
+        ax.tick_params(which = 'both', direction='in', width =
+                        PlotScripts.global_tickwidth)
+        ax.tick_params(which = 'major', length = PlotScripts.global_ticklength)
+        ax.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
+    
+        for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+            ax.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+  
+         
+        #tick_locs = np.arange(4.0, 11.0)
+        #ax.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+        #                    fontsize = PlotScripts.global_fontsize)
+
+        #tick_locs = np.arange(0.0, 0.80, 0.10)
+        #ax.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+        #                    fontsize = PlotScripts.global_fontsize)
+
+        '''
+        labels = ax.yaxis.get_ticklabels()
+        locs = ax.yaxis.get_ticklocs()
+        for label, loc in zip(labels, locs):
+            print("{0} {1}".format(label, loc)) 
+        '''       
+ 
+        leg = ax.legend(loc="lower right", numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize('medium')
+
+    print("Plotting photoionization rate as a function of stellar mass.")
+
+    ## Array initialization ##
+
+    master_mean_photo_stellar, master_std_photo_stellar, master_N_photo_stellar, master_bin_middle_stellar = \
+    collect_across_tasks(mean_photo_galaxy, std_photo_galaxy, N_photo_galaxy, 
+                         SnapList, PlotSnapList, True, m_gal_low, m_gal_high)
+ 
+    if rank == 0:
+        if paper_plots == 0:        
+            fig = plt.figure()  
+            ax1 = fig.add_subplot(111)  
+            
+        else:
+            pass
+ 
+        for model_number in range(0, len(SnapList)):
+            count_x = 0
+            ## Normalization for each model. ##
+            if (simulation_norm[model_number] == 0):
+                AllVars.Set_Params_Mysim()
+            elif (simulation_norm[model_number] == 1):
+                AllVars.Set_Params_MiniMill()
+            elif (simulation_norm[model_number] == 2):
+                AllVars.Set_Params_Tiamat()
+            elif (simulation_norm[model_number] == 3):
+                AllVars.Set_Params_Tiamat_extended()
+            elif (simulation_norm[model_number] == 4):
+                AllVars.Set_Params_Britton()       
+            elif(simulation_norm[model_number] == 5):
+                AllVars.Set_Params_Kali()
+
+            plot_count = 0
+            for count, snapshot_idx in enumerate(range(0, len(SnapList[model_number]))):
+                if (SnapList[model_number][snapshot_idx] == PlotSnapList[model_number][plot_count]):
+
+                    if (model_number == 0):
+                        label = r"$\mathbf{z = " + \
+                                str(int(round(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]))) +\
+                                "}$"                
+                    else:
+                        label = ""
+
+                    ## Plots as a function of stellar mass ##
+                    w = np.where((master_N_photo_stellar[model_number][snapshot_idx] < 4))[0] # If there are no galaxies in the bin we don't want to plot. 
+                    master_mean_photo_stellar[model_number][snapshot_idx][w] = np.nan 
+
+                    if paper_plots == 0:                        
+                        ax1.plot(master_bin_middle_stellar[model_number][snapshot_idx], 
+                                 np.log10(master_mean_photo_stellar[model_number][snapshot_idx]), 
+                                 color = PlotScripts.colors[plot_count], 
+                                 ls = PlotScripts.linestyles[model_number], 
+                                 rasterized = True, label = label, 
+                                 lw = PlotScripts.global_linewidth)
+                    else:
+                        pass
+                    plot_count += 1                
+                    if (plot_count == len(PlotSnapList[model_number])):
+                        break
+
+        for model_number in range(0, len(SnapList)):
+            ax1.plot(np.nan, np.nan, color = 'k', 
+                     label = model_tags[model_number],
+                     lw = PlotScripts.global_linewidth,
+                     ls = PlotScripts.linestyles[model_number])
+
+        ## Stellar Mass plots ##
+
+        if paper_plots == 0:
+            adjust_stellarmass_plot(ax1)
+        else:
+            pass 
+
+        ## Output ##
+
+        outputFile = './%s%s' %(output_tag, output_format)
+        fig.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile))
+
+        plt.close(fig)        
+
+##
 
 ##
 
@@ -3280,182 +3459,6 @@ def Calculate_HaloPartStellarMass(halo_part, stellar_mass, bound_low, bound_high
     return np.log10(mass), np.log10(mass_std)
 
 ##
-
-
-def calculate_fesc(fesc_prescription, fesc_normalization, halo_mass, ejected_fraction, quasar_fractional_boost):
-    '''
-    Calculate the escape fraction for a given prescription.
-
-    Parameters
-    ----------
-    fesc_prescription : int
-        Number that controls what escape fraction prescription we are using.
-        0 : Constant, fesc = Constant.
-        1 : Scaling with Halo Mass, fesc = A*Mh^B.
-        2 : Scaling with ejected fraction, fesc = fej*A + B.
-        3 : Depending on quasar activity, fesc = A (if no quasar within 1 dynamical time) or fesc = B (if quasar event within 1 dynamical time).
-        4 : Anne's functional form for scaling positively with halo mass, fesc = B * (B / D)^(log(MH/A) / log(C/A)).
-        5 : Anne's functional form for scaling inversely with halo mass, fesc = 1 - (1 - B) * (1 - B) / (1 - D) ^ (log(MH/A) / log(C/A))
-    fesc_normalization : float (if fesc_prescription == 0) or `numpy.darray' with length 2 (if fesc_prescription == 1 or == 2).
-        If fesc_prescription == 0, gives the constant value for the escape fraction.
-        If fesc_prescription == 1 or == 2 or ==3, gives A and B with the form [A, B].
-    halo_mass : `numpy.darray'
-        Array that contains the halo masses for this snapshot. Units are log10(Msun).
-    ejected_fraction : `numpy.darray'
-        Array that contains the ejected fraction of the galaxies for this snapshot.
-    quasar_fractional_boost : Array of floats with length equal to the number of galaxies.
-        Array that contains the fraction of photons that should be boosted with the quasar activity.
-        If the escape fraction should not be boosted by quasar activity, the index value with be 0.0. 
-    
-    Returns
-    -------
-    fesc : array, length is same as input arrays.
-    Array containing the escape fraction for each galaxy for this snapshot.
-
-    Units
-    -----
-    Input Halo Mass is in units of log10(Msun).
-    '''
-
-    if(len(halo_mass) != len(ejected_fraction)):
-        print("The length of the halo_mass array is {0} and the length of the ejected_fraction array is {1}".format(len(halo_mass), len(ejected_fraction)))
-        raise ValueError("These two should be equal.")
-
-    if(fesc_prescription > 5):
-        print("The prescription value you've chosen is {0}".format(fesc_prescription))
-        raise ValueError("Currently we only have prescriptions 0 (constant), 1 (scaling with halo mass), 2 (scaling with ejected fraction) and 3 (boosted by  quasar activity).")
-
-    if((fesc_prescription == 0 and isinstance(fesc_normalization, list) == True)):
-        print("The escape fraction prescription is 0 but fesc_normalization was a list with value of {0}".format(fesc_normalization))
-        raise ValueError("For a constant escape fraction, fesc_noramlization should be a single float.")
-
-    if((fesc_prescription == 1 or fesc_prescription == 2 or fesc_prescription == 3 or fesc_prescription == 4 or fesc_prescription == 5) and (isinstance(fesc_normalization, list) == False)):
-        print("The escape fraction prescription is {0} but fesc_normalization was not a list; it instead had a value of {1}".format(fesc_normalization))
-        raise ValueError("For a scaling escape fraction fesc_normalization should be a list of the form [A, B]") 
- 
-    if (fesc_prescription == 0):
-        fesc = np.full((len(halo_mass)), fesc_normalization)
-    elif (fesc_prescription == 1):
-        fesc = fesc_normalization[0]*pow(10,halo_mass*fesc_normalization[1])
-    elif (fesc_prescription == 2):
-        fesc = fesc_normalization[0]*ejected_fraction + fesc_normalization[1]
-        fesc[fesc > 1.0] = 1.0
-    elif (fesc_prescription == 3):                  
-        fesc = fesc_normalization[0] * (1 - quasar_fractional_boost) + fesc_normalization[1] * quasar_fractional_boost # This is a tad subtle so I'll explain. 
-        # quasar_fractional_boost is 0.0 if the escape fraction should not be boosted.  In this case, the escape fraction will be the base fraction.
-        # If the quasar should boost the escape fraction for the entire snapshot, then quasar_fractional_boost = 1 and the escape fraction becomes the boosted fraction.
-        # However if the quasar should boost the escape fraction for some fraction of the snapshot, then we perform the weighting and assign the escape fraction appropriately.
-        # For example, consider a galaxy that emits 10^50 photons/s with a base escape fraction of 0.2 and boosted value of 1.0. 
-        ## If we want three quarters of these photons to have the boosted escape fraction, then what should happen is (10^50 * (0.2 * 1/4) + 10^50 * (1.0 * 3/4)).
-        ## In essence this is the exact same as assigning a single escape fraction of 0.2 * 1/4 + 1.0 * 3/4 = 0.8.
-    elif (fesc_prescription == 4):  
-        if (len(fesc_normalization) > 4):
-            print("For escape fraction prescription {0}, there should be 4 constants specified.".format(fesc_prescription))
-
-        Mh_low = fesc_normalization[0]        
-        fesc_low = fesc_normalization[1]
-        Mh_up = fesc_normalization[2]
-        fesc_up = fesc_normalization[3]
-        
-        Mh = pow(10, halo_mass)        
-        fesc = fesc_low * (fesc_low/fesc_up)**(-np.log10(Mh/Mh_low)/np.log10(Mh_up/Mh_low))
-
-        fesc[fesc > fesc_low] = fesc_low
-
-        #fesc = pow(fesc_normalization[1] * (fesc_normalization[1] / fesc_normalization[3]), -np.log10(pow(10,halo_mass) / fesc_normalization[0]) / np.log10(fesc_normalization[2] / fesc_normalization[0]))
-    elif (fesc_prescription == 5):  
-        if (len(fesc_normalization) > 4):
-            print("For escape fraction prescription {0}, there should be 4 constants specified.".format(fesc_prescription))
-        Mh_low = fesc_normalization[0]        
-        fesc_low = fesc_normalization[1]
-        Mh_up = fesc_normalization[2]
-        fesc_up = fesc_normalization[3]
-        
-        Mh = pow(10, halo_mass)        
-
-        fesc = 1. - (1.-fesc_low) * ((1.-fesc_low)/(1.-fesc_up))**(-np.log10(Mh/Mh_low)/np.log10(Mh_up/Mh_low))
-
-        fesc[fesc < fesc_low] = fesc_low
-        #fesc = 1 - pow((1 - fesc_normalization[1])  * ((1 - fesc_normalization[1]) / (1 - fesc_normalization[3])), -np.log10(pow(10, halo_mass) / fesc_normalization[0]) / np.log10(fesc_normalization[2] / fesc_normalization[0]))    
-
-    if len(fesc) != 0:
-    ## Adjust bad values, provided there isn't a riduculous amount of them. ##  
-        w = np.where((halo_mass >= m_low) & (halo_mass <= m_high))[0] # Only care about the escape fraction values between these bounds. 
-        nan_values = len(fesc[w][np.isnan(fesc[w])]) 
-        aboveone_values = len(fesc[w][fesc[w] > 1.0])
-        belowzero_values = len(fesc[w][fesc[w] < 0.0])
-        bad_ratio =  (float(nan_values) + float(aboveone_values) + float(belowzero_values)) / float(len(fesc))
-        
-        if (bad_ratio > 0.10):
-            print("The ratio of bad escape fractions to good is {0:.4f}".format(bad_ratio))
-            print("Values above 1: {0}".format(fesc[fesc > 1.0]))
-            w = np.where(fesc > 1.0)[0]
-            print("Halo mass is: {0}".format(halo_mass[w]))
-            print("Ejected fraction is: {0}".format(ejected_fraction[w]))
-            
-            print("Values below 0: {0}".format(fesc[fesc < 0.0]))
-            w = np.where(fesc < 0.0)[0]
-            print("Halo mass is: {0}".format(halo_mass[w]))
-            print("Ejected fraction is: {0}".format(ejected_fraction[w]))
-            if (len(fesc) > 100): # Only throw an error if we had an appreciable number of bad fesc.
-                raise ValueError("This was above the tolerance level of 10%.")
-
-        fesc[np.isnan(fesc)] = 0 # Get rid of any lingering Nans.
-        fesc[fesc > 1] = 1.0  # Get rid of any values above 1. 
-        fesc[fesc < 0] = 0.0  # Get rid of any values below 0.
-    else:
-        fesc = np.nan   
-     
-    return fesc
-
-##
-def calculate_photons(SFR, Z):
-    '''
-    This calculates the number of HI ionizing photons emitted by a galaxy of a given star formation rate and metallicity.
-    Fit is based on the Stellar Synthesis of STARBURST99 (Leither et al., 1999).
-
-    Parameters
-    ----------
-    SFR : `numpy.darray' with length equal to the number of galaxies.
-    Star formation rate for each galaxy. Units of log10(Msun yr^-1).
-    Z : `numpy.darray' with length equal to the number of galaxies.
-    Metallicity (pure, not solar) for each galaxy.
-
-    Returns
-    -------
-    ngamma_HI : `numpy.darray' with length equal to the number of galaxies.
-    Number of HI ionizing photons emitted for each galaxy. Units of log10(s^-1).
-
-    Units
-    -----
-    Star Formation Rate is in units of log10(Msun yr^-1).
-    Metallicity is in proper metallicity (not solar).
-    ngamma_HI is in units of log10(s^-1).
-    '''
-
-    ngamma_HI = []
-
-    ## Fits are based on the blah tracks of STARBURST99. ##
-
-    for i in range(0, len(SFR)):
-        ngamma_HI_tmp = 0.0
-        if (SFR[i] == 0.0):
-            n_gamma_HI_tmp = 0
-        elif (Z[i] < 0.0025):
-            ngamma_HI_tmp = SFR[i] + 53.354
-        elif (Z[i] >= 0.0025 and Z[i] < 0.006):
-            ngamma_HI_tmp = SFR[i] + 53.290
-        elif (Z[i] >= 0.006 and Z[i] < 0.014):
-            ngamma_HI_tmp = SFR[i] + 53.248
-        elif (Z[i] >= 0.014 and Z[i] < 0.30):
-            ngamma_HI_tmp = SFR[i] + 53.166
-        else:
-            ngamma_HI_tmp = SFR[i] + 53.041  
-        
-        ngamma_HI.append(ngamma_HI_tmp.astype(np.float32))
-    return ngamma_HI
-
-##
 def calculate_UV_extinction(z, L, M):
     '''
     Calculates the observed UV magnitude after dust extinction is accounted for.
@@ -3563,155 +3566,83 @@ def update_cumulative_stats(mean_pool, std_pool, N_pool, mean_local, std_local, 
 
     ### Here ends the functions that deal with galaxy data manipulation. ###
 
-def do_quasar_tracking(quasar_tracking, N_dyntime, NumSubsteps, current_snap, w_gal, gal_DynamicalTime, gal_QuasarActivity, gal_QuasarSubstep):
-    '''
-    Update the quasar tracking arrays that decide when/if the escape fraction of a galaxy should be boosted due to recent quasar activity.
-    The passed arrays will contain information for an entire file but only calculated for a single snapshot (done to preserve indexing). 
-
-    Parameters
-    ----------
-    quasar_tracking : Structured array with data-type defined by the 'quasar_tracking_dtype' variable. 
-        Contains all the arrays for tracking the quasar activity, quasar boost fraction etc for an entire file. 
-    N_dyntime : float
-        The number of dynamical times after a quasar event that the galaxy returns to its fiducial value.    
-    NumSubsteps : float
-        The number of substeps for this model.  Used to determine the fraction of the snapshot size the quasar went off.
-    current_snap : int
-        Current snapshot we are updating the tracking for.
-    w_gal : array of integers length equal to the number of 'good' galaxies for this snapshot.
-        Indices of galaxies that are to be used for this snapshot. These galaxies exist at the current_snap, have the acceptable amount of halo particles etc.
-    gal_DynamicalTime : array of floats with length equal to the number of galaxies in the file.
-        The dynamical time of the host halo for all galaxies in this file.
-    gal_QuasarActivity, gal_QuasarSubstep : Nested arrays of integers with outer length equal to the number of galaxies in the file and inner length equal to the number of snapshot.
-        Contains the data for all galaxies in the file for whether a quasar has gone off at the specified snapshot, and if so, what substep it won't off during.
-
-    Returns
-    -------
-    quasar_tracking : (See above)
-        Updated quasar tracking arrays.
-    N_quasars_tmp, N_quasars_boost_tmp : floats
-        Number of quasars that went off during this snapshot and number of galaxies that are having their escape fraction boosted during this snapshot.
-    dynamicaltime_quasars_tmp : array of floats with length equal to the number of quasars that went off this snapshot.
-        Dynamical time of halos in which a quasar went off. 
-
-    Units
-    -----
-    All units are kept the same as the input units.
-    Times (dynamical time, boost time etc) are all in Myr. 
-    '''
-                    
-    N_quasars_tmp = 0.0
-    N_quasars_boost_tmp = 0.0
-    dynamicaltime_quasars_tmp = [] 
-    
-    ## Check to see if any quasars went off during this snapshot. ## 
-    w_quasar_activity = w_gal[np.where((gal_QuasarActivity[w_gal, current_snap] == 1))[0]] 
-    if (len(w_quasar_activity) > 0): # If a quasar went off...
-        N_quasars_tmp += len(w_quasar_activity)                   
-        quasar_tracking['QuasarActivityToggle'][w_quasar_activity] += 1 # Turn on the boosted escape fraction.
-        quasar_tracking['QuasarSnapshot'][w_quasar_activity] = current_snap # Remember the snapshot that this quasar went off.
-        quasar_tracking['TargetQuasarTime'][w_quasar_activity] = gal_DynamicalTime[w_quasar_activity, current_snap] * N_dyntime # Keep track of how long we want the boosted escape fraction to last for.
-        quasar_tracking['QuasarActivitySubstep'][w_quasar_activity] = gal_QuasarSubstep[w_quasar_activity, current_snap] # The substep of the snapshot the quasar went off. 
-        dynamicaltime_quasars_tmp.extend(gal_DynamicalTime[w_quasar_activity, current_snap])
-        quasar_tracking['QuasarBoostActiveTime'][w_quasar_activity] = 0.0;
-
-    # We need to handle the case in which a quasar boosted galaxy turned off last snapshot.  
-    # In this case, we just need to reset the fractional photon boosting.
-
-    w_turned_off_lastsnap = w_gal[np.where((quasar_tracking['QuasarActivityToggle'][w_gal] < 1.0))[0]]
-    if (len(w_turned_off_lastsnap) > 0):
-        quasar_tracking['QuasarFractionalPhoton'][w_turned_off_lastsnap] = 0.0
-
-    ## Update the boost times and see if we need to turn anything off ## 
-    w_active_boost = w_gal[np.where((quasar_tracking['QuasarActivityToggle'][w_gal] > 0.0))[0]] # Use greater than because comparing a float.
-    if (len(w_active_boost) > 0):
-        quasar_snap = quasar_tracking['QuasarSnapshot'][w_active_boost]
-        N_quasars_boost_tmp += len(w_active_boost)
-        
-        assert(quasar_snap.any() != -1) # Just a sanity check.
-
-        dt = ((AllVars.Lookback_Time[current_snap - 1]) - (AllVars.Lookback_Time[current_snap])) * 1.0e3 # Time between the previous snapshot and now (in Myr). 
-      
-        w_just_turned_on = w_active_boost[np.where((quasar_snap == current_snap) & (quasar_tracking['QuasarActivityToggle'][w_active_boost] > 0.5) & (quasar_tracking['QuasarActivityToggle'][w_active_boost] < 1.5))[0]] # In this case, the boosted escape fraction turned on during this snapshot.  As a result, we need to account for it turning on during a substep and only providing a fractional boost.
-        # Note, the check that QuasarActivityToggle is 1 (between 0.5 and 1.5) as if we have the case where a quasar went off while a galaxy was still being boosted, we don't want to use a fractional boost.
-        # While yes, there could be an instance where the boosting is set to turn off by substep 1, and then the second quasar doesn't go off until a later substep, the cases where this would happen is small and the overall effect neglible. 
-        w_not_just_turned_on = w_active_boost[np.where((quasar_snap != current_snap))[0]] 
-
-        quasar_tracking['QuasarBoostActiveTime'][w_just_turned_on] += dt * (NumSubsteps - quasar_tracking['QuasarActivitySubstep'][w_just_turned_on]) / NumSubsteps # This adds the time spanned by this snapshot weighted by when substep in which the quasar went off. E.g., if there are 10 substeps and the quasar went off during substep 3, then the boosted escape fraction occurs for (10 - 3) / 10 = 0.7 of the time.  
-        quasar_tracking['QuasarFractionalPhoton'][w_just_turned_on] = (NumSubsteps - quasar_tracking['QuasarActivitySubstep'][w_just_turned_on]) / NumSubsteps # Only boost the photons for a fraction of the time during the snapshot step. 
-
-        quasar_tracking['QuasarBoostActiveTime'][w_not_just_turned_on] += dt # The boosted escape fraction lasts for the entire snapshot.
-        quasar_tracking['QuasarFractionalPhoton'][w_not_just_turned_on] = 1.0
-
-        w_shutoff = w_active_boost[np.greater(quasar_tracking['QuasarBoostActiveTime'][w_active_boost], quasar_tracking['TargetQuasarTime'][w_active_boost]).nonzero()] # If it's been longer than N dynamical times, turn the boosted escape fraction off.
-# np.greater returns True if it's time to turn off, .nonzero() returns the indices of those, and then we want the index within the GLOBAL galaxy array so wrap it all within w_active_boost.
-
-        # Now for those galaxies for which we wish to shut off their boosted escape fraction, we need to determine on which substep we are turning it off.
-        # This will then give us a fraction of the photons emitted that we should boost for this final time.
-
-        TimeIntoSnapshot = quasar_tracking['TargetQuasarTime'][w_shutoff] - (quasar_tracking['QuasarBoostActiveTime'][w_shutoff] - dt) # This tells us how much time into this snapshot this quasar will be turned on for.
-        FractionIntoSnapshot = TimeIntoSnapshot / dt # Then this is the fraction of time the quasar will be on for.
-        quasar_tracking['QuasarFractionalPhoton'][w_shutoff] = FractionIntoSnapshot # Weight the boosted escape fraction to be correct. E.g., if a galaxy is turned off 40% into the snapshot, then the escape fraction should only be boosted for 40% of the time.
-               
-        quasar_tracking['QuasarActivityToggle'][w_shutoff] -= 1.0 # Then turn off all the toggles.
-        quasar_tracking['QuasarSnapshot'][w_shutoff] = 0
-        quasar_tracking['TargetQuasarTime'][w_shutoff] = 0.0
-        quasar_tracking['QuasarBoostActiveTime'][w_shutoff] = 0.0
-        quasar_tracking['QuasarActivitySubstep'][w_shutoff] = -1
-
-    return quasar_tracking, N_quasars_tmp, N_quasars_boost_tmp, dynamicaltime_quasars_tmp     
-
-def determine_MH_fesc_constants(low_MH, low_fesc, high_MH, high_fesc):
-    
-    log_A = (np.log10(high_fesc) - (np.log10(low_fesc)*np.log10(high_MH)/np.log10(low_MH))) * pow(1 - (np.log10(high_MH) / np.log10(low_MH)), -1)
-    B = (np.log10(low_fesc) - log_A) / np.log10(low_MH)
-    A = pow(10, log_A)
-
-    return A, B
-
 #################################
 
 if __name__ == '__main__':
 
     np.seterr(divide='ignore')
-    number_models = 4
+    number_models = 1
 
-    galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_z5.782'
-    merged_galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_MergedGalaxies'
-   
-    galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.01_0.50_z5.782'
-    merged_galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.01_0.50_MergedGalaxies'
+    galaxies_model1='/fred/oz004/jseiler/kali//self_consistent_output/constant/galaxies/const0.35_z5.782'
+    merged_galaxies_model1='/fred/oz004/jseiler/kali//self_consistent_output/constant/galaxies/const0.35_MergedGalaxies'
+    photo_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI"
+
+    galaxies_model1='/home/jseiler/self_consistent_SAGE/tests/test_output/galaxies/kali_test_z5.782'
+    merged_galaxies_model1='/home/jseiler/self_consistent_SAGE/tests/test_output/galaxies/kali_test_MergedGalaxies'
+
+    galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_z5.782'
+    merged_galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_MergedGalaxies'
+    photo_model2="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_photHI"
  
-    galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/newphoton_SF0.03_fej0.4_z5.782'
-    merged_galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/newphoton_SF0.03_fej0.4_MergedGalaxies'
+    galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.01_0.50_z5.782'
+    merged_galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.01_0.50_MergedGalaxies'
+    photo_model3="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_photHI"
+ 
+    galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/fej0.6_z5.782'
+    merged_galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/fej0.6_MergedGalaxies'
+    photo_model4="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/fej0.6_photHI"
 
-    galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_z5.782'
-    merged_galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_MergedGalaxies'
+    galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_z5.782'
+    merged_galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_MergedGalaxies'
+    photo_model5="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_photHI"
 
-    galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/quasar/galaxies/newphoton_SF0.03_0.25_1.00_2.50_z5.782'
-    merged_galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/quasar/galaxies/newphoton_SF0.03_0.25_1.00_2.50_MergedGalaxies'
-        
-    galaxies_filepath_array = [galaxies_model1,
-                               galaxies_model2,
+    galaxies_model6='/fred/oz004/jseiler/kali/self_consistent_output/constant/galaxies/const0.35_photHI2_z5.782'
+    merged_galaxies_model6='/fred/oz004/jseiler/kali/self_consistent_output/constant/galaxies/const0.35_photHI2_MergedGalaxies'
+    photo_model6="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_photHI"
+
+    galaxies_filepath_array = [galaxies_model2,
                                galaxies_model3,
-                               galaxies_model4]
+                               galaxies_model4,
+                               galaxies_model5]
+
+    galaxies_filepath_array = [galaxies_model4]
+                               #galaxies_model6]
+
+    photo_array = [photo_model1,
+                   photo_model2,
+                   photo_model3,
+                   photo_model4]
+
+    photo_array = [photo_model1,
+                   photo_model6]
+
+    GridSize_array = [256,
+                      256,
+                      256,
+                      256]
+
+    precision_array = [2,
+                       2,
+                       2,
+                       2]
 
     #galaxies_filepath_array = [galaxies_model5]
 
-    merged_galaxies_filepath_array = [merged_galaxies_model1,
-                                      merged_galaxies_model2,
+    merged_galaxies_filepath_array = [merged_galaxies_model2,
                                       merged_galaxies_model3,
-                                      merged_galaxies_model4]
-
-    #merged_galaxies_filepath_array = [merged_galaxies_model5]
-       
+                                      merged_galaxies_model4,
+                                      merged_galaxies_model5]
+      
+    merged_galaxies_filepath_array = [merged_galaxies_model4]
+                                      #merged_galaxies_model6]
+ 
     number_substeps = [10, 10, 10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
     number_snapshots = [99, 99, 99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
      
     FirstFile = [0, 0, 0, 0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [0, 63, 63, 63] # The last file number THAT WE ARE PLOTTING.
-    LastFile = [0, 0, 0, 0] # The last file number THAT WE ARE PLOTTING.
+    LastFile = [63, 63, 63, 63] # The last file number THAT WE ARE PLOTTING.
+    #LastFile = [0, 0, 0, 0] # The last file number THAT WE ARE PLOTTING.
     NumFile = [64, 64, 64, 64] # The number of files for this simulation (plotting a subset of these files is allowed).     
     same_files = [0, 0, 0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
     # This array will tell us if we should keep the files for the next model or otherwise throw them away. 
@@ -3720,53 +3651,42 @@ if __name__ == '__main__':
     # Then same_files = [1, 1, 0, 1, 0] would be the correct values.
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
+    #model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
+    model_tags = ["photHI1",
+                  "photHI2"]
+
     ## Constants used for each model. ##
     # Need to add an entry for EACH model. #
 
     halo_cut = [32, 32, 32, 32] # Only calculate properties for galaxies whose host halos have at least this many particles.
-
-    ### fesc Stuff ###
-    fesc_prescription = [0, 0, 0, 0] # This defines what escape fractions prescription we want to use for each mode. 
-    # 0 is constant.
-    # 1 is scaling with halo mass. 
-    # 2 is scaling with ejected fraction. 
-    # 3 is a boosted escape fraction depending upon quasar activity. 
-    # 4 is Anne's Functional form that scales inversely with halo mass (smaller fesc for higher halo mass).
-    # 5 is Anne's function form that scales with halo mass (larger fesc for higher halo mass).
-
-    #fesc_normalization = [[0.2, 1.0, 2.5], [0.2, 1.0, 2.5]] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
-    fesc_normalization = [0.3, 0.3, 0.3, 0.3] # Normalization constants for each escape fraction prescription. The value depends upon the prescription selected.
-    # For prescription 0, requires a number that defines the constant fesc.
-    # For prescription 1, fesc = A*M^B. Requires an array with 2 numbers the first being A and the second B.
-    # For prescription 2, fesc = A*fej + B.  Requires an array with 2 numbers the first being A and the second B.
-    # For prescription 3, fesc = A (if no quasar within 1 dynamical time) or fesc = B (if quasar event within C dynamical times). Requires an array with 2 numbers the first being A, the second B and the third C.
-    # For prescription 4, fesc = B * (B / D)^(log(MH/A) / log(C/A)).
-    # For prescription 5, fesc = 1 - (1 - B) * (1 - B) / (1 - D) ^ (log(MH/A) / log(C/A))
    
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
+    #SnapList = [np.arange(0,99)]
+    SnapList = [[50]]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
     #SnapList = [np.arange(20,99), np.arange(20, 99), np.arange(20, 99)]    
-    #SnapList = [[33, 50, 64, 76, 93],
-    #            [33, 50, 64, 76, 93],
-    #            [33, 50, 64, 76, 93],
-    #            [33, 50, 64, 76, 93]]
+    #SnapList = [[33, 50, 76, 93],
+                #[33, 50, 76, 93],
+                #[33, 50, 76, 93],
+    #            [33, 50, 76, 93]]
     
-    SnapList = [[64],
-                [64],
-                [64],
-                [64]]
+    #SnapList = [[64],
+    #            [64],
+    #            [64],
+    #            [64]]
 
     #SnapList = [[33, 50, 64, 76, 93]]
-    #SnapList = [[64]]
+    #SnapList = [[64], [64]]
     #SnapList = [np.arange(20,99)]
     #PlotSnapList = [[30, 50, 64, 76, 93]]
-    #PlotSnapList = [[93, 76, 64]]
+    #PlotSnapList = [[93, 76, 64], [93, 76, 64]]
+    #SnapList = [[93, 76, 64], [93, 76, 64]]
     PlotSnapList = SnapList 
 
     simulation_norm = [5, 5, 5, 5] # Changes the constants (cosmology, snapshot -> redshift mapping etc) for each simulation. 
@@ -3845,6 +3765,9 @@ if __name__ == '__main__':
                                    # a function of stellar mass.
     std_Ngamma_galaxy_array = []  # Same as above but standard deviation.
 
+    mean_photo_galaxy_array = []  # Mean photoionization rate.
+    std_photo_galaxy_array = []  # Std photoionization rate. 
+
     ## Arrays for functions of halo mass. ##
     mean_ejected_halo_array = [] # Mean ejected fractions as a function of halo mass.
     std_ejected_halo_array = [] # Same as above but standard deviation.
@@ -3893,11 +3816,10 @@ if __name__ == '__main__':
     fesc_global = []
 
     ## Arrays as a function of fej ##
-
     mean_Ngamma_fej = []
     std_Ngamma_fej = []
     N_fej = []
-
+    
     ## Now the outer arrays have been defined, set up the next nest level for the number of models. ##
 
     for model_number in range(0,number_models):
@@ -3921,6 +3843,9 @@ if __name__ == '__main__':
 
         mean_Ngamma_galaxy_array.append([])
         std_Ngamma_galaxy_array.append([])
+
+        mean_photo_galaxy_array.append([])
+        std_photo_galaxy_array.append([]) 
 
         ## Halo arrays. ##
         mean_ejected_halo_array.append([])
@@ -4002,6 +3927,9 @@ if __name__ == '__main__':
             mean_Ngamma_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
             std_Ngamma_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
 
+            mean_photo_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32))
+            std_photo_galaxy_array[model_number].append(np.zeros((NB_gal), dtype = np.float32)) 
+
             ## Function of halo mass arrays. ##
             mean_ejected_halo_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
             std_ejected_halo_array[model_number].append(np.zeros((NB), dtype = np.float32)) 
@@ -4049,26 +3977,10 @@ if __name__ == '__main__':
             mass_global[model_number].append([])
             fesc_global[model_number].append([])
 
-
             ## Arrays as a function of fej. ##            
             mean_Ngamma_fej[model_number].append(np.zeros((NB_fej), dtype = np.float32)) 
             std_Ngamma_fej[model_number].append(np.zeros((NB_fej), dtype = np.float32)) 
             N_fej[model_number].append(np.zeros((NB_fej), dtype = np.float32)) 
-
-    ## Define structured arrays ##
-
-    Quasar_Tracking_full = [
-    ('QuasarActivityToggle',    np.float32), # Array to specify whether the galaxy should have the baseline or boosted escape fraction.
-    ('QuasarActivitySubstep',   np.int32), # Array to specify in which substep the quasar boosting begins. 
-    ('QuasarSnapshot',          np.int32), # Array to keep track of when the quasar went off. 
-    ('TargetQuasarTime',        np.float32), # Array to keep track of the amount of time we want to keep the boosted escape fraction for. 
-    ('QuasarBoostActiveTime',   np.float32), # Array that tracks how long it has been since the quasar boosting was turned on.
-    ('QuasarFractionalPhoton',  np.float32) # Array to keep track of what fraction of photons we should boost with the prescription.             
-                     ]
-
-    names = [Quasar_Tracking_full[i][0] for i in range(len(Quasar_Tracking_full))]
-    formats = [Quasar_Tracking_full[i][1] for i in range(len(Quasar_Tracking_full))]
-    quasar_tracking_dtype = np.dtype({'names':names, 'formats':formats}, align=True)
 
     ######################################################################   
     #################### ALL ARRAYS SETUP ################################
@@ -4100,16 +4012,7 @@ if __name__ == '__main__':
             GG, Gal_Desc = ReadScripts.ReadGals_SAGE(galaxies_filepath_array[model_number], fnr, number_snapshots[model_number], comm) # Read galaxies 
             G_Merged, _ = ReadScripts.ReadGals_SAGE(merged_galaxies_filepath_array[model_number], fnr, number_snapshots[model_number], comm) # Also need the merged galaxies.
             G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc) # Then join them together for all galaxies. 
-            
-            #pp = "post_quasar_SFR_STARBURST_QUASARWIND_{0}_snap_{1}".format(fnr, PlotSnapList[0][0])
-            #plot_post_quasar_SFR(PlotSnapList, model_number, GG, pp) 
-            #exit()
-            ## These arrays are used to control the escape fraction that depends upon quasar activity. ##
-            quasar_tracking = np.full(len(G), -1, dtype = quasar_tracking_dtype) # Initialize all the quasar tracking to -1.
-            quasar_tracking['QuasarActivityToggle'][:] = 0.0 # Then set a few of the parameters to 0 rather than -1.
-            quasar_tracking['QuasarBoostActiveTime'][:] = 0.0 
-            quasar_tracking['QuasarFractionalPhoton'][:] = 0.0 
-                            
+                                        
             keep_files = 1 # Flips to 0 when we are done with this file.
             current_model_number = model_number # Used to differentiate between outer model_number and the inner model_number because we can keep files across model_numbers.
 
@@ -4161,9 +4064,18 @@ if __name__ == '__main__':
                                          * 1.0e10 / AllVars.Hubble_h)
 
                     fesc = G.Gridfesc[w_gal, current_snap]
+                    print(fesc)
+                    exit()
                     fesc[fesc < 0.0] = 0.0
                     Ngamma_gal = G.GridNgamma_HI[w_gal, current_snap]  # 1.0e50
                                                                        # photons/s.
+
+                    w_photon = np.where((Ngamma_gal < 1e-6))[0]
+                    if (len(w_photon) > 0):
+                        print(w_photon)
+                        print(Ngamma_gal[w_photon])
+                        print(mass_gal[w_photon])
+                        raise ValueError
 
                     if model_number < 3:
                         Ngamma_gal += 50.0  # Old versions of SAGE incorrectly
@@ -4181,29 +4093,18 @@ if __name__ == '__main__':
 
                     if (do_observed_LF == 1): # Calculate the UV extinction if requested. 
                         M_UV_obs = calculate_UV_extinction(AllVars.SnapZ[current_snap], L_UV, M_UV[snap_idx])
-                
-                    ## Here we do calculations involving the quasars temporarily boosting the escape fraction. ##            
-                    if (fesc_prescription[current_model_number] == 3): # Only do it if this model is using this escape fraction prescription.
-                        N_dyntime = fesc_normalization[current_model_number][2]
-                        (quasar_tracking, N_quasars_tmp, N_quasars_boost_tmp, dynamicaltime_quasars_tmp) = do_quasar_tracking(quasar_tracking, N_dyntime, NumSubsteps, current_snap, w_gal, G.DynamicalTime, G.QuasarActivity, G.QuasarSubstep)       
-                        dynamicaltime_all_tmp = []
-                        dynamicaltime_all_tmp.extend(G.DynamicalTime[w_gal, current_snap])
-                                                 
-                        if (N_quasars_tmp > 0):           
-                            (dynamicaltime_quasars_mean_z[current_model_number][snapshot_idx], dynamicaltime_quasars_std_z[current_model_number][snapshot_idx]) = update_cumulative_stats(dynamicaltime_quasars_mean_z[current_model_number][snapshot_idx], dynamicaltime_quasars_std_z[current_model_number][snapshot_idx], N_quasars_z[current_model_number][snapshot_idx], np.mean(dynamicaltime_quasars_tmp), np.std(dynamicaltime_quasars_tmp), N_quasars_tmp) # Update the trackin of the dynamical times. 
-
-                        (dynamicaltime_all_mean_z[current_model_number][snapshot_idx], dynamicaltime_all_std_z[current_model_number][snapshot_idx]) = update_cumulative_stats(dynamicaltime_all_mean_z[current_model_number][snapshot_idx], dynamicaltime_all_std_z[current_model_number][snapshot_idx], N_z[current_model_number][snapshot_idx], np.mean(dynamicaltime_all_tmp), np.std(dynamicaltime_all_tmp), len(w_gal))
-                                    
-                        N_quasars_z[current_model_number][snapshot_idx] += N_quasars_tmp # Remember how many quasars went off.
-                        N_quasars_boost_z[current_model_number][snapshot_idx] += N_quasars_boost_tmp # And how many galaxies are under the influence of the boost.
-      
+                      
                     galaxy_halo_mass_mean_local, galaxy_halo_mass_std_local = Calculate_HaloPartStellarMass(halo_part_count, mass_gal, stellar_mass_halolen_lower[current_model_number], stellar_mass_halolen_upper[current_model_number]) # This is the average stellar mass for galaxies whose halos have the specified number of particles.
-                    galaxy_halo_mass_mean[current_model_number][snapshot_idx] += pow(10, galaxy_halo_mass_mean_local) / (LastFile[current_model_number] + 1) # Adds to the average of the mean. 
+                    galaxy_halo_mass_mean[current_model_number][snapshot_idx] += pow(10, galaxy_halo_mass_mean_local) / (LastFile[current_model_number] + 1) # Adds to the average of the mean.
 
-                    fesc_local = calculate_fesc(fesc_prescription[current_model_number], fesc_normalization[current_model_number], mass_central, ejected_fraction, quasar_tracking['QuasarFractionalPhoton'][w_gal]) 
+        
+                    photofield_path = "{0}_{1:03d}".format(photo_array[current_model_number], 
+                                                           current_snap) 
+                    #photo_gal = photo.calc_gal_photoion(G.GridHistory[w_gal, current_snap],
+                    #                                    photofield_path,
+                    #                                    GridSize_array[current_model_number],
+                    #                                    precision_array[current_model_number]) 
 
-                    #for i in range(10):
-                    #    print("SFR {0} Mass {1} Photons {2} fesc {3}".format(10**SFR_gal[i], mass_gal[i], photons_HI_gal[i], fesc_local[i]))                   
 
                     ###########################################                     
                     ######## BASE PROPERTIES CALCULATED #######
@@ -4246,7 +4147,6 @@ if __name__ == '__main__':
 
 
                     ## Star Formation Rate ##
-
                     (mean_sfr_galaxy_local, std_sfr_galaxy_local, N_local,
                      sum_sfr_galaxy, bin_middle) = AllVars.Calculate_2D_Mean(
                                                     mass_SFR_gal, SFR_gal,
@@ -4263,7 +4163,6 @@ if __name__ == '__main__':
                                             N_local) 
 
                     ## Specific Star Formation Rate ##
-
                     (mean_ssfr_galaxy_local, std_ssfr_galaxy_local, N_local,
                      sum_ssfr_galaxy, bin_middle) = AllVars.Calculate_2D_Mean(
                                                     mass_SFR_gal, sSFR_gal,
@@ -4280,9 +4179,8 @@ if __name__ == '__main__':
                                             N_local) 
 
                     ## Number of Ionizing Photons ##
-
                     (mean_Ngamma_galaxy_local, std_Ngamma_galaxy_local, N_local,
-                     sum_Ngamma_galaxy, bin_middle) = AllVars.Calculate_2D_Mean(
+                     sum_Ngamma_galaxy_local, bin_middle) = AllVars.Calculate_2D_Mean(
                                                     mass_gal, Ngamma_gal,
                                                     bin_width, m_gal_low,
                                                     m_gal_high) 
@@ -4295,7 +4193,26 @@ if __name__ == '__main__':
                                             mean_Ngamma_galaxy_local,
                                             std_Ngamma_galaxy_local,
                                             N_local) 
-            
+          
+                    ## Photoionization rate ##
+
+                    '''
+                    (mean_photo_galaxy_local, std_photo_galaxy_local, N_local,
+                     sum_photo_galaxy_local, bin_middle) = AllVars.Calculate_2D_Mean(
+                                                    mass_gal, photo_gal,
+                                                    bin_width, m_gal_low,
+                                                    m_gal_high) 
+
+                    (mean_photo_galaxy_array[current_model_number][snapshot_idx],
+                     std_photo_galaxy_array[current_model_number][snapshot_idx]) = \
+                    update_cumulative_stats(mean_photo_galaxy_array[current_model_number][snapshot_idx],
+                                            std_photo_galaxy_array[current_model_number][snapshot_idx],
+                                            N_galaxy_array[current_model_number][snapshot_idx],
+                                            mean_photo_galaxy_local,
+                                            std_photo_galaxy_local,
+                                            N_local) 
+                    '''
+
                     N_galaxy_array[current_model_number][snapshot_idx] += N_local 
 
                     ### Functions of Halos/Halo Mass ###
@@ -4403,6 +4320,7 @@ if __name__ == '__main__':
                     current_model_number += 1 # Update the inner loop model number.
 
 
+    exit()
     #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile,
     #                    LastFile, NumFile, galaxy_halo_mass_mean, model_tags,
     #                    1, paper_plots, "wtf")
@@ -4435,13 +4353,19 @@ if __name__ == '__main__':
                      std_fesc_halo_array,  N_halo_array,
                      galaxy_halo_mass_mean, model_tags, 
                      paper_plots, mass_global, fesc_global, Ngamma_global, 
-                     "quasar_fesc")
-    '''
+                     "fesc_paper")
+
 
     plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
                      mean_Ngamma_galaxy_array, std_Ngamma_galaxy_array, 
                      N_galaxy_array, model_tags, 
                      paper_plots, "Ngamma")
+    '''
+
+    plot_photo_galaxy(SnapList, PlotSnapList, simulation_norm,
+                     mean_photo_galaxy_array, std_photo_galaxy_array, 
+                     N_galaxy_array, model_tags, 
+                     paper_plots, "photo")
 
     '''
     plot_sfr_galaxy(SnapList, PlotSnapList, simulation_norm,

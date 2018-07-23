@@ -16,7 +16,7 @@ import AllVars
 from scipy import stats
 
 label_size = 20
-output_format = ".png"
+output_format = ".pdf"
 
 def T_naught(z, h, OM, OB):
     """
@@ -111,6 +111,9 @@ def calculate_power_spectrum(XHII, density):
     p_err: 1-Dimensiona array of floats.
         The error on the 21cm power spectrum in each k bin. 
 
+
+    The same again except for just the HII power spectrum.
+
     Units
     -----
     XHII is unitless.
@@ -127,11 +130,16 @@ def calculate_power_spectrum(XHII, density):
 
     kmid_bins, powerspec, p_err = AllVars.modes_to_pspec(modes,
                                                          boxsize=AllVars.BoxSize/AllVars.Hubble_h)
-    return (kmid_bins, powerspec, p_err)
+
+    kmid_bins_XHII, pspec_XHII, p_err_XHII = AllVars.modes_to_pspec(ifftn(XHII),
+                                                                    boxsize=AllVars.BoxSize/AllVars.Hubble_h)
+
+    return (kmid_bins, powerspec, p_err,
+            kmid_bins_XHII, pspec_XHII, p_err_XHII)
 
 
 def plot_power(HI_fraction_target, k, P21, P21_Error, model_tags, 
-               OutputDir): 
+               OutputDir, mode, output_tag, plot_paper=0): 
     """
     Plots the 21cm power spectrum. 
 
@@ -153,10 +161,14 @@ def plot_power(HI_fraction_target, k, P21, P21_Error, model_tags,
     OutputDir: String. Required.
         The directory the plots will be output to.
 
+    mode: Integer, 0 or 1. Required.
+        Denotes whether we're plotting the 21cm Power Spectrum or the HII power
+        spectrum.
+
     Returns
     -------
     No returns.
-    Generates and saves the plot (named via output_tag).  
+    Generates and saves the plot. 
 
     Units
     -----
@@ -164,9 +176,102 @@ def plot_power(HI_fraction_target, k, P21, P21_Error, model_tags,
     The 21cm power spectrum is in units of mK^2. 
     """
 
-    def adjust_21cm_plot(ax, HI_labels, model_tags):
+    def adjust_21cm_plot(ax, HI_labels, model_tags, plot_paper): 
         """
         Adds text and adjusts the ranges for the 21cm power spectrum. 
+
+        Parameters
+        ---------
+        ax: Matplotlib axis handle. Required.
+           Axis we're adjusting. 
+    
+        Returns
+        -------
+        No returns.
+        The axis handle is opened by the outer function and passed in here.
+        """
+
+        if plot_paper == 1:
+            for i in range(5):
+                ax[i].set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$', 
+                                 size = PlotScripts.global_labelsize)
+                ax[i].set_xscale('log')
+                ax[i].set_xlim([7e-2, 5.5])
+
+                HI_string = "{0:.2f}".format(HI_labels[i])
+
+                label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
+                ax[i].text(0.05, 0.9, label, transform = ax[i].transAxes,
+                           fontsize = PlotScripts.global_fontsize)
+
+                ax[i].tick_params(which = 'both', direction='in',
+                                  width = PlotScripts.global_tickwidth)
+
+                ax[i].tick_params(which = 'major',
+                                  length = PlotScripts.global_ticklength)
+
+                ax[i].tick_params(which = 'minor',
+                                  length = PlotScripts.global_ticklength - 2.5)
+
+                for axis in ['top','bottom','left','right']:
+                    ax[i].spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+
+                tick_locs = np.arange(-3, 2.5, 1.0)
+                ax[i].set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+                                    fontsize = PlotScripts.global_fontsize)
+
+
+            ax[0].set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right]}$', 
+                             size = PlotScripts.global_labelsize)
+            ax[0].set_yscale('log', nonposy='clip')
+            #ax[0].set_ylim([0.9, 1.8])
+
+            tick_locs = np.arange(-1.0, 5.5, 1.0)
+            ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+                                 fontsize = PlotScripts.global_fontsize)
+
+        else:
+            ax.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$', 
+                          size = PlotScripts.global_labelsize)
+            ax.set_xscale('log')
+            ax.set_xlim([7e-2, 5.5])
+
+            ax.set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right]}$', 
+                          size = PlotScripts.global_labelsize)
+
+    
+            HI_string = "{0:.4f}".format(HI_labels)
+            label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
+
+            ax.text(0.05, 0.9, label, transform = ax.transAxes,
+                    fontsize = PlotScripts.global_fontsize)
+
+            ax.tick_params(which = 'both', direction='in',
+                           width = PlotScripts.global_tickwidth)
+
+            ax.tick_params(which = 'major',
+                           length = PlotScripts.global_ticklength)
+
+            ax.tick_params(which = 'minor',
+                           length = PlotScripts.global_ticklength - 2.5)
+
+            for axis in ['top','bottom','left','right']:
+                ax.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+
+            tick_locs = np.arange(-3, 2.5, 1.0)
+            ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+                               fontsize = PlotScripts.global_fontsize)
+
+            ax.set_yscale('log', nonposy='clip')
+            ax.set_ylim([1, 100])
+
+            #tick_locs = np.arange(0.0, 5.5, 1.0)
+            #ax.set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+            #                   fontsize = PlotScripts.global_fontsize)
+
+    def adjust_HII_plot(ax, HI_labels, model_tags):
+        """
+        Adds text and adjusts the ranges for the HII power spectrum. 
 
         Parameters
         ---------
@@ -207,13 +312,13 @@ def plot_power(HI_fraction_target, k, P21, P21_Error, model_tags,
                                 fontsize = PlotScripts.global_fontsize)
 
 
-        ax[0].set_ylabel( r'$\mathbf{log_{10} \Delta_{21}^2 \left[mK^2\right]}$', size = label_size)
+        ax[0].set_ylabel( r'$\mathbf{log_{10} \Delta_{XHII}^2 \left[mK^2\right]}$', size = label_size)
         ax[0].set_yscale('log', nonposy='clip')
         #ax[0].set_ylim([0.9, 1.8])
 
-        tick_locs = np.arange(0.0, 5.5, 1.0)
-        ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-                             fontsize = PlotScripts.global_fontsize)
+        #tick_locs = np.arange(0.0, 5.5, 1.0)
+        #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+        #                     fontsize = PlotScripts.global_fontsize)
 
         '''
         labels = ax[0].xaxis.get_ticklabels()
@@ -222,41 +327,79 @@ def plot_power(HI_fraction_target, k, P21, P21_Error, model_tags,
             print("{0} {1}".format(label, loc)) 
         '''
 
-    fig, ax = plt.subplots(nrows=1, ncols=5, sharey='row', figsize=(16, 6))
+    if plot_paper == 1:
+        fig, ax = plt.subplots(nrows=1, ncols=5, sharey='row', figsize=(16, 6))
+    else:
+        fig = plt.figure(figsize=(8,8))
+        ax = fig.add_subplot(111) 
 
     log_cutoff = 15 #  This is the transition where we want to plot the mean
                     #  of the log bins.  Represents where our uncertainty
                     #  because basically 0.
 
-    for model_number in range(len(k)):
-        for fraction in range(len(k[model_number])):
-            w = np.where(k[model_number][fraction] > 9e-2)[0]
+    if plot_paper == 0:
+        w = np.where(k > 9e-2)[0]        
+        ax.plot(k[w],
+                P21[w],
+                color = "r", 
+                ls = "-", 
+                lw = 2, rasterized=True, label = "r")
+    else:
+        for model_number in range(len(k)):
+            for fraction in range(len(k[model_number])):
+
+                if plot_paper == 1:
+                    this_ax = ax[fraction]
+                    this_k = k[model_number]
+                    
+                else:
+                    this_ax = ax[fraction]
+
+                if mode == 0:
+                    w = np.where(k[model_number][fraction] > 9e-2)[0]          
+                    bins = np.logspace(np.log10(k[model_number][fraction][w[0]]),
+                                       np.log10(k[model_number][fraction][w[-1]]),
+                                       num = int(len(k[model_number][fraction][w])/1.5))
+
+                    mean_power, bin_edges, bin_number = stats.binned_statistic(k[fraction][model_number][w],
+                                                                           np.log10(P21[fraction][model_number][w]),
+                                                                           statistic='mean',
+                                                                           bins = bins)
+
+
+                    this_ax.plot(bin_edges[35:-1], pow(10, mean_power[35:]),
+                                 color = PlotScripts.colors[model_number],
+                                 ls = PlotScripts.linestyles[model_number], 
+                                 lw = 2, rasterized=True)
+
+                    label = model_tags[model_number]  
+
+                    this_ax.plot(k[fraction][model_number][w[0]:w[log_cutoff]],
+                                 P21[fraction][model_number][w[0]:w[log_cutoff]],
+                                 color = PlotScripts.colors[model_number],
+                                 ls = PlotScripts.linestyles[model_number],
+                                 lw = 2, rasterized=True, label = label)
+
+                else:
+                    label = model_tags[model_number]  
+                    this_ax.plot(k[fraction][model_number],
+                                 P21[fraction][model_number],
+                                 color = PlotScripts.colors[model_number],
+                                 ls = PlotScripts.linestyles[model_number],
+                                 lw = 2, rasterized=True, label = label)
           
-            bins = np.logspace(np.log10(k[model_number][fraction][w[0]]),
-                               np.log10(k[model_number][fraction][w[-1]]),
-                               num = int(len(k[model_number][fraction][w])/1.5))
-            mean_power, bin_edges, bin_number = stats.binned_statistic(k[fraction][model_number][w],
-                                                                   np.log10(P21[fraction][model_number][w]),
-                                                                   statistic='mean',
-                                                                   bins = bins)
+    if mode == 0: 
+        adjust_21cm_plot(ax, HI_fraction_target, model_tags, plot_paper)                         
+    else:
+        adjust_HII_plot(ax, HI_fraction_target, model_tags)
 
-            ax[fraction].plot(bin_edges[35:-1], pow(10, mean_power[35:]),
-                           color = PlotScripts.colors[model_number],
-                           ls = PlotScripts.linestyles[model_number], 
-                           lw = 2, rasterized=True)
+    if plot_paper == 0:
+        this_ax = ax
+    else:
+        this_ax = ax[1]
 
-            label = model_tags[model_number]  
-
-            ax[fraction].plot(k[fraction][model_number][w[0]:w[log_cutoff]],
-                           P21[fraction][model_number][w[0]:w[log_cutoff]],
-                           color = PlotScripts.colors[model_number],
-                           ls = PlotScripts.linestyles[model_number],
-                           lw = 2, rasterized=True, label = label)
-           
-    adjust_21cm_plot(ax, HI_fraction_target, model_tags)
-
-    leg = ax[1].legend(loc='lower right', numpoints=1,
-                       labelspacing=0.1)
+    leg = this_ax.legend(loc='lower right', numpoints=1,
+                         labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(PlotScripts.global_legendsize-2)
@@ -264,9 +407,15 @@ def plot_power(HI_fraction_target, k, P21, P21_Error, model_tags,
     plt.tight_layout()
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
-    outputFile = "{0}/PowerSpec2{1}".format(OutputDir,
-                                           output_format)
 
+    if mode == 0:
+        final_tag = "21cm_{0}".format(output_tag)
+    else:
+        final_tag = "XHII_{0}".format(output_tag)
+
+    outputFile = "{0}/PowerSpec{2}{1}".format(OutputDir,
+                                              output_format,
+                                              final_tag)
 
     plt.savefig(outputFile)  # Save the figure
 
@@ -278,7 +427,7 @@ if __name__ == '__main__':
 
     PlotScripts.Set_Params_Plot()
 
-    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/newphoton_SF0.03_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_XHII"
     filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_XHII"
     filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_XHII"
     filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_XHII"
@@ -295,6 +444,7 @@ if __name__ == '__main__':
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"]
+
     precision = [2, 2, 2, 2, 2]
 
     GridSize = [256, 256, 256, 256, 256]
@@ -303,9 +453,14 @@ if __name__ == '__main__':
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]               
 
-    snaplist = np.arange(28, 98)
+    SnapList = [np.arange(28, 98),
+                np.arange(28, 98),
+                np.arange(28, 98),
+                np.arange(28, 98),
+                np.arange(28, 98)]
+
 
     SnapList = [[19, 26, 34, 42, 48],
                 [18, 25, 34, 43, 49],
@@ -322,7 +477,7 @@ if __name__ == '__main__':
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're always using
                                       #  Kali.
 
-    OutputDir = "./21cm_plots/paper"
+    OutputDir = "./21cm_plots/paper_final_2"
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 
@@ -330,19 +485,25 @@ if __name__ == '__main__':
     P21 = [[] for x in range(len(SnapList))]
     P21_Error = [[] for x in range(len(SnapList))]
 
+
+    k_XHII = [[] for x in range(len(SnapList))]
+    P21_XHII = [[] for x in range(len(SnapList))]
+    P21_Error_XHII = [[] for x in range(len(SnapList))]
+
+    plot_all = 0
+
     for snapnum in range(len(SnapList[0])): 
-
-
         for model_number in range(len(fname_ionized)):
+            snap = SnapList[model_number][snapnum]
             XHII_fname = "{0}_{1:03d}".format(fname_ionized[model_number], 
-                                              SnapList[model_number][snapnum])
+                                              snap) 
 
             XHII = ReadScripts.read_binary_grid(XHII_fname,
                                                 GridSize[model_number],
                                                 precision[model_number])
 
             density_fname = "{0}{1:03d}.dens.dat".format(fname_density[model_number], 
-                                                         SnapList[model_number][snapnum]) 
+                                                         snap) 
             density = ReadScripts.read_binary_grid(density_fname,
                                                    GridSize[model_number],
                                                    precision[model_number])
@@ -352,14 +513,29 @@ if __name__ == '__main__':
             T0 = T_naught(AllVars.SnapZ[snap], AllVars.Hubble_h,
                           AllVars.Omega_m, AllVars.Omega_b)
                   
-            tmp_k, tmp_PowSpec, tmp_Error = calculate_power_spectrum(XHII, density) 
+            tmp_k, tmp_PowSpec, tmp_Error, \
+            tmp_k_XHII, tmp_Pspec_XHII, tmp_Error_XHII = calculate_power_spectrum(XHII, density) 
 
-            k[snapnum].append(tmp_k)
-            P21[snapnum].append(T0*T0 * tmp_PowSpec * tmp_k**3 * 2.0 * np.pi)
-            P21_Error[snapnum].append(tmp_Error)
+            if plot_all == 0:
+                k[snapnum].append(tmp_k)
+                P21[snapnum].append(T0*T0 * tmp_PowSpec * tmp_k**3 * 2.0 * np.pi)
+                P21_Error[snapnum].append(tmp_Error)
 
+                k_XHII[snapnum].append(tmp_k_XHII)
+                P21_XHII[snapnum].append(tmp_Pspec_XHII)
+                P21_Error_XHII[snapnum].append(tmp_Error_XHII)
 
+            else:
+                output_tag = "{0}_{1}".format(model_tags[model_number], SnapList[model_number][snapnum])
+                plot_power(HI_frac, tmp_k, 
+                           T0*T0*tmp_PowSpec*tmp_k**3*2.0*np.pi, 
+                           tmp_Error, 
+                           model_tags, OutputDir, 0, output_tag, 0)
 
     plot_power(HI_fraction_target, k, P21, 
-               P21_Error, model_tags, OutputDir) 
+               P21_Error, model_tags, OutputDir, 0, "5_panel", 1) 
+
+    plot_power(HI_fraction_target, k_XHII, P21_XHII, 
+               P21_Error_XHII, model_tags, OutputDir, 1, "5_panel", 1) 
+
 

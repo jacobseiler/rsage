@@ -150,6 +150,7 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('GridReionMod', (np.float32, MAXSNAPS)),
          ('GridNgamma_HI', (np.float32, MAXSNAPS)),
          ('Gridfesc', (np.float32, MAXSNAPS))
+         #('ColdCrit', (np.float32, MAXSNAPS))
          ]
    
     print("Reading in SAGE files (Post STARBURST).")

@@ -514,9 +514,9 @@ if __name__ == '__main__':
  
     simulation_norm = [6, 6, 6, 6, 6]
 
-    plot_nion(nion_fname, SnapList, GridSize, simulation_norm, 1,
-              model_tags, "paper_nion")
+    #plot_nion(nion_fname, SnapList, GridSize, simulation_norm, 1,
+    #          model_tags, "paper_nion")
 
-    #plot_fesc_z(fname, PlotSnapshot, model_tags, "base")
+    plot_fesc_z(fname, PlotSnapshot, model_tags, "selfcon_ASA")
 
     #plot_fescNgamma_z(fname, PlotSnapshot, model_tags, "grid_fesc_z_paper_Ngammafesc_allz_starburst_medium_quasarwind_fesc0.10_fboosted1.00_HaloPartCut32_1DynTime")
