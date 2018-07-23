@@ -332,6 +332,9 @@ def test_run():
         check_sage_dirs(galaxy_name)  # First check that directories for output are present. 
         run_my_sage(ini_file)  # Run my version of SAGE (not full R-SAGE yet).
 
+        print("")
+        print("SAGE run, now reading in the Galaxies.")
+        print("")
         Gals = load_gals(max_snap, galaxy_name)
         check_smf(Gals, max_snap)  # Attempt to make a stellar mass function.
 
