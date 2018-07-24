@@ -158,14 +158,18 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     path_to_sage = "{0}/../sage/sage".format(test_dir)
     path_to_ini = "{0}/test_ini_files/{1}".format(test_dir, ini_name)
     path_to_log = "{0}/test_logs/{1}.log".format(test_dir, ini_name)
-    command = "{0} {1} &> {2}".format(path_to_sage, path_to_ini, path_to_log)
-    #command = "{0} {1}".format(path_to_sage, path_to_ini)    
-    returncode = subprocess.call(command, shell=True)
 
-    #command = "ls {0}/test_output/galaxies/".format(test_dir)
-    #returncode = subprocess.call(command, shell=True)
+    stderr = subprocess.STDOUT
+
+    command = "{0} {1}".format(path_to_sage, path_to_ini)
+   
+        #command = "{0} {1} &> {2}".format(path_to_sage, path_to_ini, path_to_log)
+
+    with open(path_to_log, "w") as log_file:
+        returncode = subprocess.call(command, shell=True, stdout=log_file)
 
     print("SAGE log file printed to {0}".format(path_to_log))
+
     if returncode != 0:
         print("SAGE exited with error code {0}".format(returncode))
         raise RuntimeError

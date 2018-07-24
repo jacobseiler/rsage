@@ -4,6 +4,7 @@ sudo: required
 env:
   global:
     - NUMPY_VERISON=1.13
+    - ON_CI=1
 notifications:
   email:
     recipients:
@@ -44,6 +45,4 @@ before_script:
 
 script:
   - cd sage/
-  - make 
-  - cd ../tests/
-  - python test_sage.py 
+  - make tests 
