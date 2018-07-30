@@ -7,6 +7,27 @@ from astropy import cosmology
 from scipy import stats
 import os
 
+
+def Hubble_Param(z, h, OM):
+
+    ## Output in units of km/s/Mpc
+
+	H0 = h*100
+	H = H0**2 * (OM * (1+z)**3 + (1 - OM))
+
+	return np.sqrt(H)
+
+
+## Number density of hydrogen in m^-3##
+def n_HI(z, Hubble_h, OB, Y):
+	n_HI = cosmo_density(z, Hubble_h)*OB*(1-Y)/(Proton_Mass/1000.0)
+	return n_HI
+
+
+def cosmo_density(z, Hubble_h):
+        rho = (3*100*100*Hubble_h*Hubble_h*km_to_m*km_to_m)/(8*np.pi*G*mpc_to_m*mpc_to_m)*(1+z)**3
+        return rho
+
 def set_cosmology(Hubble_h, Omega_m):
 	
     cosmo = cosmology.FlatLambdaCDM(H0 = Hubble_h*100, Om0 = Omega_m) 
@@ -838,4 +859,43 @@ def powerspec_bins(ngrid, boxsize):
 
     kvol = np.bincount(kbins) * (kmult * kmult * kmult)
     return kmin, kmax, kbins, kvol
+
+
+def two_modes_to_pspec(modes, modes2, boxsize):
+    """
+    From a given set of fourier modes, compute the (binned) power spectrum
+    with errors.
+
+    modes   - (n,n,n) array (from ifftn of overdensity values)
+    boxsize - size of box (e.g. in Mpc/h)
+
+    returns
+
+    kmid    - k values of power spec
+    pspec   - estimate of power spec at k
+    perr    - error on estimate
+    """
+
+    ngrid = modes.shape[0]
+    assert(modes.shape==(ngrid, ngrid,ngrid))
+    assert(modes2.shape==(ngrid, ngrid, ngrid))
+    kmin, kmax, kbins, kvol = powerspec_bins(ngrid, boxsize)
+
+    wts = modes.ravel().real*modes2.ravel().real + modes.ravel().imag*modes2.ravel().imag
+
+    checksum = (modes.ravel().real*modes2.ravel().imag-modes2.ravel().real*modes.ravel().imag)
+
+    v1 = np.bincount(kbins, weights=wts)
+    powerspec = v1 * (1.0 / kvol)
+
+    v1check = np.bincount(kbins, weights=checksum)
+
+    # work out error on power spectrum
+    v2 = np.bincount(kbins, weights=np.square(wts))
+    v0 = np.bincount(kbins)
+    p_err = np.sqrt((v2*v0 - v1*v1)/(v0-1)) / kvol
+
+    kmid_bins = 0.5 * (kmin+kmax)
+
+    return kmid_bins, powerspec, p_err
 
