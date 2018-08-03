@@ -12,8 +12,8 @@ import AllVars
 import ReadScripts
 
 
-def get_snap_parts(path, snap, num_files, Npart_to_get, check_file=0,
-                   slice_size=100):
+def get_snap_parts(path, snap, num_files, Npart_to_get, check_file=0):
+                   
  
     if check_file:
         file_name = "./snapshot_pos.npz"
@@ -54,7 +54,7 @@ def get_snap_parts(path, snap, num_files, Npart_to_get, check_file=0,
     pos_z = np.full(Npart, -1, dtype=np.float64)
 
     for fnr in range(num_files):
-        if fnr % 20 == 0:
+        if fnr % 1 == 0:
             print("At file {0}, {1} particles added".format(fnr, parts_added))
 
         fname = "{0}_{1:03d}/snapshot_{1:03d}.{2}.hdf5".format(path, snap, fnr)
@@ -68,32 +68,18 @@ def get_snap_parts(path, snap, num_files, Npart_to_get, check_file=0,
                 else:
                     parts_to_add = parts_per_file
 
-                parts_chunk_remaining = parts_to_add
-                count = 0
-                slices = random.sample(range(int(Npart_this_file/slice_size)), 
-                                       int(np.ceil(parts_to_add/slice_size)))
+                rand_inds = np.random.randint(0, Npart_this_file, parts_to_add) 
+                
+                for ind in rand_inds: 
+                    pos = f_in["PartType1"]["Coordinates"]
+  
+                    pos_x[parts_added] = pos[ind,0]
+                    pos_y[parts_added] = pos[ind,1]
+                    pos_z[parts_added] = pos[ind,2]
 
-                #print("Generated {0} slices.".format(np.ceil(parts_to_add/slice_size)))
+                    parts_remaining -= 1 
+                    parts_added += 1 
 
-                while parts_chunk_remaining > 0: 
-                    if count == (len(slices) - 1):
-                        this_slice_size = parts_chunk_remaining 
-                    else:
-                        this_slice_size = slice_size
-                    #print("NumPartFile {0}\tNslice {1}\tCount {2}\tthis_slice_size {3}".format(Npart_this_file, len(slices), count, this_slice_size))
-                    #print("Parts_chunk_remaining {0}".format(parts_chunk_remaining))
-                    pos = f_in["PartType1"]["Coordinates"][slices[count]*slice_size:slices[count]*slice_size+this_slice_size]
-                    
-                    pos_x[parts_added:parts_added+this_slice_size] = pos[:,0]
-                    pos_y[parts_added:parts_added+this_slice_size] = pos[:,1]
-                    pos_z[parts_added:parts_added+this_slice_size] = pos[:,2]
-
-                    parts_chunk_remaining -= this_slice_size
-
-                    parts_remaining -= this_slice_size 
-                    parts_added += this_slice_size 
-                    
-                    count += 1
             else:
                 pos_x[parts_added:parts_added+Npart_this_file] = pos[:,0]
                 pos_y[parts_added:parts_added+Npart_this_file] = pos[:,1]
@@ -268,8 +254,8 @@ if __name__ == "__main__":
 
     AllVars.Set_Params_Kali()
 
-    snap = 92 
-    #snap = 50 
+    #snap = 92 
+    snap = 50 
     num_pseudo_files = 256
     num_subfind_files = 64
     Npart = 2e6 
@@ -299,12 +285,11 @@ if __name__ == "__main__":
     print("Done")
   
     print("Calculating xi") 
-    results = xi(boxsize, nthreads, bins, X1, Y1, Z1) 
+    results = xi(boxsize, nthreads, bins, X1, Y1, Z1, output_ravg=True) 
     for r in results: 
         print("{0:10.6f} {1:10.6f} {2:10.6f} {3:10.6f} {4:10d} {5:10.6f}" \
               .format(r['rmin'], r['rmax'],
                       r['ravg'], r['xi'], r['npairs'], r['weightavg']))
-
 
     print("Grabbing {0} subfind halos".format(Nhalos))
     X2, Y2, Z2 = get_subfind_halo_pos(subfind_halo_path, snap,
