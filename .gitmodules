@@ -1,4 +1,4 @@
 [submodule "grid-model"]
 	path = grid-model
 	url = https://github.com/jacobseiler/grid-model
-	branch = rsage 
+    branch = rsage
