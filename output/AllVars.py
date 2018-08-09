@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 import numpy as np
+from numpy.fft import fftn, ifftn
 from astropy import units as u
 from astropy import cosmology
 from scipy import stats
@@ -899,3 +900,23 @@ def two_modes_to_pspec(modes, modes2, boxsize):
 
     return kmid_bins, powerspec, p_err
 
+
+def calc_cross_corr(grid1, grid2, my_BoxSize):
+
+    modes1 = ifftn(grid1)
+    modes2 = ifftn(grid2)
+
+    #grid1 = grid1/np.mean(grid1)
+    #grid2 = grid2/np.mean(grid2)
+
+    kmid_bins, pspec1, p_err = modes_to_pspec(modes1,
+                                              my_BoxSize)
+
+    kmid_bins, pspec2, p_err = modes_to_pspec(modes2,
+                                              my_BoxSize)
+
+    kmid_bins, cross_pspec, p_err = two_modes_to_pspec(modes1, 
+                                                       modes2, 
+                                                       my_BoxSize)
+
+    return kmid_bins, cross_pspec, pspec1, pspec2

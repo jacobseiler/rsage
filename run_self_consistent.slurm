@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=fej_alpha0.4_beta0.05
+#SBATCH --job-name=new_constant
 
 #SBATCH --ntasks=32
 #SBATCH --time=10:00:00
@@ -14,9 +14,9 @@ module load numpy/1.14.1-python-3.6.4
 module load openmpi/3.0.0
 module load gcc/6.4.0
 
-ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/new_fej/" # Directory the .ini files are kept.
-log_dir="/home/jseiler/self_consistent_SAGE/logs/new_fej/" # Directory to place the output log files.
-run_prefix="fej_alpha0.4_beta0.05" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
+ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/shifted_fej/" # Directory the .ini files are kept.
+log_dir="/home/jseiler/self_consistent_SAGE/logs/shifted_fej/" # Directory to place the output log files.
+run_prefix="shifted_fej_alpha0.6_beta0.0" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
 
 LowSnap=27
 HighSnap=97

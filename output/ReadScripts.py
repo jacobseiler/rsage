@@ -89,7 +89,7 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
 
     return G
 
-def ReadHalos(DirName, First_File, Last_File):
+def read_trees(fname):
 
     Halo_Desc_full = [
     ('Descendant',          np.int32),
@@ -113,15 +113,75 @@ def ReadHalos(DirName, First_File, Last_File):
     ('SubHalfMass',         np.float32)
                      ]
 
-    print("First_File = %d" %(First_File))
-    print("Last_File = %d" %(Last_File))
+    names = [Halo_Desc_full[i][0] for i in range(len(Halo_Desc_full))]
+    formats = [Halo_Desc_full[i][1] for i in range(len(Halo_Desc_full))]
+    Halo_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
+
+
+    print("Reading halos from {0}".format(fname))
+
+    with open(fname, "rb") as f_in:
+        NTrees = np.fromfile(f_in, np.dtype(np.int32), 1)[0]
+        NHalos = np.fromfile(f_in, np.dtype(np.int32), 1)[0]
+        NHalosPerTree = np.fromfile(f_in,
+                                    np.dtype((np.int32, NTrees)), 1)[0]
+
+        Halos = np.empty(NHalos, dtype=Halo_Desc)
+
+        # Go through the input file and write those selected trees.
+        Halos = np.fromfile(f_in, Halo_Desc, 
+                            NHalos)     
+
+    return Halos 
+
+
+def read_subfind_halos(fname):
+
+    Halo_Desc_full = [
+    ('id_MBP',              np.int64),
+    ('M_vir',               np.float64),
+    ('n_particles',         np.int16),
+    ('position_COM',        (np.float32, 3)),
+    ('position_MBP',        (np.float32, 3)),
+    ('velocity_COM',        (np.float32, 3)),
+    ('velocity_MBP',        (np.float32, 3)),
+    ('R_vir',               np.float32),
+    ('R_halo',              np.float32),
+    ('R_max',               np.float32),
+    ('V_max',               np.float32),
+    ('sigma_v',             np.float32),
+    ('spin',                (np.float32, 3)),
+    ('q_triaxial',          np.float32),
+    ('s_triaxial',          np.float32),
+    ('shape_eigen_vectors', (np.float32, (3,3))),
+    ('padding',             (np.int16, 2))
+                     ] # Note that there are also a padding of 8 bytes following this array. 
 
     names = [Halo_Desc_full[i][0] for i in range(len(Halo_Desc_full))]
     formats = [Halo_Desc_full[i][1] for i in range(len(Halo_Desc_full))]
     Halo_Desc = np.dtype({'names':names, 'formats':formats}, align=True)
 
-    return Read_SAGE_Objects(DirName, Halo_Desc, 1, 1, First_File, Last_File)
-    
+    print("Reading Subfind halos from file {0}".format(fname))
+    with open(fname, 'rb') as f_in:
+        file_number = np.fromfile(f_in, np.dtype(np.int32), 1)
+        n_files = np.fromfile(f_in, np.dtype(np.int32), 1)
+        N_groups_thisfile = np.fromfile(f_in, np.dtype(np.int32), 1)[0]
+        N_groups_allfile = np.fromfile(f_in, np.dtype(np.int32), 1)
+        Halos = np.fromfile(f_in, Halo_Desc, N_groups_thisfile)
+
+    return Halos
+
+
+def get_num_subfind_halos(fname):
+
+    with open(fname, 'rb') as f_in:
+        file_number = np.fromfile(f_in, np.dtype(np.int32), 1)
+        n_files = np.fromfile(f_in, np.dtype(np.int32), 1)
+        N_groups_thisfile = np.fromfile(f_in, np.dtype(np.int32), 1)[0]
+        N_groups_allfile = np.fromfile(f_in, np.dtype(np.int32), 1)[0]
+
+    return N_groups_allfile
+
 def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
 
     Galdesc_full = [ 
@@ -209,7 +269,7 @@ def read_binary_grid(filepath, GridSize, precision, reshape=True):
     grid : `np.darray'
 	The read in grid as a numpy object.  Shape will be N*N*N.
     '''
-    print("Reading binary grid %s with precision option %d" %(filepath, precision)) 
+    #print("Reading binary grid %s with precision option %d" %(filepath, precision)) 
 
     ## Set the format the input file is in. ##
     readformat = 'None'
@@ -235,7 +295,7 @@ def read_binary_grid(filepath, GridSize, precision, reshape=True):
     fd = open(filepath, 'rb')
     grid = np.fromfile(fd, count = GridSize**3, dtype = readformat) 
     if (reshape == True):
-        grid.shape = (GridSize, GridSize, GridSize) 
+        grid = np.reshape(grid, (GridSize, GridSize, GridSize), order="F") 
     fd.close()
 
     return grid

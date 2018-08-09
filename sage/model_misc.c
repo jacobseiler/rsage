@@ -312,6 +312,7 @@ int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t *grid_1D
   
 
   *grid_1D = (z_grid*GridSize+y_grid)*GridSize+x_grid; // Convert the grid (x,y,z) to a 1D value.
+  //*grid_1D = (x_grid*GridSize+y_grid)*GridSize+z_grid; // Convert the grid (x,y,z) to a 1D value.
 
   if(*grid_1D > CUBE(GridSize) || *grid_1D < 0) // Sanity check to ensure that no Grid Positions are outside the box.
   {

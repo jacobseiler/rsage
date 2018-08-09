@@ -19,7 +19,7 @@ import AllVars
 import misc_func as misc 
 
 label_size = 20
-output_format = ".pdf"
+output_format = ".png"
 
 def T_naught(z, h, OM, OB):
     """
@@ -271,8 +271,8 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
                 ax1.text(1, 5, r"$\mathbf{End}$",
                          fontsize = PlotScripts.global_fontsize-4)
         else:       
-            #ax1.set_ylim([0.0, 0.045])
-            #ax1.set_xlim([0.0, 0.03])
+            ax1.set_ylim([0.0, 0.045])
+            ax1.set_xlim([0.0, 0.03])
 
             if plot_mode == 0:
                 ax1.set_xlim([0.0, 1.00])
@@ -382,41 +382,43 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
     plt.close()
 
 
-def load_and_plot(target_XHII_fraction):
+def load_and_plot(save_tag, target_XHII_fraction, OutputDir):
 
-    w = [0,2,3,4,5]
+    fnames = ["XHII_fraction", "P21_smallscale", "P21_largescale",
+              "PHII_smallscale", "PHII_largescale", "model_tags"]
 
-    XHII_fraction = np.load("./XHII_fraction.npz")["arr_0"]
-    XHII_fraction = XHII_fraction[w]
+    for count, tag in enumerate(fnames):
+        fname = "./{0}_{1}.npz".format(save_tag, tag) 
 
-    P21_smallscale = np.load("./P21_smallscale.npz")["arr_0"]
-    P21_smallscale = P21_smallscale[w]
-    P21_largescale = np.load("./P21_largescale.npz")["arr_0"]
-    P21_largescale = P21_largescale[w]
+        if count == 0:
+            XHII_fraction = np.load(fname)["arr_0"]
 
-    PHII_smallscale = np.load("./PHII_smallscale.npz")["arr_0"]
-    PHII_smallscale = PHII_smallscale[w]
-    PHII_largescale= np.load("./PHII_largescale.npz")["arr_0"]
-    PHII_largescale = PHII_largescale[w]
+        elif count == 1:
+            P21_smallscale = np.load(fname)["arr_0"]
 
-    model_tags = np.load("./model_tags.npz")["arr_0"]
-    model_tags = model_tags[w]
+        elif count == 2:
+            P21_largescale = np.load(fname)["arr_0"]
 
-    print(model_tags)
-    print(model_tags[0])
-    print(model_tags[1])
+        elif count == 3:
+            PHII_smallscale = np.load(fname)["arr_0"]
 
-    plot_power(XHII_fraction, P21_smallscale, P21_largescale, model_tags, 
-               "scale_plots_paper", 0, 0)
+        elif count == 4:
+            PHII_largescale = np.load(fname)["arr_0"]
 
-    plot_power(XHII_fraction, PHII_smallscale, PHII_largescale, model_tags, 
-               "scale_plots_paper", 1, 0)
+        elif count == 5:
+            model_tags = np.load(fname)["arr_0"]
 
     plot_power(XHII_fraction, P21_smallscale, P21_largescale, model_tags, 
-               "scale_plots_paper", 0, 1, target_XHII_fraction)
+               OutputDir, 0, 0)
 
     plot_power(XHII_fraction, PHII_smallscale, PHII_largescale, model_tags, 
-               "scale_plots_paper", 1, 1, target_XHII_fraction)
+               OutputDir, 1, 0)
+
+    plot_power(XHII_fraction, P21_smallscale, P21_largescale, model_tags, 
+               OutputDir, 0, 1, target_XHII_fraction)
+
+    plot_power(XHII_fraction, PHII_smallscale, PHII_largescale, model_tags, 
+               OutputDir, 1, 1, target_XHII_fraction)
 
 
 if __name__ == '__main__':
@@ -433,6 +435,37 @@ if __name__ == '__main__':
     filepath_model6="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.30_XHII"
     filepath_model7="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_XHII"
 
+
+    fname_ionized_base="/fred/oz004/jseiler/kali/self_consistent_output/new_fej/grids/cifog/fej"
+
+    beta = 0.05
+    alpha = [0.0, 0.2, 0.4, 0.6, 0.8] 
+
+    fname_ionized = []
+    fname_density = []
+    model_tags = []
+    precision = []
+    GridSize = []
+    SnapList = []
+    
+    endsnap = 98 
+
+    for alpha_val in alpha:
+        fname="{0}_alpha{1}_beta{2}_XHII".format(fname_ionized_base,
+                                                 alpha_val, beta)
+        fname_ionized.append(fname)
+
+        fname_density.append("/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap")
+
+        tag=r"$\mathbf{\alpha = " + str(alpha_val) + r" \beta = " + str(beta) + r"}$"
+        model_tags.append(tag)
+
+        precision.append(2)
+        GridSize.append(256)
+
+        SnapList.append(np.arange(28, endsnap))
+
+    '''
     fname_ionized=[filepath_model1,
                    filepath_model6,
                    filepath_model2,
@@ -462,14 +495,15 @@ if __name__ == '__main__':
     SnapList = [np.arange(28, endsnap), np.arange(28, endsnap), 
                 np.arange(28, endsnap), np.arange(28, endsnap), 
                 np.arange(28, endsnap), np.arange(28, endsnap)]
-
+    '''
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're always using
                                       #  Kali.
 
-    OutputDir = "./21cm_plots/paper"
+    OutputDir = "./21cm_plots/new_fej"
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 
+    save_tag = "diffalpha"
     target_HI_fraction = [0.90, 0.75, 0.50, 0.25, 0.10]
 
 
@@ -489,10 +523,11 @@ if __name__ == '__main__':
     ##
 
     if have_data == 1:
-        load_and_plot(target_HI_fraction)
+        load_and_plot(save_tag, target_HI_fraction, OutputDir)
         exit()
 
-    for snapnum in range(len(SnapList[0])): 
+    for snapnum in range(len(SnapList[0])):
+        print("Snapshot {0}".format(snapnum)) 
         for model_number in range(len(fname_ionized)):
             XHII_fname = "{0}_{1:03d}".format(fname_ionized[model_number], 
                                               SnapList[model_number][snapnum])
@@ -528,12 +563,12 @@ if __name__ == '__main__':
                 PHII_smallscale[model_number].append(tmp_Pspec_XHII[25])
 
 
-    np.savez("./XHII_fraction", XHII_fraction)
+    fnames = ["XHII_fraction", "P21_smallscale", "P21_largescale",
+              "PHII_smallscale", "PHII_largescale", "model_tags"]
+    save_arrs = [XHII_fraction, P21_smallscale, P21_largescale,
+                 PHII_smallscale, PHII_largescale, model_tags]
 
-    np.savez("./P21_smallscale", P21_smallscale)
-    np.savez("./P21_largescale", P21_largescale)
+    for tag, arr in zip(fnames, save_arrs):
+        fname = "./{0}_{1}".format(save_tag, tag) 
+        np.savez(fname, arr) 
 
-    np.savez("./PHII_smallscale", PHII_smallscale)
-    np.savez("./PHII_largescale", PHII_largescale)
-
-    np.savez("./model_tags", model_tags)

@@ -2272,7 +2272,7 @@ if __name__ == '__main__':
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   #r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
-                  r"$\mathbf{f_\mathrm{esc} = 0.35, photHI2}$"] 
+                  r"$Shifted$"] 
 
     output_tags = [r"Base Reion On"]
 
@@ -2285,7 +2285,7 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'photHI2_new'
+    model = 'newhalos'
 
     GridSize_model1 = 256
         
@@ -2310,7 +2310,9 @@ if __name__ == '__main__':
     filepath_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.40_XHII"
     filepath_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_XHII"
     filepath_model19="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_XHII"
-    
+    filepath_model20="/fred/oz004/jseiler/kali/self_consistent_output/new_fej/grids/cifog/fej_alpha0.4_beta0.0_XHII"
+    filepath_model21="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_XHII"
+
     filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/const0.35_fesc0.35_HaloPartCut32_nionHI"
     filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.2_1.00_2.50_quasar_0.20_1.00_2.50_HaloPartCut32_nionHI"
     filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/oldphoton_SF0.03_0.10_1.00_2.50_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI"
@@ -2330,6 +2332,8 @@ if __name__ == '__main__':
     filepath_nion_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.40_SFR_0.200_0.400_HaloPartCut32_nionHI"
     filepath_nion_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.30_SFR_0.200_0.300_HaloPartCut32_nionHI"
     filepath_nion_model19="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/const0.35_photHI2_fesc0.35_HaloPartCut32_nionHI"
+    filepath_nion_model20="/fred/oz004/jseiler/kali/self_consistent_output/new_fej/grids/nion/fej_alpha0.4_beta0.0_ejected_0.400_0.000_HaloPartCut32_nionHI"
+    filepath_nion_model21="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/nion/new_constant_fesc0.2_fesc0.20_HaloPartCut32_nionHI"
  
     filepath_phot_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI"
     filepath_phot_model12="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_photHI"
@@ -2362,13 +2366,13 @@ if __name__ == '__main__':
                                     filepath_model12,
                                     filepath_model15,
                                     filepath_model6,
-                                    filepath_model19]
+                                    filepath_model21]
 
     nion_filepath_array = [filepath_nion_model1,
                            filepath_nion_model12,
                            filepath_nion_model15,
                            filepath_nion_model6,
-                           filepath_nion_model19]
+                           filepath_nion_model21]
 
     photofield_filepath_array = [filepath_phot_model1,
                                  filepath_phot_model12,
@@ -2499,8 +2503,8 @@ if __name__ == '__main__':
             #density_path = "{0}.dens.dat".format(density_filepath_array[model_number])  
             density_array.append(ReadScripts.read_binary_grid(density_path, GridSize_model, precision_array[model_number]))
             
-            photofield_path = "{0}_{1:03d}".format(photofield_filepath_array[model_number], snapshot_idx) 
-            photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
+            #photofield_path = "{0}_{1:03d}".format(photofield_filepath_array[model_number], snapshot_idx) 
+            #photofield_array.append(ReadScripts.read_binary_grid(photofield_path, GridSize_model, 2)) 
 
             #tag = "{0}_{1:03d}".format(output_tags[model_number], snapshot_idx)
             #plot_single(ZZ[snapshot_idx], ionized_cells_array[model_number], GridSize_array[model_number], simulation_norm[model_number], OutputDir, tag) 
@@ -2568,8 +2572,8 @@ if __name__ == '__main__':
 
             #plot_photofield(ZZ[i], photofield_array[model_number], OutputDir, "PhotHIField_" + output_tags[model_number] + str(i))
 
-            photo_mean_array[model_number][count] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
-            photo_std_array[model_number][count] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
+            #photo_mean_array[model_number][count] = np.mean(photofield_array[model_number][photofield_array[model_number] != 0])
+            #photo_std_array[model_number][count] = np.std(photofield_array[model_number][photofield_array[model_number] != 0])
 
         assert(nion_array[0].all() == nion_array[4].all())
         #print "This snapshot has index %d with lookback time %.4f (Gyr)" %(i, cosmo.lookback_time(ZZ[i]).value)
@@ -2640,8 +2644,8 @@ if __name__ == '__main__':
 
     #photon_baryon(lowerZ, upperZ, ZZ, [nion_total_model1, nion_total_model2], Hubble_h, OB, Y, model_tags, OutputDir, "nion_total2")
     #analytic_HII(nion_total_model1, ZZ, upperZ, snaplist, OutputDir, "Q_Analytic")
-    print(photo_mean_array)
-    plot_photo_mean(AllVars.SnapZ[snaplist], photo_mean_array, photo_std_array, model_tags, OutputDir, "Mean_Photo")
+    
+    #plot_photo_mean(AllVars.SnapZ[snaplist], photo_mean_array, photo_std_array, model_tags, OutputDir, "Mean_Photo")
 
     #plot_deltat_deltax(ZZ, volume_frac_array, model_tags, OutputDir, "ReionizationSpeed")
     #plot_deltat_deltaN(ZZ, nion_array, model_tags, OutputDir, "NionSpeed")

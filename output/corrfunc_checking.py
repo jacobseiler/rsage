@@ -8,9 +8,15 @@ from Corrfunc.theory.DD import DD
 from Corrfunc.theory.xi import xi 
 from Corrfunc.utils import convert_3d_counts_to_cf
 
+import matplotlib
+matplotlib.use('Agg')
+import pylab as plt
+
 import AllVars
 import ReadScripts
+import PlotScripts
 
+output_format = ".png"
 
 def get_snap_parts(path, snap, num_files, Npart_to_get, check_file=0):
                    
@@ -250,15 +256,61 @@ def get_subfind_halo_pos(path, snap, num_files, Nhalos, check_file=0):
     return pos_x, pos_y, pos_z 
 
 
+def plot_corrs(corrfunc_corr_results, corrfunc_crosscorr_results, model_tags, output_tag):
+
+    fig1 = plt.figure(figsize=(8,8))
+    ax1 = fig1.add_subplot(111)
+
+    for model_number in range(len(corrfunc_corr_results)):
+        results = corrfunc_corr_results[model_number]
+
+        print(model_tags[model_number])
+        for i in range(len(results["ravg"])):
+            print("Ravg {0}\tXi {1}".format(results["ravg"][i],
+                                            results["xi"][i]))
+
+        ax1.plot(results["ravg"], results["xi"], 
+                 color = PlotScripts.colors[model_number], 
+                 label = model_tags[model_number]) 
+
+        if model_number == 0:
+            ax1.plot(results["ravg"], corrfunc_crosscorr_results,
+                     color = 'k', ls = '--', label = "Cross-Correlation") 
+
+    ax1.set_yscale("symlog")
+
+    ax1.set_xlabel(r"$\mathbf{log \: r \: [Mpc \: h^{-1}]}$", 
+                   fontsize = PlotScripts.global_labelsize)
+
+    ax1.set_ylabel(r"$\mathbf{\xi (r)}$", 
+                   fontsize = PlotScripts.global_labelsize)
+
+    leg = ax1.legend(loc='upper right', numpoints=1,
+                         labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(PlotScripts.global_legendsize-2)
+
+    plt.tight_layout()
+
+    outputFile = "./{0}{1}".format(output_tag,
+                                   output_format)
+
+    plt.savefig(outputFile)  # Save the figure
+
+    print('Saved file to {0}'.format(outputFile))
+
+
 if __name__ == "__main__":
 
     AllVars.Set_Params_Kali()
+    PlotScripts.Set_Params_Plot()
 
     #snap = 92 
     snap = 50 
     num_pseudo_files = 256
     num_subfind_files = 64
-    Npart = 2e6 
+    Npart = 1e6 
     Nhalos = 5e5
     check_file = 0
 
@@ -278,22 +330,23 @@ if __name__ == "__main__":
     X1, Y1, Z1 = get_pseudo_parts(pseudo_snap_path, snap, num_pseudo_files,
                                   Npart, check_file)
 
-    #print("Grabbing {0} snapshot particles".format(Npart))    
-    #X1, Y1, Z1 = get_snap_parts(snap_path, snap, num_pseudo_files,
-    #                            Npart, check_file)
-
-    print("Done")
-  
-    print("Calculating xi") 
-    results = xi(boxsize, nthreads, bins, X1, Y1, Z1, output_ravg=True) 
-    for r in results: 
-        print("{0:10.6f} {1:10.6f} {2:10.6f} {3:10.6f} {4:10d} {5:10.6f}" \
-              .format(r['rmin'], r['rmax'],
-                      r['ravg'], r['xi'], r['npairs'], r['weightavg']))
-
     print("Grabbing {0} subfind halos".format(Nhalos))
     X2, Y2, Z2 = get_subfind_halo_pos(subfind_halo_path, snap,
                                       num_subfind_files, Nhalos, check_file)
+   
+    for i in range(len(X2)):
+        X2[i] = (X2[i] + 14.28) % boxsize
+        Y2[i] = (Y2[i] + 14.28) % boxsize
+        Z2[i] = (Z2[i] + 14.28) % boxsize
+
+    #print("Grabbing {0} snapshot particles".format(Npart))    
+    #X1, Y1, Z1 = get_snap_parts(snap_path, snap, num_pseudo_files,
+    #                            Npart, check_file)
+  
+    print("Calculating xi") 
+    corrfunc_xi_pseudo = xi(boxsize, nthreads, bins, X1, Y1, Z1, output_ravg=True) 
+    corrfunc_xi_halos = xi(boxsize, nthreads, bins, X2, Y2, Z2, output_ravg=True) 
+
     print("Done") 
 
     N_rand = 3*len(X1)
@@ -318,5 +371,7 @@ if __name__ == "__main__":
     cf = convert_3d_counts_to_cf(Npart, Nhalos, N_rand, N_rand,
                                  D1D2, D1R, D2R, RR)
 
-    for xi in cf: 
-        print("{0:10.6f}".format(xi))
+    plot_corrs([corrfunc_xi_pseudo, corrfunc_xi_halos], cf,
+               ["Pseudo Snapshots", "Halos"],
+               "pseudo_halos") 
+

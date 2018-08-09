@@ -6,7 +6,7 @@ matplotlib.use('Agg')
 import os
 import heapq
 import numpy as np
-import matplotlib.pyplot as plt
+mport matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as colors
 import matplotlib.cm as cm

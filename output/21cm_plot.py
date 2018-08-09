@@ -509,7 +509,8 @@ if __name__ == '__main__':
                                                    precision[model_number])
 
             HI_frac = calculate_HI_frac(XHII, density)
-
+            print(XHII[0,0,:])
+            exit()
             T0 = T_naught(AllVars.SnapZ[snap], AllVars.Hubble_h,
                           AllVars.Omega_m, AllVars.Omega_b)
                   

@@ -284,7 +284,6 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII, fesc_local;
   char fesc_fname[MAX_STRING_LEN];
 
-  printf("Calling in update_selfcon_grid\n");
   status = determine_nion(g, snapshot, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
   /*
   if (Ngamma_HI < 1e-6 && g->GridStellarMass[snapshot] > 0.0 && PhotonPrescription == 1)
