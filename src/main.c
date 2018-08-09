@@ -12,6 +12,8 @@
 #include <mpi.h>
 #endif
 
+#include "sage/core_allvars.h"
+
 #define MAXLEN 1024
 #define	CUBE(x) (x*x*x)
 #define ABSOLUTEMAXSNAPS 999
@@ -88,17 +90,28 @@ int main(int argc, char **argv)
   atexit(bye);
 
   parse_params(argc, argv);
+
+  // First read the snapshot list and initalize the lookup tables for delayedSN
+  // and ionizing photon prescription (if requested).
   sage_init();
- 
-  if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
-    status = init_selfcon_grid();
-  if(ReionizationOn == 2)
+
+  for (snapshot that we're looping over)
   {
-    status = init_grid();
-    if (status == EXIT_FAILURE)
+    if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
+      status = init_selfcon_grid();
+    if(ReionizationOn == 2)
     {
-      ABORT(EXIT_FAILURE);
+      status = init_grid();
+      if (status != EXIT_SUCCESS)
+      {
+        ABORT(EXIT_FAILURE);
+      }
     }
+    sage;
+    cifog;
+    gen_reion_redshift;
+    gen_halolists;
+   
   }
 
   return EXIT_SUCCESS;

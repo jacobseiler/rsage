@@ -56,7 +56,7 @@ int32_t check_tree_file(int32_t filenr, int32_t *treestyle)
 
 }
 
-int32_t sage(int argc, char **argv)
+int32_t sage()
 {
 
 #ifdef MPI
