@@ -20,15 +20,17 @@ int32_t count_ionized_cells(struct GRID_STRUCT *Grid);
 
 // Local functions //
 
-int32_t read_grid(int32_t SnapNum, int32_t first_run, struct SAGE_PARAMETERS *params, struct GRID_STRUCT *Grid)
+int32_t read_grid(int32_t SnapNum, int32_t first_update_flag, int32_t GridSize, double BoxSize, 
+                  char *PhotoionDir, char *ReionRedshiftName, char *PhotoionName,
+                  struct GRID_STRUCT *Grid)
 {
 
   FILE *ReionRedshiftFile, *PhotoionFile;
   char RedshiftGridName[MAXLEN], PhotoionGridName[MAXLEN]; 
 
-  Grid->GridSize = params->GridSize;
-  Grid->NumCellsTotal = CUBE(params->GridSize);
-  Grid->BoxSize = params->BoxSize;
+  Grid->GridSize = GridSize;
+  Grid->NumCellsTotal = CUBE(GridSize);
+  Grid->BoxSize = BoxSize;
 
   Grid->ReionRedshift = malloc(sizeof(*(Grid->ReionRedshift)) * Grid->NumCellsTotal);   
   if (Grid->ReionRedshift == NULL)
@@ -44,7 +46,7 @@ int32_t read_grid(int32_t SnapNum, int32_t first_run, struct SAGE_PARAMETERS *pa
     return EXIT_FAILURE;
   }
 
-  snprintf(RedshiftGridName, MAXLEN, "%s/%s", params->PhotoionDir, params->ReionRedshiftName); 
+  snprintf(RedshiftGridName, MAXLEN, "%s/%s", PhotoionDir, ReionRedshiftName); 
   if (!(ReionRedshiftFile = fopen(RedshiftGridName, "rb")))
   { 
     fprintf(stderr, "Could not open file %s\n", RedshiftGridName);
@@ -56,7 +58,7 @@ int32_t read_grid(int32_t SnapNum, int32_t first_run, struct SAGE_PARAMETERS *pa
   count_ionized_cells(Grid);
   fclose(ReionRedshiftFile);
   
-  snprintf(PhotoionGridName, MAXLEN, "%s/%s_%03d", params->PhotoionDir, params->PhotoionName, SnapNum + 1); 
+  snprintf(PhotoionGridName, MAXLEN, "%s/%s_%03d", PhotoionDir, PhotoionName, SnapNum + 1); 
   if (!(PhotoionFile = fopen(PhotoionGridName, "rb")))
   { 
     fprintf(stderr, "Could not open file %s\n", PhotoionGridName);
@@ -104,14 +106,14 @@ int32_t free_grid(struct GRID_STRUCT *Grid)
 
 }
  
-int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, int32_t first_run, struct HALO_STRUCT *Halos, struct GRID_STRUCT *Grid, struct SAGE_PARAMETERS *params, int64_t **HaloID, float **ReionMod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_ReionMod)
+int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, int32_t first_update_flag, struct HALO_STRUCT *Halos, struct GRID_STRUCT *Grid, struct SAGE_PARAMETERS *params, int64_t **HaloID, float **ReionMod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_ReionMod)
 {
 
   int32_t halonr, status;
   float ReionMod_tmp;
   int64_t unique_ID;
 
-  if (first_run == 1)
+  if (first_update_flag == 1)
   {
     return EXIT_SUCCESS;
   }

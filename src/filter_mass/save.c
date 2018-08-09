@@ -17,7 +17,7 @@
 
 #define MAXLEN 1024
 
-int32_t save_arrays(int64_t *HaloID, float *ReionMod, struct SAGE_PARAMETERS *params, int32_t NHalos_Ionized, int32_t filenr, int32_t ThisSnap, int32_t first_run)
+int32_t save_arrays(int64_t *HaloID, float *ReionMod, struct SAGE_PARAMETERS *params, int32_t NHalos_Ionized, int32_t filenr, int32_t ThisSnap, int32_t first_update_flag)
 {
 
   FILE *outfile;
@@ -27,7 +27,7 @@ int32_t save_arrays(int64_t *HaloID, float *ReionMod, struct SAGE_PARAMETERS *pa
   snprintf(outfile_name, MAXLEN - 1, "%s/reionization_modifiers/%s_treefile_%03d", params->PhotoionDir, params->FileNameGalaxies, filenr);
 
   // If this is the first time the code is executed, need to create a new file. Otherwise append to the end.
-  if (first_run == 0)
+  if (first_update_flag == 0)
   {
     outfile = fopen(outfile_name, "ab");
   }
@@ -44,7 +44,7 @@ int32_t save_arrays(int64_t *HaloID, float *ReionMod, struct SAGE_PARAMETERS *pa
 
 
   // If this is the first time the code is executed, create a pad for the snapshots below the current one. 
-  if (first_run == 1)
+  if (first_update_flag == 1)
   {
     tmp_NHalos = 0;
     for (halo_idx = 0; halo_idx < ThisSnap; ++halo_idx)
