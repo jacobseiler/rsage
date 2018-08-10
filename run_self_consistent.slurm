@@ -36,7 +36,7 @@ for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
 
   # Run SAGE
   echo "Running SAGE"
-  mpirun -np ${NUMPROC} /home/jseiler/self_consistent_SAGE/sage/sage ${SAGE_ini} > ${log_dir}/${run_prefix}_SAGE_${snap_idx}.log
+  mpirun -np ${NUMPROC} /home/jseiler/self_consistent_SAGE/bin/sage ${SAGE_ini} > ${log_dir}/${run_prefix}_SAGE_${snap_idx}.log
   exit_code=$? 
   if [ $exit_code -ne 0 ]; then
     echo "SAGE exited with errorcode $exit_code"
@@ -51,7 +51,7 @@ for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
   fi   
 
   echo "Running cifog"
-  mpirun -np ${NUMPROC} /home/jseiler/grid-model/cifog ${cifog_ini} ${cifog_run_flag} > ${log_dir}/${run_prefix}_cifog_${snap_idx}.log
+  mpirun -np ${NUMPROC} /home/jseiler/bin/cifog ${cifog_ini} ${cifog_run_flag} > ${log_dir}/${run_prefix}_cifog_${snap_idx}.log
   exit_code=$? 
   if [ $exit_code -ne 0 ]; then
     echo "cifog exited with errorcode $exit_code"
@@ -75,7 +75,7 @@ for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
   fi   
 
   echo "Generating filter mass" 
-  mpirun -np ${NUMPROC} /home/jseiler/self_consistent_SAGE/create_filter_mass ${SAGE_ini}${ini_tag} ${snap_idx} ${filter_mass_run_flag} > ${log_dir}/${run_prefix}_filtermass_${snap_idx}.log 
+  mpirun -np ${NUMPROC} /home/jseiler/self_consistent_SAGE/bin/create_filter_mass ${SAGE_ini}${ini_tag} ${snap_idx} ${filter_mass_run_flag} > ${log_dir}/${run_prefix}_filtermass_${snap_idx}.log 
   exit_code=$? 
   if [ $exit_code -ne 0 ]; then
     echo "create_filter_mass exited with errorcode $exit_code"

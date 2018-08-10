@@ -37,3 +37,5 @@ tests/test_output/grids/*
 tests/*.txt
 tests/test_logs/*.log
 tests/*.log
+
+bin/
