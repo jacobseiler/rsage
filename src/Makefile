@@ -7,6 +7,9 @@ OBJS   = 	./main.o
 INCL   =	./main.h \
 			./Makefile
 
+BUILD_SAGE = yes 
+BUILD_RSAGE = yes 
+
 OPT := -DROOT_DIR='"${ROOT_DIR}"'
 
 ON_CI := false
@@ -32,12 +35,18 @@ endif
 GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 OPT += -DVERSION=\"$(GIT_VERSION)\"
 
-BUILD_SAGE = yes 
 # Adds the SAGE library. 
 ifdef BUILD_SAGE
 	SAGE_LIB := -Lsage/ -lsage
 else
 	SAGE_LIB :=
+endif
+
+# Adds the cifog library. 
+ifdef BUILD_RSAGE
+	RSAGE_LIB := -L../grid-model/ -lcifog -Lfilter_mass/ -lfilter_mass
+else
+	RSAGE_LIB :=
 endif
 
 GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
@@ -61,15 +70,13 @@ CFLAGS += $(GSL_INCL)
 
 OPTIMIZE = -g -O3 -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
 
-LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB) 
+LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB) $(RSAGE_LIB) 
 
 CFLAGS += $(OPTIONS) $(OPT) $(OPTIMIZE) 
 
 export USE-MPI
 
-default: _rsage 
-
-link_all: $(EXEC)
+default: all 
 
 $(EXEC): $(OBJS)
 	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
@@ -85,9 +92,17 @@ clean:
 tidy:
 	rm -f $(OBJS) ./$(EXEC)
 
-_rsage: compile_sage $(EXEC)
+all: compile_sage compile_cifog compile_filter $(EXEC)
+
+sage: compile_sage $(EXEC)
 
 compile_sage:
 	$(MAKE) -C sage/
+
+compile_cifog:
+	$(MAKE) -C ../grid-model/
+
+compile_filter:
+	$(MAKE) -C filter_mass/ 
 
 celan celna clena claen: clean

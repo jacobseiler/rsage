@@ -1,7 +1,7 @@
-EXECS  := create_filter_mass 
+LIB := libfilter_mass.a 
+EXEC := filter_mass 
 
-OBJS  := main.o \
-		 read_parameter_file.o \
+OBJS  := filter_mass.o \
 		 tree_io.o \
 		 reionization.o \
 		 save.o
@@ -9,13 +9,10 @@ OBJS  := main.o \
 EXECS_OBJS := create_filter_mass.o 
 
 INCL  := ./Makefile \
-		 main.h \
-		 read_parmater_file.h \
+		 filter_mass.h \
 		 tree_io.h \
 		 reionization.h \
 		 save.h
-
-USE-MPI = yes
 
 ifdef USE-MPI
     OPTS = -DMPI  #  This creates an MPI version that can be used to process files in parallel
@@ -23,8 +20,6 @@ ifdef USE-MPI
 else
     CC = gcc  # sets the C-compiler
 endif
-
-ECHO = /bin/echo
 
 GSL_DIR := $(shell gsl-config --prefix)
 GSL_INCL := $(shell gsl-config --cflags)
@@ -37,13 +32,16 @@ OPTIMIZE = -g -O0 -Wall -Werror # optimization and warning flags
 CFLAGS = $(OPTIMIZE) $(GSL_INCL) $(OPTS) 
 LIBS  += -g -lm  $(GSL_LIBS) -lgsl -lgslcblas
 
-all: $(EXECS)
+default: lib
 
-create_filter_mass: $(OBJS) main.o
-	$(CC) $(CFLAGS) $^ $(LIBS) -Xlinker -rpath -Xlinker $(GSL_LIBDIR) -o  $@
+$(LIB) : $(OBJS) 
+	$(CC) -c $(CFLAGS) $(LIBS) -Xlinker -rpath -Xlinker $(GSL_LIBDIR) 
+	ar rcs $(LIB) $(OBJS)
+
+lib: $(LIB)
 
 clean:
-	rm -f $(OBJS) $(EXECS_OBJS) $(EXECS)
+	rm -f $(OBJS) $(EXECS_OBJS) $(EXECS) $(LIB)
 
 .PHONY: all clean clena celan celna
 

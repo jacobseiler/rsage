@@ -2,7 +2,7 @@
 #define SAVE_H 
 
 #include <stdint.h>
-#include "main.h"
+#include "filter_mass.h"
 
 // Structs //
 

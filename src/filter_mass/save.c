@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-#include "main.h"
+#include "filter_mass.h"
 
 #define DOUBLE 1
 #define STRING 2

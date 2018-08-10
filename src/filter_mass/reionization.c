@@ -9,7 +9,7 @@
 #include <assert.h>
 
 #include "reionization.h"
-#include "main.h"
+#include "filter_mass.h"
 
 #define	CUBE(x) (x*x*x)
 #define MAXLEN 1024
@@ -106,7 +106,10 @@ int32_t free_grid(struct GRID_STRUCT *Grid)
 
 }
  
-int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, int32_t first_update_flag, struct HALO_STRUCT *Halos, struct GRID_STRUCT *Grid, struct SAGE_PARAMETERS *params, int64_t **HaloID, float **ReionMod, int32_t *NHalos_ThisSnap, int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_ReionMod)
+int32_t populate_halo_arrays(int32_t filenr, int32_t treenr, int32_t NHalos_ThisTree, int32_t ThisSnap, 
+                             int32_t first_update_flag, struct HALO_STRUCT *Halos, struct GRID_STRUCT *Grid, 
+                             struct SAGE_PARAMETERS *params, int64_t **HaloID, float **ReionMod, int32_t *NHalos_ThisSnap, 
+                             int32_t *NHalos_Ionized, int32_t *NHalos_In_Regions, float *sum_ReionMod)
 {
 
   int32_t halonr, status;
@@ -170,7 +173,7 @@ int32_t determine_Mfilt(struct HALO_STRUCT Halo, struct GRID_STRUCT *Grid, struc
   double c = 2.0;
   double d = 2.5;
   double Mfilt, Mvir, PhotHI;
-  double Zcurr = params->ZZ[Halo.SnapNum]; 
+  double Zcurr = params->Redshift;
   
   status = determine_1D_idx(Halo.Pos[0], Halo.Pos[1], Halo.Pos[2], Grid->GridSize, Grid->BoxSize, &grid_idx);
   if (status == EXIT_FAILURE)

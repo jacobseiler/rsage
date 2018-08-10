@@ -79,7 +79,7 @@ LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas
 
 CFLAGS += $(OPTIONS) $(OPT) $(OPTIMIZE) 
 
-default: all
+default: lib 
 
 $(LIB) : $(OBJS)
 	$(CC) -c $(CFLAGS) $(OBJS) $(LIBS)
@@ -97,7 +97,5 @@ clean:
 
 tidy:
 	rm -f $(OBJS) ./$(EXEC)
-
-all: $(LIB)
 
 celan celna clena claen:clean

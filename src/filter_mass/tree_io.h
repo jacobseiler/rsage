@@ -2,7 +2,7 @@
 #define TREE_IO_H 
 
 #include <stdint.h>
-#include "main.h"
+#include "filter_mass.h"
 
 #define MAXLEN 1024
 
