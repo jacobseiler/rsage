@@ -44,7 +44,7 @@ endif
 GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 OPT += -DVERSION=\"$(GIT_VERSION)\"
 
-USE-MPI=yes
+#USE-MPI=yes
 ifdef USE-MPI
 ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service. 
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel

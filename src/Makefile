@@ -65,6 +65,8 @@ LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB)
 
 CFLAGS += $(OPTIONS) $(OPT) $(OPTIMIZE) 
 
+export USE-MPI
+
 default: _rsage 
 
 link_all: $(EXEC)
