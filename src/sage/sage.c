@@ -27,6 +27,27 @@ int32_t check_tree_file(int32_t filenr, int32_t *treestyle);
 
 /**/
 
+void bye()
+{
+#ifdef MPI
+  MPI_Finalize();
+  free(ThisNode);
+#endif
+}
+
+void myexit(int signum)
+{
+#ifdef MPI
+  fprintf(stderr, "Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
+  MPI_Abort(MPI_COMM_WORLD, signum);
+#else
+  fprintf(stderr, "We're exiting\n\n\n");
+	exit(signum);
+#endif
+
+}
+
+
 int32_t check_tree_file(int32_t filenr, int32_t *treestyle)
 {
   struct stat filestatus;
@@ -59,6 +80,11 @@ int32_t check_tree_file(int32_t filenr, int32_t *treestyle)
 int32_t sage()
 {
 
+  printf("HELLO!!!!");
+  exit(0);
+  int32_t filenr, status, treestyle, tree, halonr;
+  struct stat filestatus;
+  
 #ifdef MPI
   for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
 #else
@@ -150,11 +176,13 @@ int32_t sage()
     }
   } // filenr loop
 
+  /*
   status = final_cleanup(argv);
   if (status != EXIT_SUCCESS)
   {
     return EXIT_FAILURE;
   }
+  */
 
   return EXIT_SUCCESS;
   

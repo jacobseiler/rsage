@@ -13,10 +13,10 @@
 #endif
 
 #include "sage/core_allvars.h"
+#include "sage/core_proto.h"
 
 #define MAXLEN 1024
 #define	CUBE(x) (x*x*x)
-#define ABSOLUTEMAXSNAPS 999
 
 // Local Structs //
 
@@ -24,13 +24,14 @@
 
 // Proto-types //
 
+/*
 int32_t parse_params(int32_t argc, char **argv, struct SAGE_PARAMETERS *params);
 int32_t read_snap_list(struct SAGE_PARAMETERS *params);
 void myexit(int signum);
-
+*/
 // Functions //
 
-void bye()
+void my_bye()
 {
 #ifdef MPI
   MPI_Finalize();
@@ -38,6 +39,7 @@ void bye()
 #endif
 }
 
+/*
 int32_t parse_params(int32_t argc, char **argv)
 {
 
@@ -47,8 +49,9 @@ int32_t parse_params(int32_t argc, char **argv)
   {
     return EXIT_FAILURE; 
   }
-  
-  status = read_parameter_file(argv[1]);
+ 
+  status = EXIT_SUCCESS; 
+  //status = read_parameter_file(argv[1]);
   if (status != EXIT_SUCCESS)
   {
     return EXIT_FAILURE;
@@ -56,8 +59,9 @@ int32_t parse_params(int32_t argc, char **argv)
  
   return EXIT_SUCCESS;
 }
+*/
 
-void myexit(int signum)
+void main_myexit(int signum)
 {
 #ifdef MPI
   fprintf(stderr, "Task: %d\tnode: %s\tis exiting\n\n\n", ThisTask, ThisNode);
@@ -87,13 +91,16 @@ int main(int argc, char **argv)
   }
 #endif
 
-  atexit(bye);
+  atexit(my_bye);
 
-  parse_params(argc, argv);
+  sage();
+  //parse_params(argc, argv);
 
   // First read the snapshot list and initalize the lookup tables for delayedSN
   // and ionizing photon prescription (if requested).
+  /*
   sage_init();
+
 
   for (snapshot that we're looping over)
   {
@@ -113,6 +120,6 @@ int main(int argc, char **argv)
     gen_halolists;
    
   }
-
+  */
   return EXIT_SUCCESS;
 } 

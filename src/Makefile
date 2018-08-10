@@ -1,37 +1,10 @@
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-LIB = libsage.a 
+EXEC   = rsage 
 
-OBJS   = 	./sage.o \
-			./core_read_parameter_file.o \
-			./core_init.o \
-			./core_io_tree.o \
-			./core_cool_func.o \
-			./core_build_model.o \
-			./core_save.o \
-			./core_mymalloc.o \
-			./core_allvars.o \
-			./model_infall.o \
-			./model_cooling_heating.o \
-			./model_starformation_and_feedback.o \
-			./model_disk_instability.o \
-			./model_reincorporation.o \
-			./model_mergers.o \
-			./model_misc.o \
-			./io/tree_binary.o \
-			./self_consistent/selfcon.o \
-			./self_consistent/selfcon_grid.o \
-			./self_consistent/grid.o \
-			./self_consistent/common.o 
+OBJS   = 	./main.o 
 
-INCL   =	./core_allvars.h  \
-			./core_proto.h  \
-			./core_simulation.h  \
-			./io/tree_binary.h \
-			./self_consistent/selfcon.h \
-			./self_consistent/selfcon_grid.h \
-			./self_consistent/grid.h \
-			./self_consistent/common.h \
+INCL   =	./main.h \
 			./Makefile
 
 OPT := -DROOT_DIR='"${ROOT_DIR}"'
@@ -41,17 +14,30 @@ ifeq ($(CI), true)
     ON_CI := true
 endif
 
-GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
-OPT += -DVERSION=\"$(GIT_VERSION)\"
+ifeq ($(TRAVIS), true)
+    ON_CI := true
+endif
 
-USE-MPI=yes
+USE-MPI = yes# set this if you want to run in 
+
 ifdef USE-MPI
 ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service. 
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 endif
 else
-    CC = gcc # sets the C-compiler
+    CC = gcc  # sets the C-compiler
+endif
+
+GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+OPT += -DVERSION=\"$(GIT_VERSION)\"
+
+BUILD_SAGE = yes 
+# Adds the SAGE library. 
+ifdef BUILD_SAGE
+	SAGE_LIB := -Lsage/ -lsage
+else
+	SAGE_LIB :=
 endif
 
 GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
@@ -75,29 +61,31 @@ CFLAGS += $(GSL_INCL)
 
 OPTIMIZE = -g -O3 -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
 
-LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
+LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB) 
 
 CFLAGS += $(OPTIONS) $(OPT) $(OPTIMIZE) 
 
-default: all
+default: _rsage 
 
-$(LIB) : $(OBJS)
-	$(CC) -c $(CFLAGS) $(OBJS) $(LIBS)
-	ar rcs $(LIB) $(OBJS)
+link_all: $(EXEC)
+
+$(EXEC): $(OBJS)
+	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
 
 $(OBJS): $(INCL) 
 
 tests: $(EXEC)
 	../tests/test_sage.sh
 
-lib: $(LIB)
-
 clean:
-	rm -f $(OBJS) $(LIB)
+	rm -f $(OBJS)
 
 tidy:
 	rm -f $(OBJS) ./$(EXEC)
 
-all: $(LIB)
+_rsage: compile_sage $(EXEC)
 
-celan celna clena claen:clean
+compile_sage:
+	$(MAKE) -C sage/
+
+celan celna clena claen: clean

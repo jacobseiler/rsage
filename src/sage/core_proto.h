@@ -1,5 +1,7 @@
 #include "core_allvars.h"
 
+int32_t sage(void);
+
 size_t myfread(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 size_t myfwrite(void  *ptr,  size_t  size,  size_t  nmemb,  FILE *stream);
 int myfseek(FILE *stream, long offset, int whence);
