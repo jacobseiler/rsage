@@ -140,7 +140,23 @@ int main(int argc, char **argv)
 
 #endif
 
+#ifdef RSAGE
+  int32_t SnapNum; 
+
+  for (SnapNum = LowSnap; SnapNum < HighSnap + 1; ++SnapNum)
+  {
+
+  } 
+
+
+  filter_masses(FileNameGalaxies, TreeName, PhotoionDir, PhotoionName,
+                ReionRedshiftName, FirstFile, LastFile, GridSize,
+                BoxSize, Hubble_h, SnapNum, Redshift, first_update_flag);
+
+
+#else
   sage();
+#endif
   //parse_params(argc, argv);
 
   // First read the snapshot list and initalize the lookup tables for delayedSN
