@@ -1,7 +1,6 @@
 # blocklist
 branches:
-  except:
-    - new_rsage
+  except:    
 
 language: c
 sudo: required
@@ -49,5 +48,6 @@ install:
 before_script:
 
 script:
-  - cd sage/
-  - make tests 
+  - make sage 
+  - cd tests/
+  - ./test_sage.sh 

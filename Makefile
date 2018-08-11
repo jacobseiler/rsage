@@ -4,7 +4,7 @@ SOURCES := src/main.c
 OBJS := $(SOURCES:.c=.o)
 INCL   =	src/main.h
 
-BUILD_RSAGE = yes # Set if you're using self-consistent reionization.
+BUILD_RSAGE = true # Set if you're using self-consistent reionization.
 
 # Determine if we're on continuous integration.
 ON_CI := false
@@ -32,8 +32,7 @@ OPT += -DVERSION=\"$(GIT_VERSION)\"
 
 # Time to add the static libraries.
 SAGE_LIB := -Lsrc/sage/ -lsage
-
-ifdef BUILD_RSAGE
+ifeq ($(BUILD_RSAGE), true)
 	RSAGE_LIB := -Lgrid-model/ -lcifog -Lsrc/filter_mass/ -lfilter_mass
 	OPT += -DRSAGE
 else
