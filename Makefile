@@ -89,7 +89,7 @@ $(EXEC): $(OBJS)
 
 $(OBJS): $(INCL) 
 
-do_tests: $(EXEC)
+do_tests: compile_sage compile_cifog compile_filter $(EXEC)
 	tests/test_sage.sh
 
 clean:

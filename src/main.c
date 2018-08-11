@@ -14,7 +14,18 @@
 
 #include "sage/core_allvars.h"
 #include "sage/core_proto.h"
+
+#ifdef RSAGE
 #include "sage/self_consistent/selfcon_grid.h"
+
+#include "../grid-model/src/init.h"
+
+#include "../grid-model/src/confObj.h"
+#include "../grid-model/src/grid.h"
+#include "../grid-model/src/photion_background.h"
+#include "../grid-model/src/sources.h"
+#include "../grid-model/src/recombination.h"
+#endif
 
 #define MAXLEN 1024
 #define	CUBE(x) (x*x*x)
@@ -26,8 +37,6 @@
 // Proto-types //
 
 /*
-int32_t parse_params(int32_t argc, char **argv, struct SAGE_PARAMETERS *params);
-int32_t read_snap_list(struct SAGE_PARAMETERS *params);
 void myexit(int signum);
 */
 // Functions //
@@ -39,28 +48,6 @@ void my_bye()
   free(ThisNode);
 #endif
 }
-
-/*
-int32_t parse_params(int32_t argc, char **argv)
-{
-
-  int32_t status;
-
-  if (argc != 4)
-  {
-    return EXIT_FAILURE; 
-  }
- 
-  status = EXIT_SUCCESS; 
-  //status = read_parameter_file(argv[1]);
-  if (status != EXIT_SUCCESS)
-  {
-    return EXIT_FAILURE;
-  } 
- 
-  return EXIT_SUCCESS;
-}
-*/
 
 void main_myexit(int signum)
 {
@@ -96,11 +83,19 @@ int main(int argc, char **argv)
 
   atexit(my_bye);
 
-  if(argc != 2)
+#ifdef RSAGE
+  if(argc != 3)
   {
-    printf("\n  usage: rsage <parameterfile>\n\n");
+    printf("\n  usage: rsage <sage_parameterfile> <cifog_parameterfile>\n\n");
     ABORT(EXIT_FAILURE);
   }
+#else
+  if(argc != 2)
+  {
+    printf("\n  usage: rsage <sage_parameterfile>\n\n");
+    ABORT(EXIT_FAILURE);
+  }
+#endif
 
   status = read_parameter_file(argv[1]);
   if (status == EXIT_FAILURE)
@@ -111,6 +106,7 @@ int main(int argc, char **argv)
   sage_init();
 
 #ifdef RSAGE
+  // First initialize the grid for the self-consistent part of SAGE.
   if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
   {
     status = init_selfcon_grid();
@@ -125,6 +121,23 @@ int main(int argc, char **argv)
       ABORT(EXIT_FAILURE);
     }
   }
+
+  // Then initialize all the variables for cifog.
+  int32_t RestartMode, num_cycles;
+  double *redshift_list = NULL;
+
+  confObj_t simParam;  
+  grid_t *grid = NULL;
+  sourcelist_t *sourcelist = NULL;
+  integral_table_t *integralTable = NULL;
+  photIonlist_t *photIonBgList = NULL;
+  
+  status = init_cifog(iniFile, &simParam, &redshift_list, &grid, &integralTable, &photIonBgList, &num_cycles, thisTask);
+  if (status !=  EXIT_SUCCESS)
+  {
+    exit(EXIT_FAILURE);
+  }
+
 #endif
 
   sage();
@@ -161,7 +174,15 @@ int main(int argc, char **argv)
   {
     ABORT(EXIT_FAILURE);
   }
-  
+
+#ifdef RSAGE
+  status = cleanup_cifog(simParam, integralTable, photIonBgList, grid, redshift_list, thisTask);
+  if (status !=  EXIT_SUCCESS)
+  {
+    exit(EXIT_FAILURE);
+  }
+
+#endif
 
   return EXIT_SUCCESS;
 } 
