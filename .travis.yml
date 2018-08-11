@@ -24,14 +24,6 @@ matrix:
       dist: trusty
       sudo: required
       compiler: gcc
-      env: COMPILER=gcc PYTHON_VERSION=2.7
-      before_install:
-        - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-        
-    - os: linux
-      dist: trusty
-      sudo: required
-      compiler: gcc
       env: COMPILER=gcc PYTHON_VERSION=3.6
       before_install:
         - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
