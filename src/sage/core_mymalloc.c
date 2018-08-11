@@ -113,10 +113,8 @@ void print_final_memory(void)
 
 }
 
-int32_t final_cleanup(char **argv)
+int32_t sage_cleanup(char **argv)
 {
-
-  int32_t status;
 
   XASSERT((gal_mallocs == gal_frees) && (mergedgal_mallocs == mergedgal_frees), "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees);  
  
@@ -124,7 +122,7 @@ int32_t final_cleanup(char **argv)
 
   if (ReionizationOn == 2 )
   {
-    status = free_grid();
+    free_grid();
   } 
 
   // Copy the parameter file to the output directory. 
@@ -134,12 +132,6 @@ int32_t final_cleanup(char **argv)
   
   if ((self_consistent == 1) && (ReionizationOn == 3 || ReionizationOn == 4))
   {
-    status = save_selfcon_grid();
-    if (status != EXIT_SUCCESS)
-    {
-      return EXIT_FAILURE; 
-    }
-
     free_selfcon_grid(SelfConGrid);
   }
 

@@ -14,6 +14,7 @@
 
 #include "sage/core_allvars.h"
 #include "sage/core_proto.h"
+#include "sage/self_consistent/selfcon_grid.h"
 
 #define MAXLEN 1024
 #define	CUBE(x) (x*x*x)
@@ -91,7 +92,34 @@ int main(int argc, char **argv)
   }
 #endif
 
+  int32_t status;
+
   atexit(my_bye);
+
+  status = read_parameter_file(argv[1]);
+  if (status == EXIT_FAILURE)
+  {
+    ABORT(EXIT_FAILURE);
+  }
+
+  sage_init();
+
+#ifdef RSAGE
+  if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
+  {
+    status = init_selfcon_grid();
+    if (status != EXIT_SUCCESS)
+    {
+      ABORT(EXIT_FAILURE);
+    }
+  
+    status = zero_selfcon_grid(SelfConGrid);
+    if (status != EXIT_SUCCESS)
+    {
+      ABORT(EXIT_FAILURE);
+    }
+  }
+#endif
 
   sage();
   //parse_params(argc, argv);
@@ -121,5 +149,13 @@ int main(int argc, char **argv)
    
   }
   */
+
+  status = sage_cleanup(argv);
+  if (status != EXIT_SUCCESS)
+  {
+    ABORT(EXIT_FAILURE);
+  }
+  
+
   return EXIT_SUCCESS;
 } 

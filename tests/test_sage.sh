@@ -1,4 +1,4 @@
 currdir=`pwd`
-cd ../tests/
+cd tests/
 python3 test_sage.py
 cd "$currdir"

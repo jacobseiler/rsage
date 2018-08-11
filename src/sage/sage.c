@@ -77,11 +77,9 @@ int32_t check_tree_file(int32_t filenr, int32_t *treestyle)
 
 }
 
-int32_t sage()
+int32_t sage(void)
 {
 
-  printf("HELLO!!!!");
-  exit(0);
   int32_t filenr, status, treestyle, tree, halonr;
   struct stat filestatus;
   
@@ -175,6 +173,16 @@ int32_t sage()
       }
     }
   } // filenr loop
+
+
+  if ((self_consistent == 1) && (ReionizationOn == 3 || ReionizationOn == 4))
+  {
+    status = save_selfcon_grid();
+    if (status != EXIT_SUCCESS)
+    {
+      return EXIT_FAILURE; 
+    }
+  }
 
   /*
   status = final_cleanup(argv);

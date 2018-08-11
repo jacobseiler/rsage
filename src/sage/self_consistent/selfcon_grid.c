@@ -408,6 +408,60 @@ int32_t save_selfcon_grid(void)
   return EXIT_SUCCESS;
 }
 
+/*
+Sets the self-consistent grid to zeros.
+
+Parameters
+----------
+
+*my_grid: struct SELFCON_GRID_STRUCT pointer. See `core_allvars.h` for full struct architecture.
+  Nion grid that is being allocated.
+  **IMPORTANT** This pointer must be allocated before being passed to this function.
+  If `*my_grid` is passed as NULL, EXIT_FAILURE is returned.
+
+Returns
+----------
+
+EXIT_SUCCESS or EXIT_FAILURE.
+  If `*my_grid` is passed as an unallocated NULL, EXIT_FAILURE is returned. 
+  If memory cannot be allocated for `Nion_HI` or `GalCount`, EXIT_FAILURE is returned.
+   
+  Otherwise EXIT_SUCCESS is returned.
+
+Pointer Updates
+----------
+
+The inner arrays of `*my_grid` are allocated memory and initialized to 0.
+See `core_allvars.h` for full architecture of `SELFCON_GRID_STRUCT`.
+
+Units  
+----------
+
+None.
+*/
+
+int32_t zero_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
+{
+  
+  int32_t cell_idx;
+
+  if (my_grid == NULL)
+  {
+    fprintf(stderr, "`zero_selfcon_grid` was called with a SELFCON_GRID_STRUCT pointer that has not been initialized\n");
+    return EXIT_FAILURE;
+  }
+
+  my_grid->Nion_HI_Total = 0.0;
+
+  for (cell_idx = 0; cell_idx < my_grid->NumCellsTotal; ++cell_idx)
+  {
+    my_grid->Nion_HI[cell_idx] = 0.0;
+    my_grid->GalCount[cell_idx] = 0;
+  }
+
+  return EXIT_SUCCESS;
+}
+
 // Local Functions //
 
 /*
@@ -504,26 +558,17 @@ int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
   }                                         \
 }
 
-  int32_t cell_idx;
-
   if (my_grid == NULL)
   {
-    fprintf(stderr, "`init_selfcon_grid` was called with a SELFCON_GRID_STRUCT pointer that has not been initialized\n");
+    fprintf(stderr, "`malloc_selfcon_grid` was called with a SELFCON_GRID_STRUCT pointer that has not been initialized\n");
     return EXIT_FAILURE;
   }
 
   my_grid->GridSize = GridSize;
   my_grid->NumCellsTotal = CUBE(GridSize);
-  my_grid->Nion_HI_Total = 0.0;
 
   ALLOCATE_GRID_MEMORY(my_grid->Nion_HI, my_grid->NumCellsTotal);
   ALLOCATE_GRID_MEMORY(my_grid->GalCount, my_grid->NumCellsTotal);
-
-  for (cell_idx = 0; cell_idx < my_grid->NumCellsTotal; ++cell_idx)
-  {
-    my_grid->Nion_HI[cell_idx] = 0.0;
-    my_grid->GalCount[cell_idx] = 0;
-  }
   
   return EXIT_SUCCESS;
 

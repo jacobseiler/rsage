@@ -155,7 +155,7 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     print("")
 
     # Use paths relative to the file this script is in.
-    path_to_sage = "{0}/../sage/sage".format(test_dir)
+    path_to_sage = "{0}/../rsage".format(test_dir)
     path_to_ini = "{0}/test_ini_files/{1}".format(test_dir, ini_name)
     path_to_log = "{0}/test_logs/{1}.log".format(test_dir, ini_name)
 

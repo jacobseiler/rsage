@@ -90,8 +90,8 @@ $(EXEC): $(OBJS)
 
 $(OBJS): $(INCL) 
 
-tests: $(EXEC)
-	../tests/test_sage.sh
+do_tests: $(EXEC)
+	tests/test_sage.sh
 
 clean:
 	rm -f $(OBJS) $(EXEC)
