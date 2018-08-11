@@ -14,11 +14,19 @@ INCL  := ./Makefile \
 		 reionization.h \
 		 save.h
 
+ON_CI ?= false
+ifeq ($(CI), true)
+    ON_CI ?= true
+endif
+
+USE-MPI ?= yes
 ifdef USE-MPI
-    OPTS = -DMPI  #  This creates an MPI version that can be used to process files in parallel
+ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service. 
+    OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
+endif
 else
-    CC = gcc  # sets the C-compiler
+    CC = gcc # sets the C-compiler
 endif
 
 GSL_DIR := $(shell gsl-config --prefix)
