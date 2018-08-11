@@ -43,12 +43,13 @@ install:
   - source activate test
   - conda install -q --yes -c asmeurer gsl
   - conda install -q --yes -c anaconda gcc
+  - conda install -c conda-forge fftw
   - pip install -r requirements.txt
-  - conda install -q --yes -c anaconda fftw3 
+
 
 before_script:
 
 script:
-  - make sage 
+  - make
   - cd tests/
   - ./test_sage.sh 
