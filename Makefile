@@ -1,17 +1,12 @@
-ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+EXEC   = rsage
 
-EXEC   = rsage 
+SOURCES := src/main.c 
+OBJS := $(SOURCES:.c=.o)
+INCL   =	src/main.h
 
-OBJS   = 	./main.o 
+BUILD_RSAGE = yes # Set if you're using self-consistent reionization.
 
-INCL   =	./main.h \
-			./Makefile
-
-BUILD_SAGE = yes 
-BUILD_RSAGE = yes 
-
-OPT := -DROOT_DIR='"${ROOT_DIR}"'
-
+# Determine if we're on continuous integration.
 ON_CI := false
 ifeq ($(CI), true)
     ON_CI := true
@@ -21,8 +16,7 @@ ifeq ($(TRAVIS), true)
     ON_CI := true
 endif
 
-USE-MPI = yes# set this if you want to run in 
-
+USE-MPI = yes # Set this if you want to run in MPI. 
 ifdef USE-MPI
 ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service. 
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
@@ -32,23 +26,21 @@ else
     CC = gcc  # sets the C-compiler
 endif
 
+# Find the git version of the repo.
 GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 OPT += -DVERSION=\"$(GIT_VERSION)\"
 
-# Adds the SAGE library. 
-ifdef BUILD_SAGE
-	SAGE_LIB := -Lsage/ -lsage
-else
-	SAGE_LIB :=
-endif
+# Time to add the static libraries.
+SAGE_LIB := -Lsrc/sage/ -lsage
 
-# Adds the cifog library. 
 ifdef BUILD_RSAGE
-	RSAGE_LIB := -L../grid-model/ -lcifog -Lfilter_mass/ -lfilter_mass
+	RSAGE_LIB := -Lgrid-model/ -lcifog -Lsrc/filter_mass/ -lfilter_mass
+	OPT += -DRSAGE
 else
 	RSAGE_LIB :=
 endif
 
+# Find GSL and add its paths.
 GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
 ifndef GSL_FOUND
   $(warning GSL not found in path - please install GSL before installing SAGE (or, update the PATH environment variable such that "gsl-config" is found))
@@ -74,12 +66,27 @@ LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB) $(RSAGE_LIB)
 
 CFLAGS += $(OPTIONS) $(OPT) $(OPTIMIZE) 
 
-export USE-MPI
+# ==================================
+# Shouldn't need to touch below here
+# ==================================
 
+# Dont want to redefine some settings in other Makefiles.
+# So export them to ensure they're visible.
+export USE-MPI
+export ON_CI 
+export $(OPTIMIZE)
+export $(ON_CI)
+export $(GIT_VERSION)
+export $(GSL_FOUND)
+export $(GSL_INCL)
+export $(GSL_LIBDIR)
+export $(GSL_LIBS)
+
+# All flags set up, time to compile targets.
 default: all 
 
 $(EXEC): $(OBJS)
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
+	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS) -o $(EXEC)
 
 $(OBJS): $(INCL) 
 
@@ -87,22 +94,25 @@ tests: $(EXEC)
 	../tests/test_sage.sh
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(EXEC)
 
 tidy:
-	rm -f $(OBJS) ./$(EXEC)
+	rm -f $(OBJS) $(EXEC) 
+	$(MAKE) clean -C src/sage/
+	$(MAKE) clean -C grid-model/ 
+	$(MAKE) clean -C src/filter_mass/
 
 all: compile_sage compile_cifog compile_filter $(EXEC)
 
 sage: compile_sage $(EXEC)
 
 compile_sage:
-	$(MAKE) -C sage/
+	$(MAKE) -C src/sage/
 
 compile_cifog:
-	$(MAKE) -C ../grid-model/
+	$(MAKE) -C grid-model/
 
 compile_filter:
-	$(MAKE) -C filter_mass/ 
+	$(MAKE) -C src/filter_mass/ 
 
 celan celna clena claen: clean

@@ -1,5 +1,3 @@
-ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-
 LIB = libsage.a 
 
 OBJS   = 	./sage.o \
@@ -34,17 +32,18 @@ INCL   =	./core_allvars.h  \
 			./self_consistent/common.h \
 			./Makefile
 
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 OPT := -DROOT_DIR='"${ROOT_DIR}"'
 
-ON_CI := false
+ON_CI ?= false
 ifeq ($(CI), true)
-    ON_CI := true
+    ON_CI ?= true
 endif
 
-GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+GIT_VERSION ?= $(shell git describe --abbrev=4 --dirty --always --tags)
 OPT += -DVERSION=\"$(GIT_VERSION)\"
 
-#USE-MPI=yes
+USE-MPI ?= yes
 ifdef USE-MPI
 ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service. 
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
@@ -54,7 +53,7 @@ else
     CC = gcc # sets the C-compiler
 endif
 
-GSL_FOUND := $(shell gsl-config --version 2>/dev/null)
+GSL_FOUND ?= $(shell gsl-config --version 2>/dev/null)
 ifndef GSL_FOUND
   $(warning GSL not found in path - please install GSL before installing SAGE (or, update the PATH environment variable such that "gsl-config" is found))
   $(warning Assuming GSL *might* be in $(GSL_DIR) and trying to compile)
@@ -67,13 +66,13 @@ ifndef GSL_FOUND
   GSL_LIBS := -L$(GSL_LIBDIR) -lgsl -lgslcblas -Xlinker -rpath -Xlinker $(GSL_LIBDIR) 
 else
   # GSL is probably configured correctly, pick up the locations automatically
-  GSL_INCL := $(shell gsl-config --cflags)
-  GSL_LIBDIR := $(shell gsl-config --prefix)/lib
-  GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
+  GSL_INCL ?= $(shell gsl-config --cflags)
+  GSL_LIBDIR ?= $(shell gsl-config --prefix)/lib
+  GSL_LIBS   ?= $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
 endif
 CFLAGS += $(GSL_INCL)
 
-OPTIMIZE = -g -O3 -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
+OPTIMIZE ?= -g -O3 -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
 
 LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas 
 
