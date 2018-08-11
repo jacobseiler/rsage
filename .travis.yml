@@ -44,8 +44,8 @@ install:
   - conda install -q --yes -c asmeurer gsl
   - conda install -q --yes -c anaconda gcc
   - pip install -r requirements.txt
-  - sudo apt-get install libfftw3
- 
+  - conda install -q --yes -c anaconda fftw3 
+
 before_script:
 
 script:
