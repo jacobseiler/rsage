@@ -96,6 +96,12 @@ int main(int argc, char **argv)
 
   atexit(my_bye);
 
+  if(argc != 2)
+  {
+    printf("\n  usage: rsage <parameterfile>\n\n");
+    ABORT(EXIT_FAILURE);
+  }
+
   status = read_parameter_file(argv[1]);
   if (status == EXIT_FAILURE)
   {
