@@ -1,9 +1,11 @@
 EXEC   = rsage
 
-SOURCES := src/main.c
+SOURCES := src/main.c \
+		   src/reion_redshift.c
 
 OBJS := $(SOURCES:.c=.o)
-INCL   =	src/main.h
+INCL   =	src/main.h \
+			src/reion_redshift.h
 
 BUILD_RSAGE=yes # Set if you're using self-consistent reionization.
 

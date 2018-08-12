@@ -16,6 +16,8 @@
 #include "sage/core_proto.h"
 
 #ifdef RSAGE
+
+// cifog Declarations //
 #ifdef MPI
 #include <fftw3-mpi.h>
 #else
@@ -32,10 +34,12 @@
 
 #include "../grid-model/src/init.h"
 #include "../grid-model/src/cifog.h"
+
+// Reionization Redshift Declarations //
+#include "reion_redshift.h"
 #endif
 
 #define MAXLEN 1024
-#define	CUBE(x) (x*x*x)
 
 // Local Structs //
 
@@ -134,13 +138,13 @@ int main(int argc, char **argv)
   }
 
   // Then initialize all the variables for cifog.
-  //int32_t RestartMode, num_cycles = 1;
-  int32_t num_cycles = 1;
+
+  int32_t RestartMode, num_cycles = 1;
   double *redshift_list = NULL;
 
   confObj_t simParam;  
   grid_t *grid = NULL;
-  //sourcelist_t *sourcelist = NULL;
+  sourcelist_t *sourcelist = NULL;
   integral_table_t *integralTable = NULL;
   photIonlist_t *photIonBgList = NULL;
   
@@ -149,36 +153,45 @@ int main(int argc, char **argv)
   {
     exit(EXIT_FAILURE);
   }
-
 #endif
 
 #ifdef RSAGE
-  int32_t SnapNum; 
 
-  printf("LowSnap %d\n", LowSnap);
-  printf("HighSnap %d\n", HighSnap);
-  for (SnapNum = LowSnap; SnapNum < HighSnap + 1; ++SnapNum)
+  int32_t var = 0;
+  if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
   {
-    printf("Running SAGE\n");
-    sage();
+    int32_t SnapNum, first_update_flag; 
 
-    /*
-    cifog_zero_grids(grid, simParam);
-
-    // When we run cifog we want to read the output of the previous snapshot and save it at the end.
-    // For the first snapshot we only save, otherwise we read and save.
-    if (SnapNum == LowSnap)
+    for (SnapNum = LowSnap; SnapNum < HighSnap + 1; ++SnapNum)
     {
-      RestartMode = 1;
-    }
-    else
-    {
-      RestartMode = 3;
-    }
-    cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, ThisTask, RestartMode);
-    */
-  } 
+      printf("Running SAGE\n");
+      if (var == 1)
+      sage();
 
+      
+      cifog_zero_grids(grid, simParam);
+
+      // When we run cifog we want to read the output of the previous snapshot and save it at the end.
+      // For the first snapshot we only save, otherwise we read and save.
+      if (SnapNum == LowSnap)
+      {
+        RestartMode = 1;
+        first_update_flag = 1;
+      }
+      else
+      {
+        RestartMode = 3;
+        first_update_flag = 0;
+      }
+      if (var == 1)
+      cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, ThisTask, RestartMode);
+
+      // NOTE: Because of how cifog handles numbering, need to pass the Snapshot Number + 1.
+      update_reion_redshift(SnapNum+1, ZZ[SnapNum], GridSize, first_update_flag,
+                            PhotoionDir, FileNameGalaxies, ReionRedshiftName);
+    }
+  }
+  else  
 #else
   sage();
 #endif
