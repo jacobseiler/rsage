@@ -4,7 +4,7 @@ SOURCES := src/main.c
 OBJS := $(SOURCES:.c=.o)
 INCL   =	src/main.h
 
-BUILD_RSAGE = true # Set if you're using self-consistent reionization.
+BUILD_RSAGE=yes # Set if you're using self-consistent reionization.
 
 # Determine if we're on continuous integration.
 ON_CI := false
@@ -32,7 +32,7 @@ OPT += -DVERSION=\"$(GIT_VERSION)\"
 
 # Time to add the static libraries.
 SAGE_LIB := -Lsrc/sage/ -lsage
-ifeq ($(BUILD_RSAGE), true)
+ifdef BUILD_RSAGE
 	RSAGE_LIB := -Lgrid-model/ -lcifog -Lsrc/filter_mass/ -lfilter_mass
 	OPT += -DRSAGE
 else
@@ -57,13 +57,25 @@ else
   GSL_LIBDIR := $(shell gsl-config --prefix)/lib
   GSL_LIBS   := $(shell gsl-config --libs) -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
 endif
-CFLAGS += $(GSL_INCL)
+
+FFTW3DIR :=/opt/local/include
+FFTW_INCL := -I$(FFTW3DIR)
+FFTW3_LIBDIR :=/opt/local/lib
+FFTW3_LIBS := -L$(FFTW3_LIBDIR) -lfftw3 -Xlinker -rpath -Xlinker $(FFTW3_LIBDIR)
+
+ifdef USE-MPI
+ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service.    
+    FFTW3_LIBS += -lfftw3_mpi
+endif
+endif
+
+CFLAGS += $(GSL_INCL) $(FFTW_INCL)
 
 OPTIMIZE = -g -O3 -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
 
-LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB) $(RSAGE_LIB) 
+LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB) $(RSAGE_LIB) $(FFTW3_LIBS)
 
-CFLAGS += $(OPTIONS) $(OPT) $(OPTIMIZE) 
+CFLAGS += $(OPTIONS) $(OPT) $(OPTIMIZE)
 
 # ==================================
 # Shouldn't need to touch below here
@@ -85,7 +97,7 @@ export $(GSL_LIBS)
 default: all 
 
 $(EXEC): $(OBJS)
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS) -o $(EXEC)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(EXEC)
 
 $(OBJS): $(INCL) 
 
