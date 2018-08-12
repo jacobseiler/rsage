@@ -304,6 +304,8 @@ extern int    *TreeFirstHalo;
 #ifdef MPI
 extern int ThisTask, NTask, nodeNameLen;
 extern char *ThisNode;
+#else
+extern int ThisTask, NTask;
 #endif
 
 extern int IMF;
@@ -375,8 +377,8 @@ extern double UnitLength_in_cm,
   UnitCoolingRate_in_cgs,
   UnitEnergy_in_cgs,
   UnitTime_in_Megayears, 
-  G,
-  Hubble,
+  sage_G,
+  sage_Hubble,
   a0, ar;
 
 extern int    ListOutputSnaps[ABSOLUTEMAXSNAPS];

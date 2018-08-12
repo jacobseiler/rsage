@@ -22,7 +22,7 @@ void check_disk_instability(int p, int centralgal, int halonr, double time, doub
   if(diskmass > 0.0)
   {
     // calculate critical disk mass
-    Mcrit = Gal[p].Vmax * Gal[p].Vmax * (3.0 * Gal[p].DiskScaleRadius) / G;
+    Mcrit = Gal[p].Vmax * Gal[p].Vmax * (3.0 * Gal[p].DiskScaleRadius) / sage_G;
     if(Mcrit > diskmass)
       Mcrit = diskmass;
     

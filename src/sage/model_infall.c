@@ -232,9 +232,9 @@ double do_reionization(int gal, double Zcurr, int ReturnMfilt)
   omegaZ = Omega * (pow(1.0 + Zcurr, 3.0) / (Omega * pow(1.0 + Zcurr, 3.0) + OmegaLambda));
   xZ = omegaZ - 1.0;
   deltacritZ = 18.0 * M_PI * M_PI + 82.0 * xZ - 39.0 * xZ * xZ;
-  HubbleZ = Hubble * sqrt(Omega * pow(1.0 + Zcurr, 3.0) + OmegaLambda);
+  HubbleZ = sage_Hubble * sqrt(Omega * pow(1.0 + Zcurr, 3.0) + OmegaLambda);
 
-  Mchar = Vchar * Vchar * Vchar / (G * HubbleZ * sqrt(0.5 * deltacritZ));
+  Mchar = Vchar * Vchar * Vchar / (sage_G * HubbleZ * sqrt(0.5 * deltacritZ));
 
   // we use the maximum of Mfiltering and Mchar 
   mass_to_use = dmax(Mfiltering, Mchar);

@@ -82,14 +82,13 @@ int32_t sage(void)
 
   int32_t filenr, status, treestyle, tree, halonr;
   struct stat filestatus;
-  
+
 #ifdef MPI
   for(filenr = FirstFile+ThisTask; filenr <= LastFile; filenr += NTask)
 #else
   for(filenr = FirstFile; filenr <= LastFile; filenr++)
 #endif
   {
-
     if (ReionizationOn == 3 || ReionizationOn == 4)
     {
       status = init_reion_lists(filenr);

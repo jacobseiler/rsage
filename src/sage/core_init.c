@@ -30,7 +30,7 @@ void sage_init(void)
 
   printf("Git Version: %s\n", VERSION);
 
-  count_gal = 0;
+  count_gal = 0;  
   random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
   gsl_rng_set(random_generator, 42);	 // start-up seed 
 
@@ -38,7 +38,6 @@ void sage_init(void)
   srand((unsigned) time(NULL));
 
   read_snap_list();
-
   for(i = 0; i < MAXSNAPS; i++)
   {
     ZZ[i] = 1 / AA[i] - 1;
@@ -306,10 +305,9 @@ int32_t init_nionlookup(void)
 
 void set_units(void)
 {
-
-  UnitTime_in_s = UnitLength_in_cm / UnitVelocity_in_cm_per_s;
+  
+  UnitTime_in_s = UnitLength_in_cm / UnitVelocity_in_cm_per_s;  
   UnitTime_in_Megayears = UnitTime_in_s / SEC_PER_MEGAYEAR;
-  G = GRAVITY / pow(UnitLength_in_cm, 3) * UnitMass_in_g * pow(UnitTime_in_s, 2);
   UnitDensity_in_cgs = UnitMass_in_g / pow(UnitLength_in_cm, 3);
   UnitPressure_in_cgs = UnitMass_in_g / UnitLength_in_cm / pow(UnitTime_in_s, 2);
   UnitCoolingRate_in_cgs = UnitPressure_in_cgs / UnitTime_in_s;
@@ -317,12 +315,13 @@ void set_units(void)
 
   EnergySNcode = EnergySN / UnitEnergy_in_cgs * Hubble_h;
 
-  // convert some physical input parameters to internal units 
-  Hubble = HUBBLE * UnitTime_in_s;
+  sage_G = GRAVITY / pow(UnitLength_in_cm, 3) * UnitMass_in_g * pow(UnitTime_in_s, 2);
+  
+  // convert some physical input parameters to internal units
+  sage_Hubble = HUBBLE * UnitTime_in_s;
 
   // compute a few quantitites 
-  RhoCrit = 3 * Hubble * Hubble / (8 * M_PI * G);
-
+  RhoCrit = 3 * sage_Hubble * sage_Hubble / (8 * M_PI * sage_G);
 }
 
 void read_snap_list(void)
@@ -332,12 +331,14 @@ void read_snap_list(void)
 
   sprintf(fname, "%s", FileWithSnapList);
 
+  printf("Reading %s\n", fname);
   if(!(fd = fopen(fname, "r")))
   {
     printf("can't read output list in file '%s'\n", fname);
     ABORT(0);
   }
 
+  printf("Reading %s\n", fname);
   Snaplistlen = 0;
   do
   {
@@ -366,10 +367,10 @@ double time_to_present(double z)
   workspace = gsl_integration_workspace_alloc(WORKSIZE);
   F.function = &integrand_time_to_present;
 
-  gsl_integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / Hubble,
+  gsl_integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / sage_Hubble,
     1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
 
-  time = 1 / Hubble * result;
+  time = 1 / sage_Hubble * result;
 
   gsl_integration_workspace_free(workspace);
 

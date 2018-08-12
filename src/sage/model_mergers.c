@@ -29,7 +29,7 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 
   if(SatelliteMass > 0.0 && coulomb > 0.0)
     mergtime = 2.0 *
-    1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo) / (coulomb * G * SatelliteMass);
+    1.17 * SatelliteRadius * SatelliteRadius * get_virial_velocity(mother_halo) / (coulomb * sage_G * SatelliteMass);
   else
     mergtime = -1.0;
   

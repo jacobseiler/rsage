@@ -83,7 +83,7 @@ double do_AGN_heating(double coolingGas, int centralgal, double dt, double x, do
     if(AGNrecipeOn == 2)
     {
       // Bondi-Hoyle accretion recipe
-      AGNrate = (2.5 * M_PI * G) * (0.375 * 0.6 * x) * Gal[centralgal].BlackHoleMass * RadioModeEfficiency;
+      AGNrate = (2.5 * M_PI * sage_G) * (0.375 * 0.6 * x) * Gal[centralgal].BlackHoleMass * RadioModeEfficiency;
     }
     else if(AGNrecipeOn == 3)
     {

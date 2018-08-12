@@ -16,15 +16,22 @@
 #include "sage/core_proto.h"
 
 #ifdef RSAGE
-#include "sage/self_consistent/selfcon_grid.h"
+#ifdef MPI
+#include <fftw3-mpi.h>
+#else
+#include <fftw3.h>
+#endif
 
-#include "../grid-model/src/init.h"
+#include "sage/self_consistent/selfcon_grid.h"
 
 #include "../grid-model/src/confObj.h"
 #include "../grid-model/src/grid.h"
 #include "../grid-model/src/photion_background.h"
 #include "../grid-model/src/sources.h"
 #include "../grid-model/src/recombination.h"
+
+#include "../grid-model/src/init.h"
+#include "../grid-model/src/cifog.h"
 #endif
 
 #define MAXLEN 1024
@@ -77,6 +84,9 @@ int main(int argc, char **argv)
     printf("Node name string not long enough!...\n");
     ABORT(EXIT_FAILURE);
   }
+#else
+  ThisTask = 1;
+  NTask = 1;
 #endif
 
   int32_t status;
@@ -103,6 +113,7 @@ int main(int argc, char **argv)
     ABORT(EXIT_FAILURE);
   }
 
+  printf("Initing Sage\n");
   sage_init();
 
 #ifdef RSAGE
@@ -123,7 +134,7 @@ int main(int argc, char **argv)
   }
 
   // Then initialize all the variables for cifog.
-  int32_t RestartMode, num_cycles;
+  int32_t RestartMode, num_cycles = 1;
   double *redshift_list = NULL;
 
   confObj_t simParam;  
@@ -132,7 +143,7 @@ int main(int argc, char **argv)
   integral_table_t *integralTable = NULL;
   photIonlist_t *photIonBgList = NULL;
   
-  status = init_cifog(iniFile, &simParam, &redshift_list, &grid, &integralTable, &photIonBgList, &num_cycles, thisTask);
+  status = init_cifog(argv[2], &simParam, &redshift_list, &grid, &integralTable, &photIonBgList, &num_cycles, ThisTask);
   if (status !=  EXIT_SUCCESS)
   {
     exit(EXIT_FAILURE);
@@ -143,16 +154,29 @@ int main(int argc, char **argv)
 #ifdef RSAGE
   int32_t SnapNum; 
 
+  printf("LowSnap %d\n", LowSnap);
+  printf("HighSnap %d\n", HighSnap);
   for (SnapNum = LowSnap; SnapNum < HighSnap + 1; ++SnapNum)
   {
+    printf("Running SAGE\n");
+    sage();
+
+    cifog_zero_grids(grid, simParam);
+
+    // When we run cifog we want to read the output of the previous snapshot and save it at the end.
+    // For the first snapshot we only save, otherwise we read and save.
+    if (SnapNum == LowSnap)
+    {
+      RestartMode = 1;
+    }
+    else
+    {
+      RestartMode = 3;
+    }
+    cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, ThisTask, RestartMode);
+    exit(0);
 
   } 
-
-
-  filter_masses(FileNameGalaxies, TreeName, PhotoionDir, PhotoionName,
-                ReionRedshiftName, FirstFile, LastFile, GridSize,
-                BoxSize, Hubble_h, SnapNum, Redshift, first_update_flag);
-
 
 #else
   sage();
@@ -192,7 +216,7 @@ int main(int argc, char **argv)
   }
 
 #ifdef RSAGE
-  status = cleanup_cifog(simParam, integralTable, photIonBgList, grid, redshift_list, thisTask);
+  status = cleanup_cifog(simParam, integralTable, photIonBgList, grid, redshift_list, ThisTask);
   if (status !=  EXIT_SUCCESS)
   {
     exit(EXIT_FAILURE);

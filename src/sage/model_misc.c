@@ -269,7 +269,7 @@ double get_virial_velocity(int halonr)
 	Rvir = get_virial_radius(halonr);
 	
   if(Rvir > 0.0)
-		return sqrt(G * get_virial_mass(halonr) / Rvir);
+		return sqrt(sage_G * get_virial_mass(halonr) / Rvir);
 	else
 		return 0.0;
 }
@@ -284,10 +284,10 @@ double get_virial_radius(int halonr)
   
   zplus1 = 1 + ZZ[Halo[halonr].SnapNum];
   hubble_of_z_sq =
-    Hubble * Hubble *(Omega * zplus1 * zplus1 * zplus1 + (1 - Omega - OmegaLambda) * zplus1 * zplus1 +
+    sage_Hubble * sage_Hubble *(Omega * zplus1 * zplus1 * zplus1 + (1 - Omega - OmegaLambda) * zplus1 * zplus1 +
     OmegaLambda);
   
-  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * G);
+  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * sage_G);
   fac = 1 / (200 * 4 * M_PI / 3.0 * rhocrit);
   
   return cbrt(get_virial_mass(halonr) * fac);
