@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=new_constant
+#SBATCH --job-name=shifted_SFR_alpha0.1
 
 #SBATCH --ntasks=32
 #SBATCH --time=10:00:00
@@ -14,9 +14,9 @@ module load numpy/1.14.1-python-3.6.4
 module load openmpi/3.0.0
 module load gcc/6.4.0
 
-ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/shifted_fej/" # Directory the .ini files are kept.
-log_dir="/home/jseiler/self_consistent_SAGE/logs/shifted_fej/" # Directory to place the output log files.
-run_prefix="shifted_fej_alpha0.6_beta0.0" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
+ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/shifted_SFR/" # Directory the .ini files are kept.
+log_dir="/home/jseiler/self_consistent_SAGE/logs/shifted_SFR/" # Directory to place the output log files.
+run_prefix="shifted_SFR_alpha0.1_beta0.0" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
 
 LowSnap=27
 HighSnap=97
@@ -51,7 +51,7 @@ for ((snap_idx = LowSnap; snap_idx < HighSnap+ 1; ++snap_idx))
   fi   
 
   echo "Running cifog"
-  mpirun -np ${NUMPROC} /home/jseiler/bin/cifog ${cifog_ini} ${cifog_run_flag} > ${log_dir}/${run_prefix}_cifog_${snap_idx}.log
+  mpirun -np ${NUMPROC} /home/jseiler/self_consistent_SAGE/bin/cifog ${cifog_ini} ${cifog_run_flag} > ${log_dir}/${run_prefix}_cifog_${snap_idx}.log
   exit_code=$? 
   if [ $exit_code -ne 0 ]; then
     echo "cifog exited with errorcode $exit_code"
