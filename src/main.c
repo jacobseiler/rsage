@@ -161,6 +161,7 @@ int main(int argc, char **argv)
     printf("Running SAGE\n");
     sage();
 
+    /*
     cifog_zero_grids(grid, simParam);
 
     // When we run cifog we want to read the output of the previous snapshot and save it at the end.
@@ -174,8 +175,7 @@ int main(int argc, char **argv)
       RestartMode = 3;
     }
     cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, ThisTask, RestartMode);
-    exit(0);
-
+    */
   } 
 
 #else
