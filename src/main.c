@@ -134,12 +134,13 @@ int main(int argc, char **argv)
   }
 
   // Then initialize all the variables for cifog.
-  int32_t RestartMode, num_cycles = 1;
+  //int32_t RestartMode, num_cycles = 1;
+  int32_t num_cycles = 1;
   double *redshift_list = NULL;
 
   confObj_t simParam;  
   grid_t *grid = NULL;
-  sourcelist_t *sourcelist = NULL;
+  //sourcelist_t *sourcelist = NULL;
   integral_table_t *integralTable = NULL;
   photIonlist_t *photIonBgList = NULL;
   
