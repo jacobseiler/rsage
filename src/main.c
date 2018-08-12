@@ -37,6 +37,10 @@
 
 // Reionization Redshift Declarations //
 #include "reion_redshift.h"
+
+// Filter Mass Declarations //
+#include "filter_mass/filter_mass.h"
+
 #endif
 
 #define MAXLEN 1024
@@ -189,6 +193,10 @@ int main(int argc, char **argv)
       // NOTE: Because of how cifog handles numbering, need to pass the Snapshot Number + 1.
       update_reion_redshift(SnapNum+1, ZZ[SnapNum], GridSize, first_update_flag,
                             PhotoionDir, FileNameGalaxies, ReionRedshiftName);
+
+      filter_masses(FileNameGalaxies, SimulationDir, TreeName, PhotoionDir, PhotoionName, ReionRedshiftName,
+                    FirstFile, LastFile, GridSize, BoxSize, Hubble_h, SnapNum, ZZ[SnapNum], 
+                    first_update_flag);
     }
   }
   else  

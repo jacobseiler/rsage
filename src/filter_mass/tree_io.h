@@ -36,7 +36,7 @@ struct HALO_STRUCT
 
 // Proto-Types //
 
-int32_t load_tree_table(int32_t filenr, struct SAGE_PARAMETERS *params, int32_t *Ntrees, int32_t *totNHalos, int32_t **TreeNHalos);
+int32_t filter_mass_load_tree_table(int32_t filenr, struct SAGE_PARAMETERS *params, int32_t *Ntrees, int32_t *totNHalos, int32_t **TreeNHalos);
 int32_t allocate_array_memory(int32_t totNHalos, int64_t **HaloID, float **ReionMod);   
 int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **ReionMod);   
 int32_t load_halos(int32_t treenr, int32_t NHalos_ThisTree, struct HALO_STRUCT *Halos); 

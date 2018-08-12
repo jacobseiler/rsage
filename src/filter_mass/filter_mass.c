@@ -38,7 +38,7 @@ char *ThisNode;
 // Functions //
   
 
-int32_t filter_masses(char *FileNameGalaxies, char *TreeName, 
+int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName, 
                       char *PhotoionDir, char *PhotoionName, char *ReionRedshiftName,
                       int32_t FirstFile, int32_t LastFile, int32_t GridSize, double BoxSize,
                       double Hubble_h, int32_t SnapNum, double Redshift, int32_t first_update_flag)
@@ -61,6 +61,7 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeName,
   }
 
   params->FileNameGalaxies = FileNameGalaxies;
+  params->TreeDir = TreeDir;
   params->TreeName = TreeName;
   params->PhotoionDir = PhotoionDir;
   params->PhotoionName = PhotoionName;
@@ -78,8 +79,8 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeName,
     return EXIT_FAILURE; 
   }
 
-  status = read_grid(SnapNum, first_update_flag, GridSize, BoxSize,
-                     PhotoionDir, ReionRedshiftName, PhotoionName, Grid);
+  status = filter_mass_read_grid(SnapNum, first_update_flag, GridSize, BoxSize,
+                                 PhotoionDir, ReionRedshiftName, PhotoionName, Grid);
   if (status != EXIT_SUCCESS)
   {
     return EXIT_FAILURE;
@@ -101,7 +102,7 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeName,
     NHalos_In_Regions = 0;
     NHalos_ThisSnap = 0;
     
-    status = load_tree_table(filenr, params, &Ntrees, &totNHalos, &TreeNHalos); // Loads the table for this file.
+    status = filter_mass_load_tree_table(filenr, params, &Ntrees, &totNHalos, &TreeNHalos); // Loads the table for this file.
     if (status != EXIT_SUCCESS)
     {
       return EXIT_FAILURE;
@@ -169,7 +170,7 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeName,
 
   // Everything done, time to free!
 
-  status = free_grid(Grid);
+  status = filter_mass_free_grid(Grid);
   if (status != EXIT_SUCCESS)
   {
     return EXIT_FAILURE;

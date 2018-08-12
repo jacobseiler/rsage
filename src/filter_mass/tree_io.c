@@ -13,7 +13,7 @@
 FILE *forest_file = NULL;
 // keep a static file handle to remove the need to do constant seeking
 
-int32_t load_tree_table(int32_t filenr, struct SAGE_PARAMETERS *params, int32_t *Ntrees, int32_t *totNHalos, int32_t **TreeNHalos)
+int32_t filter_mass_load_tree_table(int32_t filenr, struct SAGE_PARAMETERS *params, int32_t *Ntrees, int32_t *totNHalos, int32_t **TreeNHalos)
 {
   char forestname[MAXLEN]; 
 

@@ -20,9 +20,9 @@ int32_t count_ionized_cells(struct GRID_STRUCT *Grid);
 
 // Local functions //
 
-int32_t read_grid(int32_t SnapNum, int32_t first_update_flag, int32_t GridSize, double BoxSize, 
-                  char *PhotoionDir, char *ReionRedshiftName, char *PhotoionName,
-                  struct GRID_STRUCT *Grid)
+int32_t filter_mass_read_grid(int32_t SnapNum, int32_t first_update_flag, int32_t GridSize, double BoxSize, 
+                               char *PhotoionDir, char *ReionRedshiftName, char *PhotoionName,
+                               struct GRID_STRUCT *Grid)
 {
 
   FILE *ReionRedshiftFile, *PhotoionFile;
@@ -94,7 +94,7 @@ int32_t count_ionized_cells(struct GRID_STRUCT *Grid)
 
 }
 
-int32_t free_grid(struct GRID_STRUCT *Grid)
+int32_t filter_mass_free_grid(struct GRID_STRUCT *Grid)
 {
 
   free(Grid->PhotoRate);
@@ -175,7 +175,7 @@ int32_t determine_Mfilt(struct HALO_STRUCT Halo, struct GRID_STRUCT *Grid, struc
   double Mfilt, Mvir, PhotHI;
   double Zcurr = params->Redshift;
   
-  status = determine_1D_idx(Halo.Pos[0], Halo.Pos[1], Halo.Pos[2], Grid->GridSize, Grid->BoxSize, &grid_idx);
+  status = filter_mass_determine_1D_idx(Halo.Pos[0], Halo.Pos[1], Halo.Pos[2], Grid->GridSize, Grid->BoxSize, &grid_idx);
   if (status == EXIT_FAILURE)
   {
     return EXIT_FAILURE;
@@ -211,7 +211,7 @@ int32_t determine_Mfilt(struct HALO_STRUCT Halo, struct GRID_STRUCT *Grid, struc
 
 }
 
-int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t GridSize, double BoxSize, int32_t *grid_1D)
+int32_t filter_mass_determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t GridSize, double BoxSize, int32_t *grid_1D)
 {
 
   int32_t x_grid, y_grid, z_grid;
