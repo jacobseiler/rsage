@@ -269,7 +269,6 @@ def read_binary_grid(filepath, GridSize, precision, reshape=True):
     grid : `np.darray'
 	The read in grid as a numpy object.  Shape will be N*N*N.
     '''
-    #print("Reading binary grid %s with precision option %d" %(filepath, precision)) 
 
     ## Set the format the input file is in. ##
     readformat = 'None'
@@ -288,8 +287,11 @@ def read_binary_grid(filepath, GridSize, precision, reshape=True):
 
     ## Check that the file is the correct size. ##
     filesize = os.stat(filepath).st_size
-    if(GridSize*GridSize*GridSize * byte_size != filesize):
-        print("The size of the file is %d bytes whereas we expected it to be %d bytes" %(filesize, GridSize*GridSize*GridSize * byte_size))
+    expected_size = GridSize*GridSize*GridSize*byte_size   
+
+    if(expected_size != filesize):
+        print("The size of file {0} is {1} bytes whereas we expected it to be "
+              "{2} bytes".format(filepath, filesize, expected_size)) 
         raise ValueError("Mismatch between size of file and expected size.")
 
     fd = open(filepath, 'rb')

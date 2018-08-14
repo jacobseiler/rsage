@@ -6,7 +6,7 @@ matplotlib.use('Agg')
 import os
 import heapq
 import numpy as np
-mport matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as colors
 import matplotlib.cm as cm
@@ -3571,50 +3571,37 @@ def update_cumulative_stats(mean_pool, std_pool, N_pool, mean_local, std_local, 
 if __name__ == '__main__':
 
     np.seterr(divide='ignore')
-    number_models = 1
+    number_models = 4
 
-    galaxies_model1='/fred/oz004/jseiler/kali//self_consistent_output/constant/galaxies/const0.35_z5.782'
-    merged_galaxies_model1='/fred/oz004/jseiler/kali//self_consistent_output/constant/galaxies/const0.35_MergedGalaxies'
-    photo_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI"
+    galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/galaxies/new_constant_fesc0.2_z5.782'
+    merged_galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/galaxies/new_constant_fesc0.2_MergedGalaxies'
+    photo_model1='/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_photHI'
 
-    galaxies_model1='/home/jseiler/self_consistent_SAGE/tests/test_output/galaxies/kali_test_z5.782'
-    merged_galaxies_model1='/home/jseiler/self_consistent_SAGE/tests/test_output/galaxies/kali_test_MergedGalaxies'
-
-    galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_z5.782'
-    merged_galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.99_0.10_halo_MergedGalaxies'
-    photo_model2="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_photHI"
+    galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/galaxies/shifted_fej_alpha0.4_beta0.0_z5.782'
+    merged_galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/galaxies/shifted_fej_alpha0.4_beta0.0_MergedGalaxies'
+    photo_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.4_beta0.0_photHI'
+     
+    galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/galaxies/shifted_SFR_alpha0.4_beta0.0_z5.782'
+    merged_galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/galaxies/shifted_SFR_alpha0.4_beta0.0_MergedGalaxies'
+    photo_model3='/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.0_photHI'
  
-    galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.01_0.50_z5.782'
-    merged_galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/anne/galaxies/1e8_1e12_0.01_0.50_MergedGalaxies'
-    photo_model3="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_photHI"
- 
-    galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/fej0.6_z5.782'
-    merged_galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/fej/galaxies/fej0.6_MergedGalaxies'
-    photo_model4="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/fej0.6_photHI"
+    galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/galaxies/shifted_MHneg_1e8_1e12_0.99_0.05_z5.782'
+    merged_galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/galaxies/shifted_MHneg_1e8_1e12_0.99_0.05_MergedGalaxies'
+    photo_model4='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_photHI'
 
-    galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_z5.782'
-    merged_galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/SFR/galaxies/SFR_0.20_0.30_MergedGalaxies'
-    photo_model5="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_photHI"
-
-    galaxies_model6='/fred/oz004/jseiler/kali/self_consistent_output/constant/galaxies/const0.35_photHI2_z5.782'
-    merged_galaxies_model6='/fred/oz004/jseiler/kali/self_consistent_output/constant/galaxies/const0.35_photHI2_MergedGalaxies'
-    photo_model6="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_photHI"
+    galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/galaxies/shifted_MHpos_1e8_1e12_0.01_0.50_z5.782'
+    merged_galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/galaxies/shifted_MHpos_1e8_1e12_0.01_0.50_MergedGalaxies'
+    photo_model5='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/cifog/shifted_MHpos_1e8_1e12_0.01_0.50_photHI'
 
     galaxies_filepath_array = [galaxies_model2,
                                galaxies_model3,
                                galaxies_model4,
                                galaxies_model5]
 
-    galaxies_filepath_array = [galaxies_model4]
-                               #galaxies_model6]
-
-    photo_array = [photo_model1,
-                   photo_model2,
+    photo_array = [photo_model2,
                    photo_model3,
-                   photo_model4]
-
-    photo_array = [photo_model1,
-                   photo_model6]
+                   photo_model4,
+                   photo_model5]
 
     GridSize_array = [256,
                       256,
@@ -3626,16 +3613,11 @@ if __name__ == '__main__':
                        2,
                        2]
 
-    #galaxies_filepath_array = [galaxies_model5]
-
     merged_galaxies_filepath_array = [merged_galaxies_model2,
                                       merged_galaxies_model3,
                                       merged_galaxies_model4,
                                       merged_galaxies_model5]
-      
-    merged_galaxies_filepath_array = [merged_galaxies_model4]
-                                      #merged_galaxies_model6]
- 
+
     number_substeps = [10, 10, 10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
     number_snapshots = [99, 99, 99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
@@ -3651,14 +3633,11 @@ if __name__ == '__main__':
     # Then same_files = [1, 1, 0, 1, 0] would be the correct values.
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
-    #model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
+
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
-
-    model_tags = ["photHI1",
-                  "photHI2"]
 
     ## Constants used for each model. ##
     # Need to add an entry for EACH model. #
@@ -3667,14 +3646,12 @@ if __name__ == '__main__':
    
     # For Tiamat, z = [6, 7, 8] are snapshots [78, 64, 51]
     # For Kali, z = [6, 7, 8] are snapshots [93, 76, 64]
-    #SnapList = [np.arange(0,99)]
-    SnapList = [[50]]
     #SnapList = [np.arange(0,99), np.arange(0,99)] # These are the snapshots over which the properties are calculated. NOTE: If the escape fraction is selected (fesc_prescription == 3) then this should be ALL the snapshots in the simulation as this prescriptions is temporally important. 
     #SnapList = [np.arange(20,99), np.arange(20, 99), np.arange(20, 99)]    
-    #SnapList = [[33, 50, 76, 93],
-                #[33, 50, 76, 93],
-                #[33, 50, 76, 93],
-    #            [33, 50, 76, 93]]
+    SnapList = [[33, 50, 76, 93],
+                [33, 50, 76, 93],
+                [33, 50, 76, 93],
+                [33, 50, 76, 93]]
     
     #SnapList = [[64],
     #            [64],
@@ -3701,7 +3678,7 @@ if __name__ == '__main__':
     stellar_mass_halolen_upper = [50, 105, 105, 105] # We calculate the average stellar mass for galaxies whose host halos have particle count between these limits.
     calculate_observed_LF = [0, 0, 0, 0] # Determines whether we want to account for dust extinction when calculating the luminosity function of each model.
 
-    paper_plots = 0 
+    paper_plots = 1 
     
     ##############################################################################################################
     ## Do a few checks to ensure all the arrays were specified properly. ##
@@ -4064,18 +4041,9 @@ if __name__ == '__main__':
                                          * 1.0e10 / AllVars.Hubble_h)
 
                     fesc = G.Gridfesc[w_gal, current_snap]
-                    print(fesc)
-                    exit()
                     fesc[fesc < 0.0] = 0.0
                     Ngamma_gal = G.GridNgamma_HI[w_gal, current_snap]  # 1.0e50
                                                                        # photons/s.
-
-                    w_photon = np.where((Ngamma_gal < 1e-6))[0]
-                    if (len(w_photon) > 0):
-                        print(w_photon)
-                        print(Ngamma_gal[w_photon])
-                        print(mass_gal[w_photon])
-                        raise ValueError
 
                     if model_number < 3:
                         Ngamma_gal += 50.0  # Old versions of SAGE incorrectly
@@ -4319,8 +4287,6 @@ if __name__ == '__main__':
                     keep_files =  same_files[current_model_number] # Decide if we want to keep the files loaded or throw them out. 
                     current_model_number += 1 # Update the inner loop model number.
 
-
-    exit()
     #StellarMassFunction(PlotSnapList, SMF, simulation_norm, FirstFile,
     #                    LastFile, NumFile, galaxy_halo_mass_mean, model_tags,
     #                    1, paper_plots, "wtf")
@@ -4346,7 +4312,7 @@ if __name__ == '__main__':
    
     #plot_quasars_count(SnapList, PlotSnapList, N_quasars_z, N_quasars_boost_z, N_z, mean_quasar_activity_array, std_quasar_activity_array, N_halo_array, mergers_halo_array, SMF, mergers_galaxy_array, fesc_prescription, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "SN_Prescription")
 
-    '''
+
     plot_fesc_galaxy(SnapList, PlotSnapList, simulation_norm,
                      mean_fesc_galaxy_array, std_fesc_galaxy_array, 
                      N_galaxy_array, mean_fesc_halo_array, 
@@ -4355,28 +4321,28 @@ if __name__ == '__main__':
                      paper_plots, mass_global, fesc_global, Ngamma_global, 
                      "fesc_paper")
 
+    
+    #plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
+    #                 mean_Ngamma_galaxy_array, std_Ngamma_galaxy_array, 
+    #                 N_galaxy_array, model_tags, 
+    #                 paper_plots, "Ngamma")
 
-    plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm,
-                     mean_Ngamma_galaxy_array, std_Ngamma_galaxy_array, 
-                     N_galaxy_array, model_tags, 
-                     paper_plots, "Ngamma")
-    '''
 
     plot_photo_galaxy(SnapList, PlotSnapList, simulation_norm,
                      mean_photo_galaxy_array, std_photo_galaxy_array, 
                      N_galaxy_array, model_tags, 
                      paper_plots, "photo")
 
-    '''
+
     plot_sfr_galaxy(SnapList, PlotSnapList, simulation_norm,
                      mean_sfr_galaxy_array, std_sfr_galaxy_array, 
                      mean_ssfr_galaxy_array, std_ssfr_galaxy_array, 
                      N_galaxy_array, model_tags, "sSFR")
 
-    plot_fej_Ngamma(SnapList, PlotSnapList, simulation_norm,
-                    mean_Ngamma_fej, std_Ngamma_fej,
-                    N_fej, model_tags, "Ngamma_fej")
-    '''
+    #plot_fej_Ngamma(SnapList, PlotSnapList, simulation_norm,
+    #                mean_Ngamma_fej, std_Ngamma_fej,
+    #                N_fej, model_tags, "Ngamma_fej")
+
     #plot_photoncount(SnapList, sum_Ngamma_z_array, simulation_norm, FirstFile, LastFile, NumFile, model_tags, "Ngamma_test") ## PARALELL COMPATIBLE
     #plot_mvir_Ngamma(SnapList, mean_Ngamma_halo_array, std_Ngamma_halo_array, N_halo_array, model_tags, "Mvir_Ngamma_test", fesc_prescription, fesc_normalization, "/lustre/projects/p004_swin/jseiler/tiamat/halo_ngamma/") ## PARALELL COMPATIBLE 
 

@@ -2267,12 +2267,11 @@ if __name__ == '__main__':
 
     ###########################   
        
-    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
+    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.20}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  #r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
-                  r"$Shifted$"] 
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{SFR}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$"]
 
     output_tags = [r"Base Reion On"]
 
@@ -2285,62 +2284,25 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'newhalos'
+    model = 'shifted'
 
     GridSize_model1 = 256
         
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
    
-    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_XHII"
-    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/newphoton_SF0.03_0.2_1.00_2.50_XHII"
-    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/oldphoton_SF0.03_0.10_1.00_2.50_XHII"
-    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/cifog/newphoton_SF0.03_0.25_1.00_2.50_XHII"
-    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.4_XHII"
-    filepath_model6="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_XHII"
-    filepath_model7="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/cifog/mstar_1e8_1e9_XHII"
-    filepath_model8="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/cifog/mstar_1e7_1e8_XHII"
-    filepath_model9="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/cifog/mstar_1e9_1e10_XHII"
-    filepath_model10="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.05_XHII"
-    filepath_model11="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.95_XHII"
-    filepath_model12="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_XHII"
-    filepath_model13="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_1.0e-4_0.95_XHII"
-    filepath_model14="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_1.0e-4_0.70_XHII"
-    filepath_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_XHII"
-    filepath_model16="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.60_XHII"
-    filepath_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.40_XHII"
-    filepath_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_XHII"
-    filepath_model19="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_XHII"
-    filepath_model20="/fred/oz004/jseiler/kali/self_consistent_output/new_fej/grids/cifog/fej_alpha0.4_beta0.0_XHII"
-    filepath_model21="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.4_beta0.0_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.0_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/cifog/shifted_MHpos_1e8_1e12_0.01_0.50_XHII"
 
-    filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/const0.35_fesc0.35_HaloPartCut32_nionHI"
-    filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.2_1.00_2.50_quasar_0.20_1.00_2.50_HaloPartCut32_nionHI"
-    filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/oldphoton_SF0.03_0.10_1.00_2.50_quasar_0.10_1.00_2.50_HaloPartCut32_nionHI"
-    filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/quasar/grids/nion/newphoton_SF0.03_0.25_1.00_2.50_quasar_0.25_1.00_2.50_HaloPartCut32_nionHI"
-    filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/nion/newphoton_SF0.03_fej0.4_ejected_0.400_0.000_HaloPartCut32_nionHI"
-    filepath_nion_model6="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/nion/newphoton_SF0.03_fej0.7_ejected_0.700_0.000_HaloPartCut32_nionHI"
-    filepath_nion_model7="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/nion/mstar_1e8_1e9_mstar_1.000e+08_1.000e+09_0.70_0.20_HaloPartCut32_nionHI"
-    filepath_nion_model8="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/nion/mstar_1e7_1e8_mstar_1.000e+07_1.000e+08_0.60_0.20_HaloPartCut32_nionHI"
-    filepath_nion_model9="/fred/oz004/jseiler/kali/self_consistent_output/mstar/grids/nion/mstar_1e9_1e10_mstar_1.000e+09_1.000e+10_0.80_0.20_HaloPartCut32_nionHI"
-    filepath_nion_model10="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.99_0.05_AnneMH_1.000e+08_0.99_1.000e+12_0.05_HaloPartCut32_nionHI"
-    filepath_nion_model11="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.01_0.95_AnneMH_1.000e+08_0.01_1.000e+12_0.95_HaloPartCut32_nionHI"
-    filepath_nion_model12="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.99_0.10_AnneMH_1.000e+08_0.99_1.000e+12_0.10_HaloPartCut32_nionHI"
-    filepath_nion_model13="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_1.0e-4_0.95_AnneMH_1.000e+08_0.00_1.000e+12_0.95_HaloPartCut32_nionHI"
-    filepath_nion_model14="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_1.0e-4_0.70_AnneMH_1.000e+08_0.00_1.000e+12_0.70_HaloPartCut32_nionHI"
-    filepath_nion_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/nion/1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI"
-    filepath_nion_model16="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.60_SFR_0.200_0.600_HaloPartCut32_nionHI"
-    filepath_nion_model17="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.40_SFR_0.200_0.400_HaloPartCut32_nionHI"
-    filepath_nion_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/nion/SFR_0.20_0.30_SFR_0.200_0.300_HaloPartCut32_nionHI"
-    filepath_nion_model19="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/nion/const0.35_photHI2_fesc0.35_HaloPartCut32_nionHI"
-    filepath_nion_model20="/fred/oz004/jseiler/kali/self_consistent_output/new_fej/grids/nion/fej_alpha0.4_beta0.0_ejected_0.400_0.000_HaloPartCut32_nionHI"
-    filepath_nion_model21="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/nion/new_constant_fesc0.2_fesc0.20_HaloPartCut32_nionHI"
+    filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/nion/new_constant_fesc0.2_fesc0.20_HaloPartCut32_nionHI"
+    filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/nion/shifted_fej_alpha0.4_beta0.0_ejected_0.400_0.000_HaloPartCut32_nionHI"
+    filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/nion/shifted_SFR_alpha0.4_beta0.0_SFR_0.400_0.000_HaloPartCut32_nionHI"
+    filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/nion/shifted_MHneg_1e8_1e12_0.99_0.05_AnneMH_1.000e+08_0.99_1.000e+12_0.05_HaloPartCut32_nionHI"
+    filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/nion/shifted_MHpos_1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI"
  
     filepath_phot_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI"
-    filepath_phot_model12="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_photHI"
-    filepath_phot_model15="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_photHI"
-    filepath_phot_model6="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_photHI"
-    filepath_phot_model18="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_photHI"
-    filepath_phot_model19="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_photHI"
     
     filepath_density_model1="/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"
 
@@ -2363,22 +2325,22 @@ if __name__ == '__main__':
                       GridSize_model1]
 
     ionized_cells_filepath_array = [filepath_model1,
-                                    filepath_model12,
-                                    filepath_model15,
-                                    filepath_model6,
-                                    filepath_model21]
+                                    filepath_model2,
+                                    filepath_model3,
+                                    filepath_model4,
+                                    filepath_model5]
 
     nion_filepath_array = [filepath_nion_model1,
-                           filepath_nion_model12,
-                           filepath_nion_model15,
-                           filepath_nion_model6,
-                           filepath_nion_model21]
+                           filepath_nion_model2,
+                           filepath_nion_model3,
+                           filepath_nion_model4,
+                           filepath_nion_model5]
 
     photofield_filepath_array = [filepath_phot_model1,
-                                 filepath_phot_model12,
-                                 filepath_phot_model15,
-                                 filepath_phot_model6,
-                                 filepath_phot_model19]
+                                 filepath_phot_model1,
+                                 filepath_phot_model1,
+                                 filepath_phot_model1,
+                                 filepath_phot_model1]
 
     density_filepath_array = [filepath_density_model1,
                               filepath_density_model1,
@@ -2589,11 +2551,11 @@ if __name__ == '__main__':
                     "nioncut_0.01_0.50")
     plot_optical_depth(AllVars.SnapZ[snaplist], mass_frac_array, model_tags, OutputDir, "OpticalDepth")
 
-    plot_nine_panel_slices(AllVars.SnapZ[snaplist],
-                           ionized_cells_filepath_array, GridSize_array, 
-                           precision_array, simulation_norm, 
-                           MC_Snaps, fractions_HI, model_tags, OutputDir, 
-                           "3PanelSlice", len(fractions_HI))
+    #plot_nine_panel_slices(AllVars.SnapZ[snaplist],
+    #                       ionized_cells_filepath_array, GridSize_array, 
+    #                       precision_array, simulation_norm, 
+    #                       MC_Snaps, fractions_HI, model_tags, OutputDir, 
+    #                       "3PanelSlice", len(fractions_HI))
 
     if(plot_MC == 1):
         plotting_MC_ZZ = np.zeros(np.shape(MC_ZZ))
