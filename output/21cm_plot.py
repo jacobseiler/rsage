@@ -12,6 +12,7 @@ from numpy.fft import fftn, ifftn
 import PlotScripts
 import ReadScripts
 import AllVars
+import misc_func as misc
 
 from scipy import stats
 
@@ -427,11 +428,11 @@ if __name__ == '__main__':
 
     PlotScripts.Set_Params_Plot()
 
-    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_XHII"
-    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_XHII"
-    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_XHII"
-    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_XHII"
-    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.4_beta0.0_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.0_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/cifog/shifted_MHpos_1e8_1e12_0.01_0.50_XHII"
 
     fname_ionized=[filepath_model1,
                    filepath_model2,
@@ -462,11 +463,11 @@ if __name__ == '__main__':
                 np.arange(28, 98)]
 
 
-    SnapList = [[19, 26, 34, 42, 48],
-                [18, 25, 34, 43, 49],
-                [22, 29, 37, 45, 52],
-                [17, 24, 33, 41, 48],
-                [21, 28, 36, 44, 50]]
+    SnapList = [[22, 30, 39, 47, 54],
+                [18, 25, 34, 42, 48],
+                [26, 34, 43, 52, 60],
+                [16, 22, 30, 38, 44],
+                [21, 28, 35, 43, 48]]
 
     for snap in range(len(SnapList)):
         for inner_snap in range(len(SnapList[snap])):
@@ -474,10 +475,13 @@ if __name__ == '__main__':
 
     HI_fraction_target = [0.90, 0.75, 0.50, 0.25, 0.10] 
 
+    #misc.determine_close_idx(fname_ionized, fname_density, SnapList, GridSize,
+    #                         precision, HI_fraction_target, model_tags)
+
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're always using
                                       #  Kali.
 
-    OutputDir = "./21cm_plots/paper_final_2"
+    OutputDir = "./21cm_plots/shifted"
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 
@@ -509,8 +513,7 @@ if __name__ == '__main__':
                                                    precision[model_number])
 
             HI_frac = calculate_HI_frac(XHII, density)
-            print(XHII[0,0,:])
-            exit()
+
             T0 = T_naught(AllVars.SnapZ[snap], AllVars.Hubble_h,
                           AllVars.Omega_m, AllVars.Omega_b)
                   

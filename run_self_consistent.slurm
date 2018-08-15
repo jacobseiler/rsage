@@ -16,7 +16,7 @@ module load gcc/6.4.0
 
 ini_dir="/home/jseiler/self_consistent_SAGE/ini_files/shifted_fej/" # Directory the .ini files are kept.
 log_dir="/home/jseiler/self_consistent_SAGE/logs/shifted_fej/" # Directory to place the output log files.
-run_prefix="shifted_fej_alpha0.3_beta0.05" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
+run_prefix="shifted_fej_alpha0.5_beta0.15" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
 
 LowSnap=27
 HighSnap=97

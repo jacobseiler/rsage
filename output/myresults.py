@@ -4015,7 +4015,8 @@ if __name__ == '__main__':
                     w_SFR = w_gal[np.where((G.GridSFR[w_gal, current_snap] > 0.0))[0]]
                    
                     mass_SFR_gal = np.log10(G.GridStellarMass[w_SFR, current_snap] * \
-                                            1.0e10 / AllVars.Hubble_h) 
+                                            1.0e10 / AllVars.Hubble_h)
+
                     SFR_gal = np.log10(G.GridSFR[w_SFR,current_snap])
                     sSFR_gal = SFR_gal - mass_SFR_gal  
 
@@ -4328,11 +4329,12 @@ if __name__ == '__main__':
     #                 paper_plots, "Ngamma")
 
 
+    '''
     plot_photo_galaxy(SnapList, PlotSnapList, simulation_norm,
                      mean_photo_galaxy_array, std_photo_galaxy_array, 
                      N_galaxy_array, model_tags, 
                      paper_plots, "photo")
-
+    '''
 
     plot_sfr_galaxy(SnapList, PlotSnapList, simulation_norm,
                      mean_sfr_galaxy_array, std_sfr_galaxy_array, 

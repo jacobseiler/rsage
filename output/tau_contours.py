@@ -94,9 +94,9 @@ if __name__ == '__main__':
     AllVars.Set_Params_Kali()
     AllVars.Set_Constants()
 
-    alpha = [0.4, 0.6, 0.8]
-    beta = [0.0, 0.05, 0.10, 0.20]
+    alpha = [0.2, 0.3, 0.4, 0.5, 0.6]
+    beta = [0.0, 0.05, 0.10, 0.15]
     density_fname="/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/"
-    base_fname="/fred/oz004/jseiler/kali/self_consistent_output/new_fej/grids/cifog/fej"
-
-    plot_contours(base_fname, density_fname, alpha, beta, np.arange(28,98))
+    base_fname="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej"
+    plot_contours(base_fname, density_fname, alpha, beta, np.arange(28,98),
+                  output_tag="tau_contours_shifted")
