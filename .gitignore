@@ -1,5 +1,6 @@
 # Filter mass directory ignores.
 filter_mass/*.o
+src/filter_mass/filter_mass
 create_filter_mass
 
 # Don't want to keep any plots.
@@ -11,7 +12,7 @@ output/ionization_plots/
 output/scale_plots/
 
 # SAGE ignores.
-sage/sage
+src/sage/sage
 sage/*.o
 sage/io/*.o
 sage/self_consistent/*.o

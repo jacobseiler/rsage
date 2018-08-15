@@ -168,10 +168,10 @@ int main(int argc, char **argv)
 
     for (SnapNum = LowSnap; SnapNum < HighSnap + 1; ++SnapNum)
     {
-      printf("Running SAGE\n");
-      if (var == 1)
-      sage();
 
+      printf("Running SAGE\n");
+      sage();
+      printf("Done.\n");
       
       cifog_zero_grids(grid, simParam);
 
@@ -187,49 +187,27 @@ int main(int argc, char **argv)
         RestartMode = 3;
         first_update_flag = 0;
       }
-      if (var == 1)
+
+      printf("Running cifog\n");
       cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, ThisTask, RestartMode);
+      printf("Done");
 
-      // NOTE: Because of how cifog handles numbering, need to pass the Snapshot Number + 1.
-      update_reion_redshift(SnapNum+1, ZZ[SnapNum], GridSize, first_update_flag,
-                            PhotoionDir, FileNameGalaxies, ReionRedshiftName);
+      // Because of how cifog handles numbering, need to pass the Snapshot Number + 1.
+      if (var == 1)
+      { 
+        update_reion_redshift(SnapNum+1, ZZ[SnapNum], GridSize, first_update_flag,
+                              PhotoionDir, FileNameGalaxies, ReionRedshiftName);
 
-      filter_masses(FileNameGalaxies, SimulationDir, TreeName, PhotoionDir, PhotoionName, ReionRedshiftName,
-                    FirstFile, LastFile, GridSize, BoxSize, Hubble_h, SnapNum, ZZ[SnapNum], 
-                    first_update_flag);
+        filter_masses(FileNameGalaxies, SimulationDir, TreeName, PhotoionDir, PhotoionName, ReionRedshiftName,
+                      FirstFile, LastFile, GridSize, BoxSize, Hubble_h, SnapNum, ZZ[SnapNum], 
+                      first_update_flag);
+      }
     }
   }
   else  
 #else
   sage();
 #endif
-  //parse_params(argc, argv);
-
-  // First read the snapshot list and initalize the lookup tables for delayedSN
-  // and ionizing photon prescription (if requested).
-  /*
-  sage_init();
-
-
-  for (snapshot that we're looping over)
-  {
-    if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
-      status = init_selfcon_grid();
-    if(ReionizationOn == 2)
-    {
-      status = init_grid();
-      if (status != EXIT_SUCCESS)
-      {
-        ABORT(EXIT_FAILURE);
-      }
-    }
-    sage;
-    cifog;
-    gen_reion_redshift;
-    gen_halolists;
-   
-  }
-  */
 
   status = sage_cleanup(argv);
   if (status != EXIT_SUCCESS)

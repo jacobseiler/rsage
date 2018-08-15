@@ -1,12 +1,18 @@
-LIB := libfilter_mass.a 
-EXEC := filter_mass 
+LIBNAME := filter_mass
+EXEC := $(LIBNAME) 
 
-OBJS  := filter_mass.o \
-		 tree_io.o \
-		 reionization.o \
-		 save.o
- 	 
-EXECS_OBJS := create_filter_mass.o 
+FILTLIB := lib$(LIBNAME).a
+
+LIBSRC := filter_mass.c \
+		  tree_io.c \
+		  reionization.c \
+		  save.c
+
+SRC := main.c $(LIBSRC)
+OBJS := $(SRC:.c=.o)
+
+LIBOBJS := $(LIBSRC:.c=.o)
+FILTLIB := lib$(LIBNAME).a
 
 INCL  := ./Makefile \
 		 filter_mass.h \
@@ -34,23 +40,26 @@ GSL_INCL := $(shell gsl-config --cflags)
 GSL_LIBS := $(shell gsl-config --libs)
 GSL_LIBDIR := $(GSL_DIR)/lib
 
-OPTIMIZE = -g -O0 -Wall -Werror # optimization and warning flags
+OPTIMIZE = -g -O3 -Wall -Werror # optimization and warning flags
 #OPTS = -DDEBUG
 
 CFLAGS = $(OPTIMIZE) $(GSL_INCL) $(OPTS) 
 LIBS  += -g -lm  $(GSL_LIBS) -lgsl -lgslcblas
 
-default: lib
 
-$(LIB) : $(OBJS) 
-	$(CC) -c $(CFLAGS) $(LIBS) -Xlinker -rpath -Xlinker $(GSL_LIBDIR) 
-	ar rcs $(LIB) $(OBJS)
+all: $(EXEC)
 
-lib: $(LIB)
+$(EXEC): $(OBJS) $(FILTLIB)
+	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
 
+$(FILTLIB): $(LIBOBJS)
+	ar rcs $@ $(LIBOBJS)
+
+$(OBJS): $(INCL)
+
+.phony: clean celan celna clena tests
+celan celna clena: clean
 clean:
-	rm -f $(OBJS) $(EXECS_OBJS) $(EXECS) $(LIB)
+	rm -f $(OBJS) $(EXEC) $(FILTLIB)
 
-.PHONY: all clean clena celan celna
 
-celan celna clena claen:clean
