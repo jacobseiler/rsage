@@ -146,7 +146,6 @@ void strip_from_satellite(int halonr, int centralgal, int gal, int32_t step)
     reionization_modifier = 1.0;
   }
 
-
   /*
   if (Gal[gal].HaloNr == 2385)
   {

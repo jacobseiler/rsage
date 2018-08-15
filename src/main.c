@@ -93,7 +93,7 @@ int main(int argc, char **argv)
     ABORT(EXIT_FAILURE);
   }
 #else
-  ThisTask = 1;
+  ThisTask = 0;
   NTask = 1;
 #endif
 
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 
   // Then initialize all the variables for cifog.
 
-  int32_t RestartMode, num_cycles = 1;
+  int32_t RestartMode, num_cycles;
   double *redshift_list = NULL;
 
   confObj_t simParam;  
@@ -157,6 +157,8 @@ int main(int argc, char **argv)
   {
     exit(EXIT_FAILURE);
   }
+  num_cycles = 1;
+
 #endif
 
 #ifdef RSAGE
@@ -170,10 +172,24 @@ int main(int argc, char **argv)
     {
 
       printf("Running SAGE\n");
-      sage();
+      status = sage();
+      if (status !=  EXIT_SUCCESS)
+      {
+        exit(EXIT_FAILURE);
+      }
       printf("Done.\n");
-      
-      cifog_zero_grids(grid, simParam);
+      fflush(stdout);
+
+
+      printf("Zeroing cifog grids.\n");
+      fflush(stdout);
+      status = cifog_zero_grids(grid, simParam);
+      if (status !=  EXIT_SUCCESS)
+      {
+        exit(EXIT_FAILURE);
+      }
+      printf("Done.\n");
+      fflush(stdout);
 
       // When we run cifog we want to read the output of the previous snapshot and save it at the end.
       // For the first snapshot we only save, otherwise we read and save.
@@ -189,8 +205,14 @@ int main(int argc, char **argv)
       }
 
       printf("Running cifog\n");
-      cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, ThisTask, RestartMode);
+      fflush(stdout);
+      status = cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, ThisTask, RestartMode);
+      if (status !=  EXIT_SUCCESS)
+      {
+        exit(EXIT_FAILURE);
+      }
       printf("Done");
+      fflush(stdout);
 
       // Because of how cifog handles numbering, need to pass the Snapshot Number + 1.
       if (var == 1)
@@ -209,18 +231,27 @@ int main(int argc, char **argv)
   sage();
 #endif
 
+  printf("Cleanup SAGE");
+  fflush(stdout);
   status = sage_cleanup(argv);
   if (status != EXIT_SUCCESS)
   {
     ABORT(EXIT_FAILURE);
   }
+  printf("Done");
+  fflush(stdout);
 
 #ifdef RSAGE
+
+  printf("Cleanup cifog");
+  fflush(stdout);
   status = cleanup_cifog(simParam, integralTable, photIonBgList, grid, redshift_list, ThisTask);
   if (status !=  EXIT_SUCCESS)
   {
     exit(EXIT_FAILURE);
   }
+  printf("Done");
+  fflush(stdout);
 
 #endif
 

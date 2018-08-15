@@ -130,7 +130,7 @@ int32_t sage(void)
     {      
 			assert(!gotXCPU);
 
-      if(tree % 10000 == 0)
+      if(tree % 1 == 0)
       {
 #ifdef MPI
         printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
@@ -140,6 +140,9 @@ int32_t sage(void)
 				fflush(stdout);
       }
 
+      printf("ROEJROJEQ\n");
+      printf("\tfile: %d\ttree: %d of %d\n", filenr, tree, Ntrees);
+      fflush(stdout);
       TreeID = tree;
       load_tree(tree);
 
@@ -157,14 +160,25 @@ int32_t sage(void)
       free_galaxies_and_tree(tree);      
     }
 
-    finalize_galaxy_file();  
+    printf("Finalizing galaxy file\n");
+    fflush(stdout);
+    finalize_galaxy_file(); 
+ 
+    printf("Finalizing merged galaxy file\n");
+    fflush(stdout);
     finalize_merged_galaxy_file();
     
+    printf("Freeing table file\n");
+    fflush(stdout);
     free_tree_table();
+
     printf("\ndone file %d\n\n", filenr);
+    fflush(stdout);
 
     if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
     {
+      printf("\nfreeing reion_lists %d\n\n", filenr);
+      fflush(stdout);
       status = free_reion_lists(filenr);
       if (status != EXIT_SUCCESS)
       {
@@ -176,6 +190,9 @@ int32_t sage(void)
 
   if ((self_consistent == 1) && (ReionizationOn == 3 || ReionizationOn == 4))
   {
+
+    printf("\nSaving selfcon_grid %d\n\n", filenr);
+    fflush(stdout);
     status = save_selfcon_grid();
     if (status != EXIT_SUCCESS)
     {

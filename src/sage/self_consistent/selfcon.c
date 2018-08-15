@@ -428,6 +428,7 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increm
 
   if (is_found == 1)
   {
+    reionization_modifier = ReionList->ReionMod_List[SnapNum].ReionMod[search_idx];
     *found_idx = search_idx;
     if (increment_counter == 1) // Only want to increment our counters once as for satellite galaxies with a subhalo, strip_from_satellite is called multiple times. 
     {

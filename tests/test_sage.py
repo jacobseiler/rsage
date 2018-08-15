@@ -68,10 +68,16 @@ def get_trees():
     if not os.path.isfile(tree_file):
         print("{0} does not exist, downloading the test_RSAGE repo and "
               "unzipping.".format(tree_file))
-        master_branch = urlretrieve("https://github.com/jacobseiler/"
-                                    "test_RSAGE/archive/master.zip")
-        subprocess.call(["unzip", "-j", master_branch[0], "-d", test_dir])
+
+        repo_url = "https://github.com/jacobseiler/test_RSAGE"
+        command = "git clone {0} --depth 1".format(repo_url)
+        subprocess.call(command, shell=True)
+        
+        command = "mv test_RSAGE/* ./"
+        subprocess.call(command, shell=True)
+
         downloaded_repo = True 
+
     else:
         print("{0} exists so no need to download test_RSAGE repo."
               .format(tree_file))
@@ -124,7 +130,11 @@ def check_sage_dirs(galaxy_name="test"):
     directory = "{0}/test_output/grids/".format(test_dir) 
     if not os.path.exists(directory):
         os.makedirs(directory)
-        
+
+    directory = "{0}/test_output/grids/properties".format(test_dir) 
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     print("Done.")
     print("")
 
@@ -156,14 +166,13 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
 
     # Use paths relative to the file this script is in.
     path_to_sage = "{0}/../rsage".format(test_dir)
-    path_to_ini = "{0}/test_ini_files/{1}".format(test_dir, ini_name)
+    path_to_sage_ini = "{0}/test_ini_files/{1}_SAGE.ini".format(test_dir, ini_name)
+    path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_name)
     path_to_log = "{0}/test_logs/{1}.log".format(test_dir, ini_name)
 
     stderr = subprocess.STDOUT
 
-    command = "{0} {1}".format(path_to_sage, path_to_ini)
-   
-        #command = "{0} {1} &> {2}".format(path_to_sage, path_to_ini, path_to_log)
+    command = "{0} {1} {2}".format(path_to_sage, path_to_sage_ini, path_to_cifog_ini)
 
     with open(path_to_log, "w") as log_file:
         returncode = subprocess.call(command, shell=True, stdout=log_file)
@@ -326,11 +335,12 @@ def test_run():
     # We have multiple test parameter specs we want to test.
     # Need all the names of the ini files and the name of the galaxies they
     # produce. 
-    ini_files = ["PhotonPrescription0_mini_millennium.ini",
-                 "PhotonPrescription1_mini_millennium.ini"]
+    #ini_files = ["PhotonPrescription0_mini_millennium.ini",
+    #             "PhotonPrescription1_mini_millennium.ini"]
 
-    galaxy_names = ["PhotonPrescription0",
-                    "PhotonPrescription1"] 
+    ini_files = ["self_consistent"]
+
+    galaxy_names = ["self_consistent"]
 
     AllVars.Set_Params_MiniMill()
     max_snap = len(AllVars.SnapZ) - 1
@@ -353,7 +363,7 @@ def test_run():
     print("Done")
     print("")
     
-    cleanup(downloaded_repo)
+    #cleanup(downloaded_repo)
 
     print("")
     print("================")

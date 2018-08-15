@@ -84,15 +84,15 @@ $(EXEC): $(OBJS) $(SAGELIB)
 	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
 
 $(SAGELIB): $(LIBOBJS)
-	ar rcs $(SAGELIB) $(LIBOBJS) 
+	ar rcs $@ $(LIBOBJS) 
 
 $(OBJS): $(INCL) 
 
 tests: $(EXEC)
 	../tests/test_sage.sh
 
+.phony: clean celan celna clena tests
+celan celna clena: clean
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(EXEC) $(SAGELIB)
 
-tidy:
-	rm -f $(OBJS) ./$(EXEC)
