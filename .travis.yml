@@ -1,6 +1,7 @@
 # blocklist
 branches:
   except:    
+    - new_rsage
 
 language: c
 sudo: required
