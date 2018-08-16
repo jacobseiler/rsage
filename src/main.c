@@ -144,6 +144,10 @@ int main(int argc, char **argv)
   sage_init();
   printf("Done\n");
 
+#ifdef MPI
+  MPI_Barrier(MPI_COMM_WORLD); 
+#endif
+
 #ifdef RSAGE
   // First initialize the grid for the self-consistent part of SAGE.
   if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
@@ -154,11 +158,6 @@ int main(int argc, char **argv)
       ABORT(EXIT_FAILURE);
     }
   
-    status = zero_selfcon_grid(SelfConGrid);
-    if (status != EXIT_SUCCESS)
-    {
-      ABORT(EXIT_FAILURE);
-    }
     printf("Done\n");
   }
 
@@ -181,7 +180,6 @@ int main(int argc, char **argv)
       exit(EXIT_FAILURE);
     }
     printf("Done\n");
-    num_cycles = 1;
   }
 #endif
 
@@ -189,18 +187,25 @@ int main(int argc, char **argv)
 
   if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
   {
-    int32_t loop_SnapNum, first_update_flag; 
+    int32_t loop_SnapNum, first_update_flag, count; 
 
-    for (loop_SnapNum = LowSnap; loop_SnapNum < HighSnap + 1; ++loop_SnapNum)
+    for (loop_SnapNum = LowSnap, count = 0; loop_SnapNum < HighSnap + 1; ++loop_SnapNum, ++count)
     {
       printf("\n\n======================================\n");
-      printf("Applying reionization to Snapshot %d\n", loop_SnapNum); 
+      printf("(Rank %d) Applying reionization to Snapshot %d\n", ThisTask, loop_SnapNum); 
       printf("======================================\n\n");
       ReionSnap = loop_SnapNum;
 
       printf("\n\n================================\n");
-      printf("Running SAGE\n");
+      printf("(Rank %d) Running SAGE\n", ThisTask);
       printf("================================\n");
+
+      status = zero_selfcon_grid(SelfConGrid);
+      if (status != EXIT_SUCCESS)
+      {
+        ABORT(EXIT_FAILURE);
+      }
+
       status = sage();
       if (status !=  EXIT_SUCCESS)
       {
@@ -228,8 +233,9 @@ int main(int argc, char **argv)
       }
 
       printf("\n\n================================\n");
-      printf("Running cifog\n");
+      printf("(Rank %d) Running cifog\n", ThisTask);
       printf("================================\n");
+      num_cycles = count + 1;
       status = cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, ThisTask, RestartMode);
       if (status !=  EXIT_SUCCESS)
       {
@@ -238,15 +244,23 @@ int main(int argc, char **argv)
       printf("Done\n\n\n");
 
       // Because of how cifog handles numbering, need to pass the Snapshot Number + 1.
-      printf("\n\n================================\n");
-      printf("Updating the Reionization Redshift file.\n");
-      printf("================================\n");
-      update_reion_redshift(loop_SnapNum+1, ZZ[loop_SnapNum], GridSize, first_update_flag,
-                            PhotoionDir, FileNameGalaxies, ReionRedshiftName);
-      printf("Done\n\n\n");
+      // This file only needs to be created once, so do it on Root node. 
+      if (ThisTask == 0)
+      {        
+        printf("\n\n================================\n");
+        printf("(Rank %d) Updating the Reionization Redshift file.\n", ThisTask);
+        printf("================================\n");
+        update_reion_redshift(loop_SnapNum+1, ZZ[loop_SnapNum], GridSize, first_update_flag,
+                              PhotoionDir, FileNameGalaxies, ReionRedshiftName);
+        printf("Done\n\n\n");
+      }
+      
+#ifdef MPI
+      MPI_Barrier(MPI_COMM_WORLD); 
+#endif
 
       printf("\n\n================================\n");
-      printf("Updating the filter mass values.\n");
+      printf("(Rank %d) Updating the filter mass values.\n", ThisTask);
       printf("================================\n");
       filter_masses(FileNameGalaxies, SimulationDir, TreeName, PhotoionDir, PhotoionName, ReionRedshiftName,
                     FirstFile, LastFile, GridSize, BoxSize, Hubble_h, loop_SnapNum, ZZ[loop_SnapNum], 

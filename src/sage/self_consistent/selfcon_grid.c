@@ -29,7 +29,6 @@ Version: 0.0.1
 struct SELFCON_GRID_STRUCT *MPI_sum_grids(void);
 #endif
 // Local Variables //
-FILE *fesc_file = NULL;
 
 #define STARBURSTSTEP 0.1 // This is the step size for the Starburst99 data (in Myr). 
 
@@ -282,7 +281,6 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
 
   int32_t status;
   float Ngamma_HI, Ngamma_HeI, Ngamma_HeII, fesc_local;
-  char fesc_fname[MAX_STRING_LEN];
 
   status = determine_nion(g, snapshot, &Ngamma_HI, &Ngamma_HeI, &Ngamma_HeII);
   /*
@@ -307,33 +305,15 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
     SelfConGrid->Nion_HI[grid_idx] += Ngamma_HI * fesc_local; // Ngamma_HI is already in units of 1.0e50 photons/s. 
     SelfConGrid->Nion_HI_Total += Ngamma_HI * fesc_local; 
   }
-  
-  if (fesc_file == NULL)
-  {
-    snprintf(fesc_fname, MAX_STRING_LEN - 1, "%s/properties/%s_misc_properties_%03d_%d", GridOutputDir, FileNameGalaxies, ReionSnap, g->FileNr);
-    fesc_file = fopen(fesc_fname, "w");
-    if (fesc_file == NULL)
-    {
-      fprintf(stderr, "Could not open file %s\n", fesc_fname);
-      return EXIT_FAILURE;
-    }
-  }
 
-  if (fesc_file == NULL)
-  {
-    fprintf(stderr, "Attempted to write to the fesc properties file (%s) but it is not opened.\n", fesc_fname);
-    return EXIT_FAILURE;
-  }
-
-  fprintf(fesc_file, "%.4f %.4f %d %.4e %.4e %.4e %.4e\n", fesc_local, g->EjectedFraction[snapshot], g->Len, get_virial_mass(g->HaloNr), get_virial_mass(Halo[g->HaloNr].FirstHaloInFOFgroup), g->StellarMass, Ngamma_HI); 
- 
   ++(SelfConGrid->GalCount[grid_idx]);
 
   return EXIT_SUCCESS;
 }
 
 /*
-Wrapper function that writes out the Nion grid, frees the grid and then closes the photon properties file. 
+Wrapper function that writes out the Nion grid.
+**NOTE**: The freeing of `SelfConGrid` is performed by `sage_cleanup()`.
 This function is called at the end of the script, before final cleanup.
 
 If RSAGE has been built using MPI, then each rank will have its own Nion grid.  In this case, this function calls `MPI_sum_grid()`
@@ -399,13 +379,6 @@ int32_t save_selfcon_grid(void)
   if (ThisTask == 0)
     free_selfcon_grid(master_grid);    
 #endif
-
-  free_selfcon_grid(SelfConGrid);
-
-  if (fesc_file != NULL)
-  {
-    fclose(fesc_file);
-  }
 
   return EXIT_SUCCESS;
 }

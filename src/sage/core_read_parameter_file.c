@@ -29,6 +29,8 @@ int32_t read_parameter_file(char *fname)
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
+  printf("Reading from %s\n", fname);
+
   strcpy(tag[nt], "OutputDir");
   addr[nt] = OutputDir;
   id[nt++] = STRING;
@@ -327,10 +329,6 @@ int32_t read_parameter_file(char *fname)
 
       if(j >= 0)
       {
-#ifdef MPI
-        if(ThisTask == 0)
-#endif
-
         switch (id[j])
         {
           case DOUBLE:
@@ -384,8 +382,6 @@ int32_t read_parameter_file(char *fname)
 	MAXSNAPS = LastSnapShotNr + 1;
 
   ListOutputSnaps[0] = LastSnapShotNr;
-		
-	// read in the output snapshot list
 
   int32_t status = check_ini_parameters();
   if (status != EXIT_SUCCESS)

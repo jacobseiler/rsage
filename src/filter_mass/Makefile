@@ -28,7 +28,7 @@ endif
 USE-MPI ?= yes
 ifdef USE-MPI
 ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service. 
-    OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
+    OPTS += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 endif
 else

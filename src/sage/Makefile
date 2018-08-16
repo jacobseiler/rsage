@@ -1,4 +1,4 @@
-# USE-MPI = yes  # set this if you want to run in embarrassingly parallel
+# USE-MPI ?= yes  # set this if you want to run in embarrassingly parallel
 # USE-HDF5 = yes # set this if you want to read in hdf5 trees (requires hdf5 libraries)
 
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -29,7 +29,7 @@ INCL   =	core_allvars.h core_proto.h  core_simulation.h \
 
 UNAME := $(shell uname)
 ifdef USE-MPI
-    OPTS += -DMPI  #  This creates an MPI version that can be used to process files in parallel
+    OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC := mpicc  # sets the C-compiler
 else
     # use clang by default on OSX and gcc on linux

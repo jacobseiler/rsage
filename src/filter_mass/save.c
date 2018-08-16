@@ -46,11 +46,10 @@ int32_t save_arrays(int64_t *HaloID, float *ReionMod, struct SAGE_PARAMETERS *pa
   // If this is the first time the code is executed, create a pad for the snapshots below the current one. 
   if (first_update_flag == 1)
   {
-    printf("Creating pad for Snapshots below %d\n", ThisSnap);
     tmp_NHalos = 0;
     for (tmp_snap = 0; tmp_snap < ThisSnap; ++tmp_snap)
     {      
-      nwritten = fwrite(&tmp_snap, sizeof(tmp_snap), 1, outfile);
+      nwritten = fwrite(&tmp_snap, sizeof(tmp_snap), 1, outfile);      
       if (nwritten != 1)
       {
         fprintf(stderr, "Only wrote %d elements for snapshot %d when trying to create the snapshot pad.  Needed to write 1 elements.\n", nwritten, tmp_snap);
@@ -64,32 +63,32 @@ int32_t save_arrays(int64_t *HaloID, float *ReionMod, struct SAGE_PARAMETERS *pa
     }
   } 
 
-  printf("Writing the snapshot number %d\n", ThisSnap);
   nwritten = fwrite(&ThisSnap, sizeof(ThisSnap), 1, outfile); // Write out header info.
   if (nwritten != 1)
   {
     fprintf(stderr, "Only wrote %d elements when writing out the current snapshot number.  Needed to write 1 elements.\n", nwritten);
   } 
-
-  printf("Writing the number of ionized halos %d\n", NHalos_Ionized);
+  
   nwritten = fwrite(&NHalos_Ionized, sizeof(NHalos_Ionized), 1, outfile); 
   if (nwritten != 1)
   {
     fprintf(stderr, "Only wrote %d elements when writing out the number of ionized halos.  Needed to write 1 elements.\n", nwritten);
   } 
- 
-  nwritten = fwrite(HaloID, sizeof(*HaloID), NHalos_Ionized, outfile); // Write out arrays.
-  if (nwritten != NHalos_Ionized)
-  {
-    fprintf(stderr, "Only wrote %d elements when writing out the IDs of the ionized halos.  Needed to write %d elements.\n", nwritten, NHalos_Ionized);
-  } 
 
-  nwritten = fwrite(ReionMod, sizeof(float), NHalos_Ionized, outfile);
-  if (nwritten != NHalos_Ionized)
+  if (NHalos_Ionized > 0)
   {
-    fprintf(stderr, "Only wrote %d elements when writing out the reionization modifier of the ionized halos.  Needed to write %d elements.\n", nwritten, NHalos_Ionized);
-  } 
+    nwritten = fwrite(HaloID, sizeof(*HaloID), NHalos_Ionized, outfile); // Write out arrays.
+    if (nwritten != NHalos_Ionized)
+    {
+      fprintf(stderr, "Only wrote %d elements when writing out the IDs of the ionized halos.  Needed to write %d elements.\n", nwritten, NHalos_Ionized);
+    } 
 
+    nwritten = fwrite(ReionMod, sizeof(float), NHalos_Ionized, outfile);
+    if (nwritten != NHalos_Ionized)
+    {
+      fprintf(stderr, "Only wrote %d elements when writing out the reionization modifier of the ionized halos.  Needed to write %d elements.\n", nwritten, NHalos_Ionized);
+    } 
+  }
   fclose(outfile);
  
   return EXIT_SUCCESS;
@@ -106,7 +105,7 @@ int32_t read_arrays(struct SAGE_PARAMETERS *params, int32_t filenr, int32_t This
   int64_t *HaloID;
   float *ReionMod;
 
-  snprintf(infile_name, MAXLEN, "%s/reionization_modifiers/%s_treefile_%03d", params->PhotoionDir, params->FileNameGalaxies, filenr);
+  snprintf(infile_name, MAXLEN - 1, "%s/reionization_modifiers/%s_treefile_%03d", params->PhotoionDir, params->FileNameGalaxies, filenr);
   infile = fopen(infile_name, "rb");
 
   if (infile == NULL)

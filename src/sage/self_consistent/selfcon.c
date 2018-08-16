@@ -119,14 +119,15 @@ int32_t init_reion_lists(int32_t filenr)
   for (SnapNum = 0; SnapNum < ReionList->NumLists; ++SnapNum)
   {
 
-    fread(&SnapNum_Read, sizeof(int32_t), 1, ListFile);
+    fread(&SnapNum_Read, sizeof(SnapNum_Read), 1, ListFile);
 
-    fread(&ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(int32_t), 1, ListFile);
+    fread(&ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(SnapNum_Read), 1, ListFile);
     //printf("Snapshot %d has %d Halos in the list.\n", SnapNum_Read, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
 
     if (SnapNum_Read != SnapNum)
     { 
       fprintf(stderr, "When attempting to read the reionization modifier lists, the read file had a snapshot number %d when we expected a number %d\n", SnapNum_Read, SnapNum);
+      fprintf(stderr, "Check that `filter_mass` was properly compiled with MPI.\n");
       return EXIT_FAILURE;
     }
 
@@ -295,14 +296,19 @@ int32_t do_self_consistent_reionization(int32_t gal, int32_t halonr, int32_t inc
     *reionization_modifier = 1.0;
     return EXIT_SUCCESS; 
   }
+
+  if (Halo[halonr].SnapNum >= ReionSnap) // We have yet to do reionization for this snapshot.
+  {
+    *reionization_modifier = 1.0; // Reionization hasn't happened yet for this halo.
+    return EXIT_SUCCESS; 
+  } 
   
-  if ((Halo[halonr].SnapNum > ReionSnap) || (ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized == 0)) // We have yet to do reionization for this snapshot or if there are no halos within ionized regions for this snapshot.
+  if (ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized == 0) // There are no halos within ionized regions for this snapshot.
   {
     *reionization_modifier = 1.0; // Reionization hasn't happened yet for this halo.
     return EXIT_SUCCESS; 
   } 
  
-  printf("NHalos_Ionized %d", ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized);
   ReionList->NumLists = ReionSnap; 
 
   treenr = Gal[gal].TreeNr;
