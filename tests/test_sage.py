@@ -76,6 +76,9 @@ def get_trees():
         command = "mv test_RSAGE/* ./"
         subprocess.call(command, shell=True)
 
+        command = "yes | rm -r test_RSAGE"
+        subprocess.call(command, shell=True)
+
         downloaded_repo = True 
 
     else:
@@ -139,7 +142,8 @@ def check_sage_dirs(galaxy_name="test"):
     print("")
 
 
-def run_my_sage(ini_name="test_mini_millennium.ini"):
+def run_my_sage(ini_name="test_mini_millennium.ini",
+                selfcon_flag=0):
     """
     Executes my version of SAGE. 
 
@@ -167,15 +171,11 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     # Use paths relative to the file this script is in.
     path_to_sage = "{0}/../rsage".format(test_dir)
     path_to_sage_ini = "{0}/test_ini_files/{1}_SAGE.ini".format(test_dir, ini_name)
+
     path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_name)
-    path_to_log = "{0}/test_logs/{1}.log".format(test_dir, ini_name)
-
-
     command = "{0} {1} {2}".format(path_to_sage, path_to_sage_ini, path_to_cifog_ini)
 
     returncode = subprocess.call(command, shell=True)
-
-    print("SAGE log file printed to {0}".format(path_to_log))
 
     if returncode != 0:
         print("SAGE exited with error code {0}".format(returncode))
@@ -336,17 +336,23 @@ def test_run():
     #ini_files = ["PhotonPrescription0_mini_millennium.ini",
     #             "PhotonPrescription1_mini_millennium.ini"]
 
-    ini_files = ["self_consistent"]
+    ini_files = ["PhotonPrescription0_mini_millennium",
+                 "self_consistent"]
 
-    galaxy_names = ["self_consistent"]
+    galaxy_names = ["PhotonPrescription0",
+                    "self_consistent"]
+
+    selfconsistent_flag = [0, 1]
 
     AllVars.Set_Params_MiniMill()
     max_snap = len(AllVars.SnapZ) - 1
 
-    for ini_file, galaxy_name in zip(ini_files, galaxy_names):
+    for ini_file, galaxy_name, selfcon_flag in zip(ini_files, 
+                                                   galaxy_names,
+                                                   selfconsistent_flag):
 
         check_sage_dirs(galaxy_name)  # First check that directories for output are present. 
-        run_my_sage(ini_file)  # Run my version of SAGE (not full R-SAGE yet).
+        run_my_sage(ini_file, selfcon_flag)  # Run my version of SAGE. 
 
         print("")
         print("SAGE run, now reading in the Galaxies.")

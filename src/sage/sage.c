@@ -99,8 +99,7 @@ int32_t sage(void)
     }
       
     // Some tree files are padded to three digits whereas some are not (e.g., tree.4 vs tree.004)
-    // Try both styles to see if the tree can be located.  If not, skip this tree.
- 
+    // Try both styles to see if the tree can be located.  If not, skip this tree. 
     status = check_tree_file(filenr, &treestyle);
     if (status != EXIT_SUCCESS) 
     {
@@ -130,22 +129,18 @@ int32_t sage(void)
     {      
 			assert(!gotXCPU);
 
-      if(tree % 1 == 0)
+      if(tree % 10000 == 0)
       {
 #ifdef MPI
         printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
 #else
-				printf("\tfile: %i\ttree: %i of %i\n", filenr, tree, Ntrees);
+				printf("\tfile: %d\ttree: %d of %d\n", filenr, tree, Ntrees);
 #endif
 				fflush(stdout);
       }
 
-      printf("ROEJROJEQ\n");
-      printf("\tfile: %d\ttree: %d of %d\n", filenr, tree, Ntrees);
-      fflush(stdout);
       TreeID = tree;
       load_tree(tree);
-
       gsl_rng_set(random_generator, filenr * 100000 + tree);
       NumGals = 0;
       GalaxyCounter = 0;
@@ -154,45 +149,31 @@ int32_t sage(void)
       for(halonr = 0; halonr < TreeNHalos[tree]; halonr++)
         if(HaloAux[halonr].DoneFlag == 0)	
         construct_galaxies(halonr, tree, filenr);
-   
+
       save_galaxies(filenr, tree);
       save_merged_galaxies(filenr, tree);    
       free_galaxies_and_tree(tree);      
     }
 
-    printf("Finalizing galaxy file\n");
-    fflush(stdout);
-    finalize_galaxy_file(); 
- 
-    printf("Finalizing merged galaxy file\n");
-    fflush(stdout);
+    finalize_galaxy_file();  
     finalize_merged_galaxy_file();
     
-    printf("Freeing table file\n");
-    fflush(stdout);
     free_tree_table();
 
-    printf("\ndone file %d\n\n", filenr);
-    fflush(stdout);
+    printf("\nDone file %d\n\n", filenr);
 
     if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
     {
-      printf("\nfreeing reion_lists %d\n\n", filenr);
-      fflush(stdout);
       status = free_reion_lists(filenr);
       if (status != EXIT_SUCCESS)
       {
         return EXIT_FAILURE;
       }
     }
-  } // filenr loop
-
+  } // Filenr loop
 
   if ((self_consistent == 1) && (ReionizationOn == 3 || ReionizationOn == 4))
   {
-
-    printf("\nSaving selfcon_grid %d\n\n", filenr);
-    fflush(stdout);
     status = save_selfcon_grid();
     if (status != EXIT_SUCCESS)
     {
@@ -200,15 +181,5 @@ int32_t sage(void)
     }
   }
 
-  /*
-  status = final_cleanup(argv);
-  if (status != EXIT_SUCCESS)
-  {
-    return EXIT_FAILURE;
-  }
-  */
-
-  return EXIT_SUCCESS;
-  
+  return EXIT_SUCCESS;  
 }
-

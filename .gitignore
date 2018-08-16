@@ -33,6 +33,8 @@ output/*.e
 # Test directory ignores.
 tests/trees*
 tests/millennium.a_list
+tests/millennium_redshift_file.dat
+tests/snap*
 tests/test_output/galaxies/*
 tests/test_output/grids/*
 tests/*.txt

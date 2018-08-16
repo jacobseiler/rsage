@@ -29,12 +29,6 @@ int32_t read_parameter_file(char *fname)
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
-
-#ifdef MPI
-  if(ThisTask == 0)
-#endif
-    printf("\nreading parameter file:\n\n");
-
   strcpy(tag[nt], "OutputDir");
   addr[nt] = OutputDir;
   id[nt++] = STRING;
@@ -70,10 +64,6 @@ int32_t read_parameter_file(char *fname)
   strcpy(tag[nt], "ReionRedshiftName");
   addr[nt] = ReionRedshiftName; 
   id[nt++] = STRING;
-
-  strcpy(tag[nt], "ReionSnap");
-  addr[nt] = &ReionSnap; 
-  id[nt++] = INT;
 
   strcpy(tag[nt], "FileWithSnapList");
   addr[nt] = FileWithSnapList;
@@ -340,7 +330,6 @@ int32_t read_parameter_file(char *fname)
 #ifdef MPI
         if(ThisTask == 0)
 #endif
-          printf("%35s\t%10s\n", buf1, buf2);
 
         switch (id[j])
         {
@@ -414,12 +403,6 @@ int32_t check_ini_parameters(void)
   if (GridSize > 1024)
   {
     fprintf(stderr, "The grid size cannot be greater than 1024.\n");
-    return EXIT_FAILURE;
-  }
-
-  if ((ReionSnap < LowSnap || ReionSnap > HighSnap) && ReionizationOn == 3)
-  {
-    fprintf(stderr, "The reionization prescription chosen was for the self-consistent run. However the snapshot chosen for the current reionization iteration (snapshot %d) is smaller/larger than the range we are calculating over (LowSnap to SnapHigh, %d to %d).\n", ReionSnap, LowSnap, HighSnap);
     return EXIT_FAILURE;
   }
 

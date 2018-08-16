@@ -279,7 +279,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
   double infallingGas, coolingGas, deltaT, substep_dt, time, galaxyBaryons, currentMvir;
   
   centralgal = Gal[0].CentralGal;
- 
+
   XASSERT(Gal[centralgal].Type == 0 && (Gal[centralgal].HaloNr == halonr), "We require that Gal[centralgal].Type = 0 and Gal[centralgal].HaloNr = halonr.\nWe have Gal[centralgal].Type = %d, Gal[centralgal].HaloNr = %d, halonr = %d, centralgal = %d\n", Gal[centralgal].Type, Gal[centralgal].HaloNr, halonr, centralgal);
   XASSERT(Gal[centralgal].mergeType == 0 || Gal[centralgal].Type == 1, "The central galaxy should not merge within this timestep (mergeType = 0) - if it does it is a satellite galaxy (Type = 1).\n The central galaxy is %d and has mergeType %d with Type %d\n", centralgal, Gal[centralgal].mergeType, Gal[centralgal].Type); 
 

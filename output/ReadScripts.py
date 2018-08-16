@@ -495,11 +495,10 @@ def read_SAGE_ini(fname):
          ('Reionization_zr', np.float64),
          ('EnergySN', np.float64),
          ('RescaleSN', np.float64),
-         ('IMF', np.int32),         
+         ('IMF', np.int32),
          ('PhotoionDir', '<U1024'),
          ('PhotoionName', '<U1024'),
          ('ReionRedshiftName', '<U1024'),
-         ('ReionSnap', np.int32),
          ('PhotonPrescription', np.int32),
          ('TimeResolutionStellar', np.float64),
          ('Verbose', np.int32),
@@ -678,5 +677,5 @@ def read_cifog_ini(fname):
         return cifog_desc, names, headers
 
     except FileNotFoundError:
-        print("Could not file SAGE ini file {0}".format(fname))
+        print("Could not file cifog ini file {0}".format(fname))
  

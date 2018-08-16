@@ -117,7 +117,7 @@ void update_temporal_array(int p, int halonr, int steps_completed)
   }
   Gal[p].Gridfesc[SnapCurr] = fesc_local; 
 
-  if (self_consistent == 1 && SnapCurr == HighSnap && Gal[p].Len > HaloPartCut)
+  if (self_consistent == 1 && SnapCurr == ReionSnap && Gal[p].Len > HaloPartCut)
   {
     status = update_selfcon_grid(&Gal[p], grid_position, SnapCurr);
     if (status != EXIT_SUCCESS)

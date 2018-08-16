@@ -310,7 +310,7 @@ int32_t update_selfcon_grid(struct GALAXY *g, int32_t grid_idx, int32_t snapshot
   
   if (fesc_file == NULL)
   {
-    snprintf(fesc_fname, MAX_STRING_LEN - 1, "%s/properties/%s_misc_properties_%03d_%d", GridOutputDir, FileNameGalaxies, HighSnap, g->FileNr);
+    snprintf(fesc_fname, MAX_STRING_LEN - 1, "%s/properties/%s_misc_properties_%03d_%d", GridOutputDir, FileNameGalaxies, ReionSnap, g->FileNr);
     fesc_file = fopen(fesc_fname, "w");
     if (fesc_file == NULL)
     {
@@ -399,6 +399,8 @@ int32_t save_selfcon_grid(void)
   if (ThisTask == 0)
     free_selfcon_grid(master_grid);    
 #endif
+
+  free_selfcon_grid(SelfConGrid);
 
   if (fesc_file != NULL)
   {
@@ -1066,7 +1068,7 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
 
   }
 
-  snprintf(fname_HI, MAX_STRING_LEN, "%s/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, tag, HighSnap); 
+  snprintf(fname_HI, MAX_STRING_LEN, "%s/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, tag, ReionSnap); 
 
   file_HI = fopen(fname_HI, "wb");
   if (file_HI == NULL)
@@ -1084,7 +1086,7 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
   fclose(file_HI);
 
   printf("Successfully wrote Nion grid to %s\n", fname_HI);
-  printf("The total number of ionizing photons emitted at Snapshot %d was %.4ee50 photons/s\n", HighSnap, grid_towrite->Nion_HI_Total); 
+  printf("The total number of ionizing photons emitted at Snapshot %d was %.4ee50 photons/s\n", ReionSnap, grid_towrite->Nion_HI_Total); 
 
   return EXIT_SUCCESS;
 

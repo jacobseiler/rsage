@@ -26,9 +26,7 @@ void set_units(void);
 
 void sage_init(void)
 {
-  int i;
-
-  printf("Git Version: %s\n", VERSION);
+  int32_t i;
 
   count_gal = 0;  
   random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
@@ -331,14 +329,12 @@ void read_snap_list(void)
 
   sprintf(fname, "%s", FileWithSnapList);
 
-  printf("Reading %s\n", fname);
   if(!(fd = fopen(fname, "r")))
   {
     printf("can't read output list in file '%s'\n", fname);
     ABORT(0);
   }
 
-  printf("Reading %s\n", fname);
   Snaplistlen = 0;
   do
   {
@@ -350,11 +346,6 @@ void read_snap_list(void)
   while(Snaplistlen < MAXSNAPS);
 
   fclose(fd);
-
-#ifdef MPI
-  if(ThisTask == 0)
-#endif
-    printf("found %d defined times in snaplist\n", Snaplistlen);
 }
 
 double time_to_present(double z)

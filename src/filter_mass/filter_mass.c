@@ -24,8 +24,6 @@
 
 // Local Variables //
 
-struct SAGE_PARAMETERS *params;
-int32_t ThisSnap, first_update_flag;
 #ifdef MPI
 int ThisTask, NTask, nodeNameLen;
 char *ThisNode;
@@ -146,7 +144,7 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName,
 
 
       // Now time to go through all the halos in this tree, determine those at the Snapshot specified and the associate reionization modifier (if it's within an ionized cell).
-      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], ThisSnap, first_update_flag, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
+      status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], SnapNum, first_update_flag, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
       if (status != EXIT_SUCCESS)
       {
         return EXIT_FAILURE;
@@ -157,7 +155,7 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName,
         
     printf("For file %d there were %d total halos within ionized regions (out of %d halos in this snapshot, a ratio of %.4f). There were %d total halos with a reionization modifier lower than 1.0 (a ratio of %.4f to the total number of halos in this snapshot). The average ionization modifier for these is %.4f\n", filenr, NHalos_In_Regions, NHalos_ThisSnap, (float)NHalos_In_Regions / (float)NHalos_ThisSnap, NHalos_Ionized, (float)NHalos_Ionized / (float)NHalos_ThisSnap, sum_ReionMod / NHalos_Ionized);
           
-    status = save_arrays(HaloID, ReionMod, params, NHalos_Ionized, filenr, ThisSnap, first_update_flag);
+    status = save_arrays(HaloID, ReionMod, params, NHalos_Ionized, filenr, SnapNum, first_update_flag);
     if (status != EXIT_SUCCESS)
     {
       return EXIT_FAILURE;

@@ -22,7 +22,7 @@ int32_t save_arrays(int64_t *HaloID, float *ReionMod, struct SAGE_PARAMETERS *pa
 
   FILE *outfile;
   char outfile_name[MAXLEN];
-  int32_t tmp_snap, tmp_NHalos, halo_idx, nwritten;
+  int32_t tmp_snap, tmp_NHalos, nwritten;
   
   snprintf(outfile_name, MAXLEN - 1, "%s/reionization_modifiers/%s_treefile_%03d", params->PhotoionDir, params->FileNameGalaxies, filenr);
 
@@ -46,40 +46,39 @@ int32_t save_arrays(int64_t *HaloID, float *ReionMod, struct SAGE_PARAMETERS *pa
   // If this is the first time the code is executed, create a pad for the snapshots below the current one. 
   if (first_update_flag == 1)
   {
+    printf("Creating pad for Snapshots below %d\n", ThisSnap);
     tmp_NHalos = 0;
-    for (halo_idx = 0; halo_idx < ThisSnap; ++halo_idx)
-    {
-      tmp_snap = halo_idx;
-
-      nwritten = fwrite(&tmp_snap, sizeof(int32_t), 1, outfile);
+    for (tmp_snap = 0; tmp_snap < ThisSnap; ++tmp_snap)
+    {      
+      nwritten = fwrite(&tmp_snap, sizeof(tmp_snap), 1, outfile);
       if (nwritten != 1)
       {
-        fprintf(stderr, "Only wrote %d elements for snapshot %d when trying to create the snapshot pad.  Needed to write 1 elements.\n", nwritten, halo_idx);
+        fprintf(stderr, "Only wrote %d elements for snapshot %d when trying to create the snapshot pad.  Needed to write 1 elements.\n", nwritten, tmp_snap);
       }
  
-      nwritten = fwrite(&tmp_NHalos, sizeof(int32_t), 1, outfile);
+      nwritten = fwrite(&tmp_NHalos, sizeof(tmp_NHalos), 1, outfile);
       if (nwritten != 1)
       {
-        fprintf(stderr, "Only wrote %d elements for snapshot %d when trying to create the NHalo pad.  Needed to write 1 elements.\n", nwritten, halo_idx);
+        fprintf(stderr, "Only wrote %d elements for snapshot %d when trying to create the NHalo pad.  Needed to write 1 elements.\n", nwritten, tmp_snap);
       } 
     }
   } 
 
   printf("Writing the snapshot number %d\n", ThisSnap);
-  nwritten = fwrite(&ThisSnap, sizeof(int32_t), 1, outfile); // Write out header info.
+  nwritten = fwrite(&ThisSnap, sizeof(ThisSnap), 1, outfile); // Write out header info.
   if (nwritten != 1)
   {
     fprintf(stderr, "Only wrote %d elements when writing out the current snapshot number.  Needed to write 1 elements.\n", nwritten);
   } 
 
   printf("Writing the number of ionized halos %d\n", NHalos_Ionized);
-  nwritten = fwrite(&NHalos_Ionized, sizeof(int32_t), 1, outfile); 
+  nwritten = fwrite(&NHalos_Ionized, sizeof(NHalos_Ionized), 1, outfile); 
   if (nwritten != 1)
   {
     fprintf(stderr, "Only wrote %d elements when writing out the number of ionized halos.  Needed to write 1 elements.\n", nwritten);
   } 
  
-  nwritten = fwrite(HaloID, sizeof(int64_t), NHalos_Ionized, outfile); // Write out arrays.
+  nwritten = fwrite(HaloID, sizeof(*HaloID), NHalos_Ionized, outfile); // Write out arrays.
   if (nwritten != NHalos_Ionized)
   {
     fprintf(stderr, "Only wrote %d elements when writing out the IDs of the ionized halos.  Needed to write %d elements.\n", nwritten, NHalos_Ionized);

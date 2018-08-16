@@ -295,13 +295,14 @@ int32_t do_self_consistent_reionization(int32_t gal, int32_t halonr, int32_t inc
     *reionization_modifier = 1.0;
     return EXIT_SUCCESS; 
   }
-
+  
   if ((Halo[halonr].SnapNum > ReionSnap) || (ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized == 0)) // We have yet to do reionization for this snapshot or if there are no halos within ionized regions for this snapshot.
   {
     *reionization_modifier = 1.0; // Reionization hasn't happened yet for this halo.
     return EXIT_SUCCESS; 
   } 
-  
+ 
+  printf("NHalos_Ionized %d", ReionList->ReionMod_List[Halo[halonr].SnapNum].NHalos_Ionized);
   ReionList->NumLists = ReionSnap; 
 
   treenr = Gal[gal].TreeNr;
