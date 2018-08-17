@@ -23,6 +23,8 @@ sys.path.append('./output/')
 import ReadScripts
 import AllVars
 
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
 
 def create_directories(run_directory):
     """
@@ -385,34 +387,62 @@ def submit_slurm_jobs(slurm_names):
 
     for slurm_fname in slurm_names:
 
-        command = "sbatch {0}".format(slurm_fname)
-        print(command)
-        #subprocess.call(command, shell=True)
+        command = "sbatch {0}".format(slurm_fname)        
+        subprocess.call(command, shell=True)
          
  
 if __name__ == '__main__':
 
-    fescPrescription = [3, 3, 3]
-    alpha = [0.4, 0.6, 0.8]
-    beta = [0.05, 0.05, 0.05]
-    FileNameGalaxies = ["test_alpha0.4_beta0.05",
-                        "test_alpha0.6_beta0.05",
-                        "test_alpha0.8_beta0.05"] 
+    #########################################################################
+    # Specify here the SAGE parameters that you want to change for each run #
+    #########################################################################
 
-    base_SAGE_ini = "/home/jseiler/tmp/rsage/ini_files/kali_SAGE.ini"
-    base_cifog_ini = "/home/jseiler/tmp/rsage/ini_files/kali_cifog.ini"
-    base_slurm_file = "/home/jseiler/tmp/rsage/run_rsage.slurm"
+    fescPrescription = [0, 5, 6]
+    fesc = [0.3, 0.3, 0.3]
+    MH_low = [1e8, 1e8, 1e8]
+    MH_high = [1e12, 1e12, 1e12]
+    fesc_low = [0.99, 0.99, 0.01]
+    fesc_high = [0.99, 0.05, 0.50]
+    FileNameGalaxies = ["const_0.3",
+                        "MHneg_1e8_1e12_0.99_0.05",
+                        "MHpos_1e8_1e12_0.01_0.50"]
 
-    SAGE_fields_update = {"alpha" : alpha,
-                          "beta" : beta,
-                          "FileNameGalaxies" : FileNameGalaxies}
+    SAGE_fields_update = { "fescPrescription" : fescPrescription, 
+                           "fesc" : fesc,
+                           "MH_low" : MH_low,
+                           "MH_high" : MH_high,
+                           "fesc_low" : fesc_low, 
+                           "fesc_high" : fesc_high,
+                           "FileNameGalaxies" : FileNameGalaxies
+                         }
+
+    ##########################################################################
+    # Specify here the cifog parameters that you want to change for each run #
+    ##########################################################################
 
     cifog_fields_update = {}
 
-    run_directory = np.full(len(FileNameGalaxies),
-                            "/fred/oz004/jseiler/kali/self_consistent_output/new_rsage_test")
+    ################################################
+    # Specify here the path directory for each run #
+    ################################################
 
-    Nproc = 32
+    run_directory = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant",
+                     "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg",
+                     "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos"]
+
+    #########################################################################
+    # Specify here the path to the base ini files (shouldn't need to touch) #  
+    #########################################################################
+
+    base_SAGE_ini = "{0}/ini_files/kali_SAGE.ini".format(script_dir)
+    base_cifog_ini = "{0}/ini_files/kali_cifog.ini".format(script_dir)
+    base_slurm_file = "{0}/run_rsage.slurm".format(script_dir)
+
+    #####################
+    # Misc for each run # 
+    #####################
+    
+    Nproc = 32  # Number of processors to run on.
 
     SAGE_ini_names, cifog_ini_names = make_ini_files(base_SAGE_ini, base_cifog_ini, 
                                                      SAGE_fields_update, cifog_fields_update,
@@ -421,4 +451,8 @@ if __name__ == '__main__':
     slurm_names = make_slurm_files(base_slurm_file, SAGE_ini_names, 
                                     cifog_ini_names, run_directory, Nproc)
 
-    submit_slurm_jobs(slurm_names)
+    ###########################################################################
+    # CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL # 
+    ###########################################################################
+    # This function will submit all the jobs onto the queue.
+    #submit_slurm_jobs(slurm_names)
