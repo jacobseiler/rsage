@@ -14,6 +14,8 @@ module load numpy/1.14.1-python-3.6.4
 module load openmpi/3.0.0
 module load gcc/6.4.0
 
+NUMPROC=32
+
 SAGE_ini="/home/jseiler/tmp/rsage/ini_files/kali_SAGE.ini"
 cifog_ini="/home/jseiler/tmp/rsage/ini_files/kali_cifog.ini"
 
@@ -21,8 +23,6 @@ path_to_exe="/home/jseiler/tmp/rsage/"
 
 run_prefix="test_RSAGE" # Attaches a prefix to the ini and log files to make it easier to discriminate between runs. 
 path_to_log="/home/jseiler/tmp/rsage/logs/${run_prefix}.log"
-
-NUMPROC=32
 
 echo "Running ${path_to_exe}/rsage on ${NUMPROC} processors with SAGE ini file ${SAGE_ini} and cifog ini file ${cifog_ini}"
 
