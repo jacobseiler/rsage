@@ -189,7 +189,7 @@ int main(int argc, char **argv)
   {
     int32_t loop_SnapNum, first_update_flag, count; 
 
-    for (loop_SnapNum = LowSnap, count = 0; loop_SnapNum < HighSnap + 1; ++loop_SnapNum, ++count)
+    for (loop_SnapNum = LowSnap, count = 0; loop_SnapNum < LastSnapShotNr + 1; ++loop_SnapNum, ++count)
     {
       printf("\n\n======================================\n");
       printf("(Rank %d) Applying reionization to Snapshot %d\n", ThisTask, loop_SnapNum); 

@@ -89,8 +89,8 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
     None.
     """
 
-    SAGE_params, SAGE_params_names = ReadScripts.read_SAGE_ini(base_SAGE_ini)
-    cifog_params, cifog_params_names, cifog_headers = ReadScripts.read_cifog_ini(base_cifog_ini)
+    SAGE_params = ReadScripts.read_SAGE_ini(base_SAGE_ini)
+    cifog_params, cifog_headers = ReadScripts.read_cifog_ini(base_cifog_ini)
 
     # These are paths and don't depend on `FileNameGalaxies`. 
     SAGE_params["OutputDir"] = "{0}/galaxies".format(run_directory)
@@ -105,7 +105,7 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
         cifog_params[name] = cifog_fields_update[name] 
 
     # The unique identifier amongst each run will be `FileNameGalaxies`. 
-    prefix_tag = SAGE_params["FileNameGalaxies"][0]
+    prefix_tag = SAGE_params["FileNameGalaxies"]
 
     SAGE_params["PhotoionName"] = "{0}_photHI".format(prefix_tag)
     SAGE_params["ReionRedshiftName"] = "{0}_reionization_redshift" \
@@ -132,16 +132,18 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
                                                        prefix_tag) 
 
     with open (SAGE_fname, "w+") as f:
-        for name in SAGE_params_names:
-            string = "{0} {1}\n".format(name, SAGE_params[name][0])
+        for name in SAGE_params.keys():
+            string = "{0} {1}\n".format(name, SAGE_params[name])
             f.write(string)
 
     with open (cifog_fname, "w+") as f:
-        for name in cifog_params_names:
-            if name in cifog_headers:
-                header_string = "{0}".format(cifog_headers[name])
-                f.write(header_string)
-            string = "{0} = {1}\n".format(name, cifog_params[name][0])
+        for name in cifog_params.keys():
+
+            if name in cifog_headers.keys():
+                string = "{0}\n".format(cifog_headers[name])
+                f.write(string)
+
+            string = "{0} = {1}\n".format(name, cifog_params[name])
             f.write(string)
 
     return SAGE_fname, cifog_fname
@@ -172,9 +174,9 @@ def get_nion_fname(SAGE_params):
     
     if fesc_prescription == 0:
         nion_fname = "{0}_fesc{1:.2f}_HaloPartCut{2}_nionHI" \
-                      .format(SAGE_params["FileNameGalaxies"][0],
-                              SAGE_params["fesc"][0],
-                              SAGE_params["HaloPartCut"][0])
+                      .format(SAGE_params["FileNameGalaxies"],
+                              SAGE_params["fesc"],
+                              SAGE_params["HaloPartCut"])
 
     elif fesc_prescription == 1:
         print("Using fesc_prescription of 1 is deprecated.")
@@ -183,75 +185,36 @@ def get_nion_fname(SAGE_params):
     elif fesc_prescription == 2:
         alpha, beta = determine_fesc_constants(SAGE_params)              
         nion_fname = "{0}_MH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"][0],
-                             SAGE_params["MH_low"][0],
-                             SAGE_params["fesc_low"][0],
-                             SAGE_params["MH_high"][0],
-                             SAGE_params["fesc_high"][0],
-                             SAGE_params["HaloPartCut"][0])
+                     .format(SAGE_params["FileNameGalaxies"],
+                             SAGE_params["MH_low"],
+                             SAGE_params["fesc_low"],
+                             SAGE_params["MH_high"],
+                             SAGE_params["fesc_high"],
+                             SAGE_params["HaloPartCut"])
 
     elif fesc_prescription == 3:
         nion_fname = "{0}_ejected_{1:.3f}_{2:.3f}_HaloPartCut{3}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"][0],
-                             SAGE_params["alpha"][0],
-                             SAGE_params["beta"][0],
-                             SAGE_params["HaloPartCut"][0])
+                     .format(SAGE_params["FileNameGalaxies"],
+                             SAGE_params["alpha"],
+                             SAGE_params["beta"],
+                             SAGE_params["HaloPartCut"])
 
     elif fesc_prescription == 4:
         nion_fname = "{0}_quasar_{1:.2f}_{2:.2f}_{3:.2f}_HaloPartCut{4}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"][0],
-                             SAGE_params["quasar_baseline"][0],
-                             SAGE_params["quasar_boosted"][0],
-                             SAGE_params["N_dyntime"][0],
-                             SAGE_params["HaloPartCut"][0])
+                     .format(SAGE_params["FileNameGalaxies"],
+                             SAGE_params["quasar_baseline"],
+                             SAGE_params["quasar_boosted"],
+                             SAGE_params["N_dyntime"],
+                             SAGE_params["HaloPartCut"])
 
     elif fesc_prescription == 5 or fesc_prescription == 6:
         nion_fname = "{0}_AnneMH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"][0],
-                             SAGE_params["MH_low"][0],
-                             SAGE_params["fesc_low"][0],
-                             SAGE_params["MH_high"][0],
-                             SAGE_params["fesc_high"][0],
-                             SAGE_params["HaloPartCut"][0])
-
-    elif fesc_prescription == 7:
-        nion_fname = "{0}_ejectedpower_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"][0],
-                             SAGE_params["MH_low"][0],
-                             SAGE_params["fesc_low"][0],
-                             SAGE_params["MH_high"][0],
-                             SAGE_params["fesc_high"][0],
-                             SAGE_params["HaloPartCut"][0])
-        
-    elif fesc_prescription == 8:
-        nion_fname = "{0}_mstar_{1:.3e}_{2:.3e}_{3:.2f}_{4:.2f}_HaloPartCut{5}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"][0],
-                             SAGE_params["fesc_Mstar_low"][0],
-                             SAGE_params["fesc_Mstar_high"][0],
-                             SAGE_params["fesc_Mstar"][0],
-                             SAGE_params["fesc_not_Mstar"][0],
-                             SAGE_params["HaloPartCut"][0])
-
-    elif fesc_prescription == 9:
-        nion_fname = "{0}_ejectedSN_{1:.3f}_{2:.3f}_HaloPartCut{3}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"][0],
-                             SAGE_params["alpha"][0],
-                             SAGE_params["beta"][0],
-                             SAGE_params["HaloPartCut"][0])
-
-    elif fesc_prescription == 10:
-        nion_fname = "{0}_ejectedQSO_{1:.3f}_{2:.3f}_HaloPartCut{3}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"][0],
-                             SAGE_params["alpha"][0],
-                             SAGE_params["beta"][0],
-                             SAGE_params["HaloPartCut"][0])
-
-    elif fesc_prescription == 11:
-        nion_fname = "{0}_SFR_{1:.3f}_{2:.3f}_HaloPartCut{3}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"][0],
-                             SAGE_params["alpha"][0],
-                             SAGE_params["beta"][0],
-                             SAGE_params["HaloPartCut"][0])
+                     .format(SAGE_params["FileNameGalaxies"],
+                             SAGE_params["MH_low"],
+                             SAGE_params["fesc_low"],
+                             SAGE_params["MH_high"],
+                             SAGE_params["fesc_high"],
+                             SAGE_params["HaloPartCut"])
 
     else:
         print("Select a valid fescPrescription (0 to 7 inclusive).")
@@ -283,11 +246,11 @@ def determine_fesc_constants(SAGE_params):
     """
 
     # The SAGE ini file specifies two fixed points.
-    fesc_high = SAGE_params["fesc_high"][0]
-    MH_high = SAGE_params["MH_low"][0]
+    fesc_high = SAGE_params["fesc_high"]
+    MH_high = SAGE_params["MH_low"]
 
-    fesc_low = SAGE_params["fesc_low"][0]    
-    MH_low = SAGE_params["MH_high"][0]
+    fesc_low = SAGE_params["fesc_low"]    
+    MH_low = SAGE_params["MH_high"]
 
     # The values for halo mass should be in non-log units. Do a quick check.
     if (MH_high < 1e6 or MH_low < 1e6):
@@ -347,8 +310,8 @@ def make_slurm_files(base_slurm_file, SAGE_ini_names, cifog_ini_names,
 
     for run_number in range(len(SAGE_ini_names)):
         
-        SAGE_params, SAGE_params_names = ReadScripts.read_SAGE_ini(SAGE_ini_names[run_number])
-        run_name = SAGE_params["FileNameGalaxies"][0]
+        SAGE_params = ReadScripts.read_SAGE_ini(SAGE_ini_names[run_number])
+        run_name = SAGE_params["FileNameGalaxies"]
 
         slurm_fname = "{0}/slurm_files/{1}.slurm".format(run_directory[run_number],
                                                          run_name) 
@@ -448,8 +411,8 @@ if __name__ == '__main__':
                                                      SAGE_fields_update, cifog_fields_update,
                                                      run_directory)
 
-    slurm_names = make_slurm_files(base_slurm_file, SAGE_ini_names, 
-                                    cifog_ini_names, run_directory, Nproc)
+    #slurm_names = make_slurm_files(base_slurm_file, SAGE_ini_names, 
+    #                                cifog_ini_names, run_directory, Nproc)
 
     ###########################################################################
     # CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL # 
