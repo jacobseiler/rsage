@@ -20,9 +20,11 @@ ifeq ($(TRAVIS), true)
 endif
 
 # Set this to true if you want to run in MPI.
-USE-MPI = true
+#USE-MPI = true
+ifeq ($(ON_CI), true) #  Don't build with MPI if we're on a continuous integration service. 
+    USE-MPI = false
+
 ifeq ($(USE-MPI), true)
-ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service. 
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
 endif
