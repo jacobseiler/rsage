@@ -2267,11 +2267,11 @@ if __name__ == '__main__':
 
     ###########################   
        
-    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.20}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{SFR}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$"]
+    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30 \: New}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: New}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: Old}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1} \: New}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H} \: New}$"]
 
     output_tags = [r"Base Reion On"]
 
@@ -2284,23 +2284,27 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'shifted'
+    model = 'new'
 
     GridSize_model1 = 256
         
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
    
-    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_XHII"
-    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.4_beta0.0_XHII"
-    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.1_XHII"
-    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_XHII"
-    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/cifog/shifted_MHpos_1e8_1e12_0.01_0.50_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/cifog/const_0.3_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/new_rsage/grids/cifog/new_rsage_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej_correct/grids/cifog/shifted_fej_alpha0.6_beta0.05_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/cifog/MHneg_1e8_1e12_0.99_0.05_XHII"
+    #filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.1_XHII"
+    #filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/cifog/MHpos_1e8_1e12_0.01_0.50_XHII"
 
-    filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/nion/new_constant_fesc0.2_fesc0.20_HaloPartCut32_nionHI"
-    filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/nion/shifted_fej_alpha0.4_beta0.0_ejected_0.400_0.000_HaloPartCut32_nionHI"
-    filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/nion/shifted_SFR_alpha0.4_beta0.0_SFR_0.400_0.000_HaloPartCut32_nionHI"
-    filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/nion/shifted_MHneg_1e8_1e12_0.99_0.05_AnneMH_1.000e+08_0.99_1.000e+12_0.05_HaloPartCut32_nionHI"
-    filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/nion/shifted_MHpos_1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI"
+    filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/nion/const_0.3_fesc0.30_HaloPartCut32_nionHI"
+    filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/new_rsage/grids/nion/new_rsage_ejected_0.600_0.050_HaloPartCut32_nionHI"
+    filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej_correct/grids/nion/shifted_fej_alpha0.6_beta0.05_ejected_0.600_0.050_HaloPartCut32_nionHI"
+    filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/nion/MHneg_1e8_1e12_0.99_0.05_AnneMH_1.000e+08_0.99_1.000e+12_0.05_HaloPartCut32_nionHI"
+    #filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/nion/shifted_SFR_alpha0.4_beta0.0_SFR_0.400_0.000_HaloPartCut32_nionHI"
+    #filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/nion/shifted_MHneg_1e8_1e12_0.99_0.05_AnneMH_1.000e+08_0.99_1.000e+12_0.05_HaloPartCut32_nionHI"
+    filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/nion/MHpos_1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI"
  
     filepath_phot_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI"
     

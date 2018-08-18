@@ -154,6 +154,7 @@ void strip_from_satellite(int halonr, int centralgal, int gal, int32_t step)
     printf("%d\n",Gal[gal].IsMerged);
   }
   */
+
   Gal[gal].GridReionMod[Halo[Gal[gal].HaloNr].SnapNum] = reionization_modifier;
   //strippedGas = -1.0 *
     //(reionization_modifier * BaryonFrac * Gal[gal].Mvir - (Gal[gal].StellarMass + Gal[gal].ColdGas + Gal[gal].HotGas + Gal[gal].EjectedMass + Gal[gal].BlackHoleMass + Gal[gal].ICS) ) / STEPS;

@@ -17,7 +17,7 @@ import misc_func as misc
 from scipy import stats
 
 label_size = 20
-output_format = ".pdf"
+output_format = ".png"
 
 def T_naught(z, h, OM, OB):
     """
@@ -344,7 +344,7 @@ def plot_power(HI_fraction_target, k, P21, P21_Error, model_tags,
                 P21[w],
                 color = "r", 
                 ls = "-", 
-                lw = 2, rasterized=True, label = "r")
+                lw = 2, rasterized=True, label = model_tags) 
     else:
         for model_number in range(len(k)):
             for fraction in range(len(k[model_number])):
@@ -429,8 +429,9 @@ if __name__ == '__main__':
     PlotScripts.Set_Params_Plot()
 
     filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_XHII"
-    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.4_beta0.0_XHII"
-    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.0_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.6_beta0.05_XHII"
+    #filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.0_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej_correct/grids/cifog/shifted_fej_alpha0.6_beta0.05_XHII"    
     filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_XHII"
     filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/cifog/shifted_MHpos_1e8_1e12_0.01_0.50_XHII"
 
@@ -451,10 +452,11 @@ if __name__ == '__main__':
     GridSize = [256, 256, 256, 256, 256]
 
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]               
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: Correct}$",
+                  #r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$"]
 
     SnapList = [np.arange(28, 98),
                 np.arange(28, 98),
@@ -462,10 +464,9 @@ if __name__ == '__main__':
                 np.arange(28, 98),
                 np.arange(28, 98)]
 
-
     SnapList = [[22, 30, 39, 47, 54],
-                [18, 25, 34, 42, 48],
-                [26, 34, 43, 52, 60],
+                [14, 20, 27, 33, 38],
+                [14, 20, 28, 35, 40], 
                 [16, 22, 30, 38, 44],
                 [21, 28, 35, 43, 48]]
 
@@ -475,13 +476,13 @@ if __name__ == '__main__':
 
     HI_fraction_target = [0.90, 0.75, 0.50, 0.25, 0.10] 
 
-    #misc.determine_close_idx(fname_ionized, fname_density, SnapList, GridSize,
-    #                         precision, HI_fraction_target, model_tags)
-
+    #SnapList = misc.determine_close_idx(fname_ionized, fname_density, SnapList, 
+    #                                    GridSize, precision, HI_fraction_target,
+    #                                    model_tags)
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're always using
                                       #  Kali.
 
-    OutputDir = "./21cm_plots/shifted"
+    OutputDir = "./21cm_plots/shifted_with_reionization"
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 
@@ -534,8 +535,10 @@ if __name__ == '__main__':
                 plot_power(HI_frac, tmp_k, 
                            T0*T0*tmp_PowSpec*tmp_k**3*2.0*np.pi, 
                            tmp_Error, 
-                           model_tags, OutputDir, 0, output_tag, 0)
+                           model_tags[model_number], OutputDir, 0, output_tag, 0)
 
+    if plot_all == 1:
+        exit()
     plot_power(HI_fraction_target, k, P21, 
                P21_Error, model_tags, OutputDir, 0, "5_panel", 1) 
 

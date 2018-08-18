@@ -75,13 +75,18 @@ def determine_close_idx(fname_HII, fname_density, SnapList, GridSize,
             HI_frac = calculate_HI_frac(HII, density)
             XHII_fraction[model_number][snapnum] = HI_frac
 
+    SnapList = []
     for model_number in range(len(fname_HII)):
+        SnapList.append([])
         print("Model {0}".format(model_tags[model_number])) 
         for val in target_XHI_fraction: 
             idx = (np.abs(XHII_fraction[model_number] - val)).argmin()
             print("HI Fract {0}: Nearest Idx {1} with value {2}".format(val, 
                                                                         idx, 
                                                                         XHII_fraction[model_number][idx]))
+            SnapList[model_number].append(idx)
+
+    return SnapList 
 
 
 def determine_MH_fesc_constants(low_MH, low_fesc, high_MH, high_fesc):

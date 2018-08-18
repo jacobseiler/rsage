@@ -122,7 +122,7 @@ int32_t init_reion_lists(int32_t filenr)
     fread(&SnapNum_Read, sizeof(int32_t), 1, ListFile);
 
     fread(&ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(int32_t), 1, ListFile);
-    //printf("Snapshot %d has %d Halos in the list.\n", SnapNum_Read, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
+    printf("Snapshot %d has %d Halos in the list.\n", SnapNum_Read, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
 
     if (SnapNum_Read != SnapNum)
     { 
@@ -428,12 +428,13 @@ double search_for_modifier(int64_t match_HaloID, int32_t SnapNum, int32_t increm
 
   if (is_found == 1)
   {
+    reionization_modifier = ReionList->ReionMod_List[SnapNum].ReionMod[search_idx];
     *found_idx = search_idx;
     if (increment_counter == 1) // Only want to increment our counters once as for satellite galaxies with a subhalo, strip_from_satellite is called multiple times. 
     {
       ++ReionList->ReionMod_List[SnapNum].NHalos_Found;
 #ifdef DEBUG_SELFCON
-      printf("Filenr %d: Found unique HaloID %ld at index %ld with modifier %.4f\n", filenr, match_HaloID, *found_idx, reionization_modifier);
+      printf("Found unique HaloID %ld at index %ld\n", match_HaloID, *found_idx);
 #endif 
     }
   }

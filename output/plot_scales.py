@@ -426,86 +426,48 @@ if __name__ == '__main__':
     PlotScripts.Set_Params_Plot()
     AllVars.Set_Constants()
 
-    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/newphoton_SF0.03_XHII"
-    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_XHII"
-    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_XHII"
-    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_XHII"
-    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.4_beta0.0_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.0_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/cifog/shifted_MHpos_1e8_1e12_0.01_0.50_XHII"
 
-    filepath_model6="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.30_XHII"
-    filepath_model7="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_XHII"
-
-
-    fname_ionized_base="/fred/oz004/jseiler/kali/self_consistent_output/new_fej/grids/cifog/fej"
-
-    beta = 0.05
-    alpha = [0.0, 0.2, 0.4, 0.6, 0.8] 
-
-    fname_ionized = []
-    fname_density = []
-    model_tags = []
-    precision = []
-    GridSize = []
-    SnapList = []
-    
-    endsnap = 98 
-
-    for alpha_val in alpha:
-        fname="{0}_alpha{1}_beta{2}_XHII".format(fname_ionized_base,
-                                                 alpha_val, beta)
-        fname_ionized.append(fname)
-
-        fname_density.append("/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap")
-
-        tag=r"$\mathbf{\alpha = " + str(alpha_val) + r" \beta = " + str(beta) + r"}$"
-        model_tags.append(tag)
-
-        precision.append(2)
-        GridSize.append(256)
-
-        SnapList.append(np.arange(28, endsnap))
-
-    '''
     fname_ionized=[filepath_model1,
-                   filepath_model6,
                    filepath_model2,
                    filepath_model3,
                    filepath_model4,
-                   filepath_model7]
+                   filepath_model5]
 
     fname_density=["/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
-                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"]
-    precision = [2, 2, 2, 2, 2, 2]
 
-    GridSize = [256, 256, 256, 256, 256, 256]
+    precision = [2, 2, 2, 2, 2]
 
-    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
-                  #r"$\mathbf{f_\mathrm{esc} = 0.30}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
+    GridSize = [256, 256, 256, 256, 256]
+
+    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.20}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
-                  #"photHI2"] 
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$"]
 
     endsnap = 98 
     SnapList = [np.arange(28, endsnap), np.arange(28, endsnap), 
                 np.arange(28, endsnap), np.arange(28, endsnap), 
-                np.arange(28, endsnap), np.arange(28, endsnap)]
-    '''
+                np.arange(28, endsnap)]
+
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're always using
                                       #  Kali.
 
-    OutputDir = "./21cm_plots/new_fej"
+    OutputDir = "./21cm_plots/shifted"
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 
-    save_tag = "diffalpha"
+    save_tag = "shifted"
     target_HI_fraction = [0.90, 0.75, 0.50, 0.25, 0.10]
-
 
     #misc.determine_close_idx(fname_ionized, fname_density, SnapList, GridSize,
     #                         precision, target_HI_fraction, model_tags) 
