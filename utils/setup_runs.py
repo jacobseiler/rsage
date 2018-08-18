@@ -1,13 +1,13 @@
 """
-Creates directories and updates ini files with the correct file names.
+Creates directories and ``.ini`` files for ``RSAGE`` runs. By specifying lists of
+variables in ``SAGE_fields_update`` and ``cifog_fields_update``, you are able
+to create a unique combination of variables to update for each run. 
 
-The user specifies the base output directory and the .ini files for SAGE and
-cifog.
+The script also gives the option of making ``slurm`` files with the paths
+correctly specified and also submit them (**BE CAREFUL WHEN SUBMITTING**).
 
-The script then creates directories such as '<BaseDir>/galaxies'.  It then
-reads the escape fraction prescription and constants, and determines what the
-eventual name for the output nion files will be. Finally it updates the .ini
-files with these nion filepaths.
+All ``.ini`` and ``slurm`` files are created using template files.  Examples
+files are included in the base repo.
 """
 
 #!/usr/bin/env python
@@ -75,18 +75,26 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
                      SAGE_fields_update, cifog_fields_update,
                      run_directory):
     """
-    Rewrites the ini files to point to the correct output files.  
+    Using template ini files for ``SAGE`` and ``cifog``, creates new ones with 
+    the directory paths and field names updated. 
 
     Parameters
     ----------
 
-    args: Dictionary.  Required.
-        Dictionary containing the input parameters specified at runtime.
-    
+    base_SAGE_ini, base_cifog_ini : Strings
+        Paths to the template SAGE and cifog ini files.
+
+    SAGE_fields_update, cifog_fields_update : Dictionaries
+        Fields that will be updated and their new value.
+
+    run_directory : String
+        Path to the base ``RSAGE`` directory.
+
     Returns
     ----------
 
-    None.
+    SAGE_fname, cifog_fname : Strings
+        Names of the newly created ``SAGE`` and ``cifog`` ini files.
     """
 
     SAGE_params = ReadScripts.read_SAGE_ini(base_SAGE_ini)
@@ -107,10 +115,13 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
     # The unique identifier amongst each run will be `FileNameGalaxies`. 
     prefix_tag = SAGE_params["FileNameGalaxies"]
 
+    # Now update all the fields for this specific run.
     SAGE_params["PhotoionName"] = "{0}_photHI".format(prefix_tag)
     SAGE_params["ReionRedshiftName"] = "{0}_reionization_redshift" \
                                        .format(prefix_tag)
 
+    # The name for the ionizing photon file depends upon the escape fraction
+    # prescription chosen.
     nion_fname = get_nion_fname(SAGE_params) 
     cifog_params["inputNionFile"] = "{0}/grids/nion/{1}" \
                                     .format(run_directory, nion_fname)
@@ -151,23 +162,20 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
 
 def get_nion_fname(SAGE_params):
     """
-    Using the fescPrescription specified in the SAGE.ini file, determines the
-    name of the output nion files. 
-
-    NOTE: fescPrescription == 1 is deprecated and is not allowed. If the .ini
-    file uses this fescPrescription a ValueError will be raised.
+    Using the ``fescPrescription`` specified in the ``SAGE.ini`` file,
+    determines the name of the output ionizing photon file. 
 
     Parameters
     ----------
 
-    SAGE_params: Dictionary.  Required.
-        Dictionary containing the SAGE .ini file parameters. 
+    SAGE_params: Dictionary
+        Dictionary containing the ``SAGE.ini`` file parameters. 
     
     Returns
     ----------
 
-    nion_fname: String. Required.
-        Base name of the eventual output nion files. 
+    nion_fname: String
+        Tag for the ionizing photon files that ``SAGE`` creates. 
     """
 
     fesc_prescription = SAGE_params["fescPrescription"]
@@ -209,67 +217,43 @@ def get_nion_fname(SAGE_params):
     return nion_fname
 
 
-def determine_fesc_constants(SAGE_params):
+def make_ini_files(base_SAGE_ini, base_cifog_ini, 
+                   SAGE_fields_update, cifog_fields_update,
+                   run_directories):
     """
-    If the fescPrescription depends on Halo mass, the functional form is fesc =
-    alpha*MH^(beta).  This function determines the values of alpha and beta
-    depending upon the fixed points specified in the SAGE parameter file.
-
-    If the fixed points have had their halo mass specified in log units a
-    ValueError will be raised.
+    Makes new ``SAGE`` and ``cifog`` ``.ini`` files for each run. 
 
     Parameters
     ----------
 
-    SAGE_params: Dictionary.  Required.
-        Dictionary containing the SAGE .ini file parameters. 
-    
+    base_SAGE_ini, base_cifog_ini : String
+        Paths to the template ``SAGE`` and ``cifog`` ``.ini`` files.
+
+    SAGE_fields_update, cifog_fields_update : Dictionaries of lists
+        The ``SAGE`` and ``cifog`` parameter fields that will be updated for
+        each run.  The values for each parameter field key are length Nx1 where
+        N is the number of runs. 
+        
+    run_directories : List of strings, length equal to number of runs 
+        Path to the base ``RSAGE`` directory for each run where all the model
+        output will be placed.
+ 
     Returns
     ----------
 
-    alpha, beta: Floats. Required.
-        Constants for fesc equation. 
+    SAGE_ini_names, cifog_ini_names : List of strings, length equal to number
+                                      of runs
+        Paths to the ini file created for each run.
     """
-
-    # The SAGE ini file specifies two fixed points.
-    fesc_high = SAGE_params["fesc_high"]
-    MH_high = SAGE_params["MH_low"]
-
-    fesc_low = SAGE_params["fesc_low"]    
-    MH_low = SAGE_params["MH_high"]
-
-    # The values for halo mass should be in non-log units. Do a quick check.
-    if (MH_high < 1e6 or MH_low < 1e6):
-        print("If using fescPrescription == 2 (fesc depends on halo mass) the "
-              "fixed points need to have their halo mass specified in Msun, NOT "
-              "LOG MSUN.")
-        raise ValueError 
-    
-
-    log_A = (np.log10(fesc_high) - np.log10(fesc_low)*np.log10(MH_high) / np.log10(MH_low)) \
-            * pow(1 - np.log10(MH_high) / np.log10(MH_low), -1)
-
-    B = (np.log10(fesc_low) - log_A) / np.log10(MH_low);
-    A = pow(10, log_A);
-
-    alpha = A;
-    beta = B;
-
-    return alpha, beta
-
-
-def make_ini_files(base_SAGE_ini, base_cifog_ini, 
-                   SAGE_fields_update, cifog_fields_update,
-                   run_directory):
 
     SAGE_ini_names = []
     cifog_ini_names = []
 
     # Now for each run, create a unique dictionary containing the fields for 
     # this run, update the ini files then create all the output directories. 
-    for run_number in range(len(run_directory)):
+    for run_number in range(len(run_directories)):
 
-        create_directories(run_directory[run_number])
+        create_directories(run_directories[run_number])
 
         thisrun_SAGE_update = {}
         for name in SAGE_fields_update.keys():
@@ -281,7 +265,7 @@ def make_ini_files(base_SAGE_ini, base_cifog_ini,
 
         SAGE_fname, cifog_fname = update_ini_files(base_SAGE_ini, base_cifog_ini,
                                                    thisrun_SAGE_update, thisrun_cifog_update,
-                                                   run_directory[run_number])        
+                                                   run_directories[run_number])        
 
         SAGE_ini_names.append(SAGE_fname)
         cifog_ini_names.append(cifog_fname)
@@ -290,8 +274,34 @@ def make_ini_files(base_SAGE_ini, base_cifog_ini,
 
 
 def make_slurm_files(base_slurm_file, SAGE_ini_names, cifog_ini_names, 
-                     run_directory, Nproc): 
+                     run_directories, Nproc): 
+    """
+    Makes ``slurm`` files for each run. 
 
+    Parameters
+    ----------
+
+    base_slurm_file : String
+        Path to the template slurm file.
+
+    SAGE_ini_names, cifog_ini_names : List of strings, length equal to number
+                                      of runs
+        Paths to the ini file created for each run.
+
+    run_directories : List of strings, length equal to number of runs 
+        Path to the base ``RSAGE`` directory for each run where all the model
+        output will be placed.
+
+    Nproc : Integer
+        Number of processors that each run will be executed with.
+ 
+    Returns
+    ----------
+
+    slurm_names : List of strings, length equal to number
+                                      of runs
+        Paths to the ``slurm`` file created for each run.
+    """
     slurm_names = []
 
     for run_number in range(len(SAGE_ini_names)):
@@ -299,22 +309,22 @@ def make_slurm_files(base_slurm_file, SAGE_ini_names, cifog_ini_names,
         SAGE_params = ReadScripts.read_SAGE_ini(SAGE_ini_names[run_number])
         run_name = SAGE_params["FileNameGalaxies"]
 
-        slurm_fname = "{0}/slurm_files/{1}.slurm".format(run_directory[run_number],
+        slurm_fname = "{0}/slurm_files/{1}.slurm".format(run_directories[run_number],
                                                          run_name) 
 
         tmp_slurm_fname = "{0}.tmp".format(base_slurm_file)
         copyfile(base_slurm_file, tmp_slurm_fname)
 
-        # Now want to replace lines in the slurm file. Set up the strings. 
+        # Want to replace lines in the slurm file. Set up the strings. 
         job_name = "#SBATCH --job-name={0}".format(run_name) 
         ntask = "#SBATCH --ntasks={0}".format(Nproc)
         NUMPROC = "NUMPROC={0}".format(Nproc)
         SAGE_ini = 'SAGE_ini="{0}"'.format(SAGE_ini_names[run_number])
         cifog_ini = 'cifog_ini="{0}"'.format(cifog_ini_names[run_number])
         run_prefix = 'run_prefix="{0}"'.format(run_name) 
-        path_to_log = 'path_to_log="{0}/log_files/{1}.log"'.format(run_directory[run_number], run_name)
+        path_to_log = 'path_to_log="{0}/log_files/{1}.log"'.format(run_directories[run_number], run_name)
 
-        # Now replace strings.
+        # Replace strings at specific line numbers.
         line_numbers = [2, 4, 17, 19, 20, 24, 25]  
         string_names = [job_name, ntask, NUMPROC, SAGE_ini, cifog_ini, 
                         run_prefix, path_to_log]
@@ -323,6 +333,7 @@ def make_slurm_files(base_slurm_file, SAGE_ini_names, cifog_ini_names,
                                                           tmp_slurm_fname)
             subprocess.call(command, shell=True)
 
+        # Finally move the temporary file to the final location.
         command = "mv {0} {1}".format(tmp_slurm_fname, slurm_fname)
         subprocess.call(command, shell=True)
         print("Created {0}".format(slurm_fname))
@@ -333,6 +344,21 @@ def make_slurm_files(base_slurm_file, SAGE_ini_names, cifog_ini_names,
 
 
 def submit_slurm_jobs(slurm_names):
+    """
+    Submits the ``slurm`` jobs for each run. 
+
+    Parameters
+    ----------
+
+    slurm_names : List of strings, length equal to number
+                                      of runs
+        Paths to the ``slurm`` file created for each run.
+ 
+    Returns
+    ----------
+
+    None.
+    """
 
     for slurm_fname in slurm_names:
 
@@ -375,7 +401,7 @@ if __name__ == '__main__':
     # Specify here the path directory for each run #
     ################################################
 
-    run_directory = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant",
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant",
                      "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg",
                      "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos"]
 
@@ -393,12 +419,14 @@ if __name__ == '__main__':
     
     Nproc = 32  # Number of processors to run on.
 
+    #
+
     SAGE_ini_names, cifog_ini_names = make_ini_files(base_SAGE_ini, base_cifog_ini, 
                                                      SAGE_fields_update, cifog_fields_update,
-                                                     run_directory)
+                                                     run_directories)
 
     slurm_names = make_slurm_files(base_slurm_file, SAGE_ini_names, 
-                                   cifog_ini_names, run_directory, Nproc)
+                                   cifog_ini_names, run_directories, Nproc)
 
     ###########################################################################
     # CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL # 
