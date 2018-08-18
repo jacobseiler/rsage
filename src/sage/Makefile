@@ -28,7 +28,7 @@ INCL   =	core_allvars.h core_proto.h  core_simulation.h \
 			./Makefile
 
 UNAME := $(shell uname)
-ifdef USE-MPI
+ifeq ($(USE-MPI), true)
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC := mpicc  # sets the C-compiler
 else

@@ -19,8 +19,9 @@ ifeq ($(TRAVIS), true)
     ON_CI := true
 endif
 
-USE-MPI = yes # Set this if you want to run in MPI. 
-ifdef USE-MPI
+# Set this to true if you want to run in MPI.
+USE-MPI = true
+ifeq ($(USE-MPI), true)
 ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service. 
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
