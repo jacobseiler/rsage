@@ -115,11 +115,6 @@ double quasar_baseline;
 double quasar_boosted;
 double N_dyntime;
 
-double fesc_Mstar_low;
-double fesc_Mstar_high;
-double fesc_Mstar;
-double fesc_not_Mstar;
-
 int HaloPartCut;
 
 // more misc 

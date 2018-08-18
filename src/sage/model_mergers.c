@@ -168,7 +168,7 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
         Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject all of the cold gas and 50% of the hot gas. 
         Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
 
-        if (fescPrescription == 4 && Gal[gal].LenMergerGal[Halo[Gal[gal].HaloNr].SnapNum] > HaloPartCut)
+        if (fescPrescription == 2 && Gal[gal].LenMergerGal[Halo[Gal[gal].HaloNr].SnapNum] > HaloPartCut)
         {
           Gal[gal].QuasarActivityToggle += 1; // We do +1 to account for the case in which a quasar goes off while fesc is still boosted.
           Gal[gal].TargetQuasarTime = Gal[gal].Rvir / Gal[gal].Vvir * N_dyntime; // This will be the time the fesc boost lasts for.
@@ -236,7 +236,7 @@ void quasar_mode_wind(int gal, float BHaccrete, int32_t step)
       Gal[gal].QuasarActivity[Halo[Gal[gal].HaloNr].SnapNum] = 1; // Record that there was enough energy to eject cold+hot gas.
       Gal[gal].QuasarSubstep[Halo[Gal[gal].HaloNr].SnapNum] = step; // Record at which substep the activity happened. 
 
-      if (fescPrescription == 4 && Gal[gal].LenMergerGal[Halo[Gal[gal].HaloNr].SnapNum] > HaloPartCut)
+      if (fescPrescription == 2 && Gal[gal].LenMergerGal[Halo[Gal[gal].HaloNr].SnapNum] > HaloPartCut)
       {
         Gal[gal].QuasarActivityToggle += 1; // We do +1 to account for the case in which a quasar goes off while fesc is still boosted.
         Gal[gal].TargetQuasarTime = Gal[gal].Rvir / Gal[gal].Vvir * N_dyntime; // This will be the time the fesc boost lasts for.
@@ -429,7 +429,7 @@ void add_galaxy_to_merger_list(int p)
 
   ++mergedgal_mallocs;
 
-  if (fescPrescription == 4)
+  if (fescPrescription == 2)
   {
     MergedGal[MergedNr].QuasarFractionalPhotons = 0.0;
     Gal[p].QuasarFractionalPhotons = 0.0;

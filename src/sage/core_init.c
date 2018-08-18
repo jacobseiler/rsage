@@ -62,7 +62,7 @@ void sage_init(void)
   count_Mvir = 0;
   count_Len = 0;
 
-  if (IMF == 1)
+  if (IMF == 0)
   {
     // Salpeter IMF //
     IMF_norm =0.1706;
@@ -70,7 +70,7 @@ void sage_init(void)
     Eta_SNII = 7.432e-3; //Number fraction of stars that will end their lives as type II supernovae.
     m_SNII = 0.144; // Mass fraction of stars that will end their lives as type II supernovae.
 
-  } else if (IMF == 2)
+  } else if (IMF == 1)
   {
     // Chabrier IMF //
     IMF_norm = 0.23638; 

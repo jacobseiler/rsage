@@ -298,7 +298,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
     // If we're using the Quasar fescPrescription, then quasars can go off in the middle of a snapshot.
     // In this case the fesc is boosted for the rest of the snapshot.  However after that snapshot, we want to put the boost to the full value.
     // For galaxies that had a quasar in a previous snapshot, their boost value will be fractional. 
-    if (fescPrescription == 4)
+    if (fescPrescription == 2)
     {
       if (Gal[p].QuasarActivityToggle > 0 && Gal[p].QuasarFractionalPhotons < 1.0)
       {
@@ -332,7 +332,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
         Gal[p].dT = deltaT;
 
       // If we're doing the quasar boosted fescPrescription, update the tracking.
-      if (fescPrescription == 4)
+      if (fescPrescription == 2)
       {
         update_quasar_tracking(p, step, substep_dt);
       } 

@@ -31,6 +31,10 @@ int32_t read_parameter_file(char *fname)
 
   printf("Reading from %s\n", fname);
 
+  strcpy(tag[nt], "FileNameGalaxies");
+  addr[nt] = FileNameGalaxies;
+  id[nt++] = STRING;
+
   strcpy(tag[nt], "OutputDir");
   addr[nt] = OutputDir;
   id[nt++] = STRING;
@@ -39,9 +43,13 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = GridOutputDir;
   id[nt++] = STRING;
 
-  strcpy(tag[nt], "FileNameGalaxies");
-  addr[nt] = FileNameGalaxies;
-  id[nt++] = STRING;
+  strcpy(tag[nt], "FirstFile");
+  addr[nt] = &FirstFile;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "LastFile");
+  addr[nt] = &LastFile;
+  id[nt++] = INT;
 
   strcpy(tag[nt], "TreeName");
   addr[nt] = TreeName;
@@ -55,18 +63,6 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = SimulationDir;
   id[nt++] = STRING;
 
-  strcpy(tag[nt], "PhotoionDir");
-  addr[nt] = PhotoionDir;
-  id[nt++] = STRING;
-
-  strcpy(tag[nt], "PhotoionName");
-  addr[nt] = PhotoionName;
-  id[nt++] = STRING;
-
-  strcpy(tag[nt], "ReionRedshiftName");
-  addr[nt] = ReionRedshiftName; 
-  id[nt++] = STRING;
-
   strcpy(tag[nt], "FileWithSnapList");
   addr[nt] = FileWithSnapList;
   id[nt++] = STRING;
@@ -75,24 +71,28 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &LastSnapShotNr;
   id[nt++] = INT;
 
-  strcpy(tag[nt], "FirstFile");
-  addr[nt] = &FirstFile;
-  id[nt++] = INT;
-
-  strcpy(tag[nt], "LastFile");
-  addr[nt] = &LastFile;
-  id[nt++] = INT;
-
-  strcpy(tag[nt], "ThreshMajorMerger");
-  addr[nt] = &ThreshMajorMerger;
+  strcpy(tag[nt], "Omega");
+  addr[nt] = &Omega;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "RecycleFraction");
-  addr[nt] = &RecycleFraction;
+  strcpy(tag[nt], "OmegaLambda");
+  addr[nt] = &OmegaLambda;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "ReIncorporationFactor");
-  addr[nt] = &ReIncorporationFactor;
+  strcpy(tag[nt], "BaryonFrac");
+  addr[nt] = &BaryonFrac;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "Hubble_h");
+  addr[nt] = &Hubble_h;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "PartMass");
+  addr[nt] = &PartMass;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "BoxSize");
+  addr[nt] = &BoxSize;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "UnitVelocity_in_cm_per_s");
@@ -107,9 +107,9 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &UnitMass_in_g;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "Hubble_h");
-  addr[nt] = &Hubble_h;
-  id[nt++] = DOUBLE;
+  strcpy(tag[nt], "self_consistent");
+  addr[nt] = &self_consistent;
+  id[nt++] = INT;
 
   strcpy(tag[nt], "ReionizationOn");
   addr[nt] = &ReionizationOn;
@@ -135,38 +135,6 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &QuasarRecipeOn;
   id[nt++] = INT;
 
-  strcpy(tag[nt], "BaryonFrac");
-  addr[nt] = &BaryonFrac;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "Omega");
-  addr[nt] = &Omega;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "OmegaLambda");
-  addr[nt] = &OmegaLambda;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "PartMass");
-  addr[nt] = &PartMass;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "BoxSize");
-  addr[nt] = &BoxSize;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "GridSize");
-  addr[nt] = &GridSize;
-  id[nt++] = INT;
-
-  strcpy(tag[nt], "self_consistent");
-  addr[nt] = &self_consistent;
-  id[nt++] = INT;
-
-  strcpy(tag[nt], "EnergySN");
-  addr[nt] = &EnergySN;
-  id[nt++] = DOUBLE;
-
   strcpy(tag[nt], "IRA");
   addr[nt] = &IRA;
   id[nt++] = INT;
@@ -175,17 +143,13 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &TimeResolutionSN;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "RescaleSN");
+  addr[nt] = &RescaleSN;
+  id[nt++] = INT;
+
   strcpy(tag[nt], "IMF");
   addr[nt] = &IMF;
   id[nt++] = INT;
-
-  strcpy(tag[nt], "Yield");
-  addr[nt] = &Yield;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "FracZleaveDisk");
-  addr[nt] = &FracZleaveDisk;
-  id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "SfrEfficiency");
   addr[nt] = &SfrEfficiency;
@@ -199,8 +163,8 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &FeedbackEjectionEfficiency;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "BlackHoleGrowthRate");
-  addr[nt] = &BlackHoleGrowthRate;
+  strcpy(tag[nt], "ReIncorporationFactor");
+  addr[nt] = &ReIncorporationFactor;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "RadioModeEfficiency");
@@ -211,6 +175,30 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &QuasarModeEfficiency;
   id[nt++] = DOUBLE;
 
+  strcpy(tag[nt], "BlackHoleGrowthRate");
+  addr[nt] = &BlackHoleGrowthRate;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "ThreshMajorMerger");
+  addr[nt] = &ThreshMajorMerger;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "ThresholdSatDisruption");
+  addr[nt] = &ThresholdSatDisruption;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "Yield");
+  addr[nt] = &Yield;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "RecycleFraction");
+  addr[nt] = &RecycleFraction;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "FracZleaveDisk");
+  addr[nt] = &FracZleaveDisk;
+  id[nt++] = DOUBLE;
+
   strcpy(tag[nt], "Reionization_z0");
   addr[nt] = &Reionization_z0;
   id[nt++] = DOUBLE;
@@ -219,24 +207,36 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &Reionization_zr;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "ThresholdSatDisruption");
-  addr[nt] = &ThresholdSatDisruption;
+  strcpy(tag[nt], "EnergySN");
+  addr[nt] = &EnergySN;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "LowSnap");
   addr[nt] = &LowSnap;
   id[nt++] = INT;
 
-  strcpy(tag[nt], "HighSnap");
-  addr[nt] = &HighSnap;
+  strcpy(tag[nt], "GridSize");
+  addr[nt] = &GridSize;
   id[nt++] = INT;
 
-  strcpy(tag[nt], "RescaleSN");
-  addr[nt] = &RescaleSN;
-  id[nt++] = INT;
+  strcpy(tag[nt], "PhotoionDir");
+  addr[nt] = PhotoionDir;
+  id[nt++] = STRING;
+
+  strcpy(tag[nt], "PhotoionName");
+  addr[nt] = PhotoionName;
+  id[nt++] = STRING;
+
+  strcpy(tag[nt], "ReionRedshiftName");
+  addr[nt] = ReionRedshiftName; 
+  id[nt++] = STRING;
 
   strcpy(tag[nt], "PhotonPrescription");
   addr[nt] = &PhotonPrescription;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "HaloPartCut");
+  addr[nt] = &HaloPartCut;
   id[nt++] = INT;
 
   strcpy(tag[nt], "TimeResolutionStellar");
@@ -255,8 +255,16 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &beta;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "fesc");
-  addr[nt] = &fesc;
+  strcpy(tag[nt], "quasar_baseline");
+  addr[nt] = &quasar_baseline;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "quasar_boosted");
+  addr[nt] = &quasar_boosted;
+  id[nt++] = DOUBLE;
+
+  strcpy(tag[nt], "N_dyntime");
+  addr[nt] = &N_dyntime;
   id[nt++] = DOUBLE;
 
   strcpy(tag[nt], "MH_low");
@@ -274,38 +282,6 @@ int32_t read_parameter_file(char *fname)
   strcpy(tag[nt], "fesc_high");
   addr[nt] = &fesc_high;
   id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "quasar_baseline");
-  addr[nt] = &quasar_baseline;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "quasar_boosted");
-  addr[nt] = &quasar_boosted;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "N_dyntime");
-  addr[nt] = &N_dyntime;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "fesc_Mstar_low");
-  addr[nt] = &fesc_Mstar_low;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "fesc_Mstar_high");
-  addr[nt] = &fesc_Mstar_high;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "fesc_Mstar");
-  addr[nt] = &fesc_Mstar;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "fesc_not_Mstar");
-  addr[nt] = &fesc_not_Mstar;
-  id[nt++] = DOUBLE;
-
-  strcpy(tag[nt], "HaloPartCut");
-  addr[nt] = &HaloPartCut;
-  id[nt++] = INT;
 
   if((fd = fopen(fname, "r")))
   {
@@ -402,10 +378,133 @@ int32_t check_ini_parameters(void)
     return EXIT_FAILURE;
   }
 
-  if (QuasarRecipeOn < 1 || QuasarRecipeOn > 2)
+  // First check that the recipe flags are set in acceptable ranges.
+
+  switch (self_consistent)
   {
-    fprintf(stderr, "The only valid options for QuasarRecipeOn are 1 or 2. You entered %d\n", QuasarRecipeOn);
-    return EXIT_FAILURE;
+    case 0:
+    case 1:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `self_consistent` are 0 or 1. You entered %d\n", self_consistent);
+      return EXIT_FAILURE;
+  }
+
+  switch (ReionizationOn)
+  {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `ReionizationOn` are 0, 1, 2 or 3. You entered %d\n", ReionizationOn);
+      return EXIT_FAILURE;
+  }
+
+  switch (SupernovaRecipeOn)
+  {
+    case 0:
+    case 1:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `SupernovaRecipeOn` are 0 or 1. You entered %d\n", SupernovaRecipeOn);
+      return EXIT_FAILURE;
+  }
+
+  switch (DiskInstabilityOn)
+  {
+    case 0:
+    case 1:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `DiskInstabilityOn` are 0 or 1. You entered %d\n", DiskInstabilityOn);
+      return EXIT_FAILURE;
+  }
+
+  switch (SFprescription)
+  {
+    case 0:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `SFprescription` are 0 or 1. You entered %d\n", SFprescription);
+      return EXIT_FAILURE;
+  }
+
+  switch (AGNrecipeOn)
+  {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `AGNrecipeOn` are 0, 1, 2 or 3. You entered %d\n", AGNrecipeOn);
+      return EXIT_FAILURE;
+  }
+
+  switch (QuasarRecipeOn)
+  {
+    case 1:
+    case 2:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `QuasarRecipeOn` are 1 or 2. You entered %d\n", QuasarRecipeOn);
+      return EXIT_FAILURE;
+  }
+
+  switch (IRA)
+  {
+    case 0:
+    case 1:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `IRA` are 0 or 1. You entered %d\n", IRA);
+      return EXIT_FAILURE;
+  }
+
+  switch (RescaleSN)
+  {
+    case 0:
+    case 1:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `RescaleSN` are 0 or 1. You entered %d\n", RescaleSN);
+      return EXIT_FAILURE;
+  }
+
+  switch (IMF)
+  {
+    case 0:
+    case 1:
+      break;
+
+    default:
+      fprintf(stderr, "The only valid options for `IMF` are 0 or 1. You entered %d\n", IMF);
+      return EXIT_FAILURE;
+  }
+
+  // Then ensure that any cross dependancies are required.
+
+  if (self_consistent == 0 && (ReionizationOn == 2 || ReionizationOn == 3))
+  {
+    fprintf(stderr, "You have turned off self consistent reionization (`self_consistent` = 0).  However your reionization prescription (`ReionizationOn`) relies on self consistent pipeline. Change either `self_consistent` or `ReionizationOn`.\n");
+    return EXIT_FAILURE; 
+  }
+
+  if (self_consistent == 1 && (ReionizationOn == 0 || ReionizationOn == 1))
+  {
+    fprintf(stderr, "You have turned on self consistent reionization (`self_consistent` = 0).  However your reionization prescription (`ReionizationOn`) does not use the self consistent pipeline. Change either `self_consistent` or `ReionizationOn`.\n");
+    return EXIT_FAILURE; 
   }
 
   return EXIT_SUCCESS;

@@ -175,31 +175,17 @@ def get_nion_fname(SAGE_params):
     if fesc_prescription == 0:
         nion_fname = "{0}_fesc{1:.2f}_HaloPartCut{2}_nionHI" \
                       .format(SAGE_params["FileNameGalaxies"],
-                              SAGE_params["fesc"],
+                              SAGE_params["beta"],
                               SAGE_params["HaloPartCut"])
 
     elif fesc_prescription == 1:
-        print("Using fesc_prescription of 1 is deprecated.")
-        raise ValueError 
-
-    elif fesc_prescription == 2:
-        alpha, beta = determine_fesc_constants(SAGE_params)              
-        nion_fname = "{0}_MH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"],
-                             SAGE_params["MH_low"],
-                             SAGE_params["fesc_low"],
-                             SAGE_params["MH_high"],
-                             SAGE_params["fesc_high"],
-                             SAGE_params["HaloPartCut"])
-
-    elif fesc_prescription == 3:
         nion_fname = "{0}_ejected_{1:.3f}_{2:.3f}_HaloPartCut{3}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
                              SAGE_params["alpha"],
                              SAGE_params["beta"],
                              SAGE_params["HaloPartCut"])
 
-    elif fesc_prescription == 4:
+    elif fesc_prescription == 2:
         nion_fname = "{0}_quasar_{1:.2f}_{2:.2f}_{3:.2f}_HaloPartCut{4}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
                              SAGE_params["quasar_baseline"],
@@ -207,7 +193,7 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["N_dyntime"],
                              SAGE_params["HaloPartCut"])
 
-    elif fesc_prescription == 5 or fesc_prescription == 6:
+    elif fesc_prescription == 3 or fesc_prescription == 4:
         nion_fname = "{0}_AnneMH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
                              SAGE_params["MH_low"],
@@ -217,7 +203,7 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["HaloPartCut"])
 
     else:
-        print("Select a valid fescPrescription (0 to 7 inclusive).")
+        print("Select a valid fescPrescription, [0, 4].")
         raise ValueError
 
     return nion_fname
@@ -360,8 +346,8 @@ if __name__ == '__main__':
     # Specify here the SAGE parameters that you want to change for each run #
     #########################################################################
 
-    fescPrescription = [0, 5, 6]
-    fesc = [0.3, 0.3, 0.3]
+    fescPrescription = [0, 3, 4]
+    beta = [0.3, 0.3, 0.3] 
     MH_low = [1e8, 1e8, 1e8]
     MH_high = [1e12, 1e12, 1e12]
     fesc_low = [0.99, 0.99, 0.01]
@@ -371,7 +357,7 @@ if __name__ == '__main__':
                         "MHpos_1e8_1e12_0.01_0.50"]
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription, 
-                           "fesc" : fesc,
+                           "beta" : beta,
                            "MH_low" : MH_low,
                            "MH_high" : MH_high,
                            "fesc_low" : fesc_low, 
@@ -411,11 +397,11 @@ if __name__ == '__main__':
                                                      SAGE_fields_update, cifog_fields_update,
                                                      run_directory)
 
-    #slurm_names = make_slurm_files(base_slurm_file, SAGE_ini_names, 
-    #                                cifog_ini_names, run_directory, Nproc)
+    slurm_names = make_slurm_files(base_slurm_file, SAGE_ini_names, 
+                                   cifog_ini_names, run_directory, Nproc)
 
     ###########################################################################
     # CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL # 
     ###########################################################################
     # This function will submit all the jobs onto the queue.
-    #submit_slurm_jobs(slurm_names)
+    submit_slurm_jobs(slurm_names)

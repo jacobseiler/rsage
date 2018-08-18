@@ -360,11 +360,6 @@ extern double quasar_baseline;
 extern double quasar_boosted;
 extern double N_dyntime;
 
-extern double fesc_Mstar_low;
-extern double fesc_Mstar_high;
-extern double fesc_Mstar;
-extern double fesc_not_Mstar;
-
 extern int HaloPartCut;
 
 extern double UnitLength_in_cm,
