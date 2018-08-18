@@ -73,12 +73,12 @@ def Set_Params_Plot():
 
     np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
 
-    colors = ["#f03b20", "#c51b8a", "#2b8cbe", "#31a354", "k"]
+    colors = ["#f03b20", "#c51b8a", "#2b8cbe", "#31a354", "k", "y"]
     #colors = ['#1b9e77','#d95f02','#7570b3', '#f03b20', '#2c7fb8']
     #colors = ['#2c7fb8','#f03b20', '#f768a1', "r", "b", "m"]
     #colors = ['k', 'r', 'b', 'g', 'm', 'c', 'k']
-    markers = ['x', 'o', '^', 's', 'D']
-    linestyles = ['-', '--', '-.', ':', '-']
+    markers = ['X', 'o', '^', 's', 'D']
+    linestyles = ['-', '--', '-.', ':', '-', '-']
     z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
     time_xlim = [290, 930]
     time_tickinterval = 25
@@ -207,4 +207,25 @@ def Plot_SMF_z8(ax, errorwidth = 1.5, capsize = 2.0, linewidth = 1.0, alpha = 1.
 def plot_SMBH_z8(ax, linewidth = 1.0, alpha = 1.0):
   
     ax.plot(Obs.Mstar, Obs.Huang_z8_BHSM, alpha = alpha, lw = linewidth, ls = '-.', label = "Huang et al. 2018", color = Obs.SMBH_colors[0], rasterized = True)
-   
+  
+
+def add_time_z_axis(ax, cosmo):
+
+    tick_locs = np.arange(200.0, 1000.0, 100.0)
+    ax.xaxis.set_minor_locator(mtick.MultipleLocator(time_tickinterval))
+    tick_labels = [r"$\mathbf{%d}$" % x for x in tick_locs]
+    ax.xaxis.set_major_locator(mtick.MultipleLocator(100))
+    ax.set_xticklabels(tick_labels, fontsize = global_fontsize)
+
+    ax.set_xlim(time_xlim)
+
+    ax2 = ax.twiny()
+
+    t_plot = (AllVars.t_BigBang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
+    z_labels = ["$\mathbf{%d}$" % x for x in z_plot] # Properly Latex-ize the labels.
+
+    ax2.set_xlim(time_xlim)
+    ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
+    ax2.set_xticklabels(z_labels, fontsize = global_fontsize) # But label them as redshifts.
+
+    return ax2 

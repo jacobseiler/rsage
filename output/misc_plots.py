@@ -26,340 +26,174 @@ import ReadScripts
 import AllVars
 
 matplotlib.rcdefaults()
-plt.rc('axes', color_cycle=['k', 'b', 'r', 'g', 'm', 'c','y', '0.5'], labelsize='x-large')
-plt.rc('lines', linewidth='2.0')
-# plt.rc('font', variant='monospace')
-plt.rc('legend', numpoints=1, fontsize='x-large')
 plt.rc('text', usetex=True)
 
-label_size = 12
-extra_size = 2
-plt.rc('xtick', labelsize=label_size)
-plt.rc('ytick', labelsize=label_size)
-plt.rc('text', usetex=True)
-tick_interval = 0.25
+output_format = '.png'
 
-
-#colours = ['r', 'b', 'g', 'm', 'c', 'k']
-colours = ['r', 'b', 'g', 'c', 'm', 'k', 'r', 'b', 'g', 'c', 'm', 'k']
-markers = ['x', 'o', 'x', 'o', 'D', 's']
-linestyles = ['-', '--', '-.', ':']
-
-Output_Format = '.png'
-
-def plot_filtervalues(z, Mfilt):
-
-
-    AllVars.Set_Params_Mysim()
-    snaplist = np.arange(24, 78)
-
-    ZZ = np.empty(len(snaplist))
-
-    z_Mfilt = np.empty(len(snaplist))    
-    z_Mfilt_sd = np.empty(len(snaplist))
-    z_Mfilt_error = np.empty(len(snaplist))
-
-    z_Mvir_reion = np.empty(len(snaplist))    
-    z_Mvir_reion_sd = np.empty(len(snaplist))
-    z_Mvir_reion_error = np.empty(len(snaplist))
-
-    z_Mvir = np.empty(len(snaplist))    
-    z_Mvir_sd = np.empty(len(snaplist))
-    z_Mvir_error = np.empty(len(snaplist))
-
-    for i in xrange(0, len(snaplist)):
-	ZZ[i] = AllVars.SnapZ[snaplist[i]]
-	
-	w = np.where((z > (ZZ[i] - 0.01)) & (z < (ZZ[i] + 0.01)))[0]
-	
-	if (len(Mfilt[w]) > 0):
-
-		z_Mfilt[i] = np.log10(np.mean(Mfilt[w])) 
-		z_Mfilt_sd[i] = np.log10(np.std(Mfilt[w]))
-		z_Mfilt_error[i] = 0.434*np.std(Mfilt[w])/np.mean(Mfilt[w])
-
-		#z_Mvir_reion[i] = np.log10(np.mean(Mvir[w]))
-		#z_Mvir_reion_sd[i] = np.log10(np.std(Mvir[w]))
-		#z_Mvir_reion_error[i] = 0.434*np.std(Mvir[w])/np.mean(Mvir[w])
-
-	else:
-		z_Mfilt[i] = -1
-		z_Mfilt_sd[i] = 0.001
-		z_Mfilt_error[i] = 0.001
-
-		#z_Mvir_reion[i] = -1
-		#z_Mvir_reion_sd[i] = 0.001
-		#z_Mvir_reion_error[i] = 0.001
-
-	#print "z = %.4f \t Total = %.4e \t Count = %.4e \t z_Mfilt = %.4e \t z_Mfilt_sd = %.4e \t z_Mvir = %.4e \t z_Mvir_sd = %.4e" %(ZZ[i], np.sum(Mfilt[w]), len(Mfilt[w]), z_Mfilt[i], z_Mfilt_sd[i], z_Mvir_reion[i], z_Mvir_reion_sd[i])
-	print "z = %.4f \t Total = %.4e \t Count = %.4e \t z_Mfilt = %.4e \t z_Mfilt_sd = %.4e" %(ZZ[i], np.sum(Mfilt[w]), len(Mfilt[w]), z_Mfilt[i], z_Mfilt_sd[i])
-
-    fig = plt.figure()
-    ax = plt.subplot(111)
-          
-    #ax.errorbar(ZZ[1:], z_Mfilt[1:], z_Mfilt_error[1:], color = 'r', fmt = '^', alpha = 0.7)
-    ax.plot(ZZ[1:], z_Mfilt[1:], color = 'r', linestyle = '-', label = r'$M_\mathrm{filt}$')
-    #ax.plot(ZZ[1:], z_Mvir_reion[1:], color = 'b', linestyle = '-', label = r'$M_\mathrm{vir}$ Ionized Regions')
-
-    ax.fill_between(ZZ[1:], z_Mfilt[1:]-z_Mfilt_error[1:], z_Mfilt[1:]+z_Mfilt_error[1:], alpha = 0.5, color = 'r')
-    #ax.fill_between(ZZ[1:], z_Mvir_reion[1:]-z_Mvir_reion_error[1:], z_Mvir_reion[1:]+z_Mvir_reion_error[1:], alpha = 0.5, color = 'b')
-
-    ax.set_xlabel(r"z", fontsize = label_size + extra_size)
-    ax.set_ylabel(r"$\mathrm{log}_{10} \: M_\odot$", fontsize = label_size + extra_size)
-
-    ax.set_xlim([5.5,13])
-    ax.set_ylim([6,13])
-
-    ax.xaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
-    ax.yaxis.set_minor_locator(mtick.MultipleLocator(tick_interval))
-
-    leg = plt.legend(loc= 1, numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize('medium')
-
-
-    outputFile = './z_Mfilt_1024_DRAGONS' + Output_Format
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-    plt.close()
-
-##
-
-def plot_mod(Sob, Gnedin):
-
-    ax = plt.subplot(111)
-
-    print len(Sob)
-    print len(Gnedin)
-
-    plt.hist(Sob, bins = 20, label = "Sobacchi", normed = True)
-    plt.hist(Gnedin, bins = 20, label = "Gnedin", normed = True)	
-	
-    leg = plt.legend(loc= 1, numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize('medium')
-
-
-    outputFile = './Sob_Gnedin' + Output_Format
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-    plt.close()
-
-
-
-##
-
-def dust_dist():
-
-    MUV = np.arange(-24, -16, 0.1)
-
-    beta = np.zeros((len(MUV)))
-    A_Mean = np.zeros((len(MUV)))
-    #for i in xrange(0, len(beta)):
-    for i in xrange(20, 21):
-	print "Doing MUV %.4f" %(MUV[i])
-	if (MUV[i] <= -18.8):
-		beta[i] = -0.24*(MUV[i] + 18.8) - 2.22
-	else:
-		beta[i] = -0.08*(MUV[i] + 18.8) - 2.22 
-	    
-
-	dist = np.random.normal(beta[i], 0.34, 10000)
-	A = 4.43 + 1.99*dist
-	#A[A < 0] = 0
-	
-	#A_Mean[i] = np.mean(A)
-	
-
-    ax = plt.subplot(111)
-
-    #ax.plot(MUV, A_Mean)
-    ax.hist(A, bins = 20, normed = True) 
-
-    ax.set_xlabel("MUV")
-    ax.set_ylabel(r"$\langle A_\lambda \rangle$")
-
-    outputFile = './Adist' + Output_Format
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-    plt.close()
-
-##
-
-def A_Dist():
-
-    MUV = np.arange(-24, -16, 0.1)
-    MUV_idx = 23
-
-    beta = np.zeros((len(MUV))) 
-
-    print "Doing MUV %.4f" %(MUV[MUV_idx])
-    if (MUV[MUV_idx] <= -18.8):
-	beta = -0.24*(MUV[MUV_idx] + 18.8) - 2.22
-    else:
-	beta = -0.08*(MUV[MUV_idx] + 18.8) - 2.22 
-	    
-
-    dist = np.random.normal(beta, 0.34, 10000)
-    A = 4.43 + 1.99*dist
-
-    ax = plt.subplot(111)
-
-    ax.hist(A, bins = 20, normed = True) 
-
-    ax.set_xlabel(r"$A_\lambda$")
-    ax.set_ylabel(r"$P\left(A_\lambda\right)$")
-
-    outputFile = './ADist' + Output_Format
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-    plt.close()
-
-
-
-##
-
-def plot_grandsum_ratio(Ratio):
-
-    ax = plt.subplot(111)
-
-    ax.hist(Ratio, bins = 20, normed = True)
- 
-    ax.set_xlabel(r"$GrandSum/StellarMass$")
-    ax.set_ylabel(r"$Count$")
-
-    outputFile = './GrandSumRatioMillennium' + Output_Format
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-    plt.close()
-
-
-##
-
-def plot_clump_field(clump):
-
-    cut_slice = 20
-    BoxSize = 100
-
-    ax = plt.subplot(111)
-
-    im = ax.imshow(clump[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='nearest', origin='low', extent =[0,BoxSize,0,BoxSize], vmin = 0, vmax = 5, cmap = 'afmhot_r')
-
-    cbar = plt.colorbar(im, ax = ax)
-    cbar.set_label(r'$\mathrm{Clumping Factor}$')
-				    
-    ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
-    ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
-
-    ax.set_xlim([0.0, BoxSize]) 
-    ax.set_ylim([0.0, BoxSize])
-
-
-    outputFile = './ClumpField' + Output_Format 
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-			
-    plt.close()
-
-##
-
-def plot_density_field():
-
-    fname = "/lustre/projects/p004_swin/jseiler/Simfast21/delta/delta_z0_N512_L100.0.dat"
-    fd = open(fname, 'rb')
-    density = ReadScripts.read_binary_grid(fname, 512, 1) 
-    fd.close()
-   
-    cut_slice = 40
-
-    print
-    print "Plotting density slice."
-    ax = plt.subplot(111)
-	
-    im = ax.imshow(density[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='bilinear', origin='low', extent =[0,100,0,100], cmap = 'Purples', vmin = 0.12, vmax = 10) 
-    cbar = plt.colorbar(im, ax = ax)
-    cbar.set_label(r'$\rho/\langle \rho \rangle$')
-				    
-    ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')  
-    ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')  
-
-    ax.set_xlim([0.0, 100])
-    ax.set_ylim([0.0, 100])
-
-    outputFile = "./Simfast21_dens.png" 
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-			
-    plt.close()	
-
-##
-
-def plot_ionized_field(z):
-
-    fname = "/lustre/projects/p004_swin/jseiler/Simfast21/Ionization/xHII_z%.3f_N128_L100.0.dat" %(z)
-    fd = open(fname, 'rb')
-    ionized_cells = ReadScripts.read_binary_grid(fname, 128, 1) 
-    fd.close()
-       
-    print "Plotting ionized bubbles at z = %.3f." %(z)
-
-    print ionized_cells
-    #ionized_cells = np.log10(1 - ionized_cells)
-    ionized_cells = 1 - ionized_cells
-    cut_slice = 40
-
-    ax = plt.subplot(111)
-
-    im = ax.imshow(ionized_cells[:,:,cut_slice:cut_slice+1].mean(axis = -1), interpolation='nearest', origin='low', extent =[0,100.0,0,100.0], vmin = -8, vmax = 0, cmap = 'afmhot_r')
-
-    cbar = plt.colorbar(im, ax = ax)
-    cbar.set_label(r'$\mathrm{log}_{10}\left(x_\mathrm{HI}\right)$')
-
-    ax.set_xlabel(r'$\mathrm{x}  (h^{-1}Mpc)$')
-    ax.set_ylabel(r'$\mathrm{y}  (h^{-1}Mpc)$')
-
-    ax.set_xlim([0.0, 100.0])
-    ax.set_ylim([0.0, 100.0]) 
-
-    title = r"z = %.3f" %(z)
-    ax.set_title(title)
- 
-    outputFile = './Monday_Simfast21_z%.3f_bubbles.png' %(z) 
-    plt.savefig(outputFile)  # Save the figure
-    print 'Saved file to', outputFile
-
-    plt.close()
 
 if __name__ == '__main__':
 
-    #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/reionization_filter_1024_DRAGONS.dat" 
-    #fd = open(fname_filtervalues, 'rb')
-    #z, Mfilt, Mvir, Mod= np.loadtxt(fd, dtype = np.float32, unpack=True)  
-    #fd.close()
+    gal_filepath="/home/jseiler/self_consistent_SAGE/tests/test_output/galaxies/kali_test_z5.782"
+    merged_gal_filepath="/home/jseiler/self_consistent_SAGE/tests/test_output/galaxies/kali_test_MergedGalaxies"
+    snap = 77
+
+    GG, Gal_Desc = ReadScripts.ReadGals_SAGE(gal_filepath, 0, 99) # Read galaxies 
+    G_Merged, _ = ReadScripts.ReadGals_SAGE(merged_gal_filepath, 0, 99) 
+    G = ReadScripts.Join_Arrays(GG, G_Merged, Gal_Desc) # Then join them together for all galaxies. 
 
 
-    #fname_filtervalues = "/home/jseiler/SAGE-stuff/post_processed_SAGE/whateven.dat"
-    #fd = open(fname_filtervalues, 'rb')
-    #z, Mfilt = np.loadtxt(fd, dtype = np.float32, unpack=True)  
-    #fd.close()
+    w = np.where((G.GridHistory[:,snap] != -1) & \
+                 (G.GridStellarMass[:,snap] > 0.0))[0]
 
-    #plot_filtervalues(z, Mfilt, Mvir, Mod)
-    #plot_filtervalues(z, Mfilt)
+    w_wrong = w[np.where(G.GridNgamma_HI[w,snap] == 0)[0]]
+    w_right = w[np.where(G.GridNgamma_HI[w,snap] > 0)[0]]
 
-    #GridSize = 128
-    #fname = "/home/jseiler/grid-model/data_files/grid128/clump11_ic.in"
-    #fd = open(fname, 'rb')
-    #clump = np.fromfile(fd, count = GridSize*GridSize*GridSize, dtype = np.uint32)
-    #clump.shape = (GridSize, GridSize, GridSize)
-    #fd.close()
-    #plot_clump_field(clump)
+    print("There were {0} galaxies at snapshot {1}.  Of these, {2} had an "
+          "Ngamma value of 0.".format(len(w), snap, len(w_wrong))) 
 
-    #plot_density_field()
+    no_sat = np.zeros(len(w_wrong))
+    for i in range(99):
+        w_sat = np.where(G.GridType[w_wrong,i] > 0)[0] 
+        no_sat[w_sat] = 1
+    w_nosat = np.where(no_sat == 0)[0]
+   
+    for my_idx in w_nosat: 
+        idx = w_nosat[my_idx] 
+        #print(max(G.GridStellarMass[w_wrong,snap]))
+        #print(np.argmax(G.GridStellarMass[w_wrong,snap]))
+                   
+        fig = plt.figure(figsize = (8,8))
+        ax = fig.add_subplot(111)
+        print(G.TreeNr[w_wrong[idx]])
+        check_snaps = np.arange(20, 99) 
+        for snap in check_snaps: 
+            print("Snap {0}\tColdGas {1:.4e}\tStellarMass {2:.4e}\t"
+                  "Nion {3:.4e}\tColdCrit {4:.4e}\tGridType {5}\t"
+                  "LenMergerGal {6}\tFoFMass {7:.4e}".format(snap,
+                  G.GridColdGas[w_wrong[idx],snap],
+                  G.GridStellarMass[w_wrong[idx],snap],
+                  G.GridNgamma_HI[w_wrong[idx],snap],
+                  G.ColdCrit[w_wrong[idx],snap],
+                  G.GridType[w_wrong[idx],snap],
+                  G.LenMergerGal[w_wrong[idx],snap],
+                  G.GridFoFMass[w_wrong[idx],snap]))
 
-    for i in np.arange(8.00, 12.500, 0.250):
-		plot_ionized_field(i)
+            if (G.LenMergerGal[w_wrong[idx],snap] != -1):
+                ax.axvline(snap, lw = 1, ls = '--', color = 'k')
+
+        AllVars.Set_Params_Kali()
+        PlotScripts.Set_Params_Plot()
+        Mass = (G.GridStellarMass[w_wrong[idx], :] * 1.0e10 / AllVars.Hubble_h)
+        ColdGas = (G.GridColdGas[w_wrong[idx], :] * 1.0e10 / AllVars.Hubble_h)
+        HotGas = (G.GridHotGas[w_wrong[idx], :] * 1.0e10 / AllVars.Hubble_h)
+        ColdCrit= (G.ColdCrit[w_wrong[idx], :] * 1.0e10 / AllVars.Hubble_h)
+        FoFMass = G.GridFoFMass[w_wrong[idx], :] * 1.0e10 / AllVars.Hubble_h
+
+        ax.plot(np.arange(0,99), Mass, color = 'k',
+                label = "Stellar Mass")
+        ax.plot(np.arange(0,99), HotGas, color = 'r',
+                label = "Hot Gas")
+        ax.plot(np.arange(0,99), ColdGas, color = 'b',
+                label = "Cold Gas")
+        ax.plot(np.arange(0,99), ColdCrit, color = 'b',
+                ls = '--', label = "Cold Crit")
+        ax.plot(np.arange(0,99), FoFMass, color = 'g',
+                ls = '-', label = "FoF Mass")
 
 
+        ax.set_xlabel("Snapshot Number", size = PlotScripts.global_labelsize)
+        ax.set_ylabel("Mass [Msun]", size = PlotScripts.global_labelsize)
+        ax.set_yscale('log')
 
+        leg = ax.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(PlotScripts.global_legendsize - 2)
+        output_tag = "Masses"
+        outputFile = "Mass/{0}_{2}{1}".format(output_tag, output_format, idx)
+        plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile))
+        plt.close()
+
+
+    no_sat = np.zeros(len(w_right))
+    for i in range(99):
+        w_sat = np.where(G.GridType[w_right,i] > 0)[0] 
+        no_sat[w_sat] = 1
+    w_nosat = np.where(no_sat == 0)[0]
+   
+    for my_idx in w_nosat: 
+        idx = w_nosat[my_idx] 
+        #print(max(G.GridStellarMass[w_right,snap]))
+        #print(np.argmax(G.GridStellarMass[w_right,snap]))
+
+        '''
+        print("Stellar Mass")
+        print(G.GridStellarMass[w_right[idx],:])
+
+        print("Cold Gas")
+        print(G.GridColdGas[w_right[idx],:])
+        w_nogas = np.where(G.GridColdGas[w_right[idx],:] == 0)[0]
+
+        print("Nion")
+        print(G.GridNgamma_HI[w_right[idx],:])
+
+        print("Snapshot where no cold gas is {0}".format(w_nogas))
+        print("Stellar Mass at this snap")
+        print(G.GridStellarMass[w_right[idx], w_nogas])
+        print("Nion at this snap")
+        print(G.GridNgamma_HI[w_right[idx], w_nogas])
+        '''
+      
+        fig = plt.figure(figsize = (8,8))
+        ax = fig.add_subplot(111)
+        print(G.TreeNr[w_right[idx]])
+        check_snaps = np.arange(20, 99) 
+        for snap in check_snaps: 
+            print("Snap {0}\tColdGas {1:.4e}\tStellarMass {2:.4e}\t"
+                  "Nion {3:.4e}\tColdCrit {4:.4e}\tGridType {5}\t"
+                  "LenMergerGal {6}\tFoFMass {7:.4e}".format(snap,
+                  G.GridColdGas[w_right[idx],snap],
+                  G.GridStellarMass[w_right[idx],snap],
+                  G.GridNgamma_HI[w_right[idx],snap],
+                  G.ColdCrit[w_right[idx],snap],
+                  G.GridType[w_right[idx],snap],
+                  G.LenMergerGal[w_right[idx],snap],
+                  G.GridFoFMass[w_right[idx],snap]))
+
+            if (G.LenMergerGal[w_right[idx],snap] != -1):
+                ax.axvline(snap, lw = 1, ls = '--', color = 'k')
+
+        AllVars.Set_Params_Kali()
+        PlotScripts.Set_Params_Plot()
+        Mass = (G.GridStellarMass[w_right[idx], :] * 1.0e10 / AllVars.Hubble_h)
+        ColdGas = (G.GridColdGas[w_right[idx], :] * 1.0e10 / AllVars.Hubble_h)
+        HotGas = (G.GridHotGas[w_right[idx], :] * 1.0e10 / AllVars.Hubble_h)
+        ColdCrit= (G.ColdCrit[w_right[idx], :] * 1.0e10 / AllVars.Hubble_h)
+        FoFMass = G.GridFoFMass[w_right[idx], :] * 1.0e10 / AllVars.Hubble_h
+
+        ax.plot(np.arange(0,99), Mass, color = 'k',
+                label = "Stellar Mass")
+        ax.plot(np.arange(0,99), HotGas, color = 'r',
+                label = "Hot Gas")
+        ax.plot(np.arange(0,99), ColdGas, color = 'b',
+                label = "Cold Gas")
+        ax.plot(np.arange(0,99), ColdCrit, color = 'b',
+                ls = '--', label = "Cold Crit")
+        ax.plot(np.arange(0,99), FoFMass, color = 'g',
+                ls = '-', label = "FoF Mass")
+
+
+        ax.set_xlabel("Snapshot Number", size = PlotScripts.global_labelsize)
+        ax.set_ylabel("Mass [Msun]", size = PlotScripts.global_labelsize)
+        ax.set_yscale('log')
+
+        leg = ax.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(PlotScripts.global_legendsize - 2)
+        output_tag = "Masses"
+        outputFile = "Mass_correct/{0}_{2}{1}".format(output_tag, output_format, idx)
+        plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile))
+        plt.close()

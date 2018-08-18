@@ -25,24 +25,46 @@ def get_analytic_fit(Redshift, z_0, z_r):
     a_0 = 1.0 / (1.0 + z_0)  # Analytic function uses redshift. 
     a_r = 1.0 / (1.0 + z_r)
     a = 1.0 / (1.0 + Redshift)
-    f = np.empty(len(a))
+    try:
+        f = np.empty(len(a))
+    except TypeError:
+        is_array = False 
+    else:
+        is_array = True 
 
-    for count, scale_factor in enumerate(a):
+    if is_array:
+        for count, scale_factor in enumerate(a):
+            if scale_factor < a_0:
+                f[count] = 3.0 * scale_factor / ((2+alpha)*(5+2*alpha)) \
+                           * pow(scale_factor / a_0, alpha)
+            elif scale_factor > a_0 and scale_factor < a_r:
+                f[count] = 3.0 / scale_factor * (a_0*a_0* (1 / (2+alpha) - 2*pow(scale_factor / a_0, -0.5) / (5 + 2*alpha)) \
+                                                +scale_factor*scale_factor / 10.0 \
+                                                -a_0*a_0 / 10.0 * (5 - 4*pow(scale_factor / a_0, -0.5))) 
+                                                 
+            else:
+                f[count] = 3.0 / scale_factor * (a_0*a_0* (1 / (2+alpha) - 2*pow(scale_factor / a_0, -0.5) / (5 + 2*alpha)) \
+                                                +a_r*a_r / 10.0 * (5 - 4*pow(scale_factor / a_0, -0.5)) \
+                                                -a_0*a_0 / 10.0 * (5 - 4*pow(scale_factor / a_0, -0.5)) \
+                                                +scale_factor*a_r / 3.0 \
+                                                -a_r*a_r / 3.0 * (3 - 2*pow(scale_factor / a_r, -0.5))) 
+
+    else:
+        scale_factor = a 
         if scale_factor < a_0:
-            f[count] = 3.0 * scale_factor / ((2+alpha)*(5+2*alpha)) \
+            f = 3.0 * scale_factor / ((2+alpha)*(5+2*alpha)) \
                        * pow(scale_factor / a_0, alpha)
         elif scale_factor > a_0 and scale_factor < a_r:
-            f[count] = 3.0 / scale_factor * (a_0*a_0* (1 / (2+alpha) - 2*pow(scale_factor / a_0, -0.5) / (5 + 2*alpha)) \
+            f = 3.0 / scale_factor * (a_0*a_0* (1 / (2+alpha) - 2*pow(scale_factor / a_0, -0.5) / (5 + 2*alpha)) \
                                             +scale_factor*scale_factor / 10.0 \
                                             -a_0*a_0 / 10.0 * (5 - 4*pow(scale_factor / a_0, -0.5))) 
                                              
         else:
-            f[count] = 3.0 / scale_factor * (a_0*a_0* (1 / (2+alpha) - 2*pow(scale_factor / a_0, -0.5) / (5 + 2*alpha)) \
+            f = 3.0 / scale_factor * (a_0*a_0* (1 / (2+alpha) - 2*pow(scale_factor / a_0, -0.5) / (5 + 2*alpha)) \
                                             +a_r*a_r / 10.0 * (5 - 4*pow(scale_factor / a_0, -0.5)) \
                                             -a_0*a_0 / 10.0 * (5 - 4*pow(scale_factor / a_0, -0.5)) \
                                             +scale_factor*a_r / 3.0 \
                                             -a_r*a_r / 3.0 * (3 - 2*pow(scale_factor / a_r, -0.5))) 
- 
 
     return f
 
@@ -54,10 +76,13 @@ def get_filter_mass(Redshift, z_0, z_r):
 
     filter_mass = np.log10(jeans_mass * pow(f, 1.5))
 
+    '''
     for count, z in enumerate(Redshift):
         print("For redshift {0:.2f} filter mass is {1:.4e}".format(z, filter_mass[count])) 
+    '''
 
     return filter_mass
+
 
 def plot_reionmod(HaloMass, FilterMass, Redshift, fb):
 
@@ -91,6 +116,8 @@ def plot_reionmod(HaloMass, FilterMass, Redshift, fb):
     fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
+
+
 if __name__ == "__main__":
 
     HaloMass = np.arange(7, 12, 0.1)
