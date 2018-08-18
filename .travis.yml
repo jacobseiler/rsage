@@ -1,7 +1,7 @@
 # blocklist
 branches:
   except:    
-    - rsage
+    - 
 
 language: c
 sudo: required
