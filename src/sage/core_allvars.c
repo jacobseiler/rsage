@@ -86,7 +86,6 @@ int SFprescription;
 // recipe parameters 
 double RecycleFraction;
 double Yield;
-double FracZleaveDisk;
 double ReIncorporationFactor;
 double ThreshMajorMerger;
 double BaryonFrac;

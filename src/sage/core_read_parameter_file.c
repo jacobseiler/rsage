@@ -195,10 +195,6 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &RecycleFraction;
   id[nt++] = DOUBLE;
 
-  strcpy(tag[nt], "FracZleaveDisk");
-  addr[nt] = &FracZleaveDisk;
-  id[nt++] = DOUBLE;
-
   strcpy(tag[nt], "Reionization_z0");
   addr[nt] = &Reionization_z0;
   id[nt++] = DOUBLE;

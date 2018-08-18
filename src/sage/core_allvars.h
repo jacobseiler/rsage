@@ -330,7 +330,6 @@ extern int    SFprescription;
 // recipe parameters 
 extern double RecycleFraction;
 extern double Yield;
-extern double FracZleaveDisk;
 extern double ReIncorporationFactor;
 extern double ThreshMajorMerger;
 extern double BaryonFrac;

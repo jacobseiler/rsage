@@ -467,7 +467,7 @@ def read_SAGE_ini(fname):
                    "RadioModeEfficiency", "QuasarModeEfficiency",
                    "BlackHoleGrowthRate", "ThreshMajorMerger",
                    "ThresholdSatDisruption", "Yield",
-                   "RecycleFraction", "FracZleaveDisk",
+                   "RecycleFraction",
                    "Reionization_z0", "Reionization_zr",
                    "EnergySN", "RescaleSN", "IMF",
                    "LowSnap", "HighSnap", "PhotoionDir",

@@ -142,8 +142,7 @@ def check_sage_dirs(galaxy_name="test"):
     print("")
 
 
-def run_my_sage(ini_name="test_mini_millennium.ini",
-                selfcon_flag=0):
+def run_my_sage(ini_name="test_mini_millennium.ini"):
     """
     Executes my version of SAGE. 
 
@@ -354,26 +353,18 @@ def test_run():
     # We have multiple test parameter specs we want to test.
     # Need all the names of the ini files and the name of the galaxies they
     # produce. 
-    #ini_files = ["PhotonPrescription0_mini_millennium.ini",
-    #             "PhotonPrescription1_mini_millennium.ini"]
 
-    ini_files = ["PhotonPrescription0_mini_millennium",
-                 "self_consistent"]
+    ini_files = ["PhotonPrescription0_mini_millennium"]
 
-    galaxy_names = ["PhotonPrescription0",
-                    "self_consistent"]
-
-    selfconsistent_flag = [0, 1]
-
+    galaxy_names = ["PhotonPrescription0"]
+   
     AllVars.Set_Params_MiniMill()
     max_snap = len(AllVars.SnapZ) - 1
 
-    for ini_file, galaxy_name, selfcon_flag in zip(ini_files, 
-                                                   galaxy_names,
-                                                   selfconsistent_flag):
-
+    for ini_file, galaxy_name in zip(ini_files, 
+                                     galaxy_names):
         check_sage_dirs(galaxy_name)  # First check that directories for output are present. 
-        run_my_sage(ini_file, selfcon_flag)  # Run my version of SAGE. 
+        run_my_sage(ini_file)  # Run my version of SAGE. 
 
         print("")
         print("SAGE run, now reading in the Galaxies.")
