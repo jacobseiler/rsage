@@ -80,7 +80,7 @@ int32_t init_selfcon_grid(void)
 #ifdef MPI
       if (ThisTask == 0)
 #endif
-      printf("\n\nUsing a constant escape fraction of %.4f\n", fesc); 
+      printf("\n\nUsing a constant escape fraction of %.4f\n", beta); 
       break;
 
     case 1:
@@ -826,7 +826,7 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
   switch(fescPrescription)
   {
     case 0:
-      snprintf(tag, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", fesc, HaloPartCut);
+      snprintf(tag, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", beta, HaloPartCut);
       break;
 
     case 1:

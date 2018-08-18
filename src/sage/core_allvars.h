@@ -346,12 +346,6 @@ extern double ThresholdSatDisruption;
 
 // Parameters for the gridding with self_consistent
 extern int fescPrescription;
-extern double fesc;
-
-extern double MH_low;
-extern double fesc_low;
-extern double MH_high;
-extern double fesc_high;
 
 extern double alpha;
 extern double beta;
@@ -360,7 +354,10 @@ extern double quasar_baseline;
 extern double quasar_boosted;
 extern double N_dyntime;
 
-extern int HaloPartCut;
+extern double MH_low;
+extern double fesc_low;
+extern double MH_high;
+extern double fesc_high;
 
 extern double UnitLength_in_cm,
   UnitTime_in_s,
@@ -469,6 +466,7 @@ extern float *stars_tbins;
 extern float *stars_Ngamma;
 extern int32_t PhotonPrescription;
 extern double TimeResolutionStellar; 
-extern int32_t StellarTracking_Len; 
+extern int32_t StellarTracking_Len;
+extern int32_t HaloPartCut;
 
 #endif  // #ifndef ALLVARS_H
