@@ -1,3 +1,8 @@
+# blocklist
+branches:
+  except:    
+    - 
+
 language: c
 sudo: required
 
@@ -20,14 +25,6 @@ matrix:
       dist: trusty
       sudo: required
       compiler: gcc
-      env: COMPILER=gcc PYTHON_VERSION=2.7
-      before_install:
-        - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-        
-    - os: linux
-      dist: trusty
-      sudo: required
-      compiler: gcc
       env: COMPILER=gcc PYTHON_VERSION=3.6
       before_install:
         - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
@@ -39,10 +36,13 @@ install:
   - source activate test
   - conda install -q --yes -c asmeurer gsl
   - conda install -q --yes -c anaconda gcc
+  - yes | conda install -c conda-forge fftw
   - pip install -r requirements.txt
- 
+
+
 before_script:
 
 script:
-  - cd sage/
-  - make tests 
+  - make
+  - cd tests/
+  - ./test_sage.sh 

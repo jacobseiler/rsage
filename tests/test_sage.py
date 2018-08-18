@@ -68,10 +68,19 @@ def get_trees():
     if not os.path.isfile(tree_file):
         print("{0} does not exist, downloading the test_RSAGE repo and "
               "unzipping.".format(tree_file))
-        master_branch = urlretrieve("https://github.com/jacobseiler/"
-                                    "test_RSAGE/archive/master.zip")
-        subprocess.call(["unzip", "-j", master_branch[0], "-d", test_dir])
+
+        repo_url = "https://github.com/jacobseiler/test_RSAGE"
+        command = "git clone {0} --depth 1".format(repo_url)
+        subprocess.call(command, shell=True)
+        
+        command = "mv test_RSAGE/* ./"
+        subprocess.call(command, shell=True)
+
+        command = "yes | rm -r test_RSAGE"
+        subprocess.call(command, shell=True)
+
         downloaded_repo = True 
+
     else:
         print("{0} exists so no need to download test_RSAGE repo."
               .format(tree_file))
@@ -124,7 +133,11 @@ def check_sage_dirs(galaxy_name="test"):
     directory = "{0}/test_output/grids/".format(test_dir) 
     if not os.path.exists(directory):
         os.makedirs(directory)
-        
+
+    directory = "{0}/test_output/grids/properties".format(test_dir) 
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     print("Done.")
     print("")
 
@@ -155,30 +168,30 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     print("")
 
     # Use paths relative to the file this script is in.
-    path_to_sage = "{0}/../sage/sage".format(test_dir)
-    path_to_ini = "{0}/test_ini_files/{1}".format(test_dir, ini_name)
-    path_to_log = "{0}/test_logs/{1}.log".format(test_dir, ini_name)
+    path_to_sage = "{0}/../rsage".format(test_dir)
+    path_to_sage_ini = "{0}/test_ini_files/{1}_SAGE.ini".format(test_dir, ini_name)
 
-    stderr = subprocess.STDOUT
+    path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_name)
+    command = "{0} {1} {2}".format(path_to_sage, path_to_sage_ini, path_to_cifog_ini)
 
-    command = "{0} {1}".format(path_to_sage, path_to_ini)
-   
-        #command = "{0} {1} &> {2}".format(path_to_sage, path_to_ini, path_to_log)
-
-    with open(path_to_log, "w") as log_file:
-        returncode = subprocess.call(command, shell=True, stdout=log_file)
-
-    print("SAGE log file printed to {0}".format(path_to_log))
+    returncode = subprocess.call(command, shell=True)
 
     if returncode != 0:
         print("SAGE exited with error code {0}".format(returncode))
         raise RuntimeError
 
+    print("Reading in the SAGE and cifog parameters as well.")
+    SAGE_params = ReadScripts.read_SAGE_ini(path_to_sage_ini)
+    cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini) 
+
     print("Done")
     print("")
 
+    return SAGE_params, cifog_params
 
-def check_smf(Gals, max_snap):
+
+def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
+              update_data=0):
     """
     Checks the stellar mass of the galaxies.
 
@@ -188,6 +201,10 @@ def check_smf(Gals, max_snap):
     Parameters
     ----------
 
+    mass_tol: Float. Optional, default: 3.0e-3.
+        The allowed difference between the stellar mass of the test galaxies
+        and the stellar mass in the 'test_RSAGE' repo.  If any galaxy has a
+        (absolute) difference larger than this, a RuntimeError is raised. 
 
     Returns
     ----------
@@ -202,9 +219,13 @@ def check_smf(Gals, max_snap):
 
     If the mass of any test galaxy is negative a RuntimeError is raised.
 
-    If the mass of any test galaxy differs by more than 0.01 dex compared to
-    the 'test_RSAGE' galaxies a RuntimeError is raised. 
+    If the mass of any test galaxy differs by more than ``mass_tol`` dex 
+    compared to the 'test_RSAGE' galaxies a RuntimeError is raised. 
     """
+
+    GridSize = int(sage_params["GridSize"])
+    Hubble_h = float(sage_params["Hubble_h"])
+    LastSnapshot = int(sage_params["LastSnapShotNr"])
 
     print("")
     print("Now checking the stellar mass function for the final snapshot of "
@@ -214,17 +235,17 @@ def check_smf(Gals, max_snap):
                      (Gals.GridStellarMass[:, max_snap] > 0.0))[0]
         
     position = Gals.GridHistory[w_gal, max_snap]
-    w_wrong = np.where(position > pow(256,3))[0] 
+    w_wrong = np.where(position > pow(GridSize, 3))[0] 
     if (len(w_wrong) > 0):
         print("Found grid cells that had indices outside of the allowed "
               "values.")
-        print("The indices must be between 0 and {0}".format(pow(256,3)))
+        print("The indices must be between 0 and {0}".format(pow(GridSize, 3)))
         print("Galaxies {1} had indices {1}.".format(w_gal[w_wrong],
                                               position[w_wrong]))
         raise RuntimeError
 
-    mass_test = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / AllVars.Hubble_h)   
-    mass_test_nolog = Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / AllVars.Hubble_h 
+    mass_test = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / Hubble_h)   
+    mass_test_nolog = Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / Hubble_h 
     
     w_wrong = np.where(mass_test_nolog <= 0.0)[0] 
     if (len(w_wrong) > 0):
@@ -233,30 +254,66 @@ def check_smf(Gals, max_snap):
                                                           mass_test_nolog[w_wrong]))
         raise RuntimeError
 
-    # Now let's check compare the mass of the test to the data. 
+    if update_data:
+        print("=======================================================")
+        print("WARNING WARNING WARNING WARNING WARNING WARNING WARNING")
+        print("=======================================================")
+        print("=======================================================")
+        print("WARNING WARNING WARNING WARNING WARNING WARNING WARNING")
+        print("=======================================================")
+        input("YOU ARE ABOUT TO OVERWRITE THE TEST DATA. IF THIS IS WHAT YOU"
+              "WANT, PRESS ENTER OTHERWISE CTRL-C TO GET OUTTA HERE!")
+        input("JUST CHECKING ONCE MORE!")
 
-    mass_data = np.loadtxt("{0}/mini_millennium_testmass.txt".format(test_dir)) 
+        fname = "{0}/{1}_testmass.txt".format(test_dir, galaxy_name)
+        np.savetxt(fname, mass_test)
+        print("Saved mass data as {0}".format(fname))
+
+        print("All test data updated. Exiting checking now (because it'll "
+              "obviously be correct.")
+        return
+
+    # Now let's check compare the mass of the test to the 'test_RSAGE' repo. 
+
+    mass_repo = np.loadtxt("{0}/{1}_testmass.txt".format(test_dir, galaxy_name)) 
   
-    if len(mass_test) != len(mass_data):
-        print("For the test data we had {0} galaxies at Snapshot 63 with > 0 "
+    if len(mass_test) != len(mass_repo):
+        print("For the test data we had {0} galaxies at Snapshot {2} with > 0 "
               "Stellar Mass.  This is compared to {1} galaxies for the "
-              "CORRECT mass data.".format(len(mass_test), len(mass_data)))
-        print(mass_test[0:10])
-        print(mass_data[0:10])
+              "CORRECT mass data.".format(len(mass_test), len(mass_data),
+                                          LastSnapshot))
+        print("First 10 galaxies for the test data {0}".format(mass_test[0:10]))
+        print("First 10 galaxies for the repo data {0}".format(mass_repo[0:10]))
+
         raise RuntimeError
  
-    mass_difference = mass_test - mass_data
-    w_wrong = np.where(mass_difference > 3e-3)[0]
+    mass_difference = mass_test - mass_repo
+    w_wrong = np.where(abs(mass_difference) > mass_tol)[0]
     if (len(w_wrong) > 0):
         print("There must be no difference between the mass of the test run and"
               " the data in the test_RSAGE repository")
-        print("Test Galaxies {0} had stellar mass {1} and data "
+        print("Test Galaxies {0} had stellar mass {1} and repo "
               "have stellar mass {2}".format(w_gal[w_wrong],
                                              mass_test[w_wrong],
-                                             mass_data[w_wrong]))
+                                             mass_repo[w_wrong]))
         print("The difference is {0}".format(mass_difference[w_wrong]))
-        raise RuntimeError
+        print("Out of a total {0} galaxies, {1} had a mass difference greater "
+              "than the tolerance level of {2}".format(len(mass_difference),
+                                                       len(w_wrong),
+                                                       mass_tol))
+        print("The average mass difference of these galaxies is "
+              "{0} with an overall average mass difference of {1}" \
+              .format(np.mean(abs(mass_difference[w_wrong])),
+                      np.mean(abs(mass_difference))))
 
+        max_diff = np.argmax(abs(mass_difference))
+        
+        print("The largest mass difference is {0} which corresponds to a {1}% " 
+              "shift compared to the test data (mass {2})." \
+              .format(mass_difference[max_diff],
+                      abs(mass_difference[max_diff]/mass_test[max_diff]*100.0),
+                      mass_test[max_diff]))
+        raise RuntimeError
 
 
 def load_gals(max_snap, galaxy_name="test"):
@@ -276,31 +333,6 @@ def load_gals(max_snap, galaxy_name="test"):
 
     return Gals
 
-
-def check_photons(Gals, max_snap):
-   
-    for snap in [80]: 
-    
-        w_gal = np.where((Gals.GridHistory[:, snap] != -1) & 
-                         (Gals.GridStellarMass[:, snap] > 0.0))[0]
-    
-        print("{0} {1}".format(snap, len(w_gal)))
-        if len(w_gal) == 0:
-            continue
-
-        mass = np.log10(Gals.GridStellarMass[w_gal, snap] * 1.0e10 / AllVars.Hubble_h)
-        photons = Gals.GridNgamma_HI[w_gal, snap]
-
-        w_wrong = np.where((photons < 1e-6))[0]
-
-        if len(w_wrong) > 0:
-            print("For Snapshot {0} there are {1} galaxies that "
-                  "exist with nonzero stellar mass.".format(snap, len(w_gal)))
-            print("However for galaxies {0} with log stellar mass {1}, they " 
-                  "emitted {2} ionizing photons.  If there is a non-zero "
-                  "stellar mass we expect there to be ionizing " 
-                  "photons.".format(w_wrong, mass[w_wrong], photons[w_wrong]))
-            #raise RuntimeError
 
 def test_run():
     """
@@ -326,34 +358,29 @@ def test_run():
     # We have multiple test parameter specs we want to test.
     # Need all the names of the ini files and the name of the galaxies they
     # produce. 
-    ini_files = ["PhotonPrescription0_mini_millennium.ini",
-                 "PhotonPrescription1_mini_millennium.ini"]
 
-    galaxy_names = ["PhotonPrescription0",
-                    "PhotonPrescription1"] 
+    ini_files = ["PhotonPrescription0_mini_millennium"]
 
+    galaxy_names = ["PhotonPrescription0"]
+   
     AllVars.Set_Params_MiniMill()
     max_snap = len(AllVars.SnapZ) - 1
 
-    for ini_file, galaxy_name in zip(ini_files, galaxy_names):
-
-        check_sage_dirs(galaxy_name)  # First check that directories for output are present. 
-        run_my_sage(ini_file)  # Run my version of SAGE (not full R-SAGE yet).
+    for ini_file, galaxy_name in zip(ini_files, 
+                                     galaxy_names):
+        check_sage_dirs(galaxy_name)
+        sage_params, cifog_params = run_my_sage(ini_file)
 
         print("")
         print("SAGE run, now reading in the Galaxies.")
         print("")
         Gals = load_gals(max_snap, galaxy_name)
-        check_smf(Gals, max_snap)  # Attempt to make a stellar mass function.
+        check_smf(Gals, galaxy_name, max_snap, sage_params)  # Attempt to make a stellar mass function.
 
-        '''
-        if galaxy_name is "kali_test":
-            check_photons(Gals, max_snap)
-        '''
     print("Done")
     print("")
     
-    cleanup(downloaded_repo)
+    #cleanup(downloaded_repo)
 
     print("")
     print("================")

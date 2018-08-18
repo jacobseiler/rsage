@@ -3,5 +3,5 @@
 # Except this ignore file.
 !.gitignore
 # And also the test .ini files
-!kali.ini
-!cifog.ini
+!kali_SAGE.ini
+!kali_cifog.ini
