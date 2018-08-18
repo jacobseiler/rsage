@@ -7,7 +7,11 @@ OBJS := $(SOURCES:.c=.o)
 INCL   =	src/main.h \
 			src/reion_redshift.h
 
-BUILD_RSAGE=yes # Set if you're using self-consistent reionization.
+# Set if you're using self-consistent reionization.
+BUILD_RSAGE = true 
+
+# Set this to true if you want to run in MPI.
+#USE-MPI = true
 
 # Determine if we're on continuous integration.
 ON_CI := false
@@ -19,8 +23,6 @@ ifeq ($(TRAVIS), true)
     ON_CI := true
 endif
 
-# Set this to true if you want to run in MPI.
-#USE-MPI = true
 ifeq ($(ON_CI), true) #  Don't build with MPI if we're on a continuous integration service. 
     USE-MPI = false
 
@@ -38,7 +40,7 @@ OPT += -DVERSION=\"$(GIT_VERSION)\"
 
 # Time to add the static libraries.
 SAGE_LIB := -Lsrc/sage/ -lsage
-ifdef BUILD_RSAGE
+ifeq ($(BUILD_RSAGE), true)
 	RSAGE_LIB := -Lgrid-model/ -lcifog -Lsrc/filter_mass/ -lfilter_mass
 	OPT += -DRSAGE
 else
