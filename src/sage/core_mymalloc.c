@@ -60,10 +60,12 @@ void track_memory(double size)
 
   if (TotMem > HighMarkMem && (TotMem - HighMarkMem > (MEMORY_THRESHOLD * 1024.0 * 1024.0)))
   {
+#ifdef MEMORY_PROGRESS 
 #ifdef MPI
     printf("New highmark memory (Task %d): %.4f MB (was %.4f MB)\n", ThisTask, TotMem / (1024.0 * 1024.0), HighMarkMem / (1024.0 * 1024.0));
 #else
     printf("New highmark memory: %.4f MB (was %.4f MB)\n", TotMem / (1024.0 * 1024.0), HighMarkMem / (1024.0 * 1024.0));
+#endif
 #endif
     HighMarkMem = TotMem;
   }

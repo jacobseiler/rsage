@@ -372,22 +372,18 @@ if __name__ == '__main__':
     # Specify here the SAGE parameters that you want to change for each run #
     #########################################################################
 
-    fescPrescription = [0, 3, 4]
-    beta = [0.3, 0.3, 0.3] 
-    MH_low = [1e8, 1e8, 1e8]
-    MH_high = [1e12, 1e12, 1e12]
-    fesc_low = [0.99, 0.99, 0.01]
-    fesc_high = [0.99, 0.05, 0.50]
-    FileNameGalaxies = ["const_0.3",
-                        "MHneg_1e8_1e12_0.99_0.05",
-                        "MHpos_1e8_1e12_0.01_0.50"]
+    fescPrescription = [1, 1, 1, 1, 1]
+    alpha = [0.20, 0.40, 0.20, 0.40, 0.60] 
+    beta = [0.05, 0.05, 0.10, 0.10, 0.10]
+    FileNameGalaxies = ["fej_alpha0.20_beta0.05",
+                        "fej_alpha0.40_beta0.05",
+                        "fej_alpha0.20_beta0.1",
+                        "fej_alpha0.40_beta0.1",
+                        "fej_alpha0.60_beta0.1"]
 
-    SAGE_fields_update = { "fescPrescription" : fescPrescription, 
+    SAGE_fields_update = { "fescPrescription" : fescPrescription,
+                           "alpha" : alpha,
                            "beta" : beta,
-                           "MH_low" : MH_low,
-                           "MH_high" : MH_high,
-                           "fesc_low" : fesc_low, 
-                           "fesc_high" : fesc_high,
                            "FileNameGalaxies" : FileNameGalaxies
                          }
 
@@ -401,17 +397,19 @@ if __name__ == '__main__':
     # Specify here the path directory for each run #
     ################################################
 
-    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant",
-                     "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg",
-                     "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos"]
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej"]
 
     #########################################################################
     # Specify here the path to the base ini files (shouldn't need to touch) #  
     #########################################################################
 
-    base_SAGE_ini = "{0}/ini_files/kali_SAGE.ini".format(script_dir)
-    base_cifog_ini = "{0}/ini_files/kali_cifog.ini".format(script_dir)
-    base_slurm_file = "{0}/run_rsage.slurm".format(script_dir)
+    base_SAGE_ini = "{0}/../ini_files/kali_SAGE.ini".format(script_dir)
+    base_cifog_ini = "{0}/../ini_files/kali_cifog.ini".format(script_dir)
+    base_slurm_file = "{0}/../run_rsage.slurm".format(script_dir)
 
     #####################
     # Misc for each run # 
@@ -432,4 +430,4 @@ if __name__ == '__main__':
     # CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL # 
     ###########################################################################
     # This function will submit all the jobs onto the queue.
-    submit_slurm_jobs(slurm_names)
+    #submit_slurm_jobs(slurm_names)

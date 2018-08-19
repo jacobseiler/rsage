@@ -1,4 +1,4 @@
-EXEC   = rsage
+EXEC   = bin/rsage
 
 SOURCES := src/main.c \
 		   src/reion_redshift.c
@@ -11,7 +11,7 @@ INCL   =	src/main.h \
 BUILD_RSAGE = true
 
 # Set this to true if you want to run in MPI.
-#USE-MPI = true
+USE-MPI = true
 
 # Determine if we're on continuous integration.
 ON_CI := false
@@ -25,11 +25,11 @@ endif
 
 ifeq ($(ON_CI), true) #  Don't build with MPI if we're on a continuous integration service. 
     USE-MPI = false
+endif
 
 ifeq ($(USE-MPI), true)
     OPT += -DMPI  #  This creates an MPI version that can be used to process files in parallel
     CC = mpicc  # sets the C-compiler
-endif
 else
     CC = gcc  # sets the C-compiler
 endif
@@ -92,7 +92,6 @@ CFLAGS += $(OPTIONS) $(OPT) $(OPTIMIZE)
 # Dont want to redefine some settings in other Makefiles.
 # So export them to ensure they're visible.
 export USE-MPI
-export ON_CI 
 export $(OPTIMIZE)
 export $(ON_CI)
 export $(GIT_VERSION)

@@ -97,9 +97,7 @@ int32_t init_reion_lists(int32_t filenr)
     fprintf(stderr, "Cannot open file %s\n", ListFile_name);
     return EXIT_FAILURE;
   }
- 
-  printf("Reading in the reionization modifier lists.\n");
- 
+
   ReionList = malloc(sizeof(struct REIONMOD_STRUCT));
   if (ReionList == NULL)
   {

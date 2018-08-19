@@ -29,8 +29,6 @@ int32_t read_parameter_file(char *fname)
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
-  printf("Reading from %s\n", fname);
-
   strcpy(tag[nt], "FileNameGalaxies");
   addr[nt] = FileNameGalaxies;
   id[nt++] = STRING;

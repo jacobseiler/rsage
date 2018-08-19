@@ -15,6 +15,8 @@
 #include "core_proto.h"
 #include "self_consistent/selfcon_grid.h"
 
+#define TREEPROGRESSBAR 1000000 // Number of trees processed before printing out status.
+
 char bufz0[1000], bufmergedz0[1000];
 int exitfail = 1;
 
@@ -46,7 +48,6 @@ void myexit(int signum)
 #endif
 
 }
-
 
 int32_t check_tree_file(int32_t filenr, int32_t *treestyle)
 {
@@ -129,7 +130,7 @@ int32_t sage(void)
     {      
 			assert(!gotXCPU);
 
-      if(tree % 10000 == 0)
+      if(tree % TREEPROGRESSBAR == 0)
       {
 #ifdef MPI
         printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
@@ -160,7 +161,7 @@ int32_t sage(void)
     
     free_tree_table();
 
-    printf("\nDone file %d\n\n", filenr);
+    printf("Done file %d\n", filenr);
 
     if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
     {
@@ -181,5 +182,5 @@ int32_t sage(void)
     }
   }
 
-  return EXIT_SUCCESS;  
+  return EXIT_SUCCESS;
 }

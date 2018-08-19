@@ -19,7 +19,6 @@ int32_t filter_mass_load_tree_table(int32_t filenr, struct SAGE_PARAMETERS *para
 
   snprintf(forestname, MAXLEN, "%s/%s_%03d.dat", params->TreeDir, params->TreeName, filenr);
 
-  printf("Reading file %s\n", forestname);
   if(!(forest_file= fopen(forestname, "rb")))
   {
     printf("can't open file `%s'\n", forestname);
@@ -92,7 +91,6 @@ int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **ReionMod)
     forest_file = NULL;
     printf("Closing forest file\n");
   }
-    
 
   return EXIT_SUCCESS;
 

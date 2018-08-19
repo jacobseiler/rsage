@@ -53,7 +53,6 @@ int32_t filter_mass_read_grid(int32_t SnapNum, int32_t first_update_flag, int32_
     return EXIT_FAILURE;
   }
 
-  printf("Reading reionization redshift file.\n");
   fread(Grid->ReionRedshift, sizeof(*(Grid->ReionRedshift)), Grid->NumCellsTotal, ReionRedshiftFile);
   count_ionized_cells(Grid);
   fclose(ReionRedshiftFile);
@@ -65,7 +64,6 @@ int32_t filter_mass_read_grid(int32_t SnapNum, int32_t first_update_flag, int32_
     return EXIT_FAILURE;
   }
 
-  printf("Reading photoionization rate.\n"); 
   fread(Grid->PhotoRate, sizeof(*(Grid->PhotoRate)), Grid->NumCellsTotal, PhotoionFile);
   fclose(PhotoionFile);
 

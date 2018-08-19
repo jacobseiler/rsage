@@ -77,23 +77,21 @@ int32_t init_selfcon_grid(void)
   {
 
     case 0:
-#ifdef MPI
       if (ThisTask == 0)
-#endif
-      printf("\n\nUsing a constant escape fraction of %.4f\n", beta); 
+      {
+        printf("\n\nUsing a constant escape fraction of %.4f\n", beta); 
+      }
       break;
 
     case 1:
-#ifdef MPI
       if (ThisTask == 0)
-#endif
-      printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\nThis takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta); 
+      {
+        printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\nThis takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta);
+      }
       break;
 
     case 2:
-#ifdef MPI
       if (ThisTask == 0)
-#endif
       {
         printf("\n\nUsing an fesc prescription that depends upon quasar activity.\n");
         printf("\nFor a galaxy that had a quasar event within %.2f dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
@@ -101,19 +99,21 @@ int32_t init_selfcon_grid(void)
       break;
 
     case 3:
-#ifdef MPI
       if (ThisTask == 0)
-#endif
-      printf("\n\nUsing Anne's functional form for an escape fraction that decreases for increasing halo mass.\n");
-      printf("MH_low = %.4e\tMH_high = %.4e\tfesc_low = %.4f\tfesc_high =  %.4f.\n", MH_low, MH_high, fesc_low, fesc_high);
+      {
+        printf("\n\nUsing Anne's functional form for an escape fraction that decreases for increasing halo mass.\n");
+        printf("MH_low = %.4e\tMH_high = %.4e\tfesc_low = %.4f\tfesc_high =  %.4f.\n", MH_low, MH_high, fesc_low, fesc_high);
+      }
       XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 3), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
+
       break;
 
     case 4:
-#ifdef MPI
       if (ThisTask == 0)
-#endif
-      printf("\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
+      {
+        printf("\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
+        printf("MH_low = %.4e\tMH_high = %.4e\tfesc_low = %.4f\tfesc_high =  %.4f.\n", MH_low, MH_high, fesc_low, fesc_high);
+      }
       XASSERT(fesc_low < fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 4), we require fesc_low < fesc_high\n", fesc_low, fesc_high);
       break;
 
