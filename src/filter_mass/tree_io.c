@@ -89,7 +89,6 @@ int32_t free_memory(int32_t **TreeNHalos, int64_t **HaloID, float **ReionMod)
   {
     fclose(forest_file);
     forest_file = NULL;
-    printf("Closing forest file\n");
   }
 
   return EXIT_SUCCESS;

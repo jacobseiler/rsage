@@ -26,6 +26,79 @@ import AllVars
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 
+def check_input_parameters(SAGE_fields_update, cifog_fields_update,
+                           run_directories, base_SAGE_ini, base_cifog_ini,
+                           base_slurm_file):
+    """
+    Checks that the update fields all have the same number of inputs.  Also
+    checks that the template ``.ini`` and ``.slurm`` files exist. 
+ 
+    Parameters
+    ----------
+
+    SAGE_fields_update, cifog_fields_update : Dictionaries
+        Fields that will be updated and their new value.
+
+    run_directories : List of strings, length equal to number of runs 
+        Path to the base ``RSAGE`` directory for each run where all the model
+        output will be placed.
+
+    base_SAGE_ini, base_cifog_ini : Strings
+        Paths to the template SAGE and cifog ``.ini`` files.
+
+    base_slurm_file : String
+        Path to the template ``.slurm`` file.
+
+    Returns
+    ----------
+    
+    None.
+
+    Errors 
+    ----------
+        ValueError:
+            Raised if any of the fields in ``SAGE_fields_update`` or
+            ``cifog_fields_update`` have different lengths.
+
+            Raised if any of the fields in ``SAGE_fields_update`` or
+            ``cifog_fields_update`` have different lengths to that of
+            ``run_directories``.
+
+            Raised in any of the template files do not exist.    
+    """
+
+    # Compare every field within ``SAGE_fields_update`` and
+    # ``cifog_fields_update`` to ensure they have the same lengths.
+    for count, my_dict in enumerate([SAGE_fields_update, cifog_fields_update]):
+        for key_1 in SAGE_fields_update.keys(): 
+            for key_2 in SAGE_fields_update.keys():
+ 
+                if len(SAGE_fields_update[key_1]) != len(SAGE_fields_update[key_2]):
+                    if count == 0:
+                        which_dict = "SAGE"
+                    else:
+                        which_dict = "cifog"
+ 
+                    print("For the {0} update dictionary, Key {1} did not have "
+                          "the same length as key {2}".format(which_dict,
+                                                              key_1, 
+                                                              key_2))
+                    raise ValueError
+
+            if len(SAGE_fields_update[key_1]) != len(run_directories):
+                print("For the {0} update dictionary, Key {1} did not have "
+                      "the same length as the number of run directories" \
+                      .format(which_dict, key_1))
+                raise ValueError
+
+    # Check all the template files exist.
+    for my_file in [base_SAGE_ini, base_cifog_ini, base_slurm_file]: 
+        if not os.path.isfile(my_file):
+
+            print("File {0} does not exist.".format(my_file))
+            raise ValueError
+
+
 def create_directories(run_directory):
     """
     Creates the directories to house all the ``RSAGE`` outputs.   
@@ -372,18 +445,16 @@ if __name__ == '__main__':
     # Specify here the SAGE parameters that you want to change for each run #
     #########################################################################
 
-    fescPrescription = [1, 1, 1, 1, 1]
-    alpha = [0.20, 0.40, 0.20, 0.40, 0.60] 
-    beta = [0.05, 0.05, 0.10, 0.10, 0.10]
-    FileNameGalaxies = ["fej_alpha0.20_beta0.05",
-                        "fej_alpha0.40_beta0.05",
-                        "fej_alpha0.20_beta0.1",
-                        "fej_alpha0.40_beta0.1",
-                        "fej_alpha0.60_beta0.1"]
+    fescPrescription = [1, 1, 1]
+    alpha = [0.10, 0.30, 0.50]
+    beta = [0.0, 0.0, 0.0]
+    FileNameGalaxies = ["fej_alpha0.10_beta0.0",
+                        "fej_alpha0.30_beta0.0",
+                        "fej_alpha0.50_beta0.0"]
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription,
                            "alpha" : alpha,
-                           "beta" : beta,
+                            "beta" : beta,
                            "FileNameGalaxies" : FileNameGalaxies
                          }
 
@@ -398,8 +469,6 @@ if __name__ == '__main__':
     ################################################
 
     run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
                        "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
                        "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej"]
 
@@ -417,7 +486,13 @@ if __name__ == '__main__':
     
     Nproc = 32  # Number of processors to run on.
 
-    #
+    #############
+    # Functions # 
+    #############
+
+    check_input_parameters(SAGE_fields_update, cifog_fields_update,
+                           run_directories, base_SAGE_ini, base_cifog_ini,
+                           base_slurm_file)
 
     SAGE_ini_names, cifog_ini_names = make_ini_files(base_SAGE_ini, base_cifog_ini, 
                                                      SAGE_fields_update, cifog_fields_update,

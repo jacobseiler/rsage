@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <time.h>
 
 #ifdef MPI
 #include <mpi.h>
@@ -75,6 +76,8 @@ int main(int argc, char **argv)
 #endif
 
   int32_t status;
+  double SAGE_time = 0.0, cifog_time = 0.0, filter_time = 0.0, misc_time = 0.0;
+  clock_t before;
 
 #ifdef RSAGE
   if(argc != 3)
@@ -166,15 +169,22 @@ int main(int argc, char **argv)
 
     for (loop_SnapNum = LowSnap, count = 0; loop_SnapNum < LastSnapShotNr + 1; ++loop_SnapNum, ++count)
     {
-      printf("\n\n======================================\n");
-      printf("(Rank %d) Applying reionization to Snapshot %d\n", ThisTask, loop_SnapNum); 
-      printf("======================================\n\n");
+      if (ThisTask == 0)
+      {
+        printf("\n\n======================================\n");
+        printf("(Rank %d) Applying reionization to Snapshot %d\n", ThisTask, loop_SnapNum); 
+        printf("======================================\n\n");
+      }
       ReionSnap = loop_SnapNum;
 
-      printf("\n\n================================\n");
-      printf("(Rank %d) Running SAGE\n", ThisTask);
-      printf("================================\n");
+      if (ThisTask == 0)
+      {
+        printf("\n\n================================\n");
+        printf("(Rank %d) Running SAGE\n", ThisTask);
+        printf("================================\n");
+      }
 
+      before = clock();
       status = zero_selfcon_grid(SelfConGrid);
       if (status != EXIT_SUCCESS)
       {
@@ -186,12 +196,15 @@ int main(int argc, char **argv)
       {
         goto err;
       }
-
+      SAGE_time = SAGE_time + (clock() - before); 
+ 
+      before = clock(); 
       status = cifog_zero_grids(grid, simParam);
       if (status !=  EXIT_SUCCESS)
       {
         goto err;
       }
+      cifog_time = cifog_time + (clock() - before);
 
 #ifdef MPI
   MPI_Barrier(MPI_COMM_WORLD); 
@@ -210,9 +223,13 @@ int main(int argc, char **argv)
         first_update_flag = 0;
       }
 
-      printf("\n\n================================\n");
-      printf("(Rank %d) Running cifog\n", ThisTask);
-      printf("================================\n");
+      if (ThisTask == 0)
+      {
+        printf("\n\n================================\n");
+        printf("(Rank %d) Running cifog\n", ThisTask);
+        printf("================================\n");
+      }
+
       num_cycles = count + 1;
       status = cifog(simParam, redshift_list, grid, sourcelist, integralTable, photIonBgList, num_cycles, ThisTask, RestartMode);
       if (status !=  EXIT_SUCCESS)
@@ -227,25 +244,34 @@ int main(int argc, char **argv)
         printf("\n\n================================\n");
         printf("(Rank %d) Updating the Reionization Redshift file.\n", ThisTask);
         printf("================================\n");
+
+        before = clock();
         status = update_reion_redshift(loop_SnapNum+1, ZZ[loop_SnapNum], GridSize, first_update_flag,
                                        PhotoionDir, FileNameGalaxies, ReionRedshiftName);
-
         if (status !=  EXIT_SUCCESS)
         {
           goto err;
         }
+        misc_time = misc_time + (clock() - before);
+
       }
       
 #ifdef MPI
       MPI_Barrier(MPI_COMM_WORLD); 
 #endif
 
-      printf("\n\n================================\n");
-      printf("(Rank %d) Updating the filter mass values.\n", ThisTask);
-      printf("================================\n");
+      if (ThisTask == 0)
+      {
+        printf("\n\n================================\n");
+        printf("(Rank %d) Updating the filter mass values.\n", ThisTask);
+        printf("================================\n");
+      }
+
+      before = clock();
       status = filter_masses(FileNameGalaxies, SimulationDir, TreeName, PhotoionDir, PhotoionName, ReionRedshiftName,
                              FirstFile, LastFile, GridSize, BoxSize, Hubble_h, loop_SnapNum, ZZ[loop_SnapNum], 
-                             first_update_flag);
+                             first_update_flag, ThisTask, NTask);
+      filter_time = filter_time + (clock() - before);
 
       if (status !=  EXIT_SUCCESS)
       {
@@ -255,9 +281,15 @@ int main(int argc, char **argv)
     } // Self-Consistent Snapshot Loop.
   } // ReionizationOption condition.
   else
+  {
+    before = clock();
     sage();
+    SAGE_time = clock() - before;
+  }
 #else
+  before = clock();
   sage();
+  SAGE_time = clock() - before;
 #endif
 
   status = sage_cleanup(argv);
@@ -279,11 +311,50 @@ int main(int argc, char **argv)
 
 #endif
 
-   err:    
+  if (ThisTask == 0)
+  {
+    printf("\n\n================================\n");
+    printf("Runtime Statistics\n");
+    printf("================================\n");
+  }
+
+#ifdef MPI
+  double master_SAGE_time, master_cifog_time, master_filter_time, master_misc_time;
+
+  MPI_Reduce(&SAGE_time, &master_SAGE_time, NTask, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+  MPI_Reduce(&cifog_time, &master_cifog_time, NTask, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+  MPI_Reduce(&filter_time, &master_filter_time, NTask, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+  MPI_Reduce(&misc_time, &master_misc_time, NTask, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+
+  if (ThisTask == 0)
+  {
+    master_SAGE_time = master_SAGE_time / NTask;
+    master_cifog_time = master_cifog_time / NTask;
+    master_filter_time = master_filter_time / NTask;
+    master_misc_time = master_misc_time / NTask;
+  }
+
+#else
+  master_SAGE_time = SAGE_time;
+  master_cifog_time = cifog_time;
+  master_filter_time = filter_time;
+  master_misc_time = misc_time;
+#endif
+
+  if (ThisTask == 0)
+  {
+    printf("SAGE took an average time of %.4f seconds to execute\n", master_SAGE_time / CLOCKS_PER_SEC);
+    printf("cifog took an average time of %.4f seconds to execute\n", master_cifog_time / CLOCKS_PER_SEC);
+    printf("Creation of Halo filter masses took an average time of %.4f seconds to execute\n", master_filter_time / CLOCKS_PER_SEC);
+    printf("Creation of reionization redshift grid took an average time of %.4f seconds to execute\n", master_misc_time / CLOCKS_PER_SEC);
+  }
+
+  return EXIT_SUCCESS;
+
+ err:    
 #ifdef MPI        
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     MPI_Finalize();
 #endif
-
-  return status;
+    return status;
 } 

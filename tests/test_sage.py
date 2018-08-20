@@ -168,7 +168,7 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     print("")
 
     # Use paths relative to the file this script is in.
-    path_to_sage = "{0}/../rsage".format(test_dir)
+    path_to_sage = "{0}/../bin/rsage".format(test_dir)
     path_to_sage_ini = "{0}/test_ini_files/{1}_SAGE.ini".format(test_dir, ini_name)
 
     path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_name)
@@ -359,7 +359,7 @@ def test_run():
     # Need all the names of the ini files and the name of the galaxies they
     # produce. 
 
-    ini_files = ["PhotonPrescription0_mini_millennium"]
+    ini_files = ["PhotonPrescription0"]
 
     galaxy_names = ["PhotonPrescription0"]
    

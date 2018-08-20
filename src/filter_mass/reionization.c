@@ -16,13 +16,13 @@
 
 // Local Proto-Types //
 
-int32_t count_ionized_cells(struct GRID_STRUCT *Grid);
+int32_t count_ionized_cells(struct GRID_STRUCT *Grid, int32_t ThisTask);
 
 // Local functions //
 
 int32_t filter_mass_read_grid(int32_t SnapNum, int32_t first_update_flag, int32_t GridSize, double BoxSize, 
                                char *PhotoionDir, char *ReionRedshiftName, char *PhotoionName,
-                               struct GRID_STRUCT *Grid)
+                               struct GRID_STRUCT *Grid, int32_t ThisTask)
 {
 
   FILE *ReionRedshiftFile, *PhotoionFile;
@@ -54,7 +54,7 @@ int32_t filter_mass_read_grid(int32_t SnapNum, int32_t first_update_flag, int32_
   }
 
   fread(Grid->ReionRedshift, sizeof(*(Grid->ReionRedshift)), Grid->NumCellsTotal, ReionRedshiftFile);
-  count_ionized_cells(Grid);
+  count_ionized_cells(Grid, ThisTask);
   fclose(ReionRedshiftFile);
   
   snprintf(PhotoionGridName, MAXLEN, "%s/%s_%03d", PhotoionDir, PhotoionName, SnapNum + 1); 
@@ -71,7 +71,7 @@ int32_t filter_mass_read_grid(int32_t SnapNum, int32_t first_update_flag, int32_
 
 }
 
-int32_t count_ionized_cells(struct GRID_STRUCT *Grid)
+int32_t count_ionized_cells(struct GRID_STRUCT *Grid, int32_t ThisTask)
 {
 
   int32_t cell_idx, num_ionized_cells = 0;
@@ -86,7 +86,10 @@ int32_t count_ionized_cells(struct GRID_STRUCT *Grid)
 
   }
 
-  printf("There were %d Cells marked as ionized from the reionization redshift grid.\n", num_ionized_cells);
+  if (ThisTask == 0)
+  {
+    printf("There were %d Cells marked as ionized from the reionization redshift grid.\n", num_ionized_cells);
+  }
 
   return EXIT_SUCCESS;
 

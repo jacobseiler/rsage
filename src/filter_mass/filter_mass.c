@@ -24,22 +24,15 @@
 
 // Local Variables //
 
-#ifdef MPI
-int ThisTask, NTask, nodeNameLen;
-char *ThisNode;
-#endif
-
 // Proto-types //
 
-
-
 // Functions //
-  
 
 int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName, 
                       char *PhotoionDir, char *PhotoionName, char *ReionRedshiftName,
                       int32_t FirstFile, int32_t LastFile, int32_t GridSize, double BoxSize,
-                      double Hubble_h, int32_t SnapNum, double Redshift, int32_t first_update_flag)
+                      double Hubble_h, int32_t SnapNum, double Redshift, int32_t first_update_flag,
+                      int32_t ThisTask, int32_t NTask)
 {
 
   int32_t status, filenr, Ntrees, totNHalos, *TreeNHalos, treenr, NHalos_Ionized, NHalos_In_Regions, NHalos_ThisSnap;
@@ -78,7 +71,7 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName,
   }
 
   status = filter_mass_read_grid(SnapNum, first_update_flag, GridSize, BoxSize,
-                                 PhotoionDir, ReionRedshiftName, PhotoionName, Grid);
+                                 PhotoionDir, ReionRedshiftName, PhotoionName, Grid, ThisTask);
   if (status != EXIT_SUCCESS)
   {
     return EXIT_FAILURE;
@@ -152,9 +145,11 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName,
 
       free(Halos);
     } 
-        
+
+#ifdef DEBUG
     printf("For file %d there were %d total halos within ionized regions (out of %d halos in this snapshot, a ratio of %.4f). There were %d total halos with a reionization modifier lower than 1.0 (a ratio of %.4f to the total number of halos in this snapshot). The average ionization modifier for these is %.4f\n", filenr, NHalos_In_Regions, NHalos_ThisSnap, (float)NHalos_In_Regions / (float)NHalos_ThisSnap, NHalos_Ionized, (float)NHalos_Ionized / (float)NHalos_ThisSnap, sum_ReionMod / NHalos_Ionized);
-          
+#endif
+
     status = save_arrays(HaloID, ReionMod, params, NHalos_Ionized, filenr, SnapNum, first_update_flag);
     if (status != EXIT_SUCCESS)
     {
