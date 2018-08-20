@@ -13,10 +13,12 @@ output/scale_plots/
 
 # SAGE ignores.
 src/sage/sage
-sage/*.o
-sage/io/*.o
-sage/self_consistent/*.o
-sage/.nfs*
+src/sage/*.a
+src/filter_mass/*.a
+src/sage/*.o
+src/sage/io/*.o
+src/sage/self_consistent/*.o
+src/sage/.nfs*
 
 # Grid code ignores.
 gridding/grid_sage
@@ -41,7 +43,4 @@ tests/*.txt
 tests/test_logs/*.log
 tests/*.log
 
-rsage
-src/sage/*.a
-src/filter_mass/*.a
 
