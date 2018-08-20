@@ -41,8 +41,6 @@ tests/*.txt
 tests/test_logs/*.log
 tests/*.log
 
-bin/
-
 rsage
 src/sage/*.a
 src/filter_mass/*.a
