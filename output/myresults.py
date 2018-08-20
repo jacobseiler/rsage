@@ -946,58 +946,6 @@ def plot_reionmod_galaxy(SnapList, PlotSnapList, simulation_norm,
                      model_tags, paper_plots, output_tag):
     """
     """
-    
-    def adjust_stellarmass_plot(ax):
-
-        #ax.axhline(0.20, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')
-        #ax.text(7.8, 0.22, r"$f_\mathrm{esc, base}$", color = 'k', 
-        #        size = PlotScripts.global_fontsize)
-
-
-        ax.set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
-                           size = PlotScripts.global_fontsize)
-
-        ax.set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
-                      size = PlotScripts.global_labelsize)
-
-        ax.set_xlim([6.8, 10])
-        ax.set_ylim([0.05, 0.45])
-
-        #ax.axhline(0.35, 0, 100, color ='k', linewidth = PlotScripts.global_linewidth, linestyle = '-.')
-        #ax.text(9.1, 0.37, r"$f_\mathrm{esc} = 0.35$", color = 'k', 
-        #        size = PlotScripts.global_fontsize)
-
-        ax.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
-        ax.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
-
-        ax.tick_params(which = 'both', direction='in', width =
-                        PlotScripts.global_tickwidth)
-        ax.tick_params(which = 'major', length = PlotScripts.global_ticklength)
-        ax.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
-    
-        for axis in ['top','bottom','left','right']: # Adjust axis thickness.
-            ax.spines[axis].set_linewidth(PlotScripts.global_axiswidth)
-   
-        tick_locs = np.arange(6.0, 11.0)
-        ax.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
-                            fontsize = PlotScripts.global_fontsize)
-
-        tick_locs = np.arange(0.0, 0.80, 0.10)
-        ax.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
-                            fontsize = PlotScripts.global_fontsize)
-
-        '''
-        labels = ax.yaxis.get_ticklabels()
-        locs = ax.yaxis.get_ticklocs()
-        for label, loc in zip(labels, locs):
-            print("{0} {1}".format(label, loc)) 
-        '''       
- 
-        leg = ax.legend(loc="upper right", numpoints=1, labelspacing=0.1)
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
-            t.set_fontsize('medium')
-
 
     def adjust_paper_plots(ax, model_tags):
 
@@ -1007,10 +955,10 @@ def plot_reionmod_galaxy(SnapList, PlotSnapList, simulation_norm,
         ax[1,1].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
                            size = PlotScripts.global_fontsize)
 
-        ax[0,0].set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
+        ax[0,0].set_ylabel(r'$\mathbf{\langle ReionMod\rangle_{M_*}}$', 
                       size = PlotScripts.global_labelsize)
 
-        ax[1,0].set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
+        ax[1,0].set_ylabel(r'$\mathbf{\langle ReionMod\rangle_{M_*}}$', 
                       size = PlotScripts.global_labelsize)
 
         ax_x = [0, 0, 1, 1]
@@ -1019,7 +967,7 @@ def plot_reionmod_galaxy(SnapList, PlotSnapList, simulation_norm,
         for count, (x, y) in enumerate(zip(ax_x, ax_y)):
 
             ax[x,y].set_xlim([4.8, 10.4])
-            #ax[x,y].set_ylim([0.00, 0.68])
+            ax[x,y].set_ylim([0.00, 1.05])
 
             #ax[x,y].yaxis.set_major_locator(mtick.MultipleLocator(0.1))
             ax[x,y].xaxis.set_major_locator(mtick.MultipleLocator(1.0))
@@ -1055,18 +1003,55 @@ def plot_reionmod_galaxy(SnapList, PlotSnapList, simulation_norm,
         #ax[1,0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
         #                    fontsize = PlotScripts.global_fontsize)
 
-    
-        print("x")
-        labels = ax[1,0].xaxis.get_ticklabels()
-        locs = ax[1,0].xaxis.get_ticklocs()
-        for label, loc in zip(labels, locs):
-            print("{0} {1}".format(label, loc)) 
 
-        print("y")
-        labels = ax[1,0].yaxis.get_ticklabels()
-        locs = ax[1,0].yaxis.get_ticklocs()
-        for label, loc in zip(labels, locs):
-            print("{0} {1}".format(label, loc)) 
+    def adjust_redshift_panels(ax, redshift_tags):
+
+        ax[1,0].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
+                           size = PlotScripts.global_fontsize)
+
+        ax[1,1].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
+                           size = PlotScripts.global_fontsize)
+
+        ax[0,0].set_ylabel(r'$\mathbf{\langle ReionMod\rangle_{M_*}}$', 
+                      size = PlotScripts.global_labelsize)
+
+        ax[1,0].set_ylabel(r'$\mathbf{\langle ReionMod\rangle_{M_*}}$', 
+                      size = PlotScripts.global_labelsize)
+
+        ax_x = [0, 0, 1, 1]
+        ax_y = [0, 1, 0, 1]
+    
+        for count, (x, y) in enumerate(zip(ax_x, ax_y)):
+
+            ax[x,y].set_xlim([4.8, 10.4])
+            ax[x,y].set_ylim([0.00, 1.05])
+
+            #ax[x,y].yaxis.set_major_locator(mtick.MultipleLocator(0.1))
+            ax[x,y].xaxis.set_major_locator(mtick.MultipleLocator(1.0))
+
+            #ax[x,y].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+            ax[x,y].xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+
+            ax[x,y].tick_params(which = 'both', direction='in', width =
+                            PlotScripts.global_tickwidth)
+
+            ax[x,y].tick_params(which = 'major', length = PlotScripts.global_ticklength)
+            ax[x,y].tick_params(which = 'minor', 
+                                length = PlotScripts.global_ticklength - 2)
+    
+            for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+                ax[x,y].spines[axis].set_linewidth(PlotScripts.global_axiswidth)
+
+            label = redshift_tags[count]
+
+            ax[x,y].text(0.05, 0.65, label, transform = ax[x,y].transAxes, fontsize = PlotScripts.global_fontsize - delta_fontsize)
+  
+        tick_locs = np.arange(4.0, 11.0)
+        ax[1,0].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+                            fontsize = PlotScripts.global_fontsize)
+
+        ax[1,1].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+                            fontsize = PlotScripts.global_fontsize)
 
     print("Reionization Modifier as a function of stellar mass.")
 
@@ -1087,6 +1072,7 @@ def plot_reionmod_galaxy(SnapList, PlotSnapList, simulation_norm,
             
         else:
             fig, ax = plt.subplots(nrows=2, ncols=2, sharex='col', sharey='row', figsize=(16, 6))
+            fig2, ax2 = plt.subplots(nrows=2, ncols=2, sharex='col', sharey='row', figsize=(16, 6))
 
             delta_fontsize = 0
             caps = 5
@@ -1097,20 +1083,6 @@ def plot_reionmod_galaxy(SnapList, PlotSnapList, simulation_norm,
         for count, model_number in enumerate(range(0, len(SnapList))):
             if count == 2:
                 count_x += 1
-
-            ## Normalization for each model. ##
-            if (simulation_norm[model_number] == 0):
-                AllVars.Set_Params_Mysim()
-            elif (simulation_norm[model_number] == 1):
-                AllVars.Set_Params_MiniMill()
-            elif (simulation_norm[model_number] == 2):
-                AllVars.Set_Params_Tiamat()
-            elif (simulation_norm[model_number] == 3):
-                AllVars.Set_Params_Tiamat_extended()
-            elif (simulation_norm[model_number] == 4):
-                AllVars.Set_Params_Britton()       
-            elif(simulation_norm[model_number] == 5):
-                AllVars.Set_Params_Kali()
 
             plot_count = 0
             for snapshot_idx in range(0, len(SnapList[model_number])):
@@ -1155,6 +1127,49 @@ def plot_reionmod_galaxy(SnapList, PlotSnapList, simulation_norm,
                     if (plot_count == len(PlotSnapList[model_number])):
                         break
 
+        z_labels = []
+        for model_number in range(0, len(SnapList)):
+            count_x = 0
+            plot_count = 0
+            for count, snapshot_idx in enumerate(range(len(SnapList[model_number]))):
+                if count == 2:
+                    count_x += 1
+ 
+                if (SnapList[model_number][snapshot_idx] == PlotSnapList[model_number][plot_count]):
+
+                    label = model_tags[model_number]
+                    if (model_number == 0):
+                        z_label = r"$\mathbf{z = " + \
+                                str(int(round(AllVars.SnapZ[SnapList[model_number][snapshot_idx]]))) +\
+                                "}$"                
+                        z_labels.append(z_label)
+
+                    ## Plots as a function of stellar mass ##
+                    w = np.where((master_N_reionmod_stellar[model_number][snapshot_idx] < 4))[0] # If there are no galaxies in the bin we don't want to plot. 
+                    master_mean_reionmod_stellar[model_number][snapshot_idx][w] = np.nan 
+                    master_mean_reionmod_gnedin_stellar[model_number][snapshot_idx][w] = np.nan 
+
+                    if (model_number == 0):
+                        print(master_mean_reionmod_stellar[model_number][snapshot_idx])                    
+                    ax2[count_x, count%2].plot(master_bin_middle_stellar[model_number][snapshot_idx], 
+                             master_mean_reionmod_stellar[model_number][snapshot_idx], 
+                             color = PlotScripts.colors[model_number], 
+                             ls = PlotScripts.linestyles[model_number], 
+                             rasterized = True, label = label, 
+                             lw = PlotScripts.global_linewidth)
+
+                    if (model_number == 0):
+                        ax2[count_x, count%2].plot(master_bin_middle_stellar[model_number][snapshot_idx], 
+                                 master_mean_reionmod_gnedin_stellar[model_number][snapshot_idx], 
+                                 color = 'k', 
+                                 ls = '--', 
+                                 rasterized = True, label = "Gnedin", 
+                                 lw = PlotScripts.global_linewidth)
+
+                    plot_count += 1                
+                    if (plot_count == len(PlotSnapList[model_number])):
+                        break
+
         ## Stellar Mass plots ##
 
         if paper_plots == 0:
@@ -1162,14 +1177,21 @@ def plot_reionmod_galaxy(SnapList, PlotSnapList, simulation_norm,
         else:
             adjust_paper_plots(ax, model_tags) 
 
+            print(z_labels)
+            adjust_redshift_panels(ax2, z_labels)
+
             leg = ax[0,0].legend(loc="upper right", numpoints=1, labelspacing=0.1)
+            leg.draw_frame(False)  # Don't want a box frame
+            for t in leg.get_texts():  # Reduce the size of the text
+                t.set_fontsize('medium')
+
+            leg = ax2[0,0].legend(loc="upper right", numpoints=1, labelspacing=0.1)
             leg.draw_frame(False)  # Don't want a box frame
             for t in leg.get_texts():  # Reduce the size of the text
                 t.set_fontsize('medium')
 
             plt.tight_layout()
             plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
-
 
             #leg = ax2[0,0].legend(loc="upper right", numpoints=1, labelspacing=0.1)
             #leg.draw_frame(False)  # Don't want a box frame
@@ -1181,11 +1203,15 @@ def plot_reionmod_galaxy(SnapList, PlotSnapList, simulation_norm,
 
         ## Output ##
 
-        outputFile = './%s%s' %(output_tag, output_format)
+        outputFile = "{0}{1}".format(output_tag, output_format)       
         fig.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
         plt.close(fig)
 
+        outputFile2 = "{0}_redshiftpanels{1}".format(output_tag, output_format)
+        fig2.savefig(outputFile2, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile2))
+        plt.close(fig2)
 ##
 
 def plot_nion_galaxy(SnapList, PlotSnapList, simulation_norm, 
@@ -3821,50 +3847,40 @@ if __name__ == '__main__':
     np.seterr(divide='ignore')
     number_models = 4
 
-    galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/galaxies/new_constant_fesc0.2_z5.782'
-    merged_galaxies_model1='/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/galaxies/new_constant_fesc0.2_MergedGalaxies'
-    photo_model1='/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_photHI'
-    zreion_model1='/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_reionization_redshift'
+    galaxies_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/galaxies/const_0.3_z5.782"
+    merged_galaxies_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/galaxies/const_0.3_MergedGalaxies"
+    photo_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/cifog/const_0.3_photHI"
+    zreion_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/cifog/const_0.3_reionization_redshift"
 
-    galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/galaxies/shifted_fej_alpha0.4_beta0.0_z5.782'
-    merged_galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/galaxies/shifted_fej_alpha0.4_beta0.0_MergedGalaxies'
-    photo_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.4_beta0.0_photHI'
-    zreion_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.4_beta0.0_reionization_redshift'
+    galaxies_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/galaxies/fej_alpha0.40_beta0.05_z5.782"
+    merged_galaxies_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/galaxies/fej_alpha0.40_beta0.05_MergedGalaxies"
+    photo_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.05_photHI"
+    zreion_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.05_reionization_redshift"
+      
+    galaxies_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/galaxies/MHneg_1e8_1e12_0.99_0.05_z5.782"
+    merged_galaxies_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/galaxies/MHneg_1e8_1e12_0.99_0.05_MergedGalaxies"
+    photo_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/cifog/MHneg_1e8_1e12_0.99_0.05_photHI"
+    zreion_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/cifog/MHneg_1e8_1e12_0.99_0.05_reionization_redshift"
 
-    #galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej_correct/galaxies/shifted_fej_alpha0.6_beta0.05_z5.782'
-    #merged_galaxies_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej_correct/galaxies/shifted_fej_alpha0.6_beta0.05_MergedGalaxies'
-    #photo_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej_correct/grids/cifog/shifted_fej_alpha0.6_beta0.05_photHI'
-    #zreion_model2='/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej_correct/grids/cifog/shifted_fej_alpha0.6_beta0.05_reionization_redshift'
-     
-    galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/galaxies/shifted_SFR_alpha0.4_beta0.0_z5.782'
-    merged_galaxies_model3='/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/galaxies/shifted_SFR_alpha0.4_beta0.0_MergedGalaxies'
-    photo_model3='/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.0_photHI'
-    zreion_model3='/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.0_reionization_redshift'
- 
-    galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/galaxies/shifted_MHneg_1e8_1e12_0.99_0.05_z5.782'
-    merged_galaxies_model4='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/galaxies/shifted_MHneg_1e8_1e12_0.99_0.05_MergedGalaxies'
-    photo_model4='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_photHI'
-    zreion_model4='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_reionization_redshift'
+    galaxies_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/galaxies/MHpos_1e8_1e12_0.01_0.50_z5.782"
+    merged_galaxies_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/galaxies/MHpos_1e8_1e12_0.01_0.50_MergedGalaxies"
+    photo_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/cifog/MHpos_1e8_1e12_0.01_0.50_photHI"
+    zreion_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/cifog/MHpos_1e8_1e12_0.01_0.50_reionization_redshift"
 
-    galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/galaxies/shifted_MHpos_1e8_1e12_0.01_0.50_z5.782'
-    merged_galaxies_model5='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/galaxies/shifted_MHpos_1e8_1e12_0.01_0.50_MergedGalaxies'
-    photo_model5='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/cifog/shifted_MHpos_1e8_1e12_0.01_0.50_photHI'
-    zreion_model5='/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/cifog/shifted_MHpos_1e8_1e12_0.01_0.50_reionization_redshift'
-
-    galaxies_filepath_array = [galaxies_model2,
+    galaxies_filepath_array = [galaxies_model1,
+                               galaxies_model2,
                                galaxies_model3,
-                               galaxies_model4,
-                               galaxies_model5]
+                               galaxies_model4]
 
-    photo_array = [photo_model2,
+    photo_array = [photo_model1,
+                   photo_model2,
                    photo_model3,
-                   photo_model4,
-                   photo_model5]
+                   photo_model4]
 
-    zreion_array = [zreion_model2,
+    zreion_array = [zreion_model1,
+                    zreion_model2,
                     zreion_model3,
-                    zreion_model4,
-                    zreion_model5]
+                    zreion_model4]
 
     GridSize_array = [256,
                       256,
@@ -3876,17 +3892,17 @@ if __name__ == '__main__':
                        2,
                        2]
 
-    merged_galaxies_filepath_array = [merged_galaxies_model2,
+    merged_galaxies_filepath_array = [merged_galaxies_model1,
+                                      merged_galaxies_model2,
                                       merged_galaxies_model3,
-                                      merged_galaxies_model4,
-                                      merged_galaxies_model5]
+                                      merged_galaxies_model4]
 
     number_substeps = [10, 10, 10, 10] # How many substeps does each model have (specified by STEPS variable within SAGE).
     number_snapshots = [99, 99, 99, 99] # Number of snapshots in the simulation (we don't have to do calculations for ALL snapshots).
     # Tiamat extended has 164 snapshots.
      
     FirstFile = [0, 0, 0, 0] # The first file number THAT WE ARE PLOTTING.
-    LastFile = [63, 63, 63, 63] # The last file number THAT WE ARE PLOTTING.
+    #LastFile = [63, 63, 63, 63] # The last file number THAT WE ARE PLOTTING.
     LastFile = [0, 0, 0, 0] # The last file number THAT WE ARE PLOTTING.
     NumFile = [64, 64, 64, 64] # The number of files for this simulation (plotting a subset of these files is allowed).     
     same_files = [0, 0, 0, 0] # In the case that model 1 and model 2 (index 0 and 1) have the same files, we don't want to read them in a second time.
@@ -3897,8 +3913,8 @@ if __name__ == '__main__':
 
     done_model = np.zeros((number_models)) # We use this to keep track of if we have done a model already.
 
-    model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$",
+    model_tags = [r"$\mathbf{f_\mathrm{esc} \: Constant}$", 
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$"]
 

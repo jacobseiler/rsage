@@ -101,7 +101,7 @@ void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
  
   for (j = 0; j < MAXSNAPS; ++j)
   {
-    Gal[p].GridType[j] = 0;
+    Gal[p].GridType[j] = -1;
     Gal[p].GridFoFHaloNr[j] = -1;
     Gal[p].GridHistory[j] = -1;
     Gal[p].GridColdGas[j] = 0.0;

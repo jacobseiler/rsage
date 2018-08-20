@@ -130,7 +130,7 @@ int32_t sage(void)
     {      
 			assert(!gotXCPU);
 
-      if(tree % TREEPROGRESSBAR == 0)
+      if((tree+1) % TREEPROGRESSBAR == 0)
       {
 #ifdef MPI
         printf("\ttask: %d\tnode: %s\tfile: %i\ttree: %i of %i\n", ThisTask, ThisNode, filenr, tree, Ntrees);
