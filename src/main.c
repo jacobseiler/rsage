@@ -335,10 +335,10 @@ int main(int argc, char **argv)
   }
 
 #else
-  master_SAGE_time = SAGE_time;
-  master_cifog_time = cifog_time;
-  master_filter_time = filter_time;
-  master_misc_time = misc_time;
+  double master_SAGE_time = SAGE_time;
+  double master_cifog_time = cifog_time;
+  double master_filter_time = filter_time;
+  double master_misc_time = misc_time;
 #endif
 
   if (ThisTask == 0)
