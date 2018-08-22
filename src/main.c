@@ -167,7 +167,7 @@ int main(int argc, char **argv)
   {
     int32_t loop_SnapNum, first_update_flag, count; 
 
-    for (loop_SnapNum = LowSnap, count = 0; loop_SnapNum < LastSnapShotNr + 1; ++loop_SnapNum, ++count)
+    for (loop_SnapNum = LowSnap, count = 0; loop_SnapNum < LastSnapShotNr; ++loop_SnapNum, ++count)
     {
       if (ThisTask == 0)
       {
@@ -204,11 +204,6 @@ int main(int argc, char **argv)
       {
         goto err;
       }
-      cifog_time = cifog_time + (clock() - before);
-
-#ifdef MPI
-  MPI_Barrier(MPI_COMM_WORLD); 
-#endif
 
       // When we run cifog we want to read the output of the previous snapshot and save it at the end.
       // For the first snapshot we only save, otherwise we read and save.
@@ -236,6 +231,11 @@ int main(int argc, char **argv)
       {
         goto err;
       }
+
+#ifdef MPI
+      MPI_Barrier(MPI_COMM_WORLD); 
+#endif
+      cifog_time = cifog_time + (clock() - before);
 
       // Because of how cifog handles numbering, need to pass the Snapshot Number + 1.
       // This file only needs to be created once, so do it on Root node. 
@@ -292,6 +292,7 @@ int main(int argc, char **argv)
   SAGE_time = clock() - before;
 #endif
 
+  printf("About to cleanup\n");
   status = sage_cleanup(argv);
   if (status != EXIT_SUCCESS)
   {
@@ -321,6 +322,8 @@ int main(int argc, char **argv)
 #ifdef MPI
   double master_SAGE_time, master_cifog_time, master_filter_time, master_misc_time;
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   MPI_Reduce(&SAGE_time, &master_SAGE_time, NTask, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
   MPI_Reduce(&cifog_time, &master_cifog_time, NTask, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
   MPI_Reduce(&filter_time, &master_filter_time, NTask, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
@@ -349,6 +352,7 @@ int main(int argc, char **argv)
     printf("Creation of reionization redshift grid took an average time of %.4f seconds to execute\n", master_misc_time / CLOCKS_PER_SEC);
   }
 
+  MPI_Finalize();
   return EXIT_SUCCESS;
 
  err:    

@@ -64,7 +64,7 @@ def update_cumulative_stats(mean_pool, std_pool, N_pool, mean_local, std_local, 
     return mean_pool, std_pool
 
 
-def reduce_hist_across_tasks(rank, comm, hists):
+def collect_hist_across_tasks(rank, comm, hists):
 
     master_hists = []
 

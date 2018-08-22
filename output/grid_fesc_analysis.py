@@ -444,7 +444,6 @@ AllVars.Lookback_Time[SnapList[model_number]])*1.0e3, nion[model_number], color 
     ax3.tick_params(which = 'major', length = PlotScripts.global_ticklength)
     ax3.tick_params(which = 'minor', length = PlotScripts.global_ticklength-2)
 
-
     leg = ax1.legend(loc='lower right', numpoints=1,
                      labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame

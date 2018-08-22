@@ -428,12 +428,11 @@ if __name__ == '__main__':
 
     PlotScripts.Set_Params_Plot()
 
-    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/shifted_constant/grids/cifog/new_constant_fesc0.2_XHII"
-    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej/grids/cifog/shifted_fej_alpha0.6_beta0.05_XHII"
-    #filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_SFR/grids/cifog/shifted_SFR_alpha0.4_beta0.0_XHII"
-    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/shifted_fej_correct/grids/cifog/shifted_fej_alpha0.6_beta0.05_XHII"    
-    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHneg/grids/cifog/shifted_MHneg_1e8_1e12_0.99_0.05_XHII"
-    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/shifted_MHpos/grids/cifog/shifted_MHpos_1e8_1e12_0.01_0.50_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/cifog/const_0.3_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/cifog/MHneg_1e8_1e12_0.99_0.05_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/cifog/MHpos_1e8_1e12_0.01_0.50_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.0_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/grids/cifog/SFR_XHII"
 
     fname_ionized=[filepath_model1,
                    filepath_model2,
@@ -451,12 +450,11 @@ if __name__ == '__main__':
 
     GridSize = [256, 256, 256, 256, 256]
 
-    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.35}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: Correct}$",
-                  #r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$",
+    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$"]
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
     SnapList = [np.arange(28, 98),
                 np.arange(28, 98),
@@ -464,11 +462,11 @@ if __name__ == '__main__':
                 np.arange(28, 98),
                 np.arange(28, 98)]
 
-    SnapList = [[22, 30, 39, 47, 54],
-                [14, 20, 27, 33, 38],
-                [14, 20, 28, 35, 40], 
-                [16, 22, 30, 38, 44],
-                [21, 28, 35, 43, 48]]
+    SnapList = [[18, 25, 33, 41, 47],
+                [16, 23, 31, 40, 47],
+                [21, 28, 36, 43, 49],
+                [17, 23, 31, 40, 46],
+                [20, 26, 34, 42, 47]]
 
     for snap in range(len(SnapList)):
         for inner_snap in range(len(SnapList[snap])):
@@ -482,7 +480,7 @@ if __name__ == '__main__':
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're always using
                                       #  Kali.
 
-    OutputDir = "./21cm_plots/shifted_with_reionization"
+    OutputDir = "./21cm_plots/rsage"
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 

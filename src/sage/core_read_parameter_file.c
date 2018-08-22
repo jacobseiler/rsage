@@ -487,6 +487,22 @@ int32_t check_ini_parameters(void)
       return EXIT_FAILURE;
   }
 
+  switch (fescPrescription)
+  {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+      break;
+
+  default:
+    fprintf(stderr, "The only valid options for `fescPrescription` are 0, 1, 2, 3, 4 or 5. You entered %d\n", fescPrescription);
+    return EXIT_FAILURE;
+
+  }
+
   // Then ensure that any cross dependancies are required.
 
   if (self_consistent == 0 && (ReionizationOn == 2 || ReionizationOn == 3))

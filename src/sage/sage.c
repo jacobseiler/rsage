@@ -15,7 +15,7 @@
 #include "core_proto.h"
 #include "self_consistent/selfcon_grid.h"
 
-#define TREEPROGRESSBAR 1000000 // Number of trees processed before printing out status.
+#define TREEPROGRESSBAR 10000 // Number of trees processed before printing out status.
 
 char bufz0[1000], bufmergedz0[1000];
 int exitfail = 1;

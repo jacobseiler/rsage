@@ -195,7 +195,8 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
 
     # The name for the ionizing photon file depends upon the escape fraction
     # prescription chosen.
-    nion_fname = get_nion_fname(SAGE_params) 
+    nion_fname = get_nion_fname(SAGE_params)
+
     cifog_params["inputNionFile"] = "{0}/grids/nion/{1}" \
                                     .format(run_directory, nion_fname)
     cifog_params["output_XHII_file"] = "{0}/grids/cifog/{1}_XHII" \
@@ -281,6 +282,11 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["fesc_low"],
                              SAGE_params["MH_high"],
                              SAGE_params["fesc_high"],
+                             SAGE_params["HaloPartCut"])
+
+    elif fesc_prescription == 5: 
+        nion_fname = "{0}_SFR_HaloPartCut{1}_nionHI" \
+                     .format(SAGE_params["FileNameGalaxies"],
                              SAGE_params["HaloPartCut"])
 
     else:
@@ -445,16 +451,14 @@ if __name__ == '__main__':
     # Specify here the SAGE parameters that you want to change for each run #
     #########################################################################
 
-    fescPrescription = [1, 1, 1]
-    alpha = [0.10, 0.30, 0.50]
-    beta = [0.0, 0.0, 0.0]
-    FileNameGalaxies = ["fej_alpha0.10_beta0.0",
-                        "fej_alpha0.30_beta0.0",
-                        "fej_alpha0.50_beta0.0"]
+    fescPrescription = [5]
+    #alpha = [0.30, 0.30, 0.30, 0.50, 0.50, 0.50]
+    #beta = [0.0, 0.15, 0.20, 0.0, 0.15, 0.20]
+    FileNameGalaxies = ["SFR"]
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription,
-                           "alpha" : alpha,
-                            "beta" : beta,
+                           #"alpha" : alpha,
+                           # "beta" : beta,
                            "FileNameGalaxies" : FileNameGalaxies
                          }
 
@@ -468,9 +472,7 @@ if __name__ == '__main__':
     # Specify here the path directory for each run #
     ################################################
 
-    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej"]
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR"]
 
     #########################################################################
     # Specify here the path to the base ini files (shouldn't need to touch) #  

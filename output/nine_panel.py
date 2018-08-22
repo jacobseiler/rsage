@@ -15,6 +15,7 @@ import matplotlib.patheffects as PathEffects
 import PlotScripts
 import ReadScripts
 import AllVars
+import misc_func as misc
 
 output_format = ".png"
 matplotlib.rcdefaults()
@@ -187,12 +188,11 @@ if __name__ == '__main__':
 
     PlotScripts.Set_Params_Plot()      
  
-    model_tags = [r"$\mathbf{f_{esc} = 0.35}$",
+    model_tags = [r"$\mathbf{f_{esc} = 0.30}$",
                   r"$\mathbf{f_{esc} \: \propto \: M_H^{-1}}$",
                   r"$\mathbf{f_{esc} \: \propto \: M_H}$",
                   r"$\mathbf{f_{esc} \: \propto \: f_{ej}}$",
-                  #r"$\mathbf{f_{esc} \: \propto \: SFR}$"]
-                  r"photHI2"]
+                  r"$\mathbf{f_{esc} \: \propto \: SFR}$"]
 
     output_tags = ["Constant",
                    "MH_Neg",
@@ -202,7 +202,7 @@ if __name__ == '__main__':
 
     number_models = 5 
 
-    model = 'new_paper_MC'
+    model = 'rsage'
 
     OutputDir = "./ionization_plots/" + model + '/'
     if not os.path.exists(OutputDir):
@@ -211,12 +211,17 @@ if __name__ == '__main__':
     GridSize_model1 = 256
     precision_model1 = 2
 
-    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_XHII"
-    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.99_0.10_XHII"
-    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/anne/grids/cifog/1e8_1e12_0.01_0.50_XHII"
-    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/fej/grids/cifog/newphoton_SF0.03_fej0.7_XHII"
-    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/SFR/grids/cifog/SFR_0.20_0.30_XHII"
-    filepath_model6="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI2_XHII"
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/cifog/const_0.3_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/cifog/MHneg_1e8_1e12_0.99_0.05_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/cifog/MHpos_1e8_1e12_0.01_0.50_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.0_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/grids/cifog/SFR_XHII"
+
+    fname_density=["/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"]
 
     precision = [precision_model1, 
                  precision_model1, 
@@ -234,18 +239,24 @@ if __name__ == '__main__':
                      filepath_model2,
                      filepath_model3,
                      filepath_model4,
-                     filepath_model6]
+                     filepath_model5]
 
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're using Kali.
 
-    SnapList = [[19, 26, 34, 42, 48],
-                [18, 25, 34, 43, 49],
-                [22, 29, 37, 45, 52],
-                [17, 24, 33, 41, 48],
-                #[21, 28, 36, 44, 50]]
-                [19, 26, 34, 42, 48]]
-    Redshift = np.zeros_like(SnapList, dtype=np.float32)
+    SnapList = [np.arange(28, 98),
+                np.arange(28, 98),
+                np.arange(28, 98),
+                np.arange(28, 98),
+                np.arange(28, 98)]
+
     HI_fraction_target = [0.90, 0.75, 0.50, 0.25, 0.10] 
+
+    SnapList = [[18, 25, 33, 41, 47],
+                [16, 23, 31, 40, 47],
+                [21, 28, 36, 43, 49],
+                [17, 23, 31, 40, 46],
+                [20, 26, 34, 42, 47]]
+    Redshift = np.zeros_like(SnapList, dtype=np.float32)
 
     cut_slice = 44
 

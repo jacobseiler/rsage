@@ -102,7 +102,7 @@ int32_t update_reion_redshift(int32_t SnapNum, double redshift, int32_t GridSize
     }
   }
 
-  printf("For Snapshot %d there were %d cells ionized.\n", SnapNum, count);
+  printf("For Snapshot %d there were %d cells newly marked as ionized.\n", SnapNum, count);
 
   // Time to save the updated reionization redshift.
   reion_grid_file = fopen(reion_fname, "wb"); 

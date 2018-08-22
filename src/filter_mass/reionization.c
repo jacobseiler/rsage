@@ -82,8 +82,7 @@ int32_t count_ionized_cells(struct GRID_STRUCT *Grid, int32_t ThisTask)
     if (Grid->ReionRedshift[cell_idx] > -1.0)
     {
       ++num_ionized_cells;
-    } 
-
+    }
   }
 
   if (ThisTask == 0)

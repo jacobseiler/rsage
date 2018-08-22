@@ -82,8 +82,6 @@ def Read_SAGE_Objects(Model_Name, Object_Desc, Contain_TreeInfo, Dot, fnr, comm=
     NtotHalos = np.fromfile(fin,np.dtype(np.int32),1)[0]  # Read number of gals in file.
     GalsPerTree = np.fromfile(fin, np.dtype((np.int32, Ntrees)),1) 
 
-    print("Rank {0} is reading File {1} and contains {2} total galaxies".format(rank, fname, NtotHalos))
-
     GG = np.fromfile(fin, Object_Desc, NtotHalos)  # Read in the galaxy structures      
     G = GG.view(np.recarray)
 
@@ -212,8 +210,6 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('Gridfesc', (np.float32, MAXSNAPS))
          #('ColdCrit', (np.float32, MAXSNAPS))
          ]
-   
-    print("Reading in SAGE files (Post STARBURST).")
 
     names = [Galdesc_full[i][0] for i in range(len(Galdesc_full))]
     formats = [Galdesc_full[i][1] for i in range(len(Galdesc_full))] 
@@ -482,8 +478,6 @@ def read_SAGE_ini(fname):
                   ]
 
     SAGE_dict = {}
-
-    print("Reading in SAGE ini file") 
  
     try:
         with open (fname, "r") as SAGE_file:
@@ -563,9 +557,6 @@ def read_cifog_ini(fname):
                     "dnrec_HeII_dt", "output_XHeII_file",
                     "output_XHeIII_file"
                   ]
-    
-                            
-    print("Reading in cifog ini file") 
 
     cifog_dict = {}
     cifog_headers = {} 

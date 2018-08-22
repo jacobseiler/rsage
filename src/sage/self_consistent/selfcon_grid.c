@@ -117,8 +117,15 @@ int32_t init_selfcon_grid(void)
       XASSERT(fesc_low < fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 4), we require fesc_low < fesc_high\n", fesc_low, fesc_high);
       break;
 
+    case 5:
+      if (ThisTask == 0)
+      {
+        printf("\n\nUsing an fesc prescription that depends upon the SFR of the galaxy.\n");
+      }
+      break;
+
     default:
-      printf("\n\nOnly escape fraction prescriptions 0, 1, 2, 3 and 4 are permitted.\n");
+      printf("\n\nOnly escape fraction prescriptions 0, 1, 2, 3, 4 or 5 are permitted.\n");
       return EXIT_FAILURE;
   }
 
@@ -704,6 +711,17 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       }
       break;
 
+    case 5:
+      if (sfr > 0.0)
+      {
+        *fesc_local = 1.0 / (1.0 + exp(-(log10(sfr)-1))); // -1 to have SFR = 1 corresponds to fesc = 0.5.
+      }
+      else
+      {
+        *fesc_local = 0.0;
+      }
+      break;
+
     default:
       fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `determine_fesc` in `selfcon_grid.c`.\nPlease add it there.\n");
       return EXIT_FAILURE;
@@ -840,6 +858,10 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
     case 3:
     case 4:
       snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
+      break;
+
+    case 5:
+      snprintf(tag, MAX_STRING_LEN - 1, "SFR_HaloPartCut%d", HaloPartCut);      
       break;
 
     default:
