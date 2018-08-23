@@ -348,6 +348,7 @@ extern int fescPrescription;
 
 extern double alpha;
 extern double beta;
+extern double delta;
 
 extern double quasar_baseline;
 extern double quasar_boosted;

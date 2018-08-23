@@ -121,6 +121,8 @@ int32_t init_selfcon_grid(void)
       if (ThisTask == 0)
       {
         printf("\n\nUsing an fesc prescription that depends upon the SFR of the galaxy.\n");
+        printf("This takes the function form of a logistic function, fesc = delta / (1.0 + exp(-alpha*(log10(SFR)-beta))), with range [0.0, delta].  `alpha` controls the steepness of the curve and beta defines the value of log10(SFR) gives fesc = delta/2.\n");
+        printf("alpha = %.4f\tbeta = %.4f\tdelta = %.4f\n", alpha, beta, delta);
       }
       break;
 
@@ -714,7 +716,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
     case 5:
       if (sfr > 0.0)
       {
-        *fesc_local = 1.0 / (1.0 + exp(-(log10(sfr)-1))); // -1 to have SFR = 1 corresponds to fesc = 0.5.
+        *fesc_local = delta / (1.0 + exp(-alpha(log10(sfr)-beta))); // Logistic curve defined between [0.0, delta].  Steepness controlled by alpha and vertical shift by beta.
       }
       else
       {
@@ -861,7 +863,7 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
       break;
 
     case 5:
-      snprintf(tag, MAX_STRING_LEN - 1, "SFR_HaloPartCut%d", HaloPartCut);      
+      snprintf(tag, MAX_STRING_LEN - 1, "SFR_%.3f_%.3f_%.3f_HaloPartCut%d", alpha, beta, delta, HaloPartCut);
       break;
 
     default:

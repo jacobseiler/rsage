@@ -6,7 +6,7 @@ to create a unique combination of variables to update for each run.
 The script also gives the option of making ``slurm`` files with the paths
 correctly specified and also submit them (**BE CAREFUL WHEN SUBMITTING**).
 
-All ``.ini`` and ``slurm`` files are created using template files.  Examples
+All ``.ini`` and ``.slurm`` files are created using template files.  Examples
 files are included in the base repo.
 """
 
@@ -70,14 +70,14 @@ def check_input_parameters(SAGE_fields_update, cifog_fields_update,
     # Compare every field within ``SAGE_fields_update`` and
     # ``cifog_fields_update`` to ensure they have the same lengths.
     for count, my_dict in enumerate([SAGE_fields_update, cifog_fields_update]):
+        if count == 0:
+            which_dict = "SAGE"
+        else:
+            which_dict = "cifog"
         for key_1 in SAGE_fields_update.keys(): 
             for key_2 in SAGE_fields_update.keys():
  
                 if len(SAGE_fields_update[key_1]) != len(SAGE_fields_update[key_2]):
-                    if count == 0:
-                        which_dict = "SAGE"
-                    else:
-                        which_dict = "cifog"
  
                     print("For the {0} update dictionary, Key {1} did not have "
                           "the same length as key {2}".format(which_dict,
@@ -285,10 +285,12 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["HaloPartCut"])
 
     elif fesc_prescription == 5: 
-        nion_fname = "{0}_SFR_HaloPartCut{1}_nionHI" \
+        nion_fname = "{0}_SFR_{1:.3f}_{2:.3f}_{3:.3f}_HaloPartCut{4}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
+                             SAGE_params["alpha"],
+                             SAGE_params["beta"],
+                             SAGE_params["delta"],
                              SAGE_params["HaloPartCut"])
-
     else:
         print("Select a valid fescPrescription, [0, 4].")
         raise ValueError
@@ -451,14 +453,18 @@ if __name__ == '__main__':
     # Specify here the SAGE parameters that you want to change for each run #
     #########################################################################
 
-    fescPrescription = [5]
-    #alpha = [0.30, 0.30, 0.30, 0.50, 0.50, 0.50]
-    #beta = [0.0, 0.15, 0.20, 0.0, 0.15, 0.20]
-    FileNameGalaxies = ["SFR"]
+    fescPrescription = [5, 5, 5]
+    alpha = [1.00, 1.00, 1.00]
+    beta = [0.00, 0.50, 1.00]
+    delta = [1.00, 1.00, 1.00]
+    FileNameGalaxies = ["SFR_alpha1.00_beta0.00_delta1.00",
+                        "SFR_alpha1.00_beta0.50_delta1.00",
+                        "SFR_alpha1.00_beta1.00_delta1.00"]
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription,
-                           #"alpha" : alpha,
-                           # "beta" : beta,
+                           "alpha" : alpha,
+                           "beta" : beta,
+                           "delta" : delta,
                            "FileNameGalaxies" : FileNameGalaxies
                          }
 
@@ -472,7 +478,9 @@ if __name__ == '__main__':
     # Specify here the path directory for each run #
     ################################################
 
-    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR"]
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR"]
 
     #########################################################################
     # Specify here the path to the base ini files (shouldn't need to touch) #  
@@ -507,4 +515,4 @@ if __name__ == '__main__':
     # CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL # 
     ###########################################################################
     # This function will submit all the jobs onto the queue.
-    #submit_slurm_jobs(slurm_names)
+    submit_slurm_jobs(slurm_names)

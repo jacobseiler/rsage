@@ -104,6 +104,7 @@ int fescPrescription;
 
 double alpha;
 double beta;
+double delta;
 
 double quasar_baseline;
 double quasar_boosted;

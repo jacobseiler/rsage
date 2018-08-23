@@ -249,6 +249,10 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &beta;
   id[nt++] = DOUBLE;
 
+  strcpy(tag[nt], "delta");
+  addr[nt] = &delta;
+  id[nt++] = DOUBLE;
+
   strcpy(tag[nt], "quasar_baseline");
   addr[nt] = &quasar_baseline;
   id[nt++] = DOUBLE;
