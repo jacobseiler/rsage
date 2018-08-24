@@ -1971,10 +1971,15 @@ def plot_optical_depth(ZZ, mass_frac, model_tags, OutputDir, output_tag):
         ax.set_yticklabels([r"$\mathbf{%.3f}$" % x for x in tick_locs],
                             fontsize = PlotScripts.global_fontsize)
 
-        ax.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012, color = 'k', alpha = 0.3) 
+        ax.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
+                        color = 'k', alpha = 0.3) 
         ax.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
+        ax.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$")
 
-        ax.text(850, 0.0575, r"$\mathrm{Planck \: 2016}$")
+        #ax.fill_between(np.arange(200, 1200, 0.01), 0.054 - 0.007, 
+        #                          0.054 + 0.007, color = 'k', alpha = 0.3) 
+        #ax.axhline(y = 0.054, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
+        #ax.text(850, 0.0575, r"$\mathrm{Planck \: 2018}$")
 
         leg = ax.legend(loc='upper right', numpoints=1, labelspacing=0.1)
         leg.draw_frame(False)  # Don't want a box frame
@@ -2268,10 +2273,10 @@ if __name__ == '__main__':
     ###########################   
        
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{SFR}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$"]
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{SFR}}$"]
 
     output_tags = [r"Base Reion On"]
 
@@ -2291,17 +2296,17 @@ if __name__ == '__main__':
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
    
     filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/cifog/const_0.3_XHII"
-    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.0_XHII"
-    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/grids/cifog/SFR_XHII"
-    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/cifog/MHneg_1e8_1e12_0.99_0.05_XHII"
-    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/cifog/MHpos_1e8_1e12_0.01_0.50_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/cifog/MHneg_1e8_1e12_0.90_0.05_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/cifog/MHpos_1e8_1e12_0.01_0.50_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.0_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/grids/cifog/SFR_alpha1.00_beta1.00_delta1.00_XHII"
 
     filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/nion/const_0.3_fesc0.30_HaloPartCut32_nionHI"
-    filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/nion/fej_alpha0.50_beta0.0_ejected_0.500_0.000_HaloPartCut32_nionHI"
-    filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/grids/nion/SFR_SFR_HaloPartCut32_nionHI"    
-    filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/nion/MHneg_1e8_1e12_0.99_0.05_AnneMH_1.000e+08_0.99_1.000e+12_0.05_HaloPartCut32_nionHI"
-    filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/nion/MHpos_1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI"
- 
+    filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/nion/MHneg_1e8_1e12_0.90_0.05_AnneMH_1.000e+08_0.90_1.000e+12_0.05_HaloPartCut32_nionHI"
+    filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/nion/MHpos_1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI" 
+    filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/nion/fej_alpha0.40_beta0.0_ejected_0.400_0.000_HaloPartCut32_nionHI"
+    filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/grids/nion/SFR_alpha1.00_beta1.00_delta1.00_SFR_1.000_1.000_1.000_HaloPartCut32_nionHI"
+
     filepath_phot_model1="/fred/oz004/jseiler/kali/self_consistent_output/constant/grids/cifog/const0.35_photHI"
     
     filepath_density_model1="/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"
@@ -2410,11 +2415,13 @@ if __name__ == '__main__':
 
     do_hoshen = 0
 
-    # Neutral fractions that denote when reionization stars and ends.
+    # Neutral fractions that denote when reionization starts and ends.
     start_reion = 0.99
+    mid_reion = 0.50
     end_reion = 0.01
 
     start_snap = np.zeros((number_models))
+    mid_snap = np.zeros((number_models))
     end_snap = np.zeros((number_models))
 
     for count, snapshot_idx in enumerate(snaplist):
@@ -2483,6 +2490,10 @@ if __name__ == '__main__':
             if (1.0-volume_frac_model < end_reion) and \
                end_snap[model_number] == 0:
                 end_snap[model_number] = snapshot_idx 
+
+            if (1.0-volume_frac_model < mid_reion) and \
+               mid_snap[model_number] == 0:
+                mid_snap[model_number] = snapshot_idx 
                 
             if(do_hoshen == 1):
                 hoshen_array[model_number][count] = hoshen_kopelman(ionized_cells_array[model_number])	
@@ -2575,6 +2586,7 @@ if __name__ == '__main__':
 
     for model_number in range(len(start_snap)):
         start_z = AllVars.SnapZ[int(start_snap[model_number])]
+        mid_z = AllVars.SnapZ[int(mid_snap[model_number])]
         end_z = AllVars.SnapZ[int(end_snap[model_number])]
 
         dt = (cosmo.lookback_time(start_z).value -
@@ -2582,7 +2594,7 @@ if __name__ == '__main__':
 
         print("")
         print("{0}: {1:.4f} Myr".format(model_tags[model_number], dt)) 
-        print("z_start {0}, z_end {1}".format(start_z, end_z))
+        print("z_start {0}, z_mid {1}, z_end {2}".format(start_z, mid_z, end_z))
         print("")
     #plot_hoshen(hoshen_array, volume_frac_array, model_tags, OutputDir, "Hoshen")   
 

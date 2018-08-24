@@ -11,6 +11,7 @@ import time
 import random
 import itertools
 import matplotlib.patheffects as PathEffects
+from matplotlib import patches
 
 import PlotScripts
 import ReadScripts
@@ -59,6 +60,10 @@ def plot_nine_panel(fname_ionized, SnapList, GridSize, HI_fraction_target,
             
             this_ax.set_xlim([0.0, AllVars.BoxSize]) 
             this_ax.set_ylim([0.0, AllVars.BoxSize])
+
+            #rect = patches.Rectangle((80, 30), 20, 20, lw=3, 
+            #                         edgecolor='r', facecolor='none')
+            #this_ax.add_patch(rect)
 
             if (count == 0): 
                 title = r"%s" %(model_tags[model_number])
@@ -258,7 +263,7 @@ if __name__ == '__main__':
                 [20, 26, 34, 42, 47]]
     Redshift = np.zeros_like(SnapList, dtype=np.float32)
 
-    cut_slice = 44
+    cut_slice = 256.0/2.0
 
     for snap in range(len(SnapList)):
         for inner_snap in range(len(SnapList[snap])):
@@ -268,5 +273,5 @@ if __name__ == '__main__':
     plot_nine_panel(fname_ionized, SnapList, GridSize, HI_fraction_target,
                     OutputDir, "nine_panel")
 
-    plot_diff(fname_ionized, SnapList, GridSize, HI_fraction_target,
-              OutputDir, "diff")
+    #plot_diff(fname_ionized, SnapList, GridSize, HI_fraction_target,
+    #          OutputDir, "diff")

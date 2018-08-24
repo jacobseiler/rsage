@@ -60,10 +60,12 @@ def fit_tau(alpha, beta, tau=None, tau_file=None):
 
     from scipy.optimize import curve_fit
 
-    def func(X, a, b, c):
+    def func(X, a, b, c, d):
         alpha = X[0, :]
         beta = X[1, :]
-        return alpha*a + beta*b +c
+        return alpha*a + beta*b + alpha*beta*c + d
+        #return alpha*a + beta*b + c
+        #return alpha*a + alpha*alpha*d + beta*b + beta*beta*e + c
 
     alpha_arr = []
     beta_arr = []
@@ -84,10 +86,14 @@ def fit_tau(alpha, beta, tau=None, tau_file=None):
     X = np.array([alpha, beta])
 
     popt, pcov = curve_fit(func, X, tau)
-    print("Function is of the form alpha*a + beta*b +c")
+    print("Function is of the form alpha*a + beta*b +alpha*beta*c + d")
     print("Best fit values are {0}".format(popt))
     print("Covariance is {0}".format(pcov))
     print("Error on fits is {0}".format(np.sqrt(np.diag(pcov))))
+
+    err = np.sqrt(np.diag(pcov))
+    for count, constant in enumerate(["c1", "c2", "c3", "c4"]): 
+        print("{0} = {1} +- {2}".format(constant, popt[count], err[count])) 
 
     return
 

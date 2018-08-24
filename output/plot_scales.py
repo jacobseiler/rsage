@@ -241,11 +241,17 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
 
                 ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
             else:
-                ax1.set_xlim([0.0, 39.0])
-                ax1.set_ylim([0.0, 33.0])
+                ax1.set_xlim([0.0, 25.0])
+                ax1.set_ylim([0.0, 25.0])
+
+                #ax1.xaxis.set_minor_locator(mtick.MultipleLocator(1))
+                #ax1.yaxis.set_minor_locator(mtick.MultipleLocator(1))
 
                 ax1.xaxis.set_minor_locator(mtick.MultipleLocator(1))
                 ax1.yaxis.set_minor_locator(mtick.MultipleLocator(1))
+
+                ax1.xaxis.set_major_locator(mtick.MultipleLocator(5))
+                ax1.yaxis.set_major_locator(mtick.MultipleLocator(5))
 
                 print("Ax1 xaxis")
                 labels = ax1.xaxis.get_ticklabels()
@@ -259,7 +265,7 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
                 for label, loc in zip(labels, locs):
                     print("{0} {1}".format(label, loc)) 
 
-                tick_locs = np.arange(0.0, 45, 10.0)
+                tick_locs = np.arange(-5.0, 35, 5.0)
                 ax1.set_yticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
                                      fontsize = PlotScripts.global_fontsize)
 
@@ -278,8 +284,6 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
                 ax1.set_xlim([0.0, 1.00])
                 ax2.set_ylim([0.0, 0.045])
 
-
-       
     fig = plt.figure() 
     ax1 = fig.add_subplot(111) 
 
@@ -314,9 +318,8 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
                      label = label)
 
             for count, val in enumerate(target_XHII_fraction):
-
                 HI_string = "{0:.2f}".format(val)
-
+                
                 idx = (np.abs(XHII_fraction[model_number] - val)).argmin()
                 ax1.scatter(P_smallscale[model_number][idx],
                             P_largescale[model_number][idx], 
@@ -388,25 +391,25 @@ def load_and_plot(save_tag, target_XHII_fraction, OutputDir):
               "PHII_smallscale", "PHII_largescale", "model_tags"]
 
     for count, tag in enumerate(fnames):
-        fname = "./{0}_{1}.npz".format(save_tag, tag) 
+        fname = "./{0}/{1}_{2}.npz".format(OutputDir, save_tag, tag) 
 
         if count == 0:
-            XHII_fraction = np.load(fname)["arr_0"]
+            XHII_fraction = np.array(np.load(fname)["arr_0"][0:5])
 
         elif count == 1:
-            P21_smallscale = np.load(fname)["arr_0"]
+            P21_smallscale = np.load(fname)["arr_0"][0:5]
 
         elif count == 2:
-            P21_largescale = np.load(fname)["arr_0"]
+            P21_largescale = np.load(fname)["arr_0"][0:5]
 
         elif count == 3:
-            PHII_smallscale = np.load(fname)["arr_0"]
+            PHII_smallscale = np.load(fname)["arr_0"][0:5]
 
         elif count == 4:
-            PHII_largescale = np.load(fname)["arr_0"]
+            PHII_largescale = np.load(fname)["arr_0"][0:5]
 
         elif count == 5:
-            model_tags = np.load(fname)["arr_0"]
+            model_tags = np.load(fname)["arr_0"][0:5]
 
     plot_power(XHII_fraction, P21_smallscale, P21_largescale, model_tags, 
                OutputDir, 0, 0)
@@ -439,12 +442,17 @@ if __name__ == '__main__':
     filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.0_XHII"
     filepath_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.60_beta0.0_XHII"
 
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.0_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.05_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.1_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.15_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.20_XHII"
+
     fname_ionized=[filepath_model1,
                    filepath_model2,
                    filepath_model3,
                    filepath_model4,
-                   filepath_model5,
-                   filepath_model6]
+                   filepath_model5]
 
     fname_density=["/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
@@ -470,6 +478,12 @@ if __name__ == '__main__':
                   r"$\mathbf{\alpha = 0.50, \beta = 0.0}$",
                   r"$\mathbf{\alpha = 0.60, \beta = 0.0}$"]
 
+    model_tags = [r"$\mathbf{\alpha = 0.40, \beta = 0.0}$",
+                  r"$\mathbf{\alpha = 0.40, \beta = 0.05}$",
+                  r"$\mathbf{\alpha = 0.40, \beta = 0.10}$",
+                  r"$\mathbf{\alpha = 0.40, \beta = 0.15}$",
+                  r"$\mathbf{\alpha = 0.40, \beta = 0.20}$"]
+
     endsnap = 98 
     SnapList = [np.arange(28, endsnap), np.arange(28, endsnap), 
                 np.arange(28, endsnap), np.arange(28, endsnap), 
@@ -478,12 +492,12 @@ if __name__ == '__main__':
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're always using
                                       #  Kali.
 
-    OutputDir = "./21cm_plots/diff_alpha"
+    OutputDir = "./21cm_plots/diff_beta"
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 
-    save_tag = "diff_alpha"
-    target_HI_fraction = [0.90, 0.75, 0.50, 0.25, 0.10]
+    save_tag = "diff_beta"
+    target_HI_fraction = np.array([0.90, 0.75, 0.50, 0.25, 0.10])
 
     #misc.determine_close_idx(fname_ionized, fname_density, SnapList, GridSize,
     #                         precision, target_HI_fraction, model_tags) 
@@ -492,7 +506,7 @@ if __name__ == '__main__':
     XHII_fraction = [[] for x in range(len(SnapList))]
 
     ##
-    have_data = 0
+    have_data = 1
     P21_smallscale = [[] for x in range(len(SnapList))]
     P21_largescale = [[] for x in range(len(SnapList))]
 

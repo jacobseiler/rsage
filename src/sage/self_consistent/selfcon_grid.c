@@ -716,7 +716,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
     case 5:
       if (sfr > 0.0)
       {
-        *fesc_local = delta / (1.0 + exp(-alpha(log10(sfr)-beta))); // Logistic curve defined between [0.0, delta].  Steepness controlled by alpha and vertical shift by beta.
+        *fesc_local = delta / (1.0 + exp(-alpha*(log10(sfr)-beta))); // Logistic curve defined between [0.0, delta].  Steepness controlled by alpha and vertical shift by beta.
       }
       else
       {

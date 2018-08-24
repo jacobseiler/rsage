@@ -100,7 +100,7 @@ def calculate_zreion_SFR(Galaxies, mean_zreion_SFR_thismodel,
         # Update the running totals for this zreion bin.
         mean_zreion_SFR_thismodel[zreion_idx], \
         std_zreion_SFR_thismodel[zreion_idx] = \
-        collective.update_cumulative_stats( 
+        collective.update_cum_stats( 
             mean_zreion_SFR_thismodel[zreion_idx], \
             std_zreion_SFR_thismodel[zreion_idx], \
             N_zreion_SFR_thismodel[zreion_idx], \
@@ -113,37 +113,26 @@ def calculate_zreion_SFR(Galaxies, mean_zreion_SFR_thismodel,
            N_zreion_SFR_thismodel
 
 
-def calculate_mstar_fesc(Gal_mass, Gal_fesc, mean_mstar_fesc_thissnap,
-                         std_mstar_fesc_thissnap, N_mstar_fesc_thissnap,
-                         mstar_bins, hubble_h):
+def do_2D_binning(data_x, data_y, mean_curr, std_curr, N_curr, bins):
 
-    mass = np.log10(Gal_mass * 1.0e10 / hubble_h)
-    fesc = Gal_fesc 
-
-    snap_mean, _, _ = stats.binned_statistic(mass, fesc, statistic='mean',
-                                             bins=mstar_bins)
-    snap_std, _, _ = stats.binned_statistic(mass, fesc, statistic=np.std,
-                                            bins=mstar_bins)
-    snap_N, _, _ = stats.binned_statistic(mass, fesc, statistic='count',
-                                          bins=mstar_bins)
+    snap_mean, _, _ = stats.binned_statistic(data_x, data_y, statistic='mean',
+                                             bins=bins)
+    snap_std, _, _ = stats.binned_statistic(data_x, data_y, statistic=np.std,
+                                            bins=bins)
+    snap_N, _, _ = stats.binned_statistic(data_x, data_y, statistic='count',
+                                          bins=bins)
 
     # Prevent NaNs from messing things up.
     snap_mean[snap_N == 0] = 0.0
     snap_std[snap_N == 0] = 0.0
 
-    # Update the running totals for this zreion bin.
-    mean_mstar_fesc_thissnap, \
-    std_mstar_fesc_thissnap = \
-    collective.update_cumulative_stats( 
-        mean_mstar_fesc_thissnap, \
-        std_mstar_fesc_thissnap, \
-        N_mstar_fesc_thissnap, \
-        snap_mean, snap_std, snap_N) 
+    # Update the running totals for these arrays. 
+    mean_curr, std_curr = collective.update_cum_stats(mean_curr, std_curr,
+                                                      N_curr, snap_mean,
+                                                      snap_std, snap_N)
+    N_curr += snap_N 
 
-    N_mstar_fesc_thissnap += snap_N 
-
-    return mean_mstar_fesc_thissnap, std_mstar_fesc_thissnap, \
-           N_mstar_fesc_thissnap
+    return mean_curr, std_curr, N_curr
 
 
 def plot_galaxy_properties(ini_files, model_tags, galaxy_plots, output_dir="."):
@@ -198,6 +187,18 @@ def plot_galaxy_properties(ini_files, model_tags, galaxy_plots, output_dir="."):
                          galaxy_data["cosmology_allmodels"],
                          model_tags, output_dir, "SMF")
 
+    if galaxy_plots["mstar_fej"]:
+        galplot.plot_mstar_fej(rank, comm,
+                                galaxy_data["mstar_bins"],
+                                galaxy_data["mstar_bin_width"],
+                                galaxy_data["z_array_full_allmodels"],
+                                galaxy_data["mean_mstar_fej_allmodels"],
+                                galaxy_data["std_mstar_fej_allmodels"],
+                                galaxy_data["N_mstar_fej_allmodels"],
+                                model_tags, output_dir, "mstar_fej",
+                                plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
+                                plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+
 
 def read_data(ini_files, galaxy_plots):
 
@@ -239,6 +240,11 @@ def read_data(ini_files, galaxy_plots):
 
     # Stellar mass function.
     SMF_allmodels = []
+
+    # Ejected fraction as a function of stellar mass (Mstar). 
+    mean_mstar_fej_allmodels = []
+    std_mstar_fej_allmodels = []
+    N_mstar_fej_allmodels = []
 
     # All outer arrays set up, time to read in the data!
     for model_number, ini_file in enumerate(ini_files):
@@ -346,6 +352,18 @@ def read_data(ini_files, galaxy_plots):
             SMF_allmodels[model_number].append(np.zeros(mstar_Nbins,
                                                dtype=np.float32))
 
+        # Ejected fraction as a function of stellar mass.
+        mean_mstar_fej_allmodels.append([]) 
+        std_mstar_fej_allmodels.append([])
+        N_mstar_fej_allmodels.append([]) 
+        for snap_count in range(len(z_array_full)):
+            mean_mstar_fej_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                   dtype=np.float32))
+            std_mstar_fej_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                  dtype=np.float32))
+            N_mstar_fej_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                dtype=np.float32))
+
         # ========================================================= #
         # Now go through each file and calculate the stuff we need. #
         # ========================================================= #
@@ -401,21 +419,34 @@ def read_data(ini_files, galaxy_plots):
                 sum_nion_allmodels[model_number][snap_count] += sum(G.GridNgamma_HI[Gals_exist, snapnum] * \
                                                                     G.Gridfesc[Gals_exist,snapnum])
 
+                log_mass = np.log10(G.GridStellarMass[Gals_exist, snapnum] * 1.0e10 / model_hubble_h)
+                fesc = G.Gridfesc[Gals_exist, snapnum]
+                fej = G.EjectedFraction[Gals_exist, snapnum]
+
                 # Calculate the mean fesc as a function of stellar mass.
                 if galaxy_plots["mstar_fesc"]:
                     mean_mstar_fesc_allmodels[model_number][snap_count], \
                     std_mstar_fesc_allmodels[model_number][snap_count], \
                     N_mstar_fesc_allmodels[model_number][snap_count] = \
-                        calculate_mstar_fesc(G.GridStellarMass[Gals_exist, snapnum],
-                                             G.Gridfesc[Gals_exist, snapnum], 
-                                             mean_mstar_fesc_allmodels[model_number][snap_count],
-                                             std_mstar_fesc_allmodels[model_number][snap_count],
-                                             N_mstar_fesc_allmodels[model_number][snap_count],
-                                             mstar_bins, model_hubble_h) 
+                        do_2D_binning(log_mass, fesc,
+                                      mean_mstar_fesc_allmodels[model_number][snap_count],
+                                      std_mstar_fesc_allmodels[model_number][snap_count],
+                                      N_mstar_fesc_allmodels[model_number][snap_count],
+                                      mstar_bins)
 
-                
-                SMF_thissnap = np.histogram(np.log10(G.GridStellarMass[Gals_exist, snapnum]*1.0e10 / model_hubble_h),
-                                            bins=mstar_bins)
+                # Calculate the mean ejected fraction as a function of stellar mass.
+                if galaxy_plots["mstar_fej"]:
+                    mean_mstar_fej_allmodels[model_number][snap_count], \
+                    std_mstar_fej_allmodels[model_number][snap_count], \
+                    N_mstar_fej_allmodels[model_number][snap_count] = \
+                        do_2D_binning(log_mass, fej,
+                                      mean_mstar_fej_allmodels[model_number][snap_count],
+                                      std_mstar_fej_allmodels[model_number][snap_count],
+                                      N_mstar_fej_allmodels[model_number][snap_count],
+                                      mstar_bins)
+
+    
+                SMF_thissnap = np.histogram(log_mass, bins=mstar_bins)
                 SMF_allmodels[model_number][snap_count] += SMF_thissnap[0]
                 # Snapshot loop.
             # File Loop.
@@ -444,7 +475,10 @@ def read_data(ini_files, galaxy_plots):
                    "mean_mstar_fesc_allmodels" : mean_mstar_fesc_allmodels,
                    "std_mstar_fesc_allmodels" : std_mstar_fesc_allmodels,
                    "N_mstar_fesc_allmodels" : N_mstar_fesc_allmodels,
-                   "SMF_allmodels" : SMF_allmodels}
+                   "SMF_allmodels" : SMF_allmodels,
+                   "mean_mstar_fej_allmodels" : mean_mstar_fej_allmodels,
+                   "std_mstar_fej_allmodels" : std_mstar_fej_allmodels,
+                   "N_mstar_fej_allmodels" : N_mstar_fej_allmodels}
 
     return galaxy_data
 
@@ -454,34 +488,28 @@ if __name__ == "__main__":
     ps.Set_Params_Plot()
 
     ini_file_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.3_SAGE.ini"
-    ini_file_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.05_SAGE.ini"
-    ini_file_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_SAGE.ini"
-    ini_file_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e8_1e12_0.99_0.05_SAGE.ini"   
-    ini_file_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_SAGE.ini"
+    ini_file_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e8_1e12_0.90_0.05_SAGE.ini"   
+    ini_file_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_SAGE.ini"
+    ini_file_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.05_SAGE.ini"
+    ini_file_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.00_delta1.00_SAGE.ini"
     ini_file_model6="/home/jseiler/rsage/ini_files/kali_noreion_SAGE.ini"
 
     ini_files = [ini_file_model2,
                  ini_file_model3,
                  ini_file_model4,
-                 ini_file_model5,
-                 ini_file_model6]
+                 ini_file_model5]
 
-    model_tags = [r"$\mathbf{f_\mathrm{esc} \: Constant}$", 
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$"]    
-
-    model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
+    model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
-                  r"$\mathbf{No \: Reion}$"]
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
     zreion_hist = 0
     zreion_sfr = 0
-    nion = 1
-    mstar_fesc = 0 
-    SMF = 1
+    nion = 0
+    mstar_fesc = 1 
+    SMF = 0
+    mstar_fej = 1
 
     plot_snaps_for_models = [[33, 50, 76, 93],
                              [33, 50, 76, 93],
@@ -495,8 +523,8 @@ if __name__ == "__main__":
                     "nion" : nion,
                     "mstar_fesc" : mstar_fesc,
                     "SMF" : SMF,
+                    "mstar_fej" : mstar_fej,
                     "plot_snaps_for_models" : plot_snaps_for_models,
                     "plot_models_at_snaps" : plot_models_at_snaps}
 
-    plot_galaxy_properties(ini_files, model_tags, galaxy_plots)     
-    
+    plot_galaxy_properties(ini_files, model_tags, galaxy_plots)

@@ -434,21 +434,36 @@ if __name__ == '__main__':
     filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.0_XHII"
     filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/grids/cifog/SFR_XHII"
 
+    filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.10_beta0.0_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.20_beta0.0_XHII"
+    filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.30_beta0.0_XHII"
+    filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.0_XHII"
+    filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.0_XHII"
+    filepath_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.60_beta0.0_XHII"
+
+
     fname_ionized=[filepath_model1,
                    filepath_model2,
                    filepath_model3,
                    filepath_model4,
                    filepath_model5]
 
+    fname_ionized=[filepath_model2,
+                   filepath_model3,
+                   filepath_model4,
+                   filepath_model5,
+                   filepath_model6]
+
     fname_density=["/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"]
 
-    precision = [2, 2, 2, 2, 2]
+    precision = [2, 2, 2, 2, 2, 2]
 
-    GridSize = [256, 256, 256, 256, 256]
+    GridSize = [256, 256, 256, 256, 256, 256]
 
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
@@ -456,17 +471,34 @@ if __name__ == '__main__':
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
+    model_tags = [r"$\mathbf{\alpha = 0.20, \beta = 0.0}$",
+                  r"$\mathbf{\alpha = 0.30, \beta = 0.0}$",
+                  r"$\mathbf{\alpha = 0.40, \beta = 0.0}$",
+                  r"$\mathbf{\alpha = 0.50, \beta = 0.0}$",
+                  r"$\mathbf{\alpha = 0.60, \beta = 0.0}$"]
+
     SnapList = [np.arange(28, 98),
+                np.arange(28, 98),
                 np.arange(28, 98),
                 np.arange(28, 98),
                 np.arange(28, 98),
                 np.arange(28, 98)]
 
-    SnapList = [[18, 25, 33, 41, 47],
-                [16, 23, 31, 40, 47],
-                [21, 28, 36, 43, 49],
+    # Corresponds to the 5 different models.
+    #SnapList = [[18, 25, 33, 41, 47],
+    #            [16, 23, 31, 40, 47],
+    #            [21, 28, 36, 43, 49],
+    #            [17, 23, 31, 40, 46],
+    #            [20, 26, 34, 42, 47]]
+
+    # Corresponds to the alpha = 0.2 to 0.6.
+    SnapList = [[26, 36, 48, 61, 69],
+                [21, 30, 40, 50, 58],
+                [18, 26, 35, 44, 51],
                 [17, 23, 31, 40, 46],
-                [20, 26, 34, 42, 47]]
+                [15, 21, 29, 37, 42]]
+    # alpha = 0.1
+    #[35, 49, 67, 69, 69],
 
     for snap in range(len(SnapList)):
         for inner_snap in range(len(SnapList[snap])):
@@ -480,7 +512,7 @@ if __name__ == '__main__':
     cosmo = AllVars.Set_Params_Kali() #  Let's just assume we're always using
                                       #  Kali.
 
-    OutputDir = "./21cm_plots/rsage"
+    OutputDir = "./21cm_plots/diff_alpha"
     if not os.path.exists(OutputDir):
         os.makedirs(OutputDir)
 

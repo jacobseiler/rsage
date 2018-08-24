@@ -427,25 +427,28 @@ def load_data(fname):
         return data['arr_0']
 
 def read_SAGE_ini(fname):
-    """
-    
-    Reads the SAGE .ini file into a structured array.
+    """    
+    Reads the ``SAGE`` ``.ini`` file into a dictionary containing the parameter
+    values.
 
     Parameters
     ----------
 
-    fname: String. Required. 
-        Path to the .ini file.         
+    fname : String
+        Path to the ``SAGE`` ``.ini`` file.         
 
     Returns
     ---------
 
-    SAGE_desc: Numpy structured array.
-        Structured array containing the SAGE .ini parameters. 
+    SAGE_dict : Dictionary
+        Dictionary keyed by the ``SAGE`` parameter field names and containing 
+        the values from the ``.ini`` file. 
 
-    names: Array-like of Strings.
-        Names that index the Numpy structured array. 
-         
+    Errors 
+    ---------
+
+    RuntimeError
+        Raised if the specified ``SAGE`` ``.ini`` file not found.
     """
 
     SAGE_fields = ["FileNameGalaxies", "OutputDir", "GridOutputDir",
@@ -471,7 +474,7 @@ def read_SAGE_ini(fname):
                    "LowSnap", "HighSnap", "PhotoionDir",
                    "PhotoionName", "ReionRedshiftName",
                    "PhotonPrescription", "HaloPartCut", "TimeResolutionStellar",
-                   "fescPrescription", "alpha", "beta",
+                   "fescPrescription", "alpha", "beta", "delta",
                    "quasar_baseline", "quasar_boosted",
                    "N_dyntime", "MH_low", "fesc_low",
                    "MH_high", "fesc_high"
@@ -499,36 +502,38 @@ def read_SAGE_ini(fname):
 
     except FileNotFoundError:
         print("Could not file SAGE ini file {0}".format(fname))
+        raise RuntimeError 
 
 
 def read_cifog_ini(fname):
-    """
-    
-    Reads the cifog .ini file into a structured array.
-    Since the cifog .ini file has section headers (e.g., '[General]') that are required for the
-    cifog C code, we also generate a dictionary so we can reconstruct the .ini file with the 
-    headers present. 
+    """    
+    Reads the ``cifog`` ``.ini`` file into a dictionary containing the parameter
+    values.  ``cifog`` also contains a number of header fields which must be
+    present in the ``.ini`` file which this function also reads into a separate
+    dictionary. 
 
     Parameters
     ----------
 
-    fname: String. Required. 
-        Path to the .ini file.         
+    fname : String
+        Path to the ``cifog`` ``.ini`` file.         
 
     Returns
     ---------
 
-    cifog_desc: Numpy structured array.
-        Structured array containing the cifog .ini parameters. 
+    cifog_dict: Dictionary
+        Dictionary keyed by the ``cifog`` parameter field names and containing 
+        the values from the ``.ini`` file. 
 
-    names: Array-like of Strings.
-        Names that index the Numpy structured array. 
+    cifog_headers: Dictionary
+        Dictionary keyed by the ``cifog`` parameter field that comes **after**
+        the header.  The value is the header name. 
 
-    headers: Dictionary.
-        Dictionary of section headers keyed by the parameter name following the section header.
-        E.g., the section '[General]' is before 'calcIonHistory' so headers['calcIonHistory'] =
-        '[General]'.
-         
+    Errors 
+    ---------
+
+    RuntimeError
+        Raised if the specified ``cifog`` ``.ini`` file not found.
     """
 
     cifog_fields = ["calcIonHistory", "numSnapshots", "stopSnapshot",
@@ -591,4 +596,4 @@ def read_cifog_ini(fname):
 
     except FileNotFoundError:
         print("Could not file cifog ini file {0}".format(fname))
- 
+        raise ValueError 
