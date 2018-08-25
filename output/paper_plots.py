@@ -1,6 +1,10 @@
 """
-This file contains the plotting scripts for the Seiler et. al (2018) paper.
+This file contains the plotting scripts for the Seiler et. al (2018) paper. We
+also include a number of extra plots that can be turned on/off as desired.
+Please refer to the ``README`` in this directory (``output``) for more
+information on how to use this for your own data.
 Author: Jacob Seiler
+Version: 0.1
 """
 import numpy as np
 
@@ -117,7 +121,34 @@ def calculate_zreion_SFR(Galaxies, mean_zreion_SFR_thismodel,
 
 
 def do_2D_binning(data_x, data_y, mean_curr, std_curr, N_curr, bins):
+    """    
+    Updates the bin values (mean, standard deviation and number of data points)
+    within 2D histograms.  That is, given x-data and y-data, updates y-data
+    values binned on the x-data.
 
+    Parameters
+    ----------
+
+    data_x, data_y : Numpy-arrays of floats 
+        Data that we are using to update the histograms.        
+
+    mean_curr, std_curr, N_curr : Numpy-arrays of floats
+        Current mean, standard deviation and number of data points within each
+        histogram bin.
+
+    bins : Numpy-array of floats
+        The bins we are binning the y-data on.  Defined in units/properties of
+        the x-data.
+
+    Returns
+    ---------
+
+    mean_curr, std_curr, N_curr : Numpy-arrays of floats
+        The updated mean, standard deviation and number of data points within
+        each histogram bin.
+    """
+
+    # First bin the y-data based on the binned x-data.
     snap_mean, _, _ = stats.binned_statistic(data_x, data_y, statistic='mean',
                                              bins=bins)
     snap_std, _, _ = stats.binned_statistic(data_x, data_y, statistic=np.std,
@@ -139,10 +170,40 @@ def do_2D_binning(data_x, data_y, mean_curr, std_curr, N_curr, bins):
 
 
 def plot_galaxy_properties(ini_files, model_tags, galaxy_plots, output_dir="."):
+    """    
+    Wrapper function to handle reading in of data + calculating galaxy
+    properties, then calling the specified plotting routines.
 
+    Parameters
+    ----------
+
+    ini_files : List of strings 
+        ``.ini`` file corresponding to each model that we're plotting.
+
+    model_tags : List of strings
+        String that will appear on the legend of the plot for each model.
+
+    galaxy_plots : Dictionary
+        Controls which of the plots we will make.  Keys are the name of each
+        plot (e.g., ``SMF``) and the value specifies if we are plotting it.
+
+    output_dir : String, optional
+        Directory where the plots are saved. If this directory does not exist,
+        it is created beforehand. 
+
+    Returns
+    ---------
+
+    None.
+    """
 
     # First calculate all the properties and statistics we need.
-    galaxy_data = read_data(ini_files, galaxy_plots)
+    galaxy_data = generate_data(ini_files, galaxy_plots)
+
+    # Check to see if the output directory exists.
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print("Made output directory {0}".format(output_dir))
 
     # Then find what plots we need and plot em!
     if galaxy_plots["zreion_hist"]:
@@ -227,7 +288,43 @@ def plot_galaxy_properties(ini_files, model_tags, galaxy_plots, output_dir="."):
                                plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
 
-def read_data(ini_files, galaxy_plots):
+def generate_data(ini_files, galaxy_plots):
+    """    
+    Reads in the galaxy data for calculate all the require properties for each
+    models.
+
+    Parameters
+    ----------
+
+    ini_files : List of strings 
+        ``.ini`` file corresponding to each model that we're plotting.
+
+    galaxy_plots : Dictionary
+        Controls which of the plots we will make.  Keys are the name of each
+        plot (e.g., ``SMF``) and the value specifies if we are plotting it. If
+        we're not plotting a property we don't need to calculate stuff for it! 
+
+    Returns
+    ---------
+
+    galaxy_data : Dictionary
+        All of the calculated properties required to create the plots.
+    """
+
+    # Binning parameters for stellar mass. 
+    mstar_bin_low = 5.0
+    mstar_bin_high = 12.0
+    mstar_bin_width = 0.2
+    mstar_Nbins = int((mstar_bin_high - mstar_bin_low) / mstar_bin_width)
+    mstar_bins = np.arange(mstar_bin_low, 
+                           mstar_bin_high + mstar_bin_width,
+                           mstar_bin_width)
+
+    # ======================================================================= #
+    # We calculate values for all models and put them into lists that are
+    # indexed by ``model_number``. So first we need to set up the outerl-lists
+    # then we will append to these for each model. 
+    # ======================================================================= #
 
     # General stuff for each model.
     z_array_full_allmodels = []
@@ -250,15 +347,6 @@ def read_data(ini_files, galaxy_plots):
     # These are the arrays for the number of ionizing photons at each snapshot.
     # Note: This is the ESCAPING ionizing photons. 
     sum_nion_allmodels = []
-
-    # Binning parameters for stellar mass. 
-    mstar_bin_low = 5.0
-    mstar_bin_high = 12.0
-    mstar_bin_width = 0.2
-    mstar_Nbins = int((mstar_bin_high - mstar_bin_low) / mstar_bin_width)
-    mstar_bins = np.arange(mstar_bin_low, 
-                           mstar_bin_high + mstar_bin_width,
-                           mstar_bin_width)
 
     # Escape fraction as a function of stellar mass (Mstar). 
     mean_mstar_fesc_allmodels = []
@@ -430,19 +518,21 @@ def read_data(ini_files, galaxy_plots):
         # ========================================================= #
         # Now go through each file and calculate the stuff we need. #
         # ========================================================= #
+        # Parallelize over number of files.
         for fnr in range(int(SAGE_params["FirstFile"]) + rank,
                          int(SAGE_params["LastFile"])+1, size):
 #                         1, size):
 
-
             print("Rank {0}: Model {1} File {2}".format(rank, model_number,
                                                         fnr))
 
+            # Read in both the galaxies, the merged ones and combine them into
+            # a single array.
             GG, Gal_Desc = rs.ReadGals_SAGE(galaxy_name, fnr, len(z_array_full))
             G_Merged, _ = rs.ReadGals_SAGE(merged_name, fnr, len(z_array_full))
             G = rs.Join_Arrays(GG, G_Merged, Gal_Desc)
 
-            # Let's only deal with central galaxies.                
+            # For some things, let's only deal with central galaxies.                
             central_inds = get_central_inds(G.GridType)
             G_centrals = G[central_inds]
 
@@ -544,7 +634,10 @@ def read_data(ini_files, galaxy_plots):
         # Stellar Mass Function is normalized by boxsize and bin width.
         SMF_allmodels[model_number] = np.divide(SMF_allmodels[model_number],
                                                 model_volume * mstar_bin_width)
- 
+
+
+    # Everything has been calculated. Now construct a dictionary that contains
+    # all the data (for easy passing) and return it. 
     galaxy_data = {"z_array_full_allmodels" : z_array_full_allmodels,
                    "lookback_array_full_allmodels" : lookback_array_full_allmodels,
                    "z_array_reion_allmodels" : z_array_reion_allmodels,
@@ -577,8 +670,9 @@ def read_data(ini_files, galaxy_plots):
  
 if __name__ == "__main__":
 
-    ps.Set_Params_Plot()
-
+    # Plotting is driven entirely through specifying the ``.ini`` files. 
+    # For this reason, the directories in the ``.ini`` files **MUST** be
+    # absolute paths, **NOT** relative. 
     ini_file_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.3_SAGE.ini"
     ini_file_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e8_1e12_0.90_0.05_SAGE.ini"   
     ini_file_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_SAGE.ini"
@@ -588,6 +682,7 @@ if __name__ == "__main__":
 
     #ini_file_infall="/home/jseiler/rsage/ini_files/kali_SAGE_gridinfall.ini"
 
+    # All ``.ini`` files included in this array will be plotted.
     ini_files = [ini_file_model2,
                  ini_file_model3,
                  ini_file_model4,
@@ -596,12 +691,17 @@ if __name__ == "__main__":
 
     #ini_files = [ini_file_infall]
 
+    # These are the labels that will appear on the axis legends for each model.
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$",
                   r"$\mathbf{No \: Reion}$"]
 
+
+    # ============================================================= #
+    # Switches to control what plots to make. 0 to skip, 1 to plot. #
+    # ============================================================= #
     zreion_hist = 0
     zreion_sfr = 0
     nion = 0
@@ -610,11 +710,21 @@ if __name__ == "__main__":
     mstar_fej = 0
     mstar_SFR = 0
     mstar_infall = 0
-    
-    plot_snaps_for_models = [[33, 50, 76, 93]]
-    plot_models_at_snaps = None
 
+    # For some plots, there is the option of plotting one model at different
+    # snapshots (within one panel) or plotting all models at one snapshot
+    # (within one panel).  
+    plot_snaps_for_models = [[33, 50, 76, 93]  # For each panel, plot one model 
+                             [33, 50, 76, 93]  # at specified snapshots.
+                             [33, 50, 76, 93]   
+                             [33, 50, 76, 93]]  
 
+    plot_models_at_snaps = None  # For each panel, plot one specified snapshot 
+                                 # for all models.
+
+    # ====================== #
+    # Don't touch below here # 
+    # ====================== #
     galaxy_plots = {"zreion_hist" : zreion_hist,
                     "zreion_sfr" : zreion_sfr,
                     "nion" : nion,
