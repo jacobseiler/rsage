@@ -1,4 +1,5 @@
 """
+This file contains the plotting scripts for the Seiler et. al (2018) paper.
 Author: Jacob Seiler
 """
 import numpy as np
