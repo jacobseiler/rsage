@@ -185,19 +185,43 @@ def plot_galaxy_properties(ini_files, model_tags, galaxy_plots, output_dir="."):
                          galaxy_data["z_array_full_allmodels"],
                          galaxy_data["SMF_allmodels"],
                          galaxy_data["cosmology_allmodels"],
-                         model_tags, output_dir, "SMF")
+                         model_tags, output_dir, "SMF_gridinfall")
 
     if galaxy_plots["mstar_fej"]:
         galplot.plot_mstar_fej(rank, comm,
-                                galaxy_data["mstar_bins"],
-                                galaxy_data["mstar_bin_width"],
-                                galaxy_data["z_array_full_allmodels"],
-                                galaxy_data["mean_mstar_fej_allmodels"],
-                                galaxy_data["std_mstar_fej_allmodels"],
-                                galaxy_data["N_mstar_fej_allmodels"],
-                                model_tags, output_dir, "mstar_fej",
-                                plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
-                                plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+                               galaxy_data["mstar_bins"],
+                               galaxy_data["mstar_bin_width"],
+                               galaxy_data["z_array_full_allmodels"],
+                               galaxy_data["mean_mstar_fej_allmodels"],
+                               galaxy_data["std_mstar_fej_allmodels"],
+                               galaxy_data["N_mstar_fej_allmodels"],
+                               model_tags, output_dir, "mstar",
+                               plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
+                               plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+
+    if galaxy_plots["mstar_SFR"]:
+        galplot.plot_mstar_SFR(rank, comm,
+                               galaxy_data["mstar_bins"],
+                               galaxy_data["mstar_bin_width"],
+                               galaxy_data["z_array_full_allmodels"],
+                               galaxy_data["mean_mstar_SFR_allmodels"],
+                               galaxy_data["std_mstar_SFR_allmodels"],
+                               galaxy_data["N_mstar_SFR_allmodels"],
+                               model_tags, output_dir, "mstar_SFR",
+                               plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
+                               plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+
+    if galaxy_plots["mstar_infall"]:
+        galplot.plot_mstar_infall(rank, comm,
+                               galaxy_data["mstar_bins"],
+                               galaxy_data["mstar_bin_width"],
+                               galaxy_data["z_array_full_allmodels"],
+                               galaxy_data["mean_mstar_infall_allmodels"],
+                               galaxy_data["std_mstar_infall_allmodels"],
+                               galaxy_data["N_mstar_infall_allmodels"],
+                               model_tags, output_dir, "mstar_infall",
+                               plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
+                               plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
 
 def read_data(ini_files, galaxy_plots):
@@ -246,6 +270,16 @@ def read_data(ini_files, galaxy_plots):
     std_mstar_fej_allmodels = []
     N_mstar_fej_allmodels = []
 
+    # Star formation rate as a function of stellar mass (Mstar). 
+    mean_mstar_SFR_allmodels = []
+    std_mstar_SFR_allmodels = []
+    N_mstar_SFR_allmodels = []
+
+    # Infall rate as a function of stellar mass (Mstar). 
+    mean_mstar_infall_allmodels = []
+    std_mstar_infall_allmodels = []
+    N_mstar_infall_allmodels = []
+
     # All outer arrays set up, time to read in the data!
     for model_number, ini_file in enumerate(ini_files):
 
@@ -264,6 +298,7 @@ def read_data(ini_files, galaxy_plots):
         model_volume = pow(float(SAGE_params["BoxSize"]) / \
                            float(SAGE_params["Hubble_h"]),3)
         model_hubble_h = float(SAGE_params["Hubble_h"])
+        model_halopartcut = int(SAGE_params["HaloPartCut"])
 
         mass_cut = 1.0e9/1.0e10 * float(SAGE_params["Hubble_h"])
 
@@ -364,12 +399,38 @@ def read_data(ini_files, galaxy_plots):
             N_mstar_fej_allmodels[model_number].append(np.zeros(mstar_Nbins,
                                                                 dtype=np.float32))
 
+        # Star formation rate as a function of stellar mass.
+        mean_mstar_SFR_allmodels.append([]) 
+        std_mstar_SFR_allmodels.append([])
+        N_mstar_SFR_allmodels.append([]) 
+        for snap_count in range(len(z_array_full)):
+            mean_mstar_SFR_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                   dtype=np.float32))
+            std_mstar_SFR_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                  dtype=np.float32))
+            N_mstar_SFR_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                dtype=np.float32))
+
+        # Star formation rate as a function of stellar mass.
+        mean_mstar_infall_allmodels.append([]) 
+        std_mstar_infall_allmodels.append([])
+        N_mstar_infall_allmodels.append([]) 
+        for snap_count in range(len(z_array_full)):
+            mean_mstar_infall_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                   dtype=np.float32))
+            std_mstar_infall_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                  dtype=np.float32))
+            N_mstar_infall_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                dtype=np.float32))
+
+
         # ========================================================= #
         # Now go through each file and calculate the stuff we need. #
         # ========================================================= #
         for fnr in range(int(SAGE_params["FirstFile"]) + rank,
                          int(SAGE_params["LastFile"])+1, size):
 #                         1, size):
+
 
             print("Rank {0}: Model {1} File {2}".format(rank, model_number,
                                                         fnr))
@@ -412,7 +473,8 @@ def read_data(ini_files, galaxy_plots):
             for snap_count, snapnum in enumerate(range(len(z_array_full))):
 
                 Gals_exist = np.where((G.GridHistory[:, snapnum] != -1) &
-                                      (G.GridStellarMass[:, snapnum] > 0.0))[0]
+                                      (G.GridStellarMass[:, snapnum] > 0.0) &
+                                      (G.LenHistory[:, snapnum] > model_halopartcut))[0]
                 if len(Gals_exist) == 0:
                     continue
 
@@ -422,6 +484,8 @@ def read_data(ini_files, galaxy_plots):
                 log_mass = np.log10(G.GridStellarMass[Gals_exist, snapnum] * 1.0e10 / model_hubble_h)
                 fesc = G.Gridfesc[Gals_exist, snapnum]
                 fej = G.EjectedFraction[Gals_exist, snapnum]
+                SFR = G.GridSFR[Gals_exist, snapnum]
+                infall = G.GridInfallRate[Gals_exist, snapnum]
 
                 # Calculate the mean fesc as a function of stellar mass.
                 if galaxy_plots["mstar_fesc"]:
@@ -445,7 +509,26 @@ def read_data(ini_files, galaxy_plots):
                                       N_mstar_fej_allmodels[model_number][snap_count],
                                       mstar_bins)
 
-    
+                if galaxy_plots["mstar_SFR"]:
+                    mean_mstar_SFR_allmodels[model_number][snap_count], \
+                    std_mstar_SFR_allmodels[model_number][snap_count], \
+                    N_mstar_SFR_allmodels[model_number][snap_count] = \
+                        do_2D_binning(log_mass, SFR,
+                                      mean_mstar_SFR_allmodels[model_number][snap_count],
+                                      std_mstar_SFR_allmodels[model_number][snap_count],
+                                      N_mstar_SFR_allmodels[model_number][snap_count],
+                                      mstar_bins)
+
+                if galaxy_plots["mstar_infall"]:   
+                    mean_mstar_infall_allmodels[model_number][snap_count], \
+                    std_mstar_infall_allmodels[model_number][snap_count], \
+                    N_mstar_infall_allmodels[model_number][snap_count] = \
+                        do_2D_binning(log_mass, infall,
+                                      mean_mstar_infall_allmodels[model_number][snap_count],
+                                      std_mstar_infall_allmodels[model_number][snap_count],
+                                      N_mstar_infall_allmodels[model_number][snap_count],
+                                      mstar_bins)
+ 
                 SMF_thissnap = np.histogram(log_mass, bins=mstar_bins)
                 SMF_allmodels[model_number][snap_count] += SMF_thissnap[0]
                 # Snapshot loop.
@@ -478,7 +561,13 @@ def read_data(ini_files, galaxy_plots):
                    "SMF_allmodels" : SMF_allmodels,
                    "mean_mstar_fej_allmodels" : mean_mstar_fej_allmodels,
                    "std_mstar_fej_allmodels" : std_mstar_fej_allmodels,
-                   "N_mstar_fej_allmodels" : N_mstar_fej_allmodels}
+                   "N_mstar_fej_allmodels" : N_mstar_fej_allmodels,
+                   "mean_mstar_SFR_allmodels" : mean_mstar_SFR_allmodels,
+                   "std_mstar_SFR_allmodels" : std_mstar_SFR_allmodels,
+                   "N_mstar_SFR_allmodels" : N_mstar_SFR_allmodels,
+                   "mean_mstar_infall_allmodels" : mean_mstar_infall_allmodels,
+                   "std_mstar_infall_allmodels" : std_mstar_infall_allmodels,
+                   "N_mstar_infall_allmodels" : N_mstar_infall_allmodels}
 
     return galaxy_data
 
@@ -494,27 +583,32 @@ if __name__ == "__main__":
     ini_file_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.00_delta1.00_SAGE.ini"
     ini_file_model6="/home/jseiler/rsage/ini_files/kali_noreion_SAGE.ini"
 
+    #ini_file_infall="/home/jseiler/rsage/ini_files/kali_SAGE_gridinfall.ini"
+
     ini_files = [ini_file_model2,
                  ini_file_model3,
                  ini_file_model4,
-                 ini_file_model5]
+                 ini_file_model5,
+                 ini_file_model6]
+
+    #ini_files = [ini_file_infall]
 
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$",
+                  r"$\mathbf{No \: Reion}$"]
 
     zreion_hist = 0
     zreion_sfr = 0
     nion = 0
-    mstar_fesc = 1 
+    mstar_fesc = 0 
     SMF = 0
-    mstar_fej = 1
-
-    plot_snaps_for_models = [[33, 50, 76, 93],
-                             [33, 50, 76, 93],
-                             [33, 50, 76, 93],
-                             [33, 50, 76, 93]]    
+    mstar_fej = 0
+    mstar_SFR = 0
+    mstar_infall = 0
+    
+    plot_snaps_for_models = [[33, 50, 76, 93]]
     plot_models_at_snaps = None
 
 
@@ -524,6 +618,8 @@ if __name__ == "__main__":
                     "mstar_fesc" : mstar_fesc,
                     "SMF" : SMF,
                     "mstar_fej" : mstar_fej,
+                    "mstar_SFR" : mstar_SFR,
+                    "mstar_infall" : mstar_infall,
                     "plot_snaps_for_models" : plot_snaps_for_models,
                     "plot_models_at_snaps" : plot_models_at_snaps}
 

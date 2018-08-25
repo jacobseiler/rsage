@@ -208,7 +208,7 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('GridReionMod', (np.float32, MAXSNAPS)),
          ('GridNgamma_HI', (np.float32, MAXSNAPS)),
          ('Gridfesc', (np.float32, MAXSNAPS))
-         #('ColdCrit', (np.float32, MAXSNAPS))
+#         ('GridInfallRate', (np.float32, MAXSNAPS))
          ]
 
     names = [Galdesc_full[i][0] for i in range(len(Galdesc_full))]
@@ -227,17 +227,6 @@ def Join_Arrays(Array1, Array2, Desc):
     G = G.view(np.recarray) # Turn into a C-like struct.
 
     return G
-
-def Create_Snap_Arrays(G, NumSnaps, SnapList):
-
-    print("Creating separate arrays for Snapshots", SnapList)
-
-    SnapCount = np.zeros((NumSnaps))
-
-    for i in range(0, len(G)):
-        for j in range(0,NumSnaps):
-            if (G.GridHistory[i,j] != -1):
-                SnapCount[j] += 1
 
 
 def read_binary_grid(filepath, GridSize, precision, reshape=True):
@@ -298,13 +287,7 @@ def read_binary_grid(filepath, GridSize, precision, reshape=True):
 
     return grid
 
-def read_meraxes_hdf5():
-    hdf5_file_name = '/home/msinha/scratch/tao/data_products/output/meraxes/tiamat/meraxes.hdf5'
-    dataset = '/home/msinha/scratch/tao/data_products/output/meraxes/tiamat/meraxes_0.hdf5'
 
-    container = h5py.File(hdf5_file_name, 'r')
-    print("Keys: %s" %(container.keys()))
-    
 def read_trees_smallarray(treedir, file_idx, simulation):
     """
     Reads a single file of halos into an array.

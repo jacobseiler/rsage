@@ -313,10 +313,13 @@ def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
                            sharex='col', sharey='row', figsize=(16,6))
 
     for model_number in range(len(z_array_full_allmodels)):
+        # Here we find the snapshots closest to the redshifts we want to plot.
         plot_snaps = []
         for val in plot_z:
             idx = (np.abs(z_array_full_allmodels[model_number] - val)).argmin()
             plot_snaps.append(idx)
+
+        # Then plot only those snapshots.
         for count, snap in enumerate(plot_snaps):
             # If only one model is used, don't use a labels.
             if len(z_array_full_allmodels) == 1:
@@ -334,7 +337,7 @@ def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
                 tick_locs = np.arange(6.0, 12.0)
                 ax[count].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
                                           fontsize = ps.global_fontsize)
-                ax[count].set_xlim([6.8, 10.3])                    
+                ax[count].set_xlim([6.8, 10.3])
                 ax[count].tick_params(which = 'both', direction='in', 
                                       width = ps.global_tickwidth)
                 ax[count].tick_params(which = 'major',
@@ -353,7 +356,7 @@ def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
     ax[0].set_yscale('log', nonposy='clip')
     ax[0].set_yticklabels([r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-4}}$", r"$\mathbf{10^{-3}}$",
                            r"$\mathbf{10^{-2}}$",r"$\mathbf{10^{-1}}$"]) 
-    ax[0].set_ylim([1e-5, 1e-1])
+    ax[0].set_ylim([1e-5, 1e1])
     #ax[0].set_ylabel(r'\mathbf{$\log_{10} \Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]}$', 
     ax[0].set_ylabel(r'$\mathbf{log_{10} \: \Phi\ [Mpc^{-3}\: dex^{-1}]}$', 
                      fontsize = ps.global_labelsize) 
@@ -388,65 +391,22 @@ def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig)
 
+
 def plot_mstar_fej(rank, comm, mstar_bins, mstar_bin_width, 
                    z_array_full_allmodels, mean_mstar_fej_allmodels, 
                    std_mstar_fej_allmodels, N_mstar_fej_allmodels,
                    model_tags, output_dir, output_tag,
                    plot_models_at_snaps=None, plot_snaps_for_models=None):
 
-    master_mean, master_std, master_N, _ = \
-        collective.collect_across_tasks(rank, comm, \
-                                        mean_mstar_fej_allmodels, \
-                                        std_mstar_fej_allmodels, \
-                                        N_mstar_fej_allmodels, \
-                                        z_array_full_allmodels, \
-                                        z_array_full_allmodels, \
-                                        binned=True)
+    fig, ax, nrows = plot_2D_line(rank, comm, mstar_bins, mstar_bin_width,
+                                  z_array_full_allmodels, 
+                                  mean_mstar_fej_allmodels,
+                                  std_mstar_fej_allmodels,
+                                  N_mstar_fej_allmodels, model_tags, 
+                                  plot_models_at_snaps, plot_snaps_for_models) 
 
     if rank != 0:
-        return 
-
-    # Our plotting area will be a square so find out the max NxN deimsnion.
-    if plot_models_at_snaps: 
-        nrows = int(np.ceil(np.sqrt(len(plot_models_at_snaps))))
-    else:
-        nrows = int(np.ceil(np.sqrt(len(plot_snaps_for_models)))) 
-
-    fig, ax = plt.subplots(nrows=nrows, ncols=nrows, 
-                           sharex='col', sharey='row', figsize=(16,6))
-
-    row_ax = -1
-    for count, model_number in enumerate(range(len(z_array_full_allmodels))):
-        if count % nrows == 0:
-            row_ax += 1
-        col_ax = count % nrows
-        for snap_count, snap in enumerate(plot_snaps_for_models[model_number]):
-
-            z_label = r"$\mathbf{z = " + \
-                        str(int(round(z_array_full_allmodels[model_number][snap],0))) + \
-                       "}$"                
-
-            mean = master_mean[model_number][snap]
-            w_low = np.where(master_N[model_number][snap] < 4)[0]
-            mean[w_low] = np.nan
-
-            ax[row_ax, col_ax]. plot(mstar_bins[:-1] + mstar_bin_width*0.5,
-                                     mean, 
-                                     color = ps.colors[snap_count],
-                                     ls = ps.linestyles[0],
-                                     label = z_label) 
-
-        ax[row_ax, col_ax].text(0.05, 0.65, model_tags[model_number],
-                                transform = ax[row_ax, col_ax].transAxes,
-                                fontsize = ps.global_fontsize) 
-
-        for axis in ['top','bottom','left','right']: # Adjust axis thickness.
-            ax[row_ax, col_ax].spines[axis].set_linewidth(ps.global_axiswidth)
-
-        ax[row_ax, col_ax].tick_params(which = 'both', direction='in', width =
-                                       ps.global_tickwidth)
-        ax[row_ax, col_ax].tick_params(which = 'major', length = ps.global_ticklength)
-        ax[row_ax, col_ax].tick_params(which = 'minor', length = ps.global_ticklength-2)
+        return
 
     # Set variables for every column.
     tick_locs = np.arange(4.0, 11.0)
@@ -467,7 +427,7 @@ def plot_mstar_fej(rank, comm, mstar_bins, mstar_bin_width,
     # Set variables for every row.
     tick_locs = np.arange(-0.10, 0.80, 0.10)
     for ax_count in range(nrows):
-        ax[ax_count, 0].set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
+        ax[ax_count, 0].set_ylabel(r'$\mathbf{\langle f_{ej}\rangle_{M_*}}$', 
                                    size = ps.global_labelsize)
 
         ax[ax_count, 0].set_ylim([-0.02, 1.0])
@@ -489,3 +449,197 @@ def plot_mstar_fej(rank, comm, mstar_bins, mstar_bin_width,
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig)
 
+
+def plot_mstar_SFR(rank, comm, mstar_bins, mstar_bin_width, 
+                   z_array_full_allmodels, mean_mstar_SFR_allmodels, 
+                   std_mstar_SFR_allmodels, N_mstar_SFR_allmodels,
+                   model_tags, output_dir, output_tag,
+                   plot_models_at_snaps=None, plot_snaps_for_models=None):
+
+    fig, ax, nrows = plot_2D_line(rank, comm, mstar_bins, mstar_bin_width,
+                                  z_array_full_allmodels, 
+                                  mean_mstar_SFR_allmodels,
+                                  std_mstar_SFR_allmodels,
+                                  N_mstar_SFR_allmodels, model_tags, 
+                                  plot_models_at_snaps, plot_snaps_for_models) 
+
+    if rank != 0:
+        return
+
+    delta_fontsize = 10
+
+    # Set variables for every column.
+    tick_locs = np.arange(4.0, 11.0)
+    for ax_count in range(nrows):
+        ax[nrows-1, ax_count].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
+                                         size = ps.global_fontsize)
+        ax[nrows-1, ax_count].set_xlim([4.8, 10.2])
+        ax[nrows-1, ax_count].xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+        ax[nrows-1, ax_count].xaxis.set_major_locator(mtick.MultipleLocator(1.0))
+        ax[nrows-1, ax_count].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+                                              fontsize = ps.global_fontsize)
+    
+    labels = ax[1,0].xaxis.get_ticklabels()
+    locs = ax[1,0].xaxis.get_ticklocs()
+    for label, loc in zip(labels, locs):
+        print("{0} {1}".format(label, loc)) 
+
+    # Set variables for every row.
+    tick_locs = np.arange(-0.10, 0.80, 0.10)
+    for ax_count in range(nrows):
+        ax[ax_count, 0].set_ylabel(r'$\mathbf{\langle SFR\rangle_{M_*} [M_\odot \: yr^{-1}]}$', 
+                                   size = ps.global_labelsize-delta_fontsize)
+        ax[ax_count, 0].set_yscale('log')
+        #ax[ax_count, 0].set_ylim([-0.02, 1.0])
+        #ax[ax_count, 0].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))       
+        #ax[ax_count, 0].yaxis.set_major_locator(mtick.MultipleLocator(0.1))       
+        #ax[ax_count, 0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+        #                                 fontsize = ps.global_fontsize)
+
+    leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
+    outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    fig.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile1))
+    plt.close(fig)
+
+
+def plot_mstar_infall(rank, comm, mstar_bins, mstar_bin_width, 
+                   z_array_full_allmodels, mean_mstar_infall_allmodels, 
+                   std_mstar_infall_allmodels, N_mstar_infall_allmodels,
+                   model_tags, output_dir, output_tag,
+                   plot_models_at_snaps=None, plot_snaps_for_models=None):
+
+    fig, ax, nrows = plot_2D_line(rank, comm, mstar_bins, mstar_bin_width,
+                                  z_array_full_allmodels, 
+                                  mean_mstar_infall_allmodels,
+                                  std_mstar_infall_allmodels,
+                                  N_mstar_infall_allmodels, model_tags, 
+                                  plot_models_at_snaps, plot_snaps_for_models) 
+
+    if rank != 0:
+        return
+
+    delta_fontsize = 10
+
+    # Set variables for every column.
+    tick_locs = np.arange(4.0, 11.0)
+    for ax_count in range(nrows):
+        if nrows != 1:
+            this_ax = ax[nrows-1, ax_count]
+        else:
+            this_ax = ax
+
+        this_ax.set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
+                           size = ps.global_fontsize)
+        this_ax.set_xlim([4.8, 10.2])
+        this_ax.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+        this_ax.xaxis.set_major_locator(mtick.MultipleLocator(1.0))
+        this_ax.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+                                fontsize = ps.global_fontsize)
+
+    # Set variables for every row.
+    tick_locs = np.arange(-0.10, 0.80, 0.10)
+    for ax_count in range(nrows):
+        if nrows != 1:
+            this_ax = ax[ax_count, 0]
+        else:
+            this_ax = ax
+        this_ax.set_ylabel(r'$\mathbf{\langle Infall\rangle_{M_*} [M_\odot \: yr^{-1}]}$', 
+                                   size = ps.global_labelsize-delta_fontsize)
+        this_ax.set_yscale('log')
+        #ax[ax_count, 0].set_ylim([-0.02, 1.0])
+        #ax[ax_count, 0].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))       
+        #ax[ax_count, 0].yaxis.set_major_locator(mtick.MultipleLocator(0.1))       
+        #ax[ax_count, 0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+        #                                 fontsize = ps.global_fontsize)
+
+    if nrows != 1:
+        this_ax = ax[0,0]
+    else:
+        this_ax = ax
+
+    leg = this_ax.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
+    outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    fig.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile1))
+    plt.close(fig)
+
+
+def plot_2D_line(rank, comm, bins, bin_width, binning_array_allmodels,
+                 mean_array_allmodels, std_array_allmodels, N_array_allmodels,
+                 model_tags, plot_models_at_snaps, plot_snaps_for_models):
+
+    master_mean, master_std, master_N, _ = \
+        collective.collect_across_tasks(rank, comm,
+                                        mean_array_allmodels,
+                                        std_array_allmodels,                                        
+                                        N_array_allmodels,
+                                        binning_array_allmodels,
+                                        binning_array_allmodels,
+                                        binned=True)
+
+    if rank != 0:
+        return None, None 
+
+    # Our plotting area will be a square so find out the max NxN deimsnion.
+    if plot_models_at_snaps: 
+        nrows = int(np.ceil(np.sqrt(len(plot_models_at_snaps))))
+    else:
+        nrows = int(np.ceil(np.sqrt(len(plot_snaps_for_models)))) 
+
+    fig, ax = plt.subplots(nrows=nrows, ncols=nrows, 
+                           sharex='col', sharey='row', figsize=(16,6))
+
+    row_ax = -1
+    for count, model_number in enumerate(range(len(binning_array_allmodels))):
+        if count % nrows == 0:
+            row_ax += 1
+        col_ax = count % nrows
+        if nrows != 1:
+            this_ax = ax[row_ax, col_ax]
+        else:
+            this_ax = ax
+
+        for snap_count, snap in enumerate(plot_snaps_for_models[model_number]):
+
+            z_label = r"$\mathbf{z = " + \
+                        str(int(round(binning_array_allmodels[model_number][snap],0))) + \
+                       "}$"                
+
+            mean = master_mean[model_number][snap]
+            w_low = np.where(master_N[model_number][snap] < 4)[0]
+            mean[w_low] = np.nan
+
+            this_ax.plot(bins[:-1] + bin_width*0.5,
+                         mean, 
+                         color = ps.colors[snap_count],
+                         ls = ps.linestyles[0],
+                         label = z_label) 
+
+        this_ax.text(0.05, 0.65, model_tags[model_number],
+                     transform = this_ax.transAxes,
+                     fontsize = ps.global_fontsize) 
+
+        for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+            this_ax.spines[axis].set_linewidth(ps.global_axiswidth)
+
+        this_ax.tick_params(which = 'both', direction='in', width =
+                                       ps.global_tickwidth)
+        this_ax.tick_params(which = 'major', length = ps.global_ticklength)
+        this_ax.tick_params(which = 'minor', length = ps.global_ticklength-2)
+
+    return fig, ax, nrows
