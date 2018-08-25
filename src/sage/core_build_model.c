@@ -341,7 +341,7 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
       if(p == centralgal)
       {
         add_infall_to_hot(centralgal, infallingGas / STEPS);
-
+        Gal[p].GridInfallRate[Gal[p].SnapNum] += infallingGas / STEPS / substep_dt; 
         if(ReIncorporationFactor > 0.0)
           reincorporate_gas(centralgal, substep_dt); 
       }

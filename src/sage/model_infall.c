@@ -310,7 +310,6 @@ void add_infall_to_hot(int gal, double infallingGas)
   
   // add (subtract) the ambient (enriched) infalling gas to the central galaxy hot component 
   Gal[gal].HotGas += infallingGas;
-  //Gal[gal].GridInfallRate[Gal[gal].SnapNum] += infallingGas / dt;
   metallicity = get_metallicity(ejectedmass_total, metalsejectedmass_total);
   Gal[gal].MetalsHotGas += metallicity * infallingGas;
 
