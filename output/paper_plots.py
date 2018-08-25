@@ -28,14 +28,65 @@ output_format = "png"
 
 
 def set_cosmology(Hubble_h, Omega_m):
-    
+    """    
+    Sets a flat, LCDM cosmology.
+
+    Parameters
+    ----------
+
+    Hubble_h : float
+        Value of Hubble little h (i.e., between 0 and 1).
+
+
+    Omega_m : float
+        Value of critical matter density.
+
+    Returns
+    ---------
+
+    cosmo : astropy.cosmology class
+        ``Astropy`` class containing the cosmology for this model.
+
+    t_bigbang : float
+        The lookback time to the Big Bang in megayears. 
+    """
+
     cosmo = cosmology.FlatLambdaCDM(H0 = Hubble_h*100, Om0 = Omega_m) 
-    t_BigBang = (cosmo.lookback_time(100000).value)*1.0e3 # Lookback time to the Big Bang in Myr.
+    t_bigbang = (cosmo.lookback_time(100000).value)*1.0e3 # Lookback time to the Big Bang in Myr.
 
-    return cosmo, t_BigBang
+    print(type(cosmo))
+    exit()
+    return cosmo, t_bigbang
 
 
-def load_redshifts(fname, cosmology, t_BigBang):
+def load_redshifts(fname, cosmology, t_bigbang):
+    """    
+    Loads the redshifts for a specified model and calculates the corresponding
+    lookback times.
+
+    Parameters
+    ----------
+
+    fname : String 
+        Path to the redshift file.
+
+    cosmology : astropy.cosmology class
+        ``Astropy`` class containing the cosmology for this model.  Set using
+        ``set_cosmology()``.
+
+    t_bigbang : float
+        The lookback time to the Big Bang in megayears. Set using
+        ``set_cosmology()``. 
+
+    Returns
+    ---------
+
+    z : List of floats 
+        Redshift at each snapshots of the specified model.
+
+    t_bigbang : List of floats 
+        Corresponding lookback time to each snapshot of the specified model.
+    """
 
     with open(fname, "r") as f:
 
@@ -43,7 +94,7 @@ def load_redshifts(fname, cosmology, t_BigBang):
 
     z = 1.0/a - 1.0
 
-    lookback = (t_BigBang - cosmology.lookback_time(z).value*1.0e3)  # In Myr.
+    lookback = (t_bigbang - cosmology.lookback_time(z).value*1.0e3)  # In Myr.
 
     return z, lookback 
 
@@ -542,9 +593,9 @@ if __name__ == "__main__":
     # For some plots, there is the option of plotting one model at different
     # snapshots (within one panel) or plotting all models at one snapshot
     # (within one panel).  
-    plot_snaps_for_models = [[33, 50, 76, 93]  # For each panel, plot one model 
-                             [33, 50, 76, 93]  # at specified snapshots.
-                             [33, 50, 76, 93]   
+    plot_snaps_for_models = [[33, 50, 76, 93],  # For each panel, plot one model 
+                             [33, 50, 76, 93],  # at specified snapshots.
+                             [33, 50, 76, 93],   
                              [33, 50, 76, 93]]  
 
     plot_models_at_snaps = None  # For each panel, plot one specified snapshot 
