@@ -48,78 +48,6 @@ def load_redshifts(fname, cosmology, t_BigBang):
     return z, lookback 
 
 
-def get_first_gridpos(GridHistory):
-
-    GridPos = np.full(len(GridHistory), -1)
-
-    for snapnum in range(len(GridHistory[0,:])):
-
-        w_exist = np.where(GridHistory[:, snapnum] != -1)[0]
-        w_not_updated = np.where(GridPos == -1)[0]
-
-        w_to_update = w_exist[np.isin(w_exist, w_not_updated)]
-
-        GridPos[w_to_update] = GridHistory[w_to_update, snapnum]
-
-    return GridPos 
-
-
-def get_central_inds(GridType):
-
-    central_inds = []
-
-    for gal_idx in range(len(GridType)):
-
-        w_sat = np.where(GridType[gal_idx, :] == 1)[0]
-        if len(w_sat) == 0: 
-            central_inds.append(gal_idx)
-
-    return central_inds 
-
-
-def calculate_zreion_SFR(Galaxies, mean_zreion_SFR_thismodel, 
-                         std_zreion_SFR_thismodel, N_zreion_SFR_thismodel,
-                         zreion_inds, z_array_reion, first_snap, last_snap,
-                         mass_cut):
-
-    # Now within each zreion bin we want to calculate the mean/std
-    # galaxy SFR across ALL snapshots.  So let's go through each bin
-    # and first find all the galaxies within that bin. 
-    for zreion_idx in range(max(zreion_inds)-1): 
-        Gals_in_bin_inds = np.where(zreion_inds == zreion_idx)[0]
-        Gals_in_bin = Galaxies[Gals_in_bin_inds]
-
-        mean_SFR_this_bin = np.zeros(len(z_array_reion),dtype=np.float32)
-        std_SFR_this_bin = np.zeros(len(z_array_reion),dtype=np.float32)
-        N_SFR_this_bin = np.zeros(len(z_array_reion),dtype=np.float32)
-
-        # Now that we have each galaxy in this bin, calculate the mean
-        # SFR across all snapshots.
-        for snap_count, snapnum in enumerate(np.arange(first_snap, 
-                                                       last_snap + 1)): 
-            Gals_exist = np.where((Gals_in_bin.GridHistory[:, snapnum] != -1) &
-                                  (Gals_in_bin.GridFoFMass[:, snapnum] < mass_cut))[0]
-
-            mean_SFR_this_bin[snap_count] = np.mean(Gals_in_bin.GridSFR[Gals_exist, snapnum])
-            std_SFR_this_bin[snap_count] = np.std(Gals_in_bin.GridSFR[Gals_exist, snapnum])
-            N_SFR_this_bin[snap_count] = len(Gals_exist)
-
-        # Update the running totals for this zreion bin.
-        mean_zreion_SFR_thismodel[zreion_idx], \
-        std_zreion_SFR_thismodel[zreion_idx] = \
-        collective.update_cum_stats( 
-            mean_zreion_SFR_thismodel[zreion_idx], \
-            std_zreion_SFR_thismodel[zreion_idx], \
-            N_zreion_SFR_thismodel[zreion_idx], \
-            mean_SFR_this_bin, std_SFR_this_bin, N_SFR_this_bin) 
-
-        N_zreion_SFR_thismodel[zreion_idx] += N_SFR_this_bin
-    # Proceed to next zreion bin.
-
-    return mean_zreion_SFR_thismodel, std_zreion_SFR_thismodel, \
-           N_zreion_SFR_thismodel
-
-
 def do_2D_binning(data_x, data_y, mean_curr, std_curr, N_curr, bins):
     """    
     Updates the bin values (mean, standard deviation and number of data points)
@@ -206,21 +134,6 @@ def plot_galaxy_properties(ini_files, model_tags, galaxy_plots, output_dir="."):
         print("Made output directory {0}".format(output_dir))
 
     # Then find what plots we need and plot em!
-    if galaxy_plots["zreion_hist"]:
-        galplot.plot_zreion_hist(rank, comm,
-                                 galaxy_data["zreion_hist_total_allmodels"],
-                                 galaxy_data["zreion_bins_allmodels"], 
-                                 model_tags, output_dir, "zreion_hist")
-
-    if galaxy_plots["zreion_sfr"]:
-        galplot.plot_zreion_SFR(rank, comm,
-                                galaxy_data["mean_zreion_SFR_allmodels"],
-                                galaxy_data["std_zreion_SFR_allmodels"],
-                                galaxy_data["N_zreion_SFR_allmodels"],
-                                galaxy_data["zreion_bins_allmodels"],
-                        galaxy_data["z_array_reion_allmodels"],
-                        model_tags, output_dir, "zreion_SFR_1e9")
-
     if galaxy_plots["nion"]:
         galplot.plot_nion(rank, comm,
                           galaxy_data["z_array_full_allmodels"],
@@ -333,16 +246,8 @@ def generate_data(ini_files, galaxy_plots):
     z_array_reion_allmodels = []        
     lookback_array_reion_allmodels = []
 
-    zreion_bins_allmodels = []
-    zreion_hist_total_allmodels = []
-
     cosmology_allmodels = []
     t_bigbang_allmodels = []
-
-    # These are the arrays for the SFR at each snapshot within each zreion bin.
-    mean_zreion_SFR_allmodels = []
-    std_zreion_SFR_allmodels = []
-    N_zreion_SFR_allmodels = []
 
     # These are the arrays for the number of ionizing photons at each snapshot.
     # Note: This is the ESCAPING ionizing photons. 
@@ -415,46 +320,6 @@ def generate_data(ini_files, galaxy_plots):
 
         merged_name = "{0}/{1}_MergedGalaxies".format(SAGE_params["OutputDir"],
                                                       SAGE_params["FileNameGalaxies"])
-
-        # Read the reionization redshift grid.
-        zreion_name = "{0}/{1}".format(SAGE_params["PhotoionDir"],
-                                       SAGE_params["ReionRedshiftName"])
-
-        zreion = rs.read_binary_grid(zreion_name, GridSize, 2, reshape=False)
-
-        # We want to bin the galaxies on zreion.  Do this by splitting them
-        # (roughly) up into 50Myr intervals.
-        zreion_bins = [z_array_reion[0]]
-        time = 0.0
-        for count in np.arange(1, len(lookback_array_reion)-1):
-           time += lookback_array_reion[count] - lookback_array_reion[count-1] 
-           if time > 50.0:
-                zreion_bins.append(z_array_reion[count])
-                time = 0.0
-
-        # Want the final bin to be the final redshift. 
-        zreion_bins.append(z_array_reion[-1])
-        # The bins need to be monotonically increasing, so flip them.
-        zreion_bins = np.flip(zreion_bins, axis=-1)
-        # Add to the ``allmodels`` array.
-        zreion_bins_allmodels.append(zreion_bins[:-1]) 
-        # Initialize the array that will hold all the histograms.
-        zreion_hist_total_allmodels.append(np.zeros(len(zreion_bins[:-1]),
-                                                    dtype=np.float32))
-
-        # For the SFR at each snapshot within each zreion bin, each zreion bin
-        # will contain an array with len(NumberSnapshots) that has the
-        # mean/std/N data points.
-        mean_zreion_SFR_allmodels.append([])
-        std_zreion_SFR_allmodels.append([])
-        N_zreion_SFR_allmodels.append([])
-        for bin_count in range(len(zreion_bins)-1):
-            mean_zreion_SFR_allmodels[model_number].append(np.zeros(len(z_array_reion),
-                                                                    dtype=np.float32))
-            std_zreion_SFR_allmodels[model_number].append(np.zeros(len(z_array_reion),
-                                                                   dtype=np.float32))
-            N_zreion_SFR_allmodels[model_number].append(np.zeros(len(z_array_reion),
-                                                                 dtype=np.float32))
 
         # Initialize the ionizing photon array to 0.
         sum_nion_allmodels.append(np.zeros(len(z_array_full),
@@ -531,36 +396,6 @@ def generate_data(ini_files, galaxy_plots):
             GG, Gal_Desc = rs.ReadGals_SAGE(galaxy_name, fnr, len(z_array_full))
             G_Merged, _ = rs.ReadGals_SAGE(merged_name, fnr, len(z_array_full))
             G = rs.Join_Arrays(GG, G_Merged, Gal_Desc)
-
-            # For some things, let's only deal with central galaxies.                
-            central_inds = get_central_inds(G.GridType)
-            G_centrals = G[central_inds]
-
-            # Find the first position of each galaxy (assume it doesn't move
-            # over its history). 
-            GridPos = get_first_gridpos(G_centrals.GridHistory) 
-            zreion_gals = zreion[GridPos]
-
-            # Do the binning. 
-            zreion_hist = np.histogram(zreion_gals, bins=zreion_bins)
-
-            # Now when we bin with SFR we want to bunch it together...             
-            zreion_inds = np.digitize(zreion_gals, bins=zreion_bins)
-
-            # Calculate the SFR within each zreion bin.
-            if galaxy_plots["zreion_sfr"]: 
-                mean_zreion_SFR_allmodels[model_number], \
-                std_zreion_SFR_allmodels[model_number], \
-                N_zreion_SFR_allmodels[model_number] = \
-                    calculate_zreion_SFR(G_centrals, 
-                                         mean_zreion_SFR_allmodels[model_number],
-                                         std_zreion_SFR_allmodels[model_number],
-                                         N_zreion_SFR_allmodels[model_number],
-                                         zreion_inds, z_array_reion,
-                                         first_snap, last_snap, mass_cut)
-
-            # Histogram count of the zreion values. 
-            zreion_hist_total_allmodels[model_number] += zreion_hist[0]
 
             # For each snapshot, calculate properties for galaxies that exist.
             for snap_count, snapnum in enumerate(range(len(z_array_full))):
@@ -644,11 +479,6 @@ def generate_data(ini_files, galaxy_plots):
                    "lookback_array_reion_allmodels" : lookback_array_reion_allmodels,
                    "cosmology_allmodels" : cosmology_allmodels,
                    "t_bigbang_allmodels" : t_bigbang_allmodels,
-                   "zreion_bins_allmodels" : zreion_bins_allmodels,
-                   "zreion_hist_total_allmodels" : zreion_hist_total_allmodels,
-                   "mean_zreion_SFR_allmodels" : mean_zreion_SFR_allmodels,
-                   "std_zreion_SFR_allmodels" : std_zreion_SFR_allmodels,
-                   "N_zreion_SFR_allmodels" : N_zreion_SFR_allmodels, 
                    "sum_nion_allmodels" : sum_nion_allmodels,
                    "mstar_bins" : mstar_bins, "mstar_bin_width" : mstar_bin_width,
                    "mean_mstar_fesc_allmodels" : mean_mstar_fesc_allmodels,
@@ -702,8 +532,6 @@ if __name__ == "__main__":
     # ============================================================= #
     # Switches to control what plots to make. 0 to skip, 1 to plot. #
     # ============================================================= #
-    zreion_hist = 0
-    zreion_sfr = 0
     nion = 0
     mstar_fesc = 0 
     SMF = 0
@@ -725,9 +553,7 @@ if __name__ == "__main__":
     # ====================== #
     # Don't touch below here # 
     # ====================== #
-    galaxy_plots = {"zreion_hist" : zreion_hist,
-                    "zreion_sfr" : zreion_sfr,
-                    "nion" : nion,
+    galaxy_plots = {"nion" : nion,
                     "mstar_fesc" : mstar_fesc,
                     "SMF" : SMF,
                     "mstar_fej" : mstar_fej,
