@@ -19,11 +19,14 @@ import os
 from shutil import copyfile
 import subprocess
 
-sys.path.append('./output/')
+# Get the directory the script is in.
+# Used a global variable for convenience as quite a few functions will use this.
+script_dir = os.path.dirname(os.path.realpath(__file__))
+output_path = "{0}/../output/".format(script_dir)
+sys.path.append(output_path)
+
 import ReadScripts
 import AllVars
-
-script_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def check_input_parameters(SAGE_fields_update, cifog_fields_update,
@@ -454,25 +457,36 @@ if __name__ == '__main__':
     # Specify here the SAGE parameters that you want to change for each run #
     #########################################################################
 
-    fescPrescription = [3, 3, 3]
-    #alpha = [0.00, 0.00, 0.00, 0.00, 0.00, 0.00]
-    #beta = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30]
-    MH_low = [1.0e8, 1.0e8, 1.0e8]
-    fesc_low = [0.95, 0.90, 0.85]     
-    MH_high = [1.0e12, 1.0e12, 1.0e12]
-    fesc_high = [0.05, 0.05, 0.05]
+    fescPrescription = [1, 1, 1, 1, 1, 1, 1, 1]
+    alpha = [0.00, 0.00, 0.10, 0.10, 0.20, 0.20, 0.30, 0.30]
+    beta = [0.25, 0.30, 0.25, 0.30, 0.25, 0.30, 0.25, 0.30]
+    #MH_low = [1.0e8, 1.0e8, 1.0e8]
+    #fesc_low = [0.95, 0.90, 0.85]     
+    #MH_high = [1.0e12, 1.0e12, 1.0e12]
+    #fesc_high = [0.05, 0.05, 0.05]
 
+    '''
     FileNameGalaxies = ["MHneg_1e8_1e12_0.95_0.05",
                         "MHneg_1e8_1e12_0.90_0.05",
                         "MHneg_1e8_1e12_0.85_0.05"]
+    ''' 
+
+    FileNameGalaxies = ["fej_alpha0.00_beta0.25",
+                        "fej_alpha0.00_beta0.30",
+                        "fej_alpha0.10_beta0.25",
+                        "fej_alpha0.10_beta0.30",
+                        "fej_alpha0.20_beta0.25",
+                        "fej_alpha0.20_beta0.30",
+                        "fej_alpha0.30_beta0.25",
+                        "fej_alpha0.30_beta0.30"]
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription,
-                           #"alpha" : alpha,
-                           #"beta" : beta,
-                           "MH_low" : MH_low,
-                           "fesc_low" : fesc_low,
-                           "MH_high" : MH_high,
-                           "fesc_high" : fesc_high,
+                           "alpha" : alpha,
+                           "beta" : beta,
+                           #"MH_low" : MH_low,
+                           #"fesc_low" : fesc_low,
+                           #"MH_high" : MH_high,
+                           #"fesc_high" : fesc_high,
                            "FileNameGalaxies" : FileNameGalaxies
                          }
 
@@ -486,9 +500,14 @@ if __name__ == '__main__':
     # Specify here the path directory for each run #
     ################################################
 
-    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg"]
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej"]
 
     #########################################################################
     # Specify here the path to the base ini files (shouldn't need to touch) #  
