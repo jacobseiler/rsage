@@ -515,11 +515,5 @@ int32_t check_ini_parameters(void)
     return EXIT_FAILURE; 
   }
 
-  if (self_consistent == 1 && (ReionizationOn == 0 || ReionizationOn == 1))
-  {
-    fprintf(stderr, "You have turned on self consistent reionization (`self_consistent` = 0).  However your reionization prescription (`ReionizationOn`) does not use the self consistent pipeline. Change either `self_consistent` or `ReionizationOn`.\n");
-    return EXIT_FAILURE; 
-  }
-
   return EXIT_SUCCESS;
 }

@@ -21,12 +21,14 @@ int32_t init_nionlookup(void);
 int32_t init_metalcooling(void);
 void read_snap_list(void);
 void set_units(void);
+int32_t init_fesc(void);
+int32_t determine_fescMH_constants(void);
 
 // External Functions //
 
 void sage_init(void)
 {
-  int32_t i;
+  int32_t i, status;
 
   count_gal = 0;  
   random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
@@ -46,6 +48,12 @@ void sage_init(void)
   ar = 1.0 / (1.0 + Reionization_zr);
 
   read_cooling_functions();
+
+  status = init_fesc();
+  if (status != EXIT_SUCCESS)
+  {
+    ABORT(0);
+  }
 
   count_onehalo = 0;  
 
@@ -94,8 +102,6 @@ void sage_init(void)
 
   if (IRA == 0)
   {
-    int32_t status;
-
     status = init_delayedSN();
     if (status != EXIT_SUCCESS)
     {
@@ -105,8 +111,6 @@ void sage_init(void)
 
   if (PhotonPrescription == 1)
   {
-    int32_t status;
-
     status = init_nionlookup();
     if (status != EXIT_SUCCESS)
     {
@@ -375,3 +379,109 @@ double integrand_time_to_present(double a, void *param)
   return 1 / sqrt(Omega / a + (1 - Omega - OmegaLambda) + OmegaLambda * a * a);
 }
 
+
+int32_t init_fesc(void)
+{
+  switch(fescPrescription)
+  {
+
+    case 0:
+      if (ThisTask == 0)
+      {
+        printf("\n\nUsing a constant escape fraction of %.4f\n", beta); 
+      }
+      break;
+
+    case 1:
+      if (ThisTask == 0)
+      {
+        printf("\n\nUsing an fesc prescription that scales with the fraction of ejected mass in the galaxy.\nThis takes the form A*fej + B with A = %.4e and B = %.4e\n", alpha, beta);
+      }
+      break;
+
+    case 2:
+      if (ThisTask == 0)
+      {
+        printf("\n\nUsing an fesc prescription that depends upon quasar activity.\n");
+        printf("\nFor a galaxy that had a quasar event within %.2f dynamical times go the escape fraction will be %.2f.  Otherwise it will have a constant value of %.2f\n", N_dyntime, quasar_boosted, quasar_baseline);
+      }
+      break;
+
+    case 3:
+      if (ThisTask == 0)
+      {
+        printf("\n\nUsing an fesc prescription that scales as a power law with halo mass.\n");        
+      }
+      determine_fescMH_constants();
+      XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 3), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
+
+      break;
+
+    case 4:
+      if (ThisTask == 0)
+      {
+        printf("\n\nUsing Anne's functional form for an escape fraction that increases for increasing halo mass.\n");
+        printf("MH_low = %.4e\tMH_high = %.4e\tfesc_low = %.4f\tfesc_high =  %.4f.\n", MH_low, MH_high, fesc_low, fesc_high);
+      }
+      XASSERT(fesc_low < fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 4), we require fesc_low < fesc_high\n", fesc_low, fesc_high);
+      break;
+
+    case 5:
+      if (ThisTask == 0)
+      {
+        printf("\n\nUsing an fesc prescription that depends upon the SFR of the galaxy.\n");
+        printf("This takes the function form of a logistic function, fesc = delta / (1.0 + exp(-alpha*(log10(SFR)-beta))), with range [0.0, delta].  `alpha` controls the steepness of the curve and beta defines the value of log10(SFR) gives fesc = delta/2.\n");
+        printf("alpha = %.4f\tbeta = %.4f\tdelta = %.4f\n", alpha, beta, delta);
+      }
+      break;
+
+    default:
+      printf("\n\nOnly escape fraction prescriptions 0, 1, 2, 3, 4 or 5 are permitted.\n");
+      return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
+/*
+For some escape fraction prescriptions, the functional form is a power law with the constants calculated using two fixed points.
+This function determines these constants based on the fixed points specified.
+Refer to the .ini file or `determine_fesc()` function for full details on each `fescPrescription`.
+Parameters
+----------
+None.  All variables used/adjusted are global.
+Returns
+----------
+None. All variables adjusted are global.
+Pointer Updates
+----------
+None.
+Units  
+----------
+The Halo Masses used to specify the fixed points (MH_low and MH_high) are in Msun.
+*/
+
+int32_t determine_fescMH_constants(void)
+{ 
+  
+  double A, B, log_A;
+ 
+  switch(fescPrescription)
+  {
+    case 3:
+      log_A = (log10(fesc_high) - (log10(fesc_low)*log10(MH_high)/log10(MH_low))) * pow(1 - (log10(MH_high) / log10(MH_low)), -1);
+      B = (log10(fesc_low) - log_A) / log10(MH_low);
+      A = pow(10, log_A);
+      
+      fescMH_alpha = A;
+      fescMH_beta = B;
+
+      printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
+      printf("This gives a power law with constants A = %.4e, B = %.4e\n", fescMH_alpha, fescMH_beta);
+
+      break;
+      
+  }
+
+  return EXIT_SUCCESS;
+
+}

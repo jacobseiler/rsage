@@ -480,7 +480,7 @@ void add_galaxy_to_merger_list(int p)
   {
     for (j = 0; j < StellarTracking_Len; ++j)
     {
-      MergedGal[MergedNr].Stellar_Stars[j] += Gal[p].Stellar_Stars[j]; 
+      MergedGal[MergedNr].Stellar_Stars[j] = Gal[p].Stellar_Stars[j]; 
     }
   }
 
