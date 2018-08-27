@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt

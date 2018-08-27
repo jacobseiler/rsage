@@ -1,11 +1,11 @@
 # Blocklist
 branches:
   except:    
-#    - development 
+    - development 
 
 cache:
   directories:
-    - tests/rsage_testdata
+    - tests/rsage_testdata/
 
 language: c
 sudo: required
