@@ -102,9 +102,9 @@ int32_t init_selfcon_grid(void)
     case 3:
       if (ThisTask == 0)
       {
-        printf("\n\nUsing an fesc prescription that scales as a power law with halo mass.\n");
-        determine_fescMH_constants();
+        printf("\n\nUsing an fesc prescription that scales as a power law with halo mass.\n");        
       }
+      determine_fescMH_constants();
       XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 3), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
 
       break;
@@ -425,9 +425,12 @@ int32_t determine_fescMH_constants(void)
       
       fescMH_alpha = A;
       fescMH_beta = B;
-      
-      printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
-      printf("This gives a power law with constants A = %.4e, B = %.4e\n", fescMH_alpha, fescMH_beta);
+
+      if (ThisTask == 0)
+      {
+        printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
+        printf("This gives a power law with constants A = %.4e, B = %.4e\n", fescMH_alpha, fescMH_beta);
+      }
       break;
   }
 
