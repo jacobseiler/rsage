@@ -68,17 +68,17 @@ def get_trees():
     print("")
     print("Checking to see if we need to download the test tree and output file.")
     
-    datadir = "{0}/{1}/".format(test_dir, test_datadir)
-    if not os.path.isdir(datadir):
+    treefile = "{0}/{1}/trees_063_000.dat".format(test_dir, test_datadir)
+    if not os.path.isfile(treefile):
         print("{0} does not exist, downloading the {1}"
-              "repo.".format(datadir, test_datadir)) 
+              "repo.".format(treefile, test_datadir)) 
 
         repo_url = "https://github.com/jacobseiler/{0}".format(test_datadir)
         command = "git clone {0} --depth 1".format(repo_url)
         subprocess.call(command, shell=True)
     else:
         print("{0} exists so no need to download {1} repo."
-              .format(datadir, test_datadir))
+              .format(treefile, test_datadir))
         downloaded_repo = False
 
     print("Done")
