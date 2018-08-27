@@ -352,7 +352,10 @@ int main(int argc, char **argv)
     printf("Creation of reionization redshift grid took an average time of %.4f seconds to execute\n", master_misc_time / CLOCKS_PER_SEC * NTask); // Reionization redshift only done on root node.
   }
 
+#ifdef MPI
   MPI_Finalize();
+#endif
+
   return EXIT_SUCCESS;
 
  err:    
