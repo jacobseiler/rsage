@@ -350,6 +350,9 @@ extern double alpha;
 extern double beta;
 extern double delta;
 
+extern double fescMH_alpha;
+extern double fescMH_beta;
+
 extern double quasar_baseline;
 extern double quasar_boosted;
 extern double N_dyntime;

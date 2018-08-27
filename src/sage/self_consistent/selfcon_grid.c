@@ -34,6 +34,7 @@ struct SELFCON_GRID_STRUCT *MPI_sum_grids(void);
 
 // Local Proto-Types //
 
+int32_t determine_fescMH_constants(void);
 int32_t malloc_selfcon_grid(struct SELFCON_GRID_STRUCT *grid);
 int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite);
 
@@ -101,8 +102,8 @@ int32_t init_selfcon_grid(void)
     case 3:
       if (ThisTask == 0)
       {
-        printf("\n\nUsing Anne's functional form for an escape fraction that decreases for increasing halo mass.\n");
-        printf("MH_low = %.4e\tMH_high = %.4e\tfesc_low = %.4f\tfesc_high =  %.4f.\n", MH_low, MH_high, fesc_low, fesc_high);
+        printf("\n\nUsing an fesc prescription that scales as a power law with halo mass.\n");
+        determine_fescMH_constants();
       }
       XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 3), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
 
@@ -391,6 +392,48 @@ int32_t zero_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
 }
 
 // Local Functions //
+
+/*
+For some escape fraction prescriptions, the functional form is a power law with the constants calculated using two fixed points.
+This function determines these constants based on the fixed points specified.
+Refer to the .ini file or `determine_fesc()` function for full details on each `fescPrescription`.
+Parameters
+----------
+None.  All variables used/adjusted are global.
+Returns
+----------
+None. All variables adjusted are global.
+Pointer Updates
+----------
+None.
+Units  
+----------
+The Halo Masses used to specify the fixed points (MH_low and MH_high) are in Msun.
+*/
+
+int32_t determine_fescMH_constants(void)
+{ 
+  
+  double A, B, log_A;
+ 
+  switch(fescPrescription)
+  {
+    case 3:
+      log_A = (log10(fesc_high) - (log10(fesc_low)*log10(MH_high)/log10(MH_low))) * pow(1 - (log10(MH_high) / log10(MH_low)), -1);
+      B = (log10(fesc_low) - log_A) / log10(MH_low);
+      A = pow(10, log_A);
+      
+      fescMH_alpha = A;
+      fescMH_beta = B;
+      
+      printf("Fixing the points (%.4e, %.2f) and (%.4e, %.2f)\n", MH_low, fesc_low, MH_high, fesc_high);
+      printf("This gives a power law with constants A = %.4e, B = %.4e\n", fescMH_alpha, fescMH_beta);
+      break;
+  }
+
+  return EXIT_SUCCESS;
+
+}
 
 /*
 Allocates memory and initializes values for the Nion grid.
@@ -698,11 +741,7 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       break;
     
     case 3:
-      *fesc_local = pow(fesc_low * (fesc_low/fesc_high),(-log10(halomass/MH_low)/log10(MH_high/MH_low)));
-      if (*fesc_local > fesc_low)
-      {
-        *fesc_local = fesc_low;
-      }
+      *fesc_local = fescMH_alpha*pow(halomass, fescMH_beta);
       break;
 
     case 4:

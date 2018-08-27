@@ -106,6 +106,9 @@ double alpha;
 double beta;
 double delta;
 
+double fescMH_alpha;
+double fescMH_beta;
+
 double quasar_baseline;
 double quasar_boosted;
 double N_dyntime;
