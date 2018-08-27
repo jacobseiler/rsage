@@ -34,6 +34,10 @@ import subprocess
 # Used a global variable for convenience as quite a few functions will use this.
 test_dir = os.path.dirname(os.path.realpath(__file__))
 
+# This is the directory name that will contain all the **correct** data from
+# the test repository.
+test_datadir = "rsage_testdata"
+
 scripts_dir = "{0}/../output/".format(test_dir)
 sys.path.append(scripts_dir)
 
@@ -46,7 +50,7 @@ def get_trees():
     Grabs the trees and galaxy output needed for the testing. 
 
     First checks the test directory to see if they trees are there.
-    Otherwise downloads the test_RSAGE repo.
+    Otherwise downloads the ``test_datadir`` repo.
     
     Parameters
     ----------
@@ -64,32 +68,24 @@ def get_trees():
     print("")
     print("Checking to see if we need to download the test tree and output file.")
     
-    tree_file = "{0}/trees_063_000.dat".format(test_dir)    
-    if not os.path.isfile(tree_file):
-        print("{0} does not exist, downloading the test_RSAGE repo and "
-              "unzipping.".format(tree_file))
+    datadir = "{0}/{1}/".format(test_dir, test_datadir)
+    if not os.path.isdir(datadir):
+        print("{0} does not exist, downloading the {1}"
+              "repo.".format(datadir, test_datadir)) 
 
-        repo_url = "https://github.com/jacobseiler/test_RSAGE"
+        repo_url = "https://github.com/jacobseiler/{0}".format(test_datadir)
         command = "git clone {0} --depth 1".format(repo_url)
         subprocess.call(command, shell=True)
-        
-        command = "mv test_RSAGE/* ./"
-        subprocess.call(command, shell=True)
-
-        command = "yes | rm -r test_RSAGE"
-        subprocess.call(command, shell=True)
-
-        downloaded_repo = True 
-
     else:
-        print("{0} exists so no need to download test_RSAGE repo."
-              .format(tree_file))
+        print("{0} exists so no need to download {1} repo."
+              .format(datadir, test_datadir))
         downloaded_repo = False
 
     print("Done")
     print("")
 
     return downloaded_repo
+
 
 def check_sage_dirs(galaxy_name="test"):
     """
@@ -265,7 +261,8 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
               "WANT, PRESS ENTER OTHERWISE CTRL-C TO GET OUTTA HERE!")
         input("JUST CHECKING ONCE MORE!")
 
-        fname = "{0}/{1}_testmass.txt".format(test_dir, galaxy_name)
+        fname = "{0}/{1}/{2}_testmass.txt".format(test_dir, test_datadir,
+                                                  galaxy_name)
         np.savetxt(fname, mass_test)
         print("Saved mass data as {0}".format(fname))
 
@@ -275,7 +272,9 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
 
     # Now let's check compare the mass of the test to the 'test_RSAGE' repo. 
 
-    mass_repo = np.loadtxt("{0}/{1}_testmass.txt".format(test_dir, galaxy_name)) 
+    mass_repo = np.loadtxt("{0}/{1}/{2}_testmass.txt".format(test_dir,
+                                                             test_datadir,
+                                                             galaxy_name)) 
   
     if len(mass_test) != len(mass_repo):
         print("For the test data we had {0} galaxies at Snapshot {2} with > 0 "
@@ -363,14 +362,12 @@ def test_run():
 
     galaxy_names = ["PhotonPrescription0"]
    
-    AllVars.Set_Params_MiniMill()
-    max_snap = len(AllVars.SnapZ) - 1
-
     for ini_file, galaxy_name in zip(ini_files, 
                                      galaxy_names):
         check_sage_dirs(galaxy_name)
         sage_params, cifog_params = run_my_sage(ini_file)
 
+        max_snap = int(sage_params["LastSnapShotNr"])
         print("")
         print("SAGE run, now reading in the Galaxies.")
         print("")
@@ -409,9 +406,6 @@ def cleanup(downloaded_repo):
    
     # If we downloaded the git repo, remove the uneeded files. 
     files = []   
-
-    if downloaded_repo:
-        subprocess.call(["rm", "README.rst", "LICENSE", ".gitignore"]) 
 
     # Remove all the output galaxy files.
    
