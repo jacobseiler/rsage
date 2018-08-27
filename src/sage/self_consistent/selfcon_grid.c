@@ -742,6 +742,18 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
     
     case 3:
       *fesc_local = fescMH_alpha*pow(halomass, fescMH_beta);
+      if (fesc_low > fesc_high)
+      {
+        if (*fesc_local > fesc_low)
+        {
+          *fesc_local = fesc_low;
+        }
+
+        if (*fesc_local < fesc_high)
+        {
+          *fesc_local = fesc_high;
+        }
+      }
       break;
 
     case 4:
@@ -897,6 +909,9 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
       break;
 
     case 3:
+      snprintf(tag, MAX_STRING_LEN - 1, "myMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
+      break;
+
     case 4:
       snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
       break;
