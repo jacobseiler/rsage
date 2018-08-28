@@ -40,6 +40,8 @@ def Set_Params_Plot():
     global global_tickinterval
     global global_tickwidth
     global global_ticklength
+    global global_major_ticklength
+    global global_minor_ticklength
     global global_errorwidth
     global global_axiswidth
 
@@ -58,6 +60,8 @@ def Set_Params_Plot():
     global_tickinterval = 0.25
     global_tickwidth = 2
     global_ticklength = 6
+    global_major_ticklength = 6 
+    global_minor_ticklength = 4 
     global_errorwidth = 3
     global_axiswidth = 2
 
@@ -230,4 +234,43 @@ def add_time_z_axis(ax, cosmo, t_bigbang):
 
     ax2.set_xlabel(r"$\mathbf{z}$", fontsize = global_fontsize)
 
-    return ax2 
+    return ax2
+
+def plot_bouwens2015(cosmo, t_bigbang, ax):
+
+    bouwens_z = np.arange(6,16) # Redshift range for the observations.
+    bouwens_t = (t_bigbang - cosmo.lookback_time(bouwens_z).value*1.0e3) # Corresponding values for what we will plot on the x-axis.
+
+    bouwens_1sigma_lower = [50.81, 50.73, 50.60, 50.41, 50.21, 50.00, 49.80, 49.60, 49.39, 49.18] # 68% Confidence Intervals for the ionizing emissitivity from Bouwens 2015.
+    bouwens_1sigma_upper = [51.04, 50.85, 50.71, 50.62, 50.56, 50.49, 50.43, 50.36, 50.29, 50.23]
+
+    bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI.
+    bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
+    
+    ax.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper,
+                    color = 'k', alpha = 0.7,
+                    label = r"$\mathbf{Bouwens \: et \: al. \: (2015)}$")
+    ax.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_1sigma_lower,
+                    color = 'k', hatch = '//', edgecolor = 'k', alpha = 0.4, 
+                    facecolor = 'k', lw = 0.0)
+    ax.fill_between(bouwens_t, bouwens_1sigma_upper, bouwens_2sigma_upper,
+                    color = 'k', hatch = '//', edgecolor = 'k', alpha = 0.4,
+                    facecolor = 'k', lw = 0.0)
+
+    return ax
+
+
+def adjust_axis(ax, axis_width, tickwidth, major_ticklength,
+                minor_ticklength):
+
+    for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+        ax.spines[axis].set_linewidth(axis_width)
+
+    ax.tick_params(which = 'both', direction='in',
+                   width = tickwidth)
+    ax.tick_params(which = 'major', 
+                   length = major_ticklength)
+    ax.tick_params(which = 'minor',
+                   length = minor_ticklength) 
+
+    return ax

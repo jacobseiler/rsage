@@ -149,4 +149,4 @@ def Get_Data_SMBH():
 
     Mstar = np.arange(1.0, 12.0, 0.01) # Array of stellar masses.
 
-    Huang_z8_BHSM = 1.10*Mstar - 3.85 # Relationship is log10(M_BH) = 1.10*log10(M_*/10^11) + 8.25.  Units in Msun.  
+    Huang_z8_BHSM = 1.10*Mstar - 3.85 # Relationship is log10(M_BH) = 1.10*log10(M_*/10^11) + 8.25.  Units in Msun.

@@ -26,7 +26,7 @@ import CollectiveStats as collective
 import GalaxyPlots as galplot
 
 
-def set_cosmology(Hubble_h, Omega_m):
+def set_cosmology(Hubble_h, Omega_m, Omega_b):
     """    
     Sets a flat, LCDM cosmology.
 
@@ -50,7 +50,8 @@ def set_cosmology(Hubble_h, Omega_m):
         The lookback time to the Big Bang in megayears. 
     """
 
-    cosmo = cosmology.FlatLambdaCDM(H0 = Hubble_h*100, Om0 = Omega_m) 
+    cosmo = cosmology.FlatLambdaCDM(H0 = Hubble_h*100, Om0 = Omega_m,
+                                    Ob0 = Omega_b) 
     t_bigbang = (cosmo.lookback_time(100000).value)*1.0e3 # Lookback time to the Big Bang in Myr.
 
     return cosmo, t_bigbang
@@ -174,13 +175,13 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
     None.
     """
 
-    # First calculate all the properties and statistics we need.
-    galaxy_data = generate_data(rank, size, comm, ini_files, galaxy_plots)
-
     # Check to see if the output directory exists.
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         print("Made output directory {0}".format(output_dir))
+
+    # First calculate all the properties and statistics we need.
+    galaxy_data = generate_data(rank, size, comm, ini_files, galaxy_plots)
 
     # Set label sizes, colours etc.
     ps.Set_Params_Plot()
@@ -335,7 +336,8 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
         SAGE_params = rs.read_SAGE_ini(ini_file)
 
         cosmology, t_bigbang = set_cosmology(float(SAGE_params["Hubble_h"]),
-                                             float(SAGE_params["Omega"]))
+                                             float(SAGE_params["Omega"]),
+                                             float(SAGE_params["BaryonFrac"]))
 
         cosmology_allmodels.append(cosmology)
         t_bigbang_allmodels.append(t_bigbang)
@@ -440,9 +442,6 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                          int(SAGE_params["LastFile"])+1, size):
 #                         1, size):
 
-
-
-
             print("Rank {0}: Model {1} File {2}".format(rank, model_number,
                                                         fnr))
 
@@ -470,10 +469,11 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                 SFR = G.GridSFR[Gals_exist, snapnum]
                 #infall = G.GridInfallRate[Gals_exist, snapnum]
 
+                '''
                 if snapnum == 70:
                     print(np.log10(G.GridHaloMass[Gals_exist,snapnum][0:20]*1.0e10 /model_hubble_h))
                     print(fesc[0:20])
-
+                '''
                 # Calculate the mean fesc as a function of stellar mass.
                 if galaxy_plots["mstar_fesc"]:
                     mean_mstar_fesc_allmodels[model_number][snap_count], \
@@ -519,7 +519,7 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                 SMF_thissnap = np.histogram(log_mass, bins=mstar_bins)
                 SMF_allmodels[model_number][snap_count] += SMF_thissnap[0]
                 # Snapshot loop.
-            print(mean_mstar_fesc_allmodels[0][80])
+            #print(mean_mstar_fesc_allmodels[0][80])
             # File Loop.
         # Model Loop.
 

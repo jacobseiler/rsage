@@ -2289,20 +2289,22 @@ if __name__ == '__main__':
     # 5 : Britton's. 
     # 6 : Kali
 
-    model = 'rsage'
+    model = 'rsage_myMHneg'
 
     GridSize_model1 = 256
         
     precision_model1 = 2 # 0 for int reading, 1 for float, 2 for double.
    
     filepath_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/cifog/const_0.3_XHII"
-    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/cifog/MHneg_1e8_1e12_0.90_0.05_XHII"
+    filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg/grids/cifog/MHneg_1e8_1e12_0.95_0.05_XHII"
+    #filepath_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/cifog/MHneg_1e8_1e12_0.95_0.05_XHII"
     filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/cifog/MHpos_1e8_1e12_0.01_0.50_XHII"
     filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.0_XHII"
     filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/grids/cifog/SFR_alpha1.00_beta1.00_delta1.00_XHII"
 
     filepath_nion_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/grids/nion/const_0.3_fesc0.30_HaloPartCut32_nionHI"
-    filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/nion/MHneg_1e8_1e12_0.90_0.05_AnneMH_1.000e+08_0.90_1.000e+12_0.05_HaloPartCut32_nionHI"
+    filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg/grids/nion/MHneg_1e8_1e12_0.95_0.05_myMH_1.000e+08_0.95_1.000e+12_0.05_HaloPartCut32_nionHI"
+    #filepath_nion_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/grids/nion/MHneg_1e8_1e12_0.95_0.05_AnneMH_1.000e+08_0.95_1.000e+12_0.05_HaloPartCut32_nionHI"
     filepath_nion_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/grids/nion/MHpos_1e8_1e12_0.01_0.50_AnneMH_1.000e+08_0.01_1.000e+12_0.50_HaloPartCut32_nionHI" 
     filepath_nion_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/nion/fej_alpha0.40_beta0.0_ejected_0.400_0.000_HaloPartCut32_nionHI"
     filepath_nion_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/grids/nion/SFR_alpha1.00_beta1.00_delta1.00_SFR_1.000_1.000_1.000_HaloPartCut32_nionHI"
@@ -2559,8 +2561,9 @@ if __name__ == '__main__':
     plot_global_frac(AllVars.SnapZ[snaplist], mass_frac_array, 1, model_tags, OutputDir, "GlobalFraction")
     plot_total_nion(AllVars.SnapZ[snaplist], nion_total_array,
                     simulation_norm, 1, model_tags, OutputDir,
-                    "nioncut_0.01_0.50")
-    plot_optical_depth(AllVars.SnapZ[snaplist], mass_frac_array, model_tags, OutputDir, "OpticalDepth")
+                    "nion_0.95")
+    plot_optical_depth(AllVars.SnapZ[snaplist], mass_frac_array, model_tags,
+                       OutputDir, "OpticalDepth_0.95")
 
     #plot_nine_panel_slices(AllVars.SnapZ[snaplist],
     #                       ionized_cells_filepath_array, GridSize_array, 

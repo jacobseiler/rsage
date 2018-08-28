@@ -12,7 +12,7 @@ from scipy import stats
 import ReadScripts as rs
 import PlotScripts as ps
 import CollectiveStats as collective
-import ObservationalData as Obs
+import ObservationalData as obs
 
 from mpi4py import MPI
 
@@ -44,25 +44,7 @@ def plot_nion(rank, comm,
                  ls = ps.linestyles[model_number],
                  label = model_tags[model_number])
 
-
-    bouwens_z = np.arange(6,16) # Redshift range for the observations.
-    bouwens_t = (t_bigbang[0] - cosmo[0].lookback_time(bouwens_z).value*1.0e3) # Corresponding values for what we will plot on the x-axis.
-
-    bouwens_1sigma_lower = [50.81, 50.73, 50.60, 50.41, 50.21, 50.00, 49.80, 49.60, 49.39, 49.18] # 68% Confidence Intervals for the ionizing emissitivity from Bouwens 2015.
-    bouwens_1sigma_upper = [51.04, 50.85, 50.71, 50.62, 50.56, 50.49, 50.43, 50.36, 50.29, 50.23]
-
-    bouwens_2sigma_lower = [50.72, 50.69, 50.52, 50.27, 50.01, 49.75, 49.51, 49.24, 48.99, 48.74] # 95% CI.
-    bouwens_2sigma_upper = [51.11, 50.90, 50.74, 50.69, 50.66, 50.64, 50.61, 50.59, 50.57, 50.55]
-    
-    ax1.fill_between(bouwens_t, bouwens_1sigma_lower, bouwens_1sigma_upper,
-                     color = 'k', alpha = 0.7,
-                     label = r"$\mathbf{Bouwens \: et \: al. \: (2015)}$")
-    ax1.fill_between(bouwens_t, bouwens_2sigma_lower, bouwens_1sigma_lower,
-                     color = 'k', hatch = '//', edgecolor = 'k', alpha = 0.4, 
-                     facecolor = 'k', lw = 0.0)
-    ax1.fill_between(bouwens_t, bouwens_1sigma_upper, bouwens_2sigma_upper,
-                     color = 'k', hatch = '//', edgecolor = 'k', alpha = 0.4,
-                     facecolor = 'k', lw = 0.0)
+    ax1 = ps.plot_bouwens2015(cosmo[0], t_bigbang[0], ax1)
 
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
                    fontsize = ps.global_labelsize)
@@ -273,7 +255,7 @@ def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
                      fontsize = ps.global_labelsize) 
 
     # Now lets overplot the Observational Data. 
-    Obs.Get_Data_SMF()
+    obs.Get_Data_SMF()
 
     caps = 5
     ewidth = 1.5

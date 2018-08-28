@@ -4,6 +4,7 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 
+import matplotlib.ticker as mtick
 import pylab as plt
 import numpy as np
 import scipy.integrate as integrate
@@ -33,6 +34,7 @@ def calculate_tau(base_XHII_fname, base_density_fname, snaps):
     tau = np.empty(len(snaps))
  
     for count, snap in enumerate(reversed(snaps)):
+
         XHII_fname = "{0}_XHII_{1:03d}".format(base_XHII_fname, snap)
         XHII = rs.read_binary_grid(XHII_fname, 256, 2)
        
@@ -98,16 +100,25 @@ def fit_tau(alpha, beta, tau=None, tau_file=None):
     return
 
 
-def calculate_all_taus(XHII_basename, density_basename, alpha, beta, snaps):
+def calculate_all_taus(XHII_basename, density_basename, alpha, beta, snaps,
+                       save_fname):
 
     tau = np.zeros((len(alpha),len(beta)))
 
     for alpha_count, alpha_val in enumerate(alpha):
         for beta_count, beta_val in enumerate(beta):
-            if beta_val == 0.20:
+            if alpha_val == 0 and beta_val == 0:
+                continue  # Corresponds to no reionization!
+            if beta_val == 0.20 or alpha_val == 0: 
                 fname = "{0}_alpha{1:.2f}_beta{2:.2f}".format(XHII_basename, alpha_val,
                                                               beta_val)
+            elif (alpha_val == 0.10 or alpha_val == 0.50) and beta_val > 0.0:
+                fname = "{0}_alpha{1:.2f}_beta{2:.2f}".format(XHII_basename, alpha_val,
+                                                          beta_val)
             elif (alpha_val == 0.30 and beta_val == 0.1):
+                fname = "{0}_alpha{1:.2f}_beta{2:.2f}".format(XHII_basename, alpha_val,
+                                                          beta_val)
+            elif (alpha_val >= 0.20 and beta_val == 0.3):
                 fname = "{0}_alpha{1:.2f}_beta{2:.2f}".format(XHII_basename, alpha_val,
                                                           beta_val)
             else:
@@ -120,14 +131,14 @@ def calculate_all_taus(XHII_basename, density_basename, alpha, beta, snaps):
                                                         tau[alpha_count, beta_count]))
 
     header = "alpha {0} beta {1}".format(alpha, beta)
-    np.savetxt("./tau_values.txt", tau, header=header)
+    np.savetxt(save_fname, tau, header=header)
 
     return
 
 
 def plot_tau(alpha, beta, output_tag, tau=None, tau_file=None):
 
-    fig1 = plt.figure(111)
+    fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
 
     if tau_file:
@@ -135,11 +146,31 @@ def plot_tau(alpha, beta, output_tag, tau=None, tau_file=None):
 
     X, Y = np.meshgrid(beta, alpha)
 
-    CS = ax1.contour(Y, X, tau) 
-    ax1.clabel(CS, inline=1, fontsize=10)
+    levels = np.arange(0.020, 0.080, 0.01)
+    fmt = {}
+    strs = [r"$\mathbf{%.3f}$" % x for x in levels]
+    for l, s in zip(levels, strs):
+        fmt[l] = s 
+
+    CS = ax1.contour(Y, X, tau, levels = levels) 
+    ax1.clabel(CS, inline=1, fontsize = ps.global_fontsize, fmt=fmt)
 
     ax1.set_xlabel(r"$\mathbf{\alpha}$", size = ps.global_fontsize)
     ax1.set_ylabel(r"$\mathbf{\beta}$", size = ps.global_fontsize)
+
+    ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
+                         ps.global_major_ticklength, ps.global_minor_ticklength) 
+
+    ax1.xaxis.set_major_locator(mtick.MultipleLocator(0.1))
+    ax1.yaxis.set_major_locator(mtick.MultipleLocator(0.05))
+
+    tick_locs = np.arange(min(alpha)-0.1, max(alpha)+0.1, 0.1)
+    ax1.set_xticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs],
+                        fontsize = ps.global_fontsize)
+
+    tick_locs = np.arange(min(beta)-0.05, max(beta)+0.05, 0.05)
+    ax1.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs],
+                        fontsize = ps.global_fontsize)
 
     outputFile = "./{0}{1}".format(output_tag, output_format) 
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
@@ -152,15 +183,13 @@ if __name__ == '__main__':
     av.Set_Params_Kali()
     av.Set_Constants()
 
-    alpha = [0.2, 0.3, 0.4, 0.6]
-    beta = [0.0, 0.05, 0.10, 0.15, 0.20]
+    alpha = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
+    beta = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30]
 
-    fit_tau(alpha, beta, tau_file="./tau_values.txt")
-    plot_tau(alpha, beta, "new_contours", tau_file="./tau_values.txt")
-    exit()    
-    
+    calculate_taus = 0 
+    tau_fname = "./tau_all.txt"
+
     cifog_ini_name = "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.0_cifog.ini"
-
     cifog_params, _ = rs.read_cifog_ini(cifog_ini_name)
 
     first_snap = int(cifog_params["SimulationLowSnap"])
@@ -170,4 +199,12 @@ if __name__ == '__main__':
 
     XHII_basename = "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej"
 
-    calculate_all_taus(XHII_basename, density_basename, alpha, beta, snaps)
+    if calculate_taus == 1:
+        calculate_all_taus(XHII_basename, density_basename, alpha, beta,
+                           snaps, tau_fname)
+
+    fit_tau(alpha, beta, tau_file=tau_fname)
+    plot_tau(alpha, beta, "new_contours", tau_file=tau_fname)
+
+    
+

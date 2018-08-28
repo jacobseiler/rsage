@@ -547,12 +547,14 @@ if __name__ == '__main__':
 
             T0 = T_naught(AllVars.SnapZ[snap], AllVars.Hubble_h,
                           AllVars.Omega_m, AllVars.Omega_b)
-                  
+            print(T0)                  
             tmp_k, tmp_PowSpec, tmp_Error, \
             tmp_k_XHII, tmp_Pspec_XHII, tmp_Error_XHII = calculate_power_spectrum(XHII, density) 
 
             if plot_all == 0:
                 k[snapnum].append(tmp_k)
+                print(T0*T0 * tmp_PowSpec * tmp_k**3 * 2.0 * np.pi)
+                exit()
                 P21[snapnum].append(T0*T0 * tmp_PowSpec * tmp_k**3 * 2.0 * np.pi)
                 P21_Error[snapnum].append(tmp_Error)
 

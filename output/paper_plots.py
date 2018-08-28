@@ -17,7 +17,9 @@ Version: 0.2
 from __future__ import print_function
 import GalaxyData as galdata
 import ReionData as reiondata
+import MiscData as misc
 
+import numpy as np 
 from mpi4py import MPI
 
 comm = MPI.COMM_WORLD
@@ -29,7 +31,7 @@ output_format = "png"
 
 if __name__ == "__main__":
 
-    output_directory = "."
+    output_directory = "./27th_Aug/"
 
     # Plotting is driven entirely through specifying the ``.ini`` files. 
     # For this reason, the directories in the ``.ini`` files **MUST** be
@@ -42,7 +44,13 @@ if __name__ == "__main__":
     gal_ini_model6="/home/jseiler/rsage/ini_files/kali_noreion_SAGE.ini"
     gal_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg/ini_files/MHneg_1e8_1e12_0.95_0.05_SAGE.ini"
 
-    reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.05_cifog.ini"
+    reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.3_cifog.ini"
+    reion_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e8_1e12_0.90_0.05_cifog.ini"   
+    reion_ini_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_cifog.ini"
+    reion_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.05_cifog.ini"
+    reion_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.00_delta1.00_cifog.ini"
+    reion_ini_model6="/home/jseiler/rsage/ini_files/kali_noreion_cifog.ini"
+    reion_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg/ini_files/MHneg_1e8_1e12_0.95_0.05_cifog.ini"
 
     # All ``.ini`` files included in this array will be plotted.
     gal_ini_files = [gal_ini_model1,
@@ -52,7 +60,23 @@ if __name__ == "__main__":
                      gal_ini_model5, 
                      gal_ini_model7]
 
+    gal_ini_files, reion_ini_files = misc.get_sage_ini_from_dir("/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/",
+                                                                alpha_vals = np.arange(0.0, 0.80, 0.10),
+                                                                beta_vals = np.arange(0.0, 0.35, 0.05))
+
+    #gal_ini_files = [gal_ini_model1]
+
+
+    '''
+    reion_ini_files = [reion_ini_model1,
+                       reion_ini_model2, 
+                       reion_ini_model3, 
+                       reion_ini_model4, 
+                       reion_ini_model5, 
+                       reion_ini_model7]
+
     reion_ini_files = [reion_ini_model1]
+    '''
 
     # These are the labels that will appear on the axis legends for each model.
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
@@ -88,8 +112,16 @@ if __name__ == "__main__":
                                  # for all models.
 
     ## Reionization Plots ##
-    history = 1
+    history = 0
     reion_nion = 0
+    ps_fixed_XHI = 0
+    duration_contours = 1
+
+    fixed_XHI_values = [0.90, 0.75, 0.50, 0.25, 0.10]
+    duration_contours_limits = [[0.0, 0.60, 0.1],  # This is the min/max/step
+                                [0.0, 0.30, 0.05]] # for the alpha/beta values. 
+    duration_definition = [0.90, 0.50, 0.01]  # Neutral fraction that defines the
+                                              # start/mid/end of reionization. 
 
     # ======================= #
     # Don't touch below here. # 
@@ -108,9 +140,15 @@ if __name__ == "__main__":
         if galaxy_plots[field] == 1:
             galdata.plot_galaxy_properties(rank, size, comm, gal_ini_files,
                                            model_tags, galaxy_plots, output_directory)
+            break
 
     reion_plots = {"history" : history,
-                   "nion" : reion_nion}
+                   "nion" : reion_nion,
+                   "ps_fixed_XHI" : ps_fixed_XHI,
+                   "fixed_XHI_values" : fixed_XHI_values,
+                   "duration_contours" : duration_contours,
+                   "duration_contours_limits" : duration_contours_limits,
+                   "duration_definition" : duration_definition}
 
     # Check if any reionization plots need to be done.
     for field in reion_plots.keys():
@@ -118,3 +156,4 @@ if __name__ == "__main__":
             reiondata.plot_reion_properties(rank, size, comm, reion_ini_files,
                                             gal_ini_files, model_tags,
                                             reion_plots, output_directory)
+            break

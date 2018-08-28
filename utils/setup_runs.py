@@ -279,7 +279,16 @@ def get_nion_fname(SAGE_params):
                              SAGE_params["N_dyntime"],
                              SAGE_params["HaloPartCut"])
 
-    elif fesc_prescription == 3 or fesc_prescription == 4:
+    elif fesc_prescription == 3: 
+        nion_fname = "{0}_myMH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
+                     .format(SAGE_params["FileNameGalaxies"],
+                             SAGE_params["MH_low"],
+                             SAGE_params["fesc_low"],
+                             SAGE_params["MH_high"],
+                             SAGE_params["fesc_high"],
+                             SAGE_params["HaloPartCut"])
+
+    elif fesc_prescription == 4:
         nion_fname = "{0}_AnneMH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
                              SAGE_params["MH_low"],
@@ -457,20 +466,19 @@ if __name__ == '__main__':
     # Specify here the SAGE parameters that you want to change for each run #
     #########################################################################
 
-    fescPrescription = [1, 1, 1, 1, 1, 1, 1, 1]
-    alpha = [0.00, 0.00, 0.10, 0.10, 0.20, 0.20, 0.30, 0.30]
-    beta = [0.25, 0.30, 0.25, 0.30, 0.25, 0.30, 0.25, 0.30]
-    #MH_low = [1.0e8, 1.0e8, 1.0e8]
-    #fesc_low = [0.95, 0.90, 0.85]     
-    #MH_high = [1.0e12, 1.0e12, 1.0e12]
-    #fesc_high = [0.05, 0.05, 0.05]
+    fescPrescription = [3, 3, 3]
+    #alpha = [0.00, 0.00, 0.10, 0.10, 0.20, 0.20, 0.30, 0.30]
+    #beta = [0.25, 0.30, 0.25, 0.30, 0.25, 0.30, 0.25, 0.30]
+    MH_low = [1.0e8, 1.0e8, 1.0e8]
+    fesc_low = [0.95, 0.90, 0.85]
+    MH_high = [1.0e12, 1.0e12, 1.0e12]
+    fesc_high = [0.05, 0.05, 0.05]
 
-    '''
     FileNameGalaxies = ["MHneg_1e8_1e12_0.95_0.05",
                         "MHneg_1e8_1e12_0.90_0.05",
                         "MHneg_1e8_1e12_0.85_0.05"]
-    ''' 
 
+    '''
     FileNameGalaxies = ["fej_alpha0.00_beta0.25",
                         "fej_alpha0.00_beta0.30",
                         "fej_alpha0.10_beta0.25",
@@ -479,14 +487,15 @@ if __name__ == '__main__':
                         "fej_alpha0.20_beta0.30",
                         "fej_alpha0.30_beta0.25",
                         "fej_alpha0.30_beta0.30"]
+    '''
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription,
-                           "alpha" : alpha,
-                           "beta" : beta,
-                           #"MH_low" : MH_low,
-                           #"fesc_low" : fesc_low,
-                           #"MH_high" : MH_high,
-                           #"fesc_high" : fesc_high,
+                           #"alpha" : alpha,
+                           #"beta" : beta,
+                           "MH_low" : MH_low,
+                           "fesc_low" : fesc_low,
+                           "MH_high" : MH_high,
+                           "fesc_high" : fesc_high,
                            "FileNameGalaxies" : FileNameGalaxies
                          }
 
@@ -500,14 +509,9 @@ if __name__ == '__main__':
     # Specify here the path directory for each run #
     ################################################
 
-    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej"]
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg"]
 
     #########################################################################
     # Specify here the path to the base ini files (shouldn't need to touch) #  
