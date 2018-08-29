@@ -133,12 +133,11 @@ def determine_ps_fixed_XHI(rank, size, comm,
     flat_snap_idx_target = [item for sublist in snap_idx_target for item in sublist]
 
     # Now every rank knows what snapshot indices correspond to the fixed HI
-    # values. So do the classic MPI loop to calculate power spectrum.
+    # values. We run 'classic' MPI loop. 
     k = []
     P21 = []
     PHII = []
-    for idx in range(rank, num_models*num_fractions, size):
-
+    for idx in range(rank, num_models*num_fractions, size): 
         # Determine what model this corresponds to.
         model_number = int(idx / num_fractions)
         model_boxsize = boxsize_allmodels[model_number]
@@ -226,20 +225,6 @@ def determine_ps_fixed_XHI(rank, size, comm,
             if rank_count == size:
                 rank_count = 0
 
-        '''
-        k_master = np.array(k_master)
-        P21_master = np.array(P21_master)
-        PHII_master = np.array(PHII_master)
-
-        print(k_master.shape)
-
-        k_master = np.reshape(k_master,
-                              (num_models, num_fractions, len(k_master[0][0])))
-        P21_master = np.reshape(P21_master,
-                              (num_models, num_fractions))
-        PHII_master = np.reshape(PHII_master,
-                              (num_models, num_fractions))
-        '''
         return k_master, P21_master, PHII_master
 
     else:
@@ -365,7 +350,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                reion_data["lookback_array_reion_allmodels"],
                                reion_data["cosmology_allmodels"],
                                reion_data["t_bigbang_allmodels"],
-                               master_mass_frac, 
+                               master_mass_frac,
+                               reion_plots["duration_definition"],
                                model_tags, output_dir, "history")
 
     if reion_plots["nion"]:

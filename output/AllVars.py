@@ -178,8 +178,6 @@ def Set_Params_Mysim():
 
 def Set_Constants():
 
-    print("Setting constants (in cgs units).")
-
     global Proton_Mass
     global Solar_Mass
     global Sec_Per_Year

@@ -21,7 +21,7 @@ output_format = "png"
 
 def plot_history(z_array_reion_allmodels, 
                  lookback_array_reion_allmodels, cosmo_allmodels,
-                 t_bigbang_allmodels, mass_frac_allmodels, 
+                 t_bigbang_allmodels, mass_frac_allmodels, duration_definition, 
                  model_tags, output_dir, output_tag, passed_ax=None):
 
     if passed_ax:
@@ -30,7 +30,26 @@ def plot_history(z_array_reion_allmodels,
         fig1 = plt.figure(figsize = (8,8))
         ax1 = fig1.add_subplot(111)
 
+    # When we plot the models, we also want to determine the duration of
+    # reionization for each.
+    duration_z = []
+    duration_t = []
     for model_number in range(len(z_array_reion_allmodels)):
+        # However only want to do this if we haven't passed another axis (i.e.,
+        # if `plot_history` was called within `ReionData.py`.
+        if not passed_ax:
+            duration_z.append([]) 
+            duration_t.append([])
+            for val in duration_definition:
+                idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
+                duration_z[model_number].append(z_array_reion_allmodels[model_number][idx]) 
+                duration_t[model_number].append(lookback_array_reion_allmodels[model_number][idx])
+
+
+            print("Model {0}: Start {1:.2f} \tMid {2:.2f}\tEnd {3:.2f}\tdt {4:.3f}Myr"
+                  .format(model_number, duration_z[model_number][0],
+                          duration_z[model_number][1], duration_z[model_number][-1],
+                          duration_t[model_number][-1]-duration_t[model_number][0]))
 
         ax1.plot(lookback_array_reion_allmodels[model_number], 
                  mass_frac_allmodels[model_number], 
@@ -126,12 +145,8 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax1.text(350, 50.5, r"$\mathbf{95\%}$", horizontalalignment='center',
              verticalalignment = 'center', fontsize = ps.global_labelsize-4)
 
-    for axis in ['top','bottom','left','right']: # Adjust axis thickness.
-        ax1.spines[axis].set_linewidth(ps.global_axiswidth)
-
-    ax1.tick_params(which = 'both', direction='in', width = ps.global_tickwidth)
-    ax1.tick_params(which = 'major', length = ps.global_ticklength)
-    ax1.tick_params(which = 'minor', length = ps.global_ticklength-2)
+    ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
+                         ps.global_major_ticklength, ps.global_minor_ticklength) 
 
     leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
@@ -350,9 +365,12 @@ def plot_combined_history_tau(z_array_reion_allmodels,
     fig, ax = plt.subplots(nrows = 1, ncols = 2, 
                            sharex=False, sharey=False, figsize=(16, 8))
 
+    # Note: The `None` here is the duration definition.  We don't want to
+    # calculate the duration as it was already done when `plot_history` was
+    # called from `ReionData.py`.
     ax[0] = plot_history(z_array_reion_allmodels, 
                          lookback_array_reion_allmodels, cosmo_allmodels,
-                         t_bigbang_allmodels, mass_frac_allmodels, 
+                         t_bigbang_allmodels, mass_frac_allmodels, None, 
                          model_tags, output_dir, output_tag, passed_ax=ax[0])
 
     ax[1] = plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
