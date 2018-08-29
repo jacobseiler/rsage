@@ -18,12 +18,17 @@ from mpi4py import MPI
 
 output_format = "png"
 
-def plot_history(z_array_reion_allmodels, 
-                 lookback_array_reion_allmodels, mass_frac_allmodels, cosmo,
-                 t_bigbang, model_tags, output_dir, output_tag):
 
-    fig1 = plt.figure(figsize = (8,8))
-    ax1 = fig1.add_subplot(111)
+def plot_history(z_array_reion_allmodels, 
+                 lookback_array_reion_allmodels, cosmo_allmodels,
+                 t_bigbang_allmodels, mass_frac_allmodels, 
+                 model_tags, output_dir, output_tag, passed_ax=None):
+
+    if passed_ax:
+        ax1 = passed_ax
+    else:
+        fig1 = plt.figure(figsize = (8,8))
+        ax1 = fig1.add_subplot(111)
 
     for model_number in range(len(z_array_reion_allmodels)):
 
@@ -52,25 +57,31 @@ def plot_history(z_array_reion_allmodels,
 
     ax1.set_xlim(ps.time_xlim)
 
-    ax2 = ps.add_time_z_axis(ax1, cosmo[0], t_bigbang[0]/1.0e3)
+    ax2 = ps.add_time_z_axis(ax1, cosmo_allmodels[0],
+                             t_bigbang_allmodels[0]/1.0e3)
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
-    leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(ps.global_legendsize)
+    if not passed_ax:
+        leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(ps.global_legendsize)
 
-    outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
-    print('Saved file to {0}'.format(outputFile1))
-    plt.close(fig1)
+    if passed_ax:
+        return ax1
+    else:
+        outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+        fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile1))
+        plt.close(fig1)
+
+        return None
 
 
-def plot_nion(rank, comm,
-              z_array_reion_allmodels, lookback_array_reion_allmodels,
-              nion_allmodels, cosmo, t_bigbang, 
+def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
+              cosmo_allmodels, t_bigbang_allmodels, nion_allmodels,
               model_tags, output_dir, output_tag):
 
     fig1 = plt.figure(figsize = (8,8))
@@ -87,7 +98,7 @@ def plot_nion(rank, comm,
                  ls = ps.linestyles[model_number],
                  label = model_tags[model_number])
 
-    ax1 = ps.plot_bouwens2015(cosmo[0], t_bigbang[0], ax1)
+    ax1 = ps.plot_bouwens2015(cosmo_allmodels[0], t_bigbang_allmodels[0], ax1)
 
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
                    fontsize = ps.global_labelsize)
@@ -107,7 +118,8 @@ def plot_nion(rank, comm,
 
     ax1.set_xlim(ps.time_xlim)
 
-    ax2 = ps.add_time_z_axis(ax1, cosmo[0], t_bigbang[0]/1.0e3)
+    ax2 = ps.add_time_z_axis(ax1, cosmo_allmodels[0],
+                             t_bigbang_allmodels[0]/1.0e3)
 
     ax1.text(350, 50.0, r"$\mathbf{68\%}$", horizontalalignment='center', 
              verticalalignment = 'center', fontsize = ps.global_labelsize-4)
@@ -138,41 +150,14 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     fig, ax = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
                            sharey='row', figsize=(16, 6))
 
-
-    log_cutoff = 15 #  This is the transition where we want to plot the mean
-                    #  of the log bins.  Represents where our uncertainty
-                    #  because basically 0.
-
     for model_number in range(len(k)):
         for fraction in range(len(fixed_XHI_values)):
 
             this_ax = ax[fraction]
 
-            w = np.where(k[model_number][fraction] > 9e-2)[0]          
-            bins = np.logspace(np.log10(k[model_number][fraction][w[0]]),
-                               np.log10(k[model_number][fraction][w[-1]]),
-                               num = int(len(k[model_number][fraction][w])/1.5))
-
-            mean_power, bin_edges, bin_number = stats.binned_statistic(k[model_number][fraction][w],
-                                                                   np.log10(P21[model_number][fraction][w]),
-                                                                   statistic='mean',
-                                                                   bins = bins)
-
-            '''
-            this_ax.plot(bin_edges[log_cutoff:-1], pow(10, mean_power[log_cutoff:]),
-                         color = ps.colors[model_number],
-                         ls = ps.linestyles[model_number], 
-                         lw = 2, rasterized=True)
-
-
-
-            this_ax.plot(k[model_number][fraction][w[0]:w[log_cutoff]],
-                         P21[model_number][model_number][w[0]:w[log_cutoff]],
-                         color = ps.colors[model_number],
-                         ls = ps.linestyles[model_number],
-                         lw = 2, rasterized=True, label = label)
-            '''
-            label = model_tags[model_number]  
+            w = np.where(k[model_number][fraction] > 9e-2)[0]
+            label = model_tags[model_number]
+ 
             this_ax.plot(k[model_number][fraction][w],
                          P21[model_number][fraction][w],
                          color = ps.colors[model_number],
@@ -222,18 +207,19 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
 
-    outputFile = "{0}/{1}{2}".format(output_dir,
+    outputFile = "{0}/{1}.{2}".format(output_dir,
                                      output_tag,
                                      output_format)
     plt.savefig(outputFile)  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
+
 def  plot_duration_contours(z_array_reion_allmodels,
                             lookback_array_reion_allmodels, cosmo_allmodels,
                             t_bigbang_allmodels, mass_frac_allmodels,
                             duration_contours_limits, duration_definition,
-                            model_tags, output_dir, output_tag):
+                            model_tags, output_dir, output_tag, passed_ax=None):
 
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
@@ -243,6 +229,8 @@ def  plot_duration_contours(z_array_reion_allmodels,
     duration_t = []
     dt = []
 
+    # Need to get rid of the (alpha, beta) = (0.0, 0.0) model because it has no
+    # reionization (duration is not defined).
     if duration_contours_limits[0][0] == duration_contours_limits[1][0] == 0:
         dt.append(np.nan)
  
@@ -294,7 +282,92 @@ def  plot_duration_contours(z_array_reion_allmodels,
     ax1.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs],
                         fontsize = ps.global_fontsize)
 
-    outputFile = "./{0}{1}".format(output_tag, output_format) 
+    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
+
+
+def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
+             cosmo_allmodels, t_bigbang_allmodels, tau_allmodels,
+             model_tags, output_dir, output_tag, passed_ax=None):
+   
+ 
+    if passed_ax:
+        ax1 = passed_ax
+    else:
+        fig1 = plt.figure(figsize = (8,8))
+        ax1 = fig1.add_subplot(111)
+
+    for model_number in range(len(tau_allmodels)):
+        ax1.plot(lookback_array_reion_allmodels[model_number], 
+                 tau_allmodels[model_number], 
+                 color = ps.colors[model_number],
+                 ls = ps.linestyles[model_number],
+                 label = model_tags[model_number])
+        
+    ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr}]$",
+                  size = ps.global_labelsize)
+
+    ax1.set_ylabel(r"$\mathbf{\tau}$",
+                 size = ps.global_labelsize)
+    ax1.set_ylim([0.042, 0.072])
+    tick_locs = np.arange(0.04, 0.075, 0.005)
+    ax1.set_yticklabels([r"$\mathbf{%.3f}$" % x for x in tick_locs],
+                        fontsize = ps.global_fontsize)
+
+    ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
+                         ps.global_major_ticklength, ps.global_minor_ticklength) 
+    ax2 = ps.add_time_z_axis(ax1, cosmo_allmodels[0],
+                             t_bigbang_allmodels[0]/1.0e3)
+
+    ax1.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
+                     color = 'k', alpha = 0.3)
+    ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
+    ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$")
+
+    if not passed_ax:
+        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(ps.global_legendsize)
+ 
+    if passed_ax:
+        return ax1
+    else:
+        outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+        plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile))
+        plt.close()
+
+
+def plot_combined_history_tau(z_array_reion_allmodels,
+                              lookback_array_reion_allmodels,                              
+                              cosmo_allmodels, t_bigbang_allmodels, 
+                              mass_frac_allmodels, tau_allmodels, model_tags,
+                              output_dir, output_tag):
+
+    fig, ax = plt.subplots(nrows = 1, ncols = 2, 
+                           sharex=False, sharey=False, figsize=(16, 8))
+
+    ax[0] = plot_history(z_array_reion_allmodels, 
+                         lookback_array_reion_allmodels, cosmo_allmodels,
+                         t_bigbang_allmodels, mass_frac_allmodels, 
+                         model_tags, output_dir, output_tag, passed_ax=ax[0])
+
+    ax[1] = plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
+                     cosmo_allmodels, t_bigbang_allmodels, tau_allmodels,
+                     model_tags, output_dir, output_tag, passed_ax=ax[1])
+
+    leg = ax[0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize)
+
+    plt.tight_layout()    
+
+    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile))
+    plt.close()
+

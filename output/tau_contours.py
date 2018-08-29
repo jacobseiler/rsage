@@ -53,7 +53,13 @@ def calculate_tau(base_XHII_fname, base_density_fname, snaps):
             tau[idx] = tau[idx+1] + (( numerator / H) * (av.SnapZ[snap] - av.SnapZ[snap+1]) * (1 + av.Y/(4 * (1-av.Y)))) 
 
 
+        print("idx {0} \ttau {1}".format(idx, tau[idx]))
+
     tau *= av.n_HI(0, av.Hubble_h, av.Omega_b, av.Y) * av.c_in_ms * av.Sigmat
+    print(av.Omega_b)
+    print(av.Y)
+    print(tau)
+    exit()
 
     return tau[0]
 
@@ -186,7 +192,7 @@ if __name__ == '__main__':
     alpha = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
     beta = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30]
 
-    calculate_taus = 0 
+    calculate_taus = 1
     tau_fname = "./tau_all.txt"
 
     cifog_ini_name = "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.0_cifog.ini"

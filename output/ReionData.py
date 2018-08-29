@@ -8,16 +8,17 @@ You should not need to touch this file.  Please refer to the ``paper_plots.py``
 documentation for full information on how to use this plotting pipeline. 
 
 Author: Jacob Seiler
-Version: 0.1
+Version: 0.2
 """
 
 from __future__ import print_function
 
 import numpy as np
 from numpy.fft import fftn, ifftn
+import scipy.integrate as integrate
 import os
 
-import AllVars
+import AllVars as av
 import ReadScripts as rs
 import PlotScripts as ps
 import CollectiveStats as collective
@@ -100,14 +101,15 @@ def calc_ps(XHII, density, boxsize):
     Tb = (1.0 - XHII)*density
     modes = ifftn(Tb)
 
-    kmid_bins, powerspec, p_err = AllVars.modes_to_pspec(modes,
-                                                         boxsize=boxsize)
+    kmid_bins, powerspec, p_err = av.modes_to_pspec(modes,
+                                                    boxsize=boxsize)
 
-    kmid_bins_XHII, pspec_XHII, p_err_XHII = AllVars.modes_to_pspec(ifftn(XHII),
-                                                                    boxsize=boxsize)
+    kmid_bins_XHII, pspec_XHII, p_err_XHII = av.modes_to_pspec(ifftn(XHII),
+                                                               boxsize=boxsize)
 
     return (kmid_bins, powerspec, p_err,
             kmid_bins_XHII, pspec_XHII, p_err_XHII)
+
 
 def determine_ps_fixed_XHI(rank, size, comm,
                            z_array_reion_allmodels, cosmology_allmodels,
@@ -120,17 +122,14 @@ def determine_ps_fixed_XHI(rank, size, comm,
     num_models = len(mass_frac_allmodels)
     num_fractions = len(fixed_XHI_values)
 
-    # Then determine which mass_frac indices correspond to the requested XHI
-    # values.
+    # Determine which mass_frac indices correspond to the requested XHI values.
     snap_idx_target = []
-    if rank == 0:
-        for model_number in range(num_models):
-            snap_idx_target.append([])
-            for val in fixed_XHI_values:
-                idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
-                snap_idx_target[model_number].append(idx)
+    for model_number in range(num_models):
+        snap_idx_target.append([])
+        for val in fixed_XHI_values:
+            idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
+            snap_idx_target[model_number].append(idx)
 
-    snap_idx_target = comm.bcast(snap_idx_target, root = 0)
     flat_snap_idx_target = [item for sublist in snap_idx_target for item in sublist]
 
     # Now every rank knows what snapshot indices correspond to the fixed HI
@@ -140,7 +139,7 @@ def determine_ps_fixed_XHI(rank, size, comm,
     PHII = []
     for idx in range(rank, num_models*num_fractions, size):
 
-        # Now determine what model this corresponds to.
+        # Determine what model this corresponds to.
         model_number = int(idx / num_fractions)
         model_boxsize = boxsize_allmodels[model_number]
         model_cosmo = cosmology_allmodels[model_number]
@@ -173,7 +172,6 @@ def determine_ps_fixed_XHI(rank, size, comm,
         tmp_k_XHII, tmp_Pspec_HII, tmp_Error_XHII = calc_ps(XHII, density,
                                                              model_boxsize)
 
-
         k.append(tmp_k)
         P21.append(tmp_PowSpec * T0*T0 * tmp_k**3 * 2.0*np.pi)
         PHII.append(tmp_Pspec_HII)
@@ -189,23 +187,26 @@ def determine_ps_fixed_XHI(rank, size, comm,
         PHII_master = []
 
         rank_count = 0
-        fraction_count = 0
+        model_count = -1
     
         for idx in range(0, num_models*num_fractions):
+            # This is the idx within each rank.
             ps_array_idx = int(idx / size)
 
+            # If we've reached the end of the number of fractions, go to next
+            # model. 
             if idx % num_fractions == 0: 
-                fraction_count +1
+                model_count += 1
                 k_master.append([])
                 P21_master.append([])
                 PHII_master.append([])
 
-            # Now for every non-zero rank, we need to wait to receive the data
-            # from the other processers.
+            # For every non-zero rank, we need to wait to receive the data from
+            # the other processers.
             if rank_count == 0:
-                k_master[fraction_count].append(k[ps_array_idx])
-                P21_master[fraction_count].append(P21[ps_array_idx])
-                PHII_master[fraction_count].append(PHII[ps_array_idx])
+                k_master[model_count].append(k[ps_array_idx])
+                P21_master[model_count].append(P21[ps_array_idx])
+                PHII_master[model_count].append(PHII[ps_array_idx])
             else:
                 tag = int(rank_count*100 + ps_array_idx)
 
@@ -216,15 +217,29 @@ def determine_ps_fixed_XHI(rank, size, comm,
                 PHII_this_idx = comm.recv(source = rank_count,
                                           tag = tag+2) 
 
-                k_master[fraction_count].append(k_this_idx)
-                P21_master[fraction_count].append(P21_this_idx)
-                PHII_master[fraction_count].append(PHII_this_idx)
+                k_master[model_count].append(k_this_idx)
+                P21_master[model_count].append(P21_this_idx)
+                PHII_master[model_count].append(PHII_this_idx)
 
             rank_count += 1
 
             if rank_count == size:
                 rank_count = 0
 
+        '''
+        k_master = np.array(k_master)
+        P21_master = np.array(P21_master)
+        PHII_master = np.array(PHII_master)
+
+        print(k_master.shape)
+
+        k_master = np.reshape(k_master,
+                              (num_models, num_fractions, len(k_master[0][0])))
+        P21_master = np.reshape(P21_master,
+                              (num_models, num_fractions))
+        PHII_master = np.reshape(PHII_master,
+                              (num_models, num_fractions))
+        '''
         return k_master, P21_master, PHII_master
 
     else:
@@ -242,7 +257,57 @@ def determine_ps_fixed_XHI(rank, size, comm,
             comm.send(PHII_this_idx, dest = 0, tag = tag+2)
 
 
-        return None
+        return None, None, None
+
+
+def calc_tau(z_array_reion_allmodels, cosmology_allmodels, helium_allmodels,
+             mass_frac_allmodels):
+
+    def integrand(z, h, OM):
+        H = av.Hubble_Param(z, h, OM) / (av.pc_to_m * 1.0e6 / 1.0e3)
+        return (((1 + z)**2) / H)
+
+    tau = []
+    for model_number in range(len(mass_frac_allmodels)):
+
+        # Set up some things for the model cosmology etc.
+        model_mass_frac = mass_frac_allmodels[model_number]
+        model_helium = helium_allmodels[model_number]
+        model_h = cosmology_allmodels[model_number].H(0).value/100.0
+        model_OM = cosmology_allmodels[model_number].Om0
+        model_OB = cosmology_allmodels[model_number].Ob0
+        model_z = z_array_reion_allmodels[model_number]
+
+        model_tau = np.zeros(len(model_mass_frac))
+
+        # First determine optical depth for redshift 0 to 4.
+        tau_04 = integrate.quad(integrand, 0, 4, args=(model_h, model_OM,))[0] 
+        tau_04 *= (1 + 2*model_helium/(4 * (1-model_helium)))
+
+        # Then determine optical depth from z = 4 to lowest z of model.
+        tau_46 = integrate.quad(integrand, 4, model_z[-1], args=(model_h, model_OM,))[0]
+        tau_46 *= (1 + model_helium/(4* (1-model_helium)))
+
+        tau_06 = tau_04 + tau_46
+
+        model_tau[-1] = tau_06
+
+        for snapnum in np.arange(len(model_mass_frac) - 2, -1, -1):
+
+            this_z = model_z[snapnum]
+            prev_z = model_z[snapnum + 1]
+
+            # Hubble Parameter in Mpc/s/Mpc. 
+            H = av.Hubble_Param(this_z, model_h, model_OM) / (av.pc_to_m * 1.0e6 / 1.0e3)
+            numerator = ((1 + this_z) **2) *  (1.0 - model_mass_frac[snapnum])
+         
+            model_tau[snapnum] = model_tau[snapnum+1] + (( numerator / H) * (this_z - prev_z) * (1 + model_helium/(4 * (1-model_helium)))) 
+
+        model_tau *= av.n_HI(0, model_h, model_OB, model_helium) * av.c_in_ms * av.Sigmat
+
+        tau.append(model_tau)
+
+    return tau
 
 
 def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
@@ -291,34 +356,35 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
     # This will be used for many different plots. 
     master_mass_frac = collective.collect_hist_across_tasks(rank, comm, 
                                                             reion_data["mass_frac_allmodels"]) 
+    master_mass_frac = comm.bcast(master_mass_frac, root = 0)
 
     # Then find out what we need and plot em!
     if reion_plots["history"] and rank == 0:
         print("Plotting the reionization history.")
         reionplot.plot_history(reion_data["z_array_reion_allmodels"],
                                reion_data["lookback_array_reion_allmodels"],
-                               master_mass_frac, 
                                reion_data["cosmology_allmodels"],
                                reion_data["t_bigbang_allmodels"],
+                               master_mass_frac, 
                                model_tags, output_dir, "history")
 
     if reion_plots["nion"]:
 
         master_nion = collective.collect_hist_across_tasks(rank, comm, 
-                                                           nion_allmodels)
+                                                           reion_data["nion_allmodels"])
 
         if rank == 0:
             print("Plotting the ionizing emissivity.")
             reionplot.plot_nion(reion_data["z_array_reion_allmodels"],
                                 reion_data["lookback_array_reion_allmodels"],
-                                master_nion, 
                                 reion_data["cosmology_allmodels"],
                                 reion_data["t_bigbang_allmodels"],
+                                master_nion, 
                                 model_tags, output_dir, "nion")
 
-
     if reion_plots["ps_fixed_XHI"]:
-        print("Calculating power spectra at fixed neutral fractions.")
+        print("Rank {0} Calculating power spectra at fixed neutral "
+              "fractions.".format(rank))
         k, P21, PHII = determine_ps_fixed_XHI(rank, size, comm,
                                               reion_data["z_array_reion_allmodels"],
                                               reion_data["cosmology_allmodels"],
@@ -350,6 +416,29 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                          model_tags, output_dir,
                                          "duration_contours")
 
+
+    if reion_plots["optical_depth"] and rank == 0:
+        tau_allmodels = calc_tau(reion_data["z_array_reion_allmodels"],
+                                 reion_data["cosmology_allmodels"],
+                                 reion_data["helium_allmodels"],
+                                 master_mass_frac)
+
+        print("Plotting the optical depth.")
+        reionplot.plot_tau(reion_data["z_array_reion_allmodels"],
+                           reion_data["lookback_array_reion_allmodels"],        
+                           reion_data["cosmology_allmodels"],
+                           reion_data["t_bigbang_allmodels"],
+                           tau_allmodels,
+                           model_tags, output_dir, "optical_depth")
+
+    if reion_plots["optical_depth"] and reion_plots["history"] and rank == 0:
+        reionplot.plot_combined_history_tau(reion_data["z_array_reion_allmodels"],
+                                            reion_data["lookback_array_reion_allmodels"],    
+                                            reion_data["cosmology_allmodels"],
+                                            reion_data["t_bigbang_allmodels"],
+                                            master_mass_frac, tau_allmodels, 
+                                            model_tags, output_dir,
+                                            "history_tau")
 
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   reion_plots):
@@ -400,6 +489,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
     GridSize_allmodels = []
     boxsize_allmodels = []
+    helium_allmodels = []
 
     cosmology_allmodels = []
     t_bigbang_allmodels = []
@@ -422,7 +512,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
         cosmology, t_bigbang = gd.set_cosmology(float(SAGE_params["Hubble_h"]),
                                                 float(SAGE_params["Omega"]),
-                                                float(SAGE_params["BaryonFrac"]))
+                                                float(cifog_params["omega_b"]))
 
         cosmology_allmodels.append(cosmology)
         t_bigbang_allmodels.append(t_bigbang)
@@ -437,6 +527,9 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
         boxsize = float(SAGE_params["BoxSize"])
         boxsize_allmodels.append(boxsize)
+
+        helium = float(cifog_params["Y"])
+        helium_allmodels.append(helium)
 
         model_volume = pow(float(SAGE_params["BoxSize"]) / \
                            float(SAGE_params["Hubble_h"]),3)
@@ -534,6 +627,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   "density_precision_allmodels" : density_precision_allmodels,
                   "GridSize_allmodels" : GridSize_allmodels,
                   "boxsize_allmodels" : boxsize_allmodels,
+                  "helium_allmodels" : helium_allmodels,
                   "first_snap_allmodels" : first_snap_allmodels}
 
     return reion_data

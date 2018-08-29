@@ -2033,7 +2033,8 @@ def plot_optical_depth(ZZ, mass_frac, model_tags, OutputDir, output_tag):
             else: 
                 print("z = {0:.2f} \t 1-Volume_frac = {1:.4e} \t numerator = {2:.4e}\t tau[{3}] = {4:.4e} \t tau[{5}] = {6:.4e} \t nHI = {7:.4e} \t H = {8:.4e} \t numerator / H = {10:4e}".format(ZZ[i], 1 - volume_frac[0][i], numerator, i+1, tau[i+1], i, tau[i], n_HI(ZZ[i], AllVars.Hubble_h, AllVars.Omega_b, AllVars.Y), H, numerator / H)) 
             ''' 
-
+              
+            print("idx {0} \ttau {1}".format(i, tau[i]))
 
         if p < len(mass_frac):
             label = model_tags[p]
@@ -2041,7 +2042,8 @@ def plot_optical_depth(ZZ, mass_frac, model_tags, OutputDir, output_tag):
             label = label_planck
         tau *= n_HI(0, AllVars.Hubble_h, AllVars.Omega_b, AllVars.Y) * AllVars.c_in_ms * AllVars.Sigmat
    
-        print("Tau = {0}".format(tau)) 
+        print("Tau = {0}".format(tau))
+        exit()
         ax2.plot(t, tau, label = label, color = PlotScripts.colors[p], ls = PlotScripts.linestyles[p], 
                  lw = PlotScripts.global_linewidth)	
 
