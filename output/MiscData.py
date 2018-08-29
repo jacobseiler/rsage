@@ -9,7 +9,7 @@ from __future__ import print_function
 import os
 from natsort import natsorted
 
-def get_sage_ini_from_dir(directory, alpha_vals = None, beta_vals = None):
+def get_ini_from_dir(directory, alpha_vals = None, beta_vals = None):
 
     SAGE_ini = []
     cifog_ini = []

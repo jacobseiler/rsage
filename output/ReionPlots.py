@@ -46,9 +46,11 @@ def plot_history(z_array_reion_allmodels,
                 duration_t[model_number].append(lookback_array_reion_allmodels[model_number][idx])
 
 
-            print("Model {0}: Start {1:.2f} \tMid {2:.2f}\tEnd {3:.2f}\tdt {4:.3f}Myr"
+            print("Model {0}: Start {1:.2f} \tMid {2:.2f}\tEnd {3:.2f}\t"
+                  "dz {4:.2f}\tdt {5:.2f}Myr" \
                   .format(model_number, duration_z[model_number][0],
                           duration_z[model_number][1], duration_z[model_number][-1],
+                          duration_z[model_number][-1]-duration_z[model_number][0],
                           duration_t[model_number][-1]-duration_t[model_number][0]))
 
         ax1.plot(lookback_array_reion_allmodels[model_number], 
@@ -239,7 +241,7 @@ def  plot_duration_contours(z_array_reion_allmodels,
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
 
-    # First find the duration of reionization for each model. 
+    # First find the duration of reionization for each model.
     duration_z = []
     duration_t = []
     dt = []
@@ -249,22 +251,30 @@ def  plot_duration_contours(z_array_reion_allmodels,
     if duration_contours_limits[0][0] == duration_contours_limits[1][0] == 0:
         dt.append(np.nan)
  
+    # We need to be careful here. For low values of alpha + beta, reionization
+    # won't actually complete.  Hence we need to check `duration_z` and see
+    # those models in which reionization is 'completed' at the last snapshot.
+    reion_completed = []
     for model_number in range(len(mass_frac_allmodels)):
+        mass_frac_thismodel = mass_frac_allmodels[model_number]
+
         duration_z.append([]) 
         duration_t.append([])
         for val in duration_definition:
-            idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
+            idx = (np.abs(mass_frac_thismodel - val)).argmin()
             duration_z[model_number].append(z_array_reion_allmodels[model_number][idx]) 
             duration_t[model_number].append(lookback_array_reion_allmodels[model_number][idx]) 
 
-        if len(mass_frac_allmodels) <= len(model_tags):
-            print("Model {0}: Start {1} \tMid {2}\tEnd {3}\tdt {4}Myr"
-                  .format(model_tags[model_number], duration_z[model_number][0],
-                          duration_z[model_number][1], duration_z[model_number][-1],
-                          duration_t[model_number][-1]-duration_t[model_number][0]))
+            if (val == duration_definition[-1]) and \
+               (idx == len(mass_frac_thismodel)):
+                reion_completed.append(0)
+            else:
+                reion_completed.append(1)
 
         dt.append(duration_t[model_number][-1] - duration_t[model_number][0])
+
     dt = np.array(dt)
+    reion_completed = np.array(reion_completed)
 
     alpha = np.arange(duration_contours_limits[0][0],
                       duration_contours_limits[0][1] + duration_contours_limits[0][2],
@@ -276,6 +286,10 @@ def  plot_duration_contours(z_array_reion_allmodels,
 
     X, Y = np.meshgrid(beta, alpha)
     dt = dt.reshape(len(X), len(Y))
+    reion_completed = reion_completed.reshape(len(X), len(Y))
+
+    print(reion_completed)
+    print(reion_completed.shape)
 
     CS = ax1.contour(Y, X, dt)
     ax1.clabel(CS, inline=1, fontsize = ps.global_fontsize)
