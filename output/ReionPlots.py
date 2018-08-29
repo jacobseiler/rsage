@@ -210,9 +210,9 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                      size = ps.global_labelsize)
     ax[0].set_yscale('log', nonposy='clip')
 
-    tick_locs = np.arange(-1.0, 5.5, 1.0)
-    ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-                          fontsize = ps.global_fontsize)
+    #tick_locs = np.arange(-1.0, 5.5, 1.0)
+    #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+    #                      fontsize = ps.global_fontsize)
 
     leg = ax[0].legend(loc='lower right', numpoints=1,
                        labelspacing=0.1)
@@ -245,16 +245,17 @@ def  plot_duration_contours(z_array_reion_allmodels,
     duration_z = []
     duration_t = []
     dt = []
+    reion_completed = []
 
     # Need to get rid of the (alpha, beta) = (0.0, 0.0) model because it has no
     # reionization (duration is not defined).
     if duration_contours_limits[0][0] == duration_contours_limits[1][0] == 0:
         dt.append(np.nan)
+        reion_completed.append(np.nan)
  
     # We need to be careful here. For low values of alpha + beta, reionization
     # won't actually complete.  Hence we need to check `duration_z` and see
     # those models in which reionization is 'completed' at the last snapshot.
-    reion_completed = []
     for model_number in range(len(mass_frac_allmodels)):
         mass_frac_thismodel = mass_frac_allmodels[model_number]
 
@@ -266,9 +267,9 @@ def  plot_duration_contours(z_array_reion_allmodels,
             duration_t[model_number].append(lookback_array_reion_allmodels[model_number][idx]) 
 
             if (val == duration_definition[-1]) and \
-               (idx == len(mass_frac_thismodel)):
+               (idx == len(mass_frac_thismodel)-1):
                 reion_completed.append(0)
-            else:
+            elif(val == duration_definition[-1]):
                 reion_completed.append(1)
 
         dt.append(duration_t[model_number][-1] - duration_t[model_number][0])
@@ -288,10 +289,30 @@ def  plot_duration_contours(z_array_reion_allmodels,
     dt = dt.reshape(len(X), len(Y))
     reion_completed = reion_completed.reshape(len(X), len(Y))
 
-    print(reion_completed)
-    print(reion_completed.shape)
-
     CS = ax1.contour(Y, X, dt)
+    incomp_alpha_inds = np.where(reion_completed[0] == 0)[0]
+    incomp_beta_inds = np.where(reion_completed[1] == 0)[0]
+
+    if duration_contours_limits[0][0] == duration_contours_limits[1][0] == 0:
+        incomp_alpha_low = 0.0
+        incomp_beta_low = 0.0
+    else:
+        incomp_alpha_low = incomp_alpha_inds[0] * duration_contours_limits[0][2]
+        incomp_beta_low = incomp_beta_inds[0] * duration_contours_limits[1][2]
+
+    incomp_alpha_high = incomp_alpha_inds[-1] * duration_contours_limits[0][2]
+    incomp_beta_high = incomp_beta_inds[-1] * duration_contours_limits[1][2]
+
+    print("Smallest (alpha, beta) not completed is ({0}, "
+          "{1})".format(incomp_alpha_low, incomp_beta_low))
+    print("Largest (alpha, beta) not completed is ({0}, "
+          "{1})".format(incomp_alpha_high, incomp_beta_high))
+
+    line_low = -alpha
+    line_high = -(0.1/0.3)*alpha + 0.1
+
+    ax1.fill_between(alpha, line_low, line_high, alpha = 0.3)
+
     ax1.clabel(CS, inline=1, fontsize = ps.global_fontsize)
 
     ax1.set_xlabel(r"$\mathbf{\alpha}$", size = ps.global_fontsize)
@@ -299,6 +320,9 @@ def  plot_duration_contours(z_array_reion_allmodels,
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
+
+    ax1.set_xlim([alpha[0], alpha[-1]])
+    ax1.set_ylim([beta[0], beta[-1]])
 
     ax1.xaxis.set_major_locator(mtick.MultipleLocator(0.1))
     ax1.yaxis.set_major_locator(mtick.MultipleLocator(0.05))
@@ -397,6 +421,101 @@ def plot_combined_history_tau(z_array_reion_allmodels,
         t.set_fontsize(ps.global_legendsize)
 
     plt.tight_layout()    
+
+    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile))
+    plt.close()
+
+
+def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
+                   mass_frac_allmodels, fixed_XHI_values,
+                   small_scale_def, large_scale_def, model_tags, output_dir,
+                   output_tag):
+
+    fig1 = plt.figure(figsize = (8,8))
+    ax1 = fig1.add_subplot(111)
+
+    snap_idx_target = []
+
+    k_small_scale = []
+    k_large_scale = []
+
+    P21_small_scale = []
+    P21_large_scale = []
+
+    PHII_small_scale = []
+    PHII_large_scale = []
+
+    # We first need to find the power on the specified scales.
+    for model_number in range(len(k_allmodels)):
+        snap_idx_target.append([])
+
+        k_small_scale.append([])
+        k_large_scale.append([])
+
+        P21_small_scale.append([])
+        P21_large_scale.append([])
+
+        PHII_small_scale.append([])
+        PHII_large_scale.append([]) 
+
+        k_this_model = k_allmodels[model_number]
+        P21_this_model = P21_allmodels[model_number]
+        PHII_this_model = PHII_allmodels[model_number]
+
+        # Find the index corresponding to the special HI fractions.
+        for val in fixed_XHI_values:
+            idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
+            snap_idx_target[model_number].append(idx)
+
+        # For all the snapshots find the values at the specified scales.
+        for snap_idx in range(len(k_this_model)):
+            small_idx = (np.abs(k_this_model[snap_idx] - small_scale_def)).argmin()
+            large_idx = (np.abs(k_this_model[snap_idx] - large_scale_def)).argmin()
+            
+            k_small_scale[model_number].append(k_this_model[snap_idx][small_idx])
+            P21_small_scale[model_number].append(P21_this_model[snap_idx][small_idx])
+            PHII_small_scale[model_number].append(PHII_this_model[snap_idx][small_idx])
+
+            k_large_scale[model_number].append(k_this_model[snap_idx][large_idx])
+            P21_large_scale[model_number].append(P21_this_model[snap_idx][large_idx])
+            PHII_large_scale[model_number].append(PHII_this_model[snap_idx][large_idx])
+
+        print(len(k_small_scale[model_number]))
+        print(len(k_large_scale[model_number]))
+        print(k_small_scale[model_number])
+        print(k_large_scale[model_number])
+
+        # Now we have the power we can plot!
+        ax1.plot(k_small_scale[model_number],
+                 k_large_scale[model_number],
+                 color = ps.colors[model_number],
+                 ls = '-',
+                 label = model_tags[model_number]) 
+
+    '''
+    for model_number in range(len(k_allmodels)):
+        for count, val in enumerate(fixed_XHI_values):
+            if model_number == 0:                
+                HI_string = "{0:.2f}".format(val)
+                label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
+            else:
+                label = ""
+            snap_idx = snap_idx_target[model_number][count]
+
+            print(k_small_scale[model_number][snap_idx])
+            print(k_large_scale[model_number][snap_idx])
+
+            ax1.scatter(k_small_scale[model_number][snap_idx],
+                        k_large_scale[model_number][snap_idx],
+                        marker = ps.markers[count],
+                        label = label)
+    '''
+    leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure

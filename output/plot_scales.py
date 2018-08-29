@@ -447,23 +447,30 @@ if __name__ == '__main__':
     filepath_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.1_XHII"
     filepath_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.40_beta0.15_XHII"
     filepath_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.20_XHII"
+    filepath_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.25_XHII"
+    filepath_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/grids/cifog/fej_alpha0.50_beta0.30_XHII"
 
     fname_ionized=[filepath_model1,
                    filepath_model2,
                    filepath_model3,
                    filepath_model4,
-                   filepath_model5]
+                   filepath_model5,
+                   filepath_model6,
+                   filepath_model7]
 
     fname_density=["/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
+                   "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap"]
 
-    precision = [2, 2, 2, 2, 2, 2]
+    precision = [2, 2, 2, 2, 2, 2, 2]
 
-    GridSize = [256, 256, 256, 256, 256,256]
+    GridSize = [256, 256, 256, 256, 256,256, 256, 256]
 
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
@@ -482,10 +489,13 @@ if __name__ == '__main__':
                   r"$\mathbf{\alpha = 0.40, \beta = 0.05}$",
                   r"$\mathbf{\alpha = 0.40, \beta = 0.10}$",
                   r"$\mathbf{\alpha = 0.40, \beta = 0.15}$",
-                  r"$\mathbf{\alpha = 0.40, \beta = 0.20}$"]
+                  r"$\mathbf{\alpha = 0.40, \beta = 0.20}$",
+                  r"$\mathbf{\alpha = 0.40, \beta = 0.25}$",
+                  r"$\mathbf{\alpha = 0.40, \beta = 0.30}$"]
 
     endsnap = 98 
     SnapList = [np.arange(28, endsnap), np.arange(28, endsnap), 
+                np.arange(28, endsnap), 
                 np.arange(28, endsnap), np.arange(28, endsnap), 
                 np.arange(28, endsnap), np.arange(28, endsnap)]
 

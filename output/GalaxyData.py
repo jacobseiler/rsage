@@ -176,9 +176,10 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
     """
 
     # Check to see if the output directory exists.
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-        print("Made output directory {0}".format(output_dir))
+    if rank == 0:
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+            print("Made output directory {0}".format(output_dir))
 
     # First calculate all the properties and statistics we need.
     galaxy_data = generate_data(rank, size, comm, ini_files, galaxy_plots)

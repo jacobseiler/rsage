@@ -167,6 +167,7 @@ def determine_ps_fixed_XHI(rank, size, comm,
         T0 = T_naught(redshift, model_cosmo.H(0).value/100.0,
                       model_cosmo.Om0, model_cosmo.Ob0)
 
+
         tmp_k, tmp_PowSpec, tmp_Error, \
         tmp_k_XHII, tmp_Pspec_HII, tmp_Error_XHII = calc_ps(XHII, density,
                                                              model_boxsize)
@@ -295,6 +296,82 @@ def calc_tau(z_array_reion_allmodels, cosmology_allmodels, helium_allmodels,
     return tau
 
 
+def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
+              first_snap_allmodels, last_snap_allmodels):
+
+    def generate_tag(rank):
+        tag = int(rank*100)
+
+        return tag
+
+    if rank == 0:
+        k_master = []
+        P21_master = []
+        PHII_master = []
+
+        for model_number in range(len(k_allmodels)):
+
+            k_master.append([])
+            P21_master.append([])
+            PHII_master.append([])
+
+            model_k = k_allmodels[model_number]
+            model_P21 = P21_allmodels[model_number]
+            model_PHII = PHII_allmodels[model_number]
+
+            num_snaps = last_snap_allmodels[model_number] - \
+                        first_snap_allmodels[model_number]
+            rank_count = 0
+            my_count = 0
+            for snap_idx in range(num_snaps):
+
+                print("rank {0}\t rank_count {1}\tsnap_idx {2}".format(rank,
+                                                                       rank_count,
+                                                                       snap_idx))
+                if rank_count == 0:
+                    this_k = model_k[my_count] 
+                    this_P21 = model_P21[my_count] 
+                    this_PHII = model_PHII[my_count] 
+                    my_count += 1
+
+                else:
+                    tag = generate_tag(rank_count) 
+ 
+                    this_k = comm.recv(source = rank_count,
+                                       tag = tag)
+                    this_P21 = comm.recv(source = rank_count,
+                                         tag = tag+1)
+                    this_PHII = comm.recv(source = rank_count,
+                                          tag = tag+2)
+
+                k_master[model_number].append(this_k)
+                P21_master[model_number].append(this_P21)
+                PHII_master[model_number].append(this_PHII)
+
+                rank_count += 1
+                if rank_count == size:
+                    rank_count = 0
+
+        return k_master, P21_master, PHII_master
+
+    else:
+        for model_number in range(len(k_allmodels)):
+            for idx in range(len(P21_allmodels[model_number])):
+
+                print("rank {0}\tidx {1}".format(rank, idx))
+                tag = generate_tag(rank) 
+
+                k_this_idx = k_allmodels[model_number][idx]
+                P21_this_idx = P21_allmodels[model_number][idx]
+                PHII_this_idx = PHII_allmodels[model_number][idx]
+
+                comm.send(k_this_idx, dest = 0, tag = tag)
+                comm.send(P21_this_idx, dest = 0, tag = tag+1)
+                comm.send(PHII_this_idx, dest = 0, tag = tag+2)
+
+        return None, None, None
+ 
+
 def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                           model_tags, reion_plots, output_dir):
     """    
@@ -326,9 +403,10 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
     """
 
     # Check to see if the output directory exists.
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-        print("Made output directory {0}".format(output_dir))
+    if rank == 0:
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+            print("Made output directory {0}".format(output_dir))
 
     # First calculate all the properties and statistics we need.
     reion_data = generate_data(rank, size, comm, reion_ini_files,
@@ -426,6 +504,22 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                             model_tags, output_dir,
                                             "history_tau")
 
+    if reion_plots["ps_scales"]:
+        k, P21, PHII = gather_ps(rank, size, comm,
+                                 reion_data["k_allmodels"],
+                                 reion_data["P21_allmodels"],
+                                 reion_data["PHII_allmodels"],
+                                 reion_data["first_snap_allmodels"],
+                                 reion_data["last_snap_allmodels"])
+
+        if rank == 0:
+            reionplot.plot_ps_scales(k, P21, PHII, master_mass_frac,
+                                     reion_plots["fixed_XHI_values"],
+                                     reion_plots["small_scale_def"],
+                                     reion_plots["large_scale_def"],
+                                     model_tags, output_dir, "ps_scales")
+
+
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   reion_plots):
     """    
@@ -472,6 +566,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
     density_fbase_allmodels = []
     density_precision_allmodels = []
     first_snap_allmodels = []
+    last_snap_allmodels = []
 
     GridSize_allmodels = []
     boxsize_allmodels = []
@@ -484,6 +579,10 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
     mass_frac_allmodels = []
 
     nion_allmodels = []
+
+    k_allmodels = []
+    P21_allmodels = []
+    PHII_allmodels = []
 
     # All outer arrays set up, time to read in the data!
     for model_number, (reion_ini_file, gal_ini_file) in \
@@ -507,6 +606,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
         first_snap_allmodels.append(first_snap)
 
         last_snap = int(SAGE_params["LastSnapShotNr"])
+        last_snap_allmodels.append(last_snap)
 
         GridSize = int(SAGE_params["GridSize"])
         GridSize_allmodels.append(GridSize)
@@ -562,6 +662,10 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
         nion_allmodels.append(np.zeros(last_snap - first_snap))
 
+        k_allmodels.append([])
+        P21_allmodels.append([])
+        PHII_allmodels.append([])
+
         # All arrays done, now loop over snapshots and read in.
         for snapnum in range(first_snap + rank, last_snap, size):
 
@@ -593,6 +697,22 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
                 nion_allmodels[model_number][snap_idx] = np.sum(nion)
 
+            if reion_plots["ps_scales"]:
+                print("Rank {0} Calculating PS for snapnum {1}".format(rank,
+                                                                       snapnum))
+
+                T0 = T_naught(z_array_reion[snap_idx], cosmology.H(0).value/100.0,
+                              cosmology.Om0, cosmology.Ob0)
+
+                tmp_k, tmp_PowSpec, tmp_Error, \
+                tmp_k_XHII, tmp_Pspec_HII, tmp_Error_XHII = calc_ps(XHII, density,
+                                                                    boxsize)
+
+                k_allmodels[model_number].append(tmp_k)
+                P21_allmodels[model_number].append(tmp_PowSpec * T0*T0 * tmp_k**3 * 2.0*np.pi)
+                PHII_allmodels[model_number].append(tmp_Pspec_HII)
+
+                #print(P21_allmodels[model_number][0])
         # Snapshot Loop.
 
         # Ionizing emissitivty is scaled by the simulation volume (in Mpc^3).
@@ -607,6 +727,9 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   "volume_frac_allmodels" : volume_frac_allmodels,
                   "mass_frac_allmodels" : mass_frac_allmodels,
                   "nion_allmodels" : nion_allmodels,
+                  "k_allmodels" : k_allmodels,
+                  "P21_allmodels" : P21_allmodels,
+                  "PHII_allmodels" : PHII_allmodels,
                   "XHII_fbase_allmodels" : XHII_fbase_allmodels,
                   "XHII_precision_allmodels" : XHII_precision_allmodels,
                   "density_fbase_allmodels" : density_fbase_allmodels,
@@ -614,6 +737,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   "GridSize_allmodels" : GridSize_allmodels,
                   "boxsize_allmodels" : boxsize_allmodels,
                   "helium_allmodels" : helium_allmodels,
-                  "first_snap_allmodels" : first_snap_allmodels}
+                  "first_snap_allmodels" : first_snap_allmodels,
+                  "last_snap_allmodels" : last_snap_allmodels}
 
     return reion_data
