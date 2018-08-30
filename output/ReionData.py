@@ -140,8 +140,8 @@ def determine_ps_fixed_XHI(rank, size, comm,
     for idx in range(rank, num_models*num_fractions, size): 
         # Determine what model this corresponds to.
         model_number = int(idx / num_fractions)
-        model_boxsize = boxsize_allmodels[model_number]
         model_cosmo = cosmology_allmodels[model_number]
+        model_boxsize = boxsize_allmodels[model_number] # Mpc/h.
 
         # The `snap_idx_target` value will be the relative snapshot number.
         # Hence need to add the `first_snap` for this model to get absolute.
@@ -167,7 +167,7 @@ def determine_ps_fixed_XHI(rank, size, comm,
         T0 = T_naught(redshift, model_cosmo.H(0).value/100.0,
                       model_cosmo.Om0, model_cosmo.Ob0)
 
-
+        # Be careful, passing the boxsize at Mpc/h.
         tmp_k, tmp_PowSpec, tmp_Error, \
         tmp_k_XHII, tmp_Pspec_HII, tmp_Error_XHII = calc_ps(XHII, density,
                                                              model_boxsize)
@@ -325,9 +325,6 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
             my_count = 0
             for snap_idx in range(num_snaps):
 
-                print("rank {0}\t rank_count {1}\tsnap_idx {2}".format(rank,
-                                                                       rank_count,
-                                                                       snap_idx))
                 if rank_count == 0:
                     this_k = model_k[my_count] 
                     this_P21 = model_P21[my_count] 
@@ -358,7 +355,6 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
         for model_number in range(len(k_allmodels)):
             for idx in range(len(P21_allmodels[model_number])):
 
-                print("rank {0}\tidx {1}".format(rank, idx))
                 tag = generate_tag(rank) 
 
                 k_this_idx = k_allmodels[model_number][idx]
@@ -698,12 +694,13 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 nion_allmodels[model_number][snap_idx] = np.sum(nion)
 
             if reion_plots["ps_scales"]:
-                print("Rank {0} Calculating PS for snapnum {1}".format(rank,
-                                                                       snapnum))
+                #print("Rank {0} Calculating PS for snapnum {1} mass frac " 
+                #      "{2}".format(rank, snapnum, mass_frac))
 
                 T0 = T_naught(z_array_reion[snap_idx], cosmology.H(0).value/100.0,
                               cosmology.Om0, cosmology.Ob0)
 
+                # Be aware, using boxsize in Mpc/h.
                 tmp_k, tmp_PowSpec, tmp_Error, \
                 tmp_k_XHII, tmp_Pspec_HII, tmp_Error_XHII = calc_ps(XHII, density,
                                                                     boxsize)
@@ -712,7 +709,6 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 P21_allmodels[model_number].append(tmp_PowSpec * T0*T0 * tmp_k**3 * 2.0*np.pi)
                 PHII_allmodels[model_number].append(tmp_Pspec_HII)
 
-                #print(P21_allmodels[model_number][0])
         # Snapshot Loop.
 
         # Ionizing emissitivty is scaled by the simulation volume (in Mpc^3).

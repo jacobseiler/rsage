@@ -180,7 +180,7 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                          color = ps.colors[model_number],
                          ls = ps.linestyles[model_number],
                          lw = 2, rasterized=True, label = label)
-
+            
             if model_number != 0:
                 continue
 
@@ -193,7 +193,7 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
             this_ax.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
                                size = ps.global_labelsize)
             this_ax.set_xscale('log')
-            this_ax.set_xlim([7e-2, 5.5])
+            this_ax.set_xlim([7e-2, 6])
 
             HI_string = "{0:.2f}".format(fixed_XHI_values[fraction])
 
@@ -202,9 +202,9 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                          fontsize = ps.global_fontsize)
 
 
-            tick_locs = np.arange(-3, 2.5, 1.0)
-            this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-                                    fontsize = ps.global_fontsize)
+            #tick_locs = np.arange(-3, 2.5, 1.0)
+            #this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+            #                        fontsize = ps.global_fontsize)
 
     ax[0].set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right]}$',
                      size = ps.global_labelsize)
@@ -482,19 +482,40 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
             P21_large_scale[model_number].append(P21_this_model[snap_idx][large_idx])
             PHII_large_scale[model_number].append(PHII_this_model[snap_idx][large_idx])
 
-        print(len(k_small_scale[model_number]))
-        print(len(k_large_scale[model_number]))
-        print(k_small_scale[model_number])
-        print(k_large_scale[model_number])
-
         # Now we have the power we can plot!
-        ax1.plot(k_small_scale[model_number],
-                 k_large_scale[model_number],
+        ax1.plot(P21_small_scale[model_number],
+                 P21_large_scale[model_number],
                  color = ps.colors[model_number],
                  ls = '-',
-                 label = model_tags[model_number]) 
+                 label = model_tags[model_number],
+                 zorder = 1) 
 
-    '''
+    # Make a one-to-one line and plot it.
+    one_to_one = np.arange(0.0, 40.0, 1e-6) 
+    ax1.plot(one_to_one, one_to_one, ls = '--', lw = 0.5, color = 'k')
+
+    small_scale_string = "{0:.1f}".format(small_scale_def)
+    x_label = r"$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = " + \
+              small_scale_string + r"Mpc^{-1}h)}$" 
+    ax1.set_xlabel(x_label, size = ps.global_labelsize)
+
+    large_scale_string = "{0:.1f}".format(large_scale_def)
+    y_label = r"$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = " + \
+              large_scale_string + r"Mpc^{-1}h)}$" 
+    ax1.set_ylabel(y_label, size = ps.global_labelsize)
+
+    ax1.set_xlim([0.0, 30.0])
+    ax1.set_ylim([0.0, 30.0])
+
+    ax1.xaxis.set_minor_locator(mtick.MultipleLocator(1))
+    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(1))
+
+    ax1.xaxis.set_major_locator(mtick.MultipleLocator(5))
+    ax1.yaxis.set_major_locator(mtick.MultipleLocator(5))
+
+    ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
+                         ps.global_major_ticklength, ps.global_minor_ticklength) 
+
     for model_number in range(len(k_allmodels)):
         for count, val in enumerate(fixed_XHI_values):
             if model_number == 0:                
@@ -504,15 +525,17 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
                 label = ""
             snap_idx = snap_idx_target[model_number][count]
 
-            print(k_small_scale[model_number][snap_idx])
-            print(k_large_scale[model_number][snap_idx])
-
-            ax1.scatter(k_small_scale[model_number][snap_idx],
-                        k_large_scale[model_number][snap_idx],
+            ax1.scatter(P21_small_scale[model_number][snap_idx],
+                        P21_large_scale[model_number][snap_idx],
+                        s = 30, rasterized = True,
+                        edgecolors = 'k',
                         marker = ps.markers[count],
-                        label = label)
-    '''
-    leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+                        color = "None",
+                        linewidths = 2, 
+                        label = label,
+                        zorder = 2)
+
+    leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize)

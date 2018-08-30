@@ -136,9 +136,9 @@ if __name__ == "__main__":
                                  # for all models.
 
     ## Reionization Plots ##
-    history = 0
-    reion_nion = 0
-    ps_fixed_XHI = 0
+    history = 1
+    reion_nion = 1
+    ps_fixed_XHI = 1
     duration_contours = 0
     optical_depth = 0
     ps_scales = 1
@@ -149,8 +149,8 @@ if __name__ == "__main__":
     duration_definition = [0.90, 0.50, 0.01]  # Neutral fraction that defines the
                                               # start/mid/end of reionization. 
 
-    small_scale_def = 1.0
-    large_scale_def = 0.1
+    small_scale_def = 2.0
+    large_scale_def = 0.3
 
     # ======================= #
     # Don't touch below here. # 

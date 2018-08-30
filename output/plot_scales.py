@@ -265,12 +265,12 @@ def plot_power(XHII_fraction, P_smallscale, P_largescale, model_tags,
                 for label, loc in zip(labels, locs):
                     print("{0} {1}".format(label, loc)) 
 
-                tick_locs = np.arange(-5.0, 35, 5.0)
-                ax1.set_yticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
-                                     fontsize = PlotScripts.global_fontsize)
+                #tick_locs = np.arange(-5.0, 35, 5.0)
+                #ax1.set_yticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
+                #                     fontsize = PlotScripts.global_fontsize)
 
-                ax1.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
-                                     fontsize = PlotScripts.global_fontsize)
+                #ax1.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
+                #                     fontsize = PlotScripts.global_fontsize)
 
                 ax1.text(15, 2, r"$\mathbf{Start}$", 
                          fontsize = PlotScripts.global_fontsize-4)
@@ -458,6 +458,8 @@ if __name__ == '__main__':
                    filepath_model6,
                    filepath_model7]
 
+    fname_ionized=[filepath_model1]
+
     fname_density=["/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
                    "/fred/oz004/jseiler/kali/density_fields/1024_subsampled_256/snap",
@@ -516,7 +518,7 @@ if __name__ == '__main__':
     XHII_fraction = [[] for x in range(len(SnapList))]
 
     ##
-    have_data = 1
+    have_data = 0
     P21_smallscale = [[] for x in range(len(SnapList))]
     P21_largescale = [[] for x in range(len(SnapList))]
 
