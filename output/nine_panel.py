@@ -47,7 +47,7 @@ def plot_nine_panel(fname_ionized, SnapList, GridSize, HI_fraction_target,
 
             ionized_cells = np.log10(1 - XHII)
 
-            index_cut = int(cut_slice * (AllVars.BoxSize/100.0)*(GridSize[model_number]/GridSize[0])) # Wish to cut the box at the same spatial point for all models.  So normalize the index that this corresponds to to model1.
+            index_cut = int(cut_slice * (AllVars.BoxSize/102.0)*(GridSize[model_number]/GridSize[0])) # Wish to cut the box at the same spatial point for all models.  So normalize the index that this corresponds to to model1.
             thickness_cut = int(np.ceil(1 * (AllVars.BoxSize/100.0)*(GridSize[model_number]/GridSize[0]))) # We will take a thickness of 1 cell for model1 and then normalize the number of cells we need to get the same thickness for the other models.
 
             thickness_cut = 1

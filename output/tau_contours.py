@@ -56,10 +56,6 @@ def calculate_tau(base_XHII_fname, base_density_fname, snaps):
         print("idx {0} \ttau {1}".format(idx, tau[idx]))
 
     tau *= av.n_HI(0, av.Hubble_h, av.Omega_b, av.Y) * av.c_in_ms * av.Sigmat
-    print(av.Omega_b)
-    print(av.Y)
-    print(tau)
-    exit()
 
     return tau[0]
 

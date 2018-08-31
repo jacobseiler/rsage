@@ -25,6 +25,38 @@ import CollectiveStats as collective
 import GalaxyData as gd 
 import ReionPlots as reionplot
 
+
+def calc_duration(z_array_reion_allmodels, lookback_array_reion_allmodels,
+                  mass_frac_allmodels, duration_definition):
+
+    duration_z = []
+    duration_t = []
+    dt = []
+    reion_completed = []
+
+    # We need to be careful here. For low values of fesc, reionization
+    # won't actually complete.  Hence we need to check `duration_z` and see
+    # those models in which reionization is 'completed' at the last snapshot.
+    for model_number in range(len(mass_frac_allmodels)):
+        mass_frac_thismodel = mass_frac_allmodels[model_number]
+
+        duration_z.append([]) 
+        duration_t.append([])
+        for val in duration_definition:
+            idx = (np.abs(mass_frac_thismodel - val)).argmin()
+            duration_z[model_number].append(z_array_reion_allmodels[model_number][idx]) 
+            duration_t[model_number].append(lookback_array_reion_allmodels[model_number][idx]) 
+            if (val == duration_definition[-1]) and \
+               (idx == len(mass_frac_thismodel)-1):
+                reion_completed.append(0)
+            elif(val == duration_definition[-1]):
+                reion_completed.append(1)
+
+        dt.append(duration_t[model_number][-1] - duration_t[model_number][0])
+
+    return duration_z, duration_t, reion_completed
+
+
 def T_naught(z, h, OM, OB):
     """
     Calculates the 21cm brightness temperature for specified cosmology +
@@ -419,6 +451,22 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
 
     # Then find out what we need and plot em!
     if reion_plots["history"] and rank == 0:
+
+        
+        duration_z, duration_t, reion_completed = \
+            calc_duration(reion_data["z_array_reion_allmodels"],
+                          reion_data["lookback_array_reion_allmodels"],
+                          master_mass_frac, reion_plots["duration_definition"])
+
+        for model_number in range(len(master_mass_frac)):
+            print("Model {0}: Start {1:.2f} \tMid {2:.2f}\tEnd {3:.2f}\t"
+                  "dz {4:.2f}\tdt {5:.2f}Myr\tReion Completed {6}" \
+                  .format(model_number, duration_z[model_number][0],
+                          duration_z[model_number][1], duration_z[model_number][-1],
+                          duration_z[model_number][-1]-duration_z[model_number][0],
+                          duration_t[model_number][0]-duration_t[model_number][-1],
+                          reion_completed[model_number]))
+
         print("Plotting the reionization history.")
         reionplot.plot_history(reion_data["z_array_reion_allmodels"],
                                reion_data["lookback_array_reion_allmodels"],
@@ -427,6 +475,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                master_mass_frac,
                                reion_plots["duration_definition"],
                                model_tags, output_dir, "history")
+
+
 
     if reion_plots["nion"]:
 
@@ -464,24 +514,46 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                         reion_plots["fixed_XHI_values"],
                                         model_tags, output_dir, "ps_fixed_XHI")
 
-    if reion_plots["duration_contours"] and rank == 0:
-        print("Plotting the duration of reionization contours.")
-        reionplot.plot_duration_contours(reion_data["z_array_reion_allmodels"],
-                                         reion_data["lookback_array_reion_allmodels"],        
-                                         reion_data["cosmology_allmodels"],
-                                         reion_data["t_bigbang_allmodels"],
-                                         master_mass_frac,
-                                         reion_plots["duration_contours_limits"],
-                                         reion_plots["duration_definition"],
-                                         model_tags, output_dir,
-                                         "duration_contours")
+    if reion_plots["contours"] and rank == 0:
 
+        # tau is used for multiple plots. So check if we need to calculate it.
+        try:
+            tau_allmodels
+        except NameError:
+            tau_allmodels = calc_tau(reion_data["z_array_reion_allmodels"],
+                                     reion_data["cosmology_allmodels"],
+                                     reion_data["helium_allmodels"],
+                                     master_mass_frac)
+        tau_highz = []
+        for model_number in range(len(tau_allmodels)):
+            tau_highz.append(tau_allmodels[model_number][0])
+
+        duration_z, duration_t, reion_completed = \
+            calc_duration(reion_data["z_array_reion_allmodels"],
+                          reion_data["lookback_array_reion_allmodels"],
+                          master_mass_frac, reion_plots["duration_definition"])
+
+        print("Plotting contours of constant tau.")
+        reionplot.plot_tau_contours(tau_highz, reion_completed,
+                                    reion_plots["alpha_beta_limits"],
+                                    output_dir, "tau_contours")
+
+        print("Plotting contours of constant reionization duration.")
+        reionplot.plot_duration_contours(duration_z, duration_t,
+                                         reion_completed,
+                                         reion_plots["alpha_beta_limits"],
+                                         output_dir, "duration_contours")
 
     if reion_plots["optical_depth"] and rank == 0:
-        tau_allmodels = calc_tau(reion_data["z_array_reion_allmodels"],
-                                 reion_data["cosmology_allmodels"],
-                                 reion_data["helium_allmodels"],
-                                 master_mass_frac)
+
+        # tau is used for multiple plots. So check if we need to calculate it.
+        try:
+            tau_allmodels
+        except NameError:
+            tau_allmodels = calc_tau(reion_data["z_array_reion_allmodels"],
+                                     reion_data["cosmology_allmodels"],
+                                     reion_data["helium_allmodels"],
+                                     master_mass_frac)
 
         print("Plotting the optical depth.")
         reionplot.plot_tau(reion_data["z_array_reion_allmodels"],
@@ -514,6 +586,23 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                      reion_plots["small_scale_def"],
                                      reion_plots["large_scale_def"],
                                      model_tags, output_dir, "ps_scales")
+
+
+    if reion_plots["slices_fixed_XHI"] and rank == 0:
+
+        print("Plotting slices at fixed XHI fractions.")
+        reionplot.plot_slices_XHI(reion_data["z_array_reion_allmodels"],
+                                  reion_data["cosmology_allmodels"],
+                                  master_mass_frac, 
+                                  reion_data["XHII_fbase_allmodels"],
+                                  reion_data["XHII_precision_allmodels"],
+                                  reion_data["GridSize_allmodels"],
+                                  reion_data["boxsize_allmodels"],
+                                  reion_data["first_snap_allmodels"],
+                                  reion_plots["fixed_XHI_values"],
+                                  reion_plots["cut_slice"],
+                                  reion_plots["cut_thickness"],
+                                  model_tags, output_dir, "slices_XHI")
 
 
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
@@ -694,9 +783,6 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 nion_allmodels[model_number][snap_idx] = np.sum(nion)
 
             if reion_plots["ps_scales"]:
-                #print("Rank {0} Calculating PS for snapnum {1} mass frac " 
-                #      "{2}".format(rank, snapnum, mass_frac))
-
                 T0 = T_naught(z_array_reion[snap_idx], cosmology.H(0).value/100.0,
                               cosmology.Om0, cosmology.Ob0)
 

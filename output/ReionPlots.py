@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+import matplotlib.patheffects as PathEffects
 import numpy as np
 
 from astropy import cosmology
@@ -35,23 +36,6 @@ def plot_history(z_array_reion_allmodels,
     duration_z = []
     duration_t = []
     for model_number in range(len(z_array_reion_allmodels)):
-        # However only want to do this if we haven't passed another axis (i.e.,
-        # if `plot_history` was called within `ReionData.py`.
-        if not passed_ax:
-            duration_z.append([]) 
-            duration_t.append([])
-            for val in duration_definition:
-                idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
-                duration_z[model_number].append(z_array_reion_allmodels[model_number][idx]) 
-                duration_t[model_number].append(lookback_array_reion_allmodels[model_number][idx])
-
-
-            print("Model {0}: Start {1:.2f} \tMid {2:.2f}\tEnd {3:.2f}\t"
-                  "dz {4:.2f}\tdt {5:.2f}Myr" \
-                  .format(model_number, duration_z[model_number][0],
-                          duration_z[model_number][1], duration_z[model_number][-1],
-                          duration_z[model_number][-1]-duration_z[model_number][0],
-                          duration_t[model_number][-1]-duration_t[model_number][0]))
 
         ax1.plot(lookback_array_reion_allmodels[model_number], 
                  mass_frac_allmodels[model_number], 
@@ -232,76 +216,20 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     plt.close()
 
 
-def  plot_duration_contours(z_array_reion_allmodels,
-                            lookback_array_reion_allmodels, cosmo_allmodels,
-                            t_bigbang_allmodels, mass_frac_allmodels,
-                            duration_contours_limits, duration_definition,
-                            model_tags, output_dir, output_tag, passed_ax=None):
+def plot_incomp_contour(reion_comp_allmodels, alpha, beta, ax):
 
-    fig1 = plt.figure(figsize = (8,8))
-    ax1 = fig1.add_subplot(111)
+    incomp_alpha_inds = np.where(reion_comp_allmodels[0] == 0)[0]
+    incomp_beta_inds = np.where(reion_comp_allmodels[1] == 0)[0]
 
-    # First find the duration of reionization for each model.
-    duration_z = []
-    duration_t = []
-    dt = []
-    reion_completed = []
-
-    # Need to get rid of the (alpha, beta) = (0.0, 0.0) model because it has no
-    # reionization (duration is not defined).
-    if duration_contours_limits[0][0] == duration_contours_limits[1][0] == 0:
-        dt.append(np.nan)
-        reion_completed.append(np.nan)
- 
-    # We need to be careful here. For low values of alpha + beta, reionization
-    # won't actually complete.  Hence we need to check `duration_z` and see
-    # those models in which reionization is 'completed' at the last snapshot.
-    for model_number in range(len(mass_frac_allmodels)):
-        mass_frac_thismodel = mass_frac_allmodels[model_number]
-
-        duration_z.append([]) 
-        duration_t.append([])
-        for val in duration_definition:
-            idx = (np.abs(mass_frac_thismodel - val)).argmin()
-            duration_z[model_number].append(z_array_reion_allmodels[model_number][idx]) 
-            duration_t[model_number].append(lookback_array_reion_allmodels[model_number][idx]) 
-
-            if (val == duration_definition[-1]) and \
-               (idx == len(mass_frac_thismodel)-1):
-                reion_completed.append(0)
-            elif(val == duration_definition[-1]):
-                reion_completed.append(1)
-
-        dt.append(duration_t[model_number][-1] - duration_t[model_number][0])
-
-    dt = np.array(dt)
-    reion_completed = np.array(reion_completed)
-
-    alpha = np.arange(duration_contours_limits[0][0],
-                      duration_contours_limits[0][1] + duration_contours_limits[0][2],
-                      duration_contours_limits[0][2])
-
-    beta = np.arange(duration_contours_limits[1][0],
-                     duration_contours_limits[1][1] + duration_contours_limits[1][2],
-                     duration_contours_limits[1][2])
-
-    X, Y = np.meshgrid(beta, alpha)
-    dt = dt.reshape(len(X), len(Y))
-    reion_completed = reion_completed.reshape(len(X), len(Y))
-
-    CS = ax1.contour(Y, X, dt)
-    incomp_alpha_inds = np.where(reion_completed[0] == 0)[0]
-    incomp_beta_inds = np.where(reion_completed[1] == 0)[0]
-
-    if duration_contours_limits[0][0] == duration_contours_limits[1][0] == 0:
+    if alpha[0] == beta[0] == 0:
         incomp_alpha_low = 0.0
         incomp_beta_low = 0.0
     else:
-        incomp_alpha_low = incomp_alpha_inds[0] * duration_contours_limits[0][2]
-        incomp_beta_low = incomp_beta_inds[0] * duration_contours_limits[1][2]
+        incomp_alpha_low = incomp_alpha_inds[0] * (alpha[1] - alpha[0]) 
+        incomp_beta_low = incomp_beta_inds[0] * (beta[1] - beta[0]) 
 
-    incomp_alpha_high = incomp_alpha_inds[-1] * duration_contours_limits[0][2]
-    incomp_beta_high = incomp_beta_inds[-1] * duration_contours_limits[1][2]
+    incomp_alpha_high = incomp_alpha_inds[-1] * (alpha[1] - alpha[0]) 
+    incomp_beta_high = incomp_beta_inds[-1] * (beta[1] - beta[0]) 
 
     print("Smallest (alpha, beta) not completed is ({0}, "
           "{1})".format(incomp_alpha_low, incomp_beta_low))
@@ -311,7 +239,109 @@ def  plot_duration_contours(z_array_reion_allmodels,
     line_low = -alpha
     line_high = -(0.1/0.3)*alpha + 0.1
 
-    ax1.fill_between(alpha, line_low, line_high, alpha = 0.3)
+    ax.fill_between(alpha, line_low, line_high, alpha = 0.3)
+
+    return ax
+
+
+def plot_tau_contours(tau_highz, reion_completed, alpha_beta_limits,
+                      output_dir, output_tag):
+
+    fig1 = plt.figure(figsize = (8,8))
+    ax1 = fig1.add_subplot(111)
+
+    tau_highz= np.array(tau_highz)
+    reion_completed = np.array(reion_completed)
+
+    # Need to add the (alpha, beta) = (0.0, 0.0) model because it has no
+    # reionization (tau is not defined).
+    if alpha_beta_limits[0][0] == alpha_beta_limits[1][0] == 0:
+        tau_highz = np.insert(tau_highz, [0], np.nan)
+        reion_completed = np.insert(reion_completed, [0], 0)
+
+    alpha_low = alpha_beta_limits[0][0]
+    alpha_high = alpha_beta_limits[0][1]
+    alpha_step = alpha_beta_limits[0][2] 
+    alpha = np.arange(alpha_low, alpha_high + alpha_step, alpha_step)
+
+    beta_low = alpha_beta_limits[1][0]
+    beta_high = alpha_beta_limits[1][1]
+    beta_step = alpha_beta_limits[1][2]
+    beta = np.arange(beta_low, beta_high + beta_step, beta_step)
+
+    X, Y = np.meshgrid(beta, alpha)
+    tau = tau_highz.reshape(len(X), len(Y))
+    reion_completed = reion_completed.reshape(len(X), len(Y))
+
+    CS = ax1.contour(Y, X, tau)
+
+    ax1 = plot_incomp_contour(reion_completed, alpha, beta, ax1)
+
+    ax1.clabel(CS, inline=1, fontsize = ps.global_fontsize)
+
+    ax1.set_xlabel(r"$\mathbf{\alpha}$", size = ps.global_fontsize)
+    ax1.set_ylabel(r"$\mathbf{\beta}$", size = ps.global_fontsize)
+
+    ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
+                         ps.global_major_ticklength, ps.global_minor_ticklength) 
+
+    ax1.set_xlim([alpha_low, alpha_high])
+    ax1.set_ylim([beta_low, beta_high])
+
+    ax1.xaxis.set_major_locator(mtick.MultipleLocator(alpha_step))
+    ax1.yaxis.set_major_locator(mtick.MultipleLocator(beta_step))
+
+    tick_locs = np.arange(alpha_low - alpha_step, alpha_high + alpha_step,
+                          alpha_step) 
+    ax1.set_xticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs],
+                        fontsize = ps.global_fontsize)
+
+    tick_locs = np.arange(beta_low - beta_step, beta_high + beta_step,
+                          beta_step) 
+    ax1.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs],
+                        fontsize = ps.global_fontsize)
+
+    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile))
+    plt.close()
+
+
+def plot_duration_contours(duration_z, duration_t, reion_completed,
+                           alpha_beta_limits, output_dir, output_tag):
+
+    fig1 = plt.figure(figsize = (8,8))
+    ax1 = fig1.add_subplot(111)
+
+    dt = np.zeros(len(duration_t))
+    for model_number in range(len(duration_t)):
+        dt[model_number] = duration_t[model_number][-1] - \
+                           duration_t[model_number][0]
+
+    # First generate the duration of reionization
+    if alpha_beta_limits[0][0] == alpha_beta_limits[1][0] == 0:
+        reion_completed = np.insert(reion_completed, [0], 0)
+        dt = np.insert(dt, [0], np.nan)
+
+    print(dt)
+
+    alpha_low = alpha_beta_limits[0][0]
+    alpha_high = alpha_beta_limits[0][1]
+    alpha_step = alpha_beta_limits[0][2] 
+    alpha = np.arange(alpha_low, alpha_high + alpha_step, alpha_step)
+
+    beta_low = alpha_beta_limits[1][0]
+    beta_high = alpha_beta_limits[1][1]
+    beta_step = alpha_beta_limits[1][2]
+    beta = np.arange(beta_low, beta_high + beta_step, beta_step)
+
+    X, Y = np.meshgrid(beta, alpha)
+    dt = dt.reshape(len(X), len(Y))
+    reion_completed = reion_completed.reshape(len(X), len(Y))
+
+    CS = ax1.contour(Y, X, dt)
+
+    ax1 = plot_incomp_contour(reion_completed, alpha, beta, ax1)    
 
     ax1.clabel(CS, inline=1, fontsize = ps.global_fontsize)
 
@@ -514,8 +544,11 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
               large_scale_string + r"Mpc^{-1}h)}$" 
     ax1.set_ylabel(y_label, size = ps.global_labelsize)
 
-    ax1.set_xlim([0.0, 30.0])
-    ax1.set_ylim([0.0, 30.0])
+    max_smallscale = np.ceil(np.max(P21_small_scale))
+    max_small_quot, max_small_rem = divmod(max_smallscale, 5) 
+
+    ax1.set_xlim([0.0, (max_small_quot+1)*5])
+    ax1.set_ylim([0.0, (max_small_quot+1)*5]) 
 
     ax1.xaxis.set_minor_locator(mtick.MultipleLocator(1))
     ax1.yaxis.set_minor_locator(mtick.MultipleLocator(1))
@@ -543,14 +576,112 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize)
 
-    # Want to increase the size of the scatter points in the legend.
-    # There are first `num_models` entries in the legend following my
-    # `len(fixed_XHI_values)` scatter points.
-    #for leg_num in range(len(fixed_XHI_values)):
-    #    leg.legendHandles[leg_num+num_models]._legmarker.set_markersize(10)
-
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
+def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
+                    mass_frac_allmodels, XHII_fbase_allmodels,
+                    XHII_precision_allmodels, GridSize_allmodels,
+                    boxsize_allmodels, first_snap_allmodels,
+                    fixed_XHI_values, cut_slice, cut_thickness, model_tags,
+                    output_dir, output_tag):
+
+    num_models = len(mass_frac_allmodels)
+    num_fractions = len(fixed_XHI_values)
+
+    fig, ax = plt.subplots(nrows=num_models, ncols=num_fractions,
+                           sharey=False, sharex=False, figsize=(12, 12))
+    fig.subplots_adjust(wspace = 0.02, hspace = 0.02)
+
+    # Each model can have a different gridsize.  We want to cut at the same
+    # spatial location for each model so we will normalize to model 0.
+    mod0_gridsize = GridSize_allmodels[0]
+    mod0_boxsize = boxsize_allmodels[0]
+
+    for model_number in range(num_models):
+        model_gridsize = GridSize_allmodels[model_number]
+        model_boxsize = boxsize_allmodels[model_number]
+
+        for frac_number, frac_val in enumerate(fixed_XHI_values):
+
+            this_ax = ax[frac_number, model_number]
+
+            # First find the snapshot that corresponds to this XHI value.
+            snap_idx = (np.abs(mass_frac_allmodels[model_number] - frac_val)).argmin()
+            snap_z = z_array_reion_allmodels[model_number][snap_idx]
+
+            # These are cifog files so need to add 1.
+            cifog_snapnum = snap_idx + first_snap_allmodels[model_number] + 1
+
+            XHII_path = "{0}_{1:03d}".format(XHII_fbase_allmodels[model_number],
+                                             cifog_snapnum)
+            XHII = rs.read_binary_grid(XHII_path, GridSize_allmodels[model_number],
+                                       XHII_precision_allmodels[model_number])
+
+            # Set this up to get nice plotting.
+            ionized_cells = np.log10(1 - XHII)
+
+            # Find the grid index that corresponds to the same spatial scale as
+            # model 0.
+            index_cut = int(cut_slice *  model_boxsize/mod0_boxsize * \
+                            model_gridsize / mod0_gridsize)
+            # Then we use the `thickness cut` variable of model 0 and then
+            # scale other models so the same thickness is being cut.
+            thickness_cut = int(np.ceil(cut_thickness * model_boxsize/mod0_boxsize * \
+                                        model_gridsize / mod0_gridsize))
+
+            im = this_ax.imshow(ionized_cells[:,:,index_cut:index_cut+thickness_cut].mean(axis=-1),
+                                interpolation="none", origin="low",
+                                extent = [0.0, model_boxsize, 0.0, model_boxsize],
+                                vmin=-8, vmax=0, cmap="afmhot_r")
+            this_ax.axis('off')
+
+            this_ax.set_xlim([0.0, model_boxsize])
+            this_ax.set_ylim([0.0, model_boxsize])
+
+            # The fraction strings are plotted on the left-side. So set them
+            # for model 0 (column 0).
+            if model_number == 0:
+                HI_string = "{0:.2f}".format(frac_val)
+
+                label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
+                this_ax.text(-0.2,0.8, label, transform=this_ax.transAxes, 
+                             size=ps.global_labelsize - 10,
+                             rotation=90)
+            # The model strings are plotted on the top. So set them for
+            # fraction 0 (row 0).
+            if frac_number == 0:
+                title = model_tags[model_number]                 
+                this_ax.set_title(title, 
+                                  size = ps.global_labelsize - 4) 
+
+            # Finally add the redshift to the top right of the axis.
+            z_label = r"$z = %.2f$" %(snap_z)
+            z_text = this_ax.text(0.55,0.9, z_label,
+                                  transform=this_ax.transAxes, 
+                                  size=ps.global_labelsize - 16,
+                                  color='k')
+            # Add a white background to make the label legible.
+            z_text.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
+            plt.draw()
+
+        # HI Fraction Loop.
+    # Model Loop.
+
+    # All the models have been plotted. Now lets fix up the colorbar.
+    cax = fig.add_axes([0.91, 0.11, 0.03, 0.77])
+    ticks = np.arange(-8.0, 1.0, 1.0)
+    cbar = fig.colorbar(im, cax=cax, ticks=ticks) 
+    cbar.ax.set_yticklabels([r"$\mathbf{%d}$" % x for x in ticks], 
+                            fontsize = ps.global_legendsize+10)
+    cbar.ax.set_ylabel(r'$\mathbf{log_{10}\left(\chi_{HI}\right)}$',
+                       rotation = 90, size = ps.global_labelsize)
+    #cbar.ax.tick_params(labelsize = ps.global_legendsize + 10)
+
+    # Done! Save time.
+    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile))
+    plt.close()

@@ -87,12 +87,12 @@ if __name__ == "__main__":
     beta_step = 0.05     
     beta_vals = np.arange(beta_low, beta_high + beta_step, beta_step)
 
-    #gal_ini_files, reion_ini_files = misc.get_ini_from_dir(ini_dir,
-    #                                                       alpha_vals=alpha_vals,
-    #                                                       beta_vals=beta_vals)
+    contours = 0
+    if contours:
+        gal_ini_files, reion_ini_files = misc.get_ini_from_dir(ini_dir,
+                                                               alpha_vals=alpha_vals,
+                                                               beta_vals=beta_vals)
 
-    #gal_ini_files = gal_ini_files[0:3]
-    #reion_ini_files = reion_ini_files[0:3]
     # These are the labels that will appear on the axis legends for each model.
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
@@ -136,21 +136,22 @@ if __name__ == "__main__":
                                  # for all models.
 
     ## Reionization Plots ##
-    history = 0
-    reion_nion = 0
-    ps_fixed_XHI = 0
-    duration_contours = 0
-    optical_depth = 0
+    history = 1
+    reion_nion = 1
+    ps_fixed_XHI = 1
+    optical_depth = 1
     ps_scales = 1
+    slices_fixed_XHI = 1
 
     fixed_XHI_values = [0.90, 0.75, 0.50, 0.25, 0.10]
-    duration_contours_limits = [[alpha_low, alpha_high, alpha_step],  # This is the min/max/step
-                                [beta_low, beta_high, beta_step]] # for the alpha/beta values. 
+    alpha_beta_limits = [[alpha_low, alpha_high, alpha_step],  # This is the min/max/step
+                         [beta_low, beta_high, beta_step]]     # for the alpha/beta values.
     duration_definition = [0.90, 0.50, 0.01]  # Neutral fraction that defines the
                                               # start/mid/end of reionization. 
-
-    small_scale_def = 1.0
-    large_scale_def = 0.2
+    small_scale_def = 2.0
+    large_scale_def = 0.3
+    cut_slice = 40
+    cut_thickness = 1
 
     # ======================= #
     # Don't touch below here. # 
@@ -174,14 +175,17 @@ if __name__ == "__main__":
     reion_plots = {"history" : history,
                    "nion" : reion_nion,
                    "ps_fixed_XHI" : ps_fixed_XHI,
-                   "duration_contours" : duration_contours,
+                   "contours" : contours, 
                    "optical_depth" : optical_depth,
                    "ps_scales" : ps_scales,
+                   "slices_fixed_XHI" : slices_fixed_XHI,
                    "fixed_XHI_values" : fixed_XHI_values,
-                   "duration_contours_limits" : duration_contours_limits,
+                   "alpha_beta_limits" : alpha_beta_limits,
                    "duration_definition" : duration_definition,
                    "small_scale_def" : small_scale_def,
-                   "large_scale_def" : large_scale_def}
+                   "large_scale_def" : large_scale_def,
+                   "cut_slice" : cut_slice,
+                   "cut_thickness" : cut_thickness}
 
     # Check if any reionization plots need to be done.
     for field in reion_plots.keys():
