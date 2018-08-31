@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     av.Set_Constants()
 
-    output_directory = "./27th_Aug"
+    output_directory = "./31st_Aug"
 
     # Plotting is driven entirely through specifying the ``.ini`` files. 
     # For this reason, the directories in the ``.ini`` files **MUST** be
@@ -63,7 +63,7 @@ if __name__ == "__main__":
                      gal_ini_model4, 
                      gal_ini_model5]
 
-    gal_ini_files = [gal_ini_model1]
+    #gal_ini_files = [gal_ini_model1]
 
     reion_ini_files = [reion_ini_model1,
                        reion_ini_model2, 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
                        reion_ini_model4, 
                        reion_ini_model5]
 
-    reion_ini_files = [reion_ini_model1]
+    #reion_ini_files = [reion_ini_model1]
 
     ini_dir = "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/"
 
@@ -136,9 +136,9 @@ if __name__ == "__main__":
                                  # for all models.
 
     ## Reionization Plots ##
-    history = 1
-    reion_nion = 1
-    ps_fixed_XHI = 1
+    history = 0
+    reion_nion = 0
+    ps_fixed_XHI = 0
     duration_contours = 0
     optical_depth = 0
     ps_scales = 1
@@ -149,8 +149,8 @@ if __name__ == "__main__":
     duration_definition = [0.90, 0.50, 0.01]  # Neutral fraction that defines the
                                               # start/mid/end of reionization. 
 
-    small_scale_def = 2.0
-    large_scale_def = 0.3
+    small_scale_def = 1.0
+    large_scale_def = 0.2
 
     # ======================= #
     # Don't touch below here. # 

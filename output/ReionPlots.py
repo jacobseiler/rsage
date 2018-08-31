@@ -433,6 +433,8 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
                    small_scale_def, large_scale_def, model_tags, output_dir,
                    output_tag):
 
+    num_models = len(k_allmodels)
+
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
 
@@ -448,7 +450,7 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     PHII_large_scale = []
 
     # We first need to find the power on the specified scales.
-    for model_number in range(len(k_allmodels)):
+    for model_number in range(num_models):
         snap_idx_target.append([])
 
         k_small_scale.append([])
@@ -463,11 +465,6 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
         k_this_model = k_allmodels[model_number]
         P21_this_model = P21_allmodels[model_number]
         PHII_this_model = PHII_allmodels[model_number]
-
-        # Find the index corresponding to the special HI fractions.
-        for val in fixed_XHI_values:
-            idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
-            snap_idx_target[model_number].append(idx)
 
         # For all the snapshots find the values at the specified scales.
         for snap_idx in range(len(k_this_model)):
@@ -489,6 +486,19 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
                  ls = '-',
                  label = model_tags[model_number],
                  zorder = 1) 
+
+        # Find the index corresponding to the special HI fractions.
+        for count, val in enumerate(fixed_XHI_values):
+            idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
+            snap_idx_target[model_number].append(idx)
+
+            ax1.scatter(P21_small_scale[model_number][idx],
+                        P21_large_scale[model_number][idx],
+                        s = 100, rasterized = True,
+                        marker = ps.markers[count],
+                        color = ps.colors[model_number], 
+                        linewidths = 2,
+                        zorder = 2)
 
     # Make a one-to-one line and plot it.
     one_to_one = np.arange(0.0, 40.0, 1e-6) 
@@ -516,29 +526,28 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
-    for model_number in range(len(k_allmodels)):
-        for count, val in enumerate(fixed_XHI_values):
-            if model_number == 0:                
-                HI_string = "{0:.2f}".format(val)
-                label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
-            else:
-                label = ""
-            snap_idx = snap_idx_target[model_number][count]
+    for count, val in enumerate(fixed_XHI_values):
+        HI_string = "{0:.2f}".format(val)
+        label = r"$\mathbf{\langle \chi_{HI}\rangle = " + HI_string + r"}$"
+        ax1.scatter(np.nan, np.nan,
+                    s = 60, rasterized = True,
+                    marker = ps.markers[count],
+                    color = "None",
+                    edgecolors = 'k', 
+                    linewidths = 2,
+                    zorder = 2, label = label)
 
-            ax1.scatter(P21_small_scale[model_number][snap_idx],
-                        P21_large_scale[model_number][snap_idx],
-                        s = 30, rasterized = True,
-                        edgecolors = 'k',
-                        marker = ps.markers[count],
-                        color = "None",
-                        linewidths = 2, 
-                        label = label,
-                        zorder = 2)
-
-    leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+    leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1,
+                     markerscale=6)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize)
+
+    # Want to increase the size of the scatter points in the legend.
+    # There are first `num_models` entries in the legend following my
+    # `len(fixed_XHI_values)` scatter points.
+    #for leg_num in range(len(fixed_XHI_values)):
+    #    leg.legendHandles[leg_num+num_models]._legmarker.set_markersize(10)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
