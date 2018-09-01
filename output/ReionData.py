@@ -28,10 +28,44 @@ import ReionPlots as reionplot
 
 def calc_duration(z_array_reion_allmodels, lookback_array_reion_allmodels,
                   mass_frac_allmodels, duration_definition):
+    """
+    Determines the duration of reionization.
+
+    Parameters
+    ----------
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    lookback_array_reion_allmodels : 2D nested list of floats. Dimensions
+                                     identical to ``z_array_reion_allmodels``. 
+        The lookback time at each snapshot for each model. Units are Myr.
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    duration_definition : List of floats with length 3.
+        The neutral fractions that define reionization.  The first element is
+        the start, second is the mid-point and third is the end of
+        reionization.
+
+    Returns
+    ---------
+
+    duration_z, duration_t : 2D nested list of floats. Outer length is number
+                             of models, inner is 3.
+        The redshift and lookback time corresponding to each element of the
+        ``duration_definition`` list.
+
+    reion_completed : List of integers.
+        Flag to denote whether reionization has been completedd by the final
+        snapshot.
+    """
 
     duration_z = []
     duration_t = []
-    dt = []
     reion_completed = []
 
     # We need to be careful here. For low values of fesc, reionization
@@ -51,8 +85,6 @@ def calc_duration(z_array_reion_allmodels, lookback_array_reion_allmodels,
                 reion_completed.append(0)
             elif(val == duration_definition[-1]):
                 reion_completed.append(1)
-
-        dt.append(duration_t[model_number][-1] - duration_t[model_number][0])
 
     return duration_z, duration_t, reion_completed
 
@@ -150,6 +182,73 @@ def determine_ps_fixed_XHI(rank, size, comm,
                            density_precision_allmodels, GridSize_allmodels,
                            boxsize_allmodels, first_snap_allmodels,
                            fixed_XHI_values):
+    """    
+    Calculates the 21cm and HII power spectra at fixed HI fractions.
+
+    Parameters
+    ----------
+
+    rank : Integer
+        This processor rank.
+
+    size : Integer
+        The total number of processors executing the pipeline.
+
+    comm : Class ``mpi4py.MPI.Intracomm``
+        The ``mpi4py`` communicator.
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``Astropy`` class containing the cosmology for each model.
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    XHII_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the ionization fields for each model.
+
+    XHII_precision_allmodels : List of integers. Length is number of models.
+        The precision of the ionization fields for each model.
+        1 : Float, 2 : Double.
+
+    density_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the density fields for each model.
+
+    density_precision_allmodels : List of integers. Length is number of models.
+        The precision of the density fields for each model.
+        1 : Float, 2 : Double.
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    boxsize_allmodels : List of integers. Length is number of models.
+        The simulation box size for each model (units are Mpc/h).
+
+    first_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` starts calculations for each model.
+
+    fixed_XHI_values : List of floats.
+        The neutral hydrogen fractions we're calculating the power spectra at.
+        Defined by the user in ``paper_plots.py``.
+
+    Returns
+    ---------
+
+    For all non-zero ranks, the returns are:
+        None, None, None.
+
+    k_master, P21_master, PHII_master : 3D nested lists of floats. Outer length
+                                        is number of models, next is number of
+                                        snapshots in the model and final is the
+                                        number of wavenumber bins.
+        The wavenumber bins, 21cm and HII power spectra for each model for the
+        neutral hydrogen fractions `fixed_XHI_values`.
+    """
 
     num_models = len(mass_frac_allmodels)
     num_fractions = len(fixed_XHI_values)
@@ -274,12 +373,39 @@ def determine_ps_fixed_XHI(rank, size, comm,
             comm.send(P21_this_idx, dest = 0, tag = tag+1)
             comm.send(PHII_this_idx, dest = 0, tag = tag+2)
 
-
         return None, None, None
 
 
 def calc_tau(z_array_reion_allmodels, cosmology_allmodels, helium_allmodels,
              mass_frac_allmodels):
+    """
+    Calculates the Thomson integrated optical depth.
+
+    Parameters
+    ----------
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``Astropy`` class containing the cosmology for each model.
+
+    helium_allmodels : Nested list of floats. Length is number of models,
+        The helium fraction for each model.
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    Returns
+    ---------
+
+    tau : 2D nested list of floats. Dimensions equal to
+          ``z_array_reion_allmodels``.
+        The Thomson optical depth at each snapshot for each model.
+    """
 
     def integrand(z, h, OM):
         H = av.Hubble_Param(z, h, OM) / (av.pc_to_m * 1.0e6 / 1.0e3)
@@ -310,12 +436,13 @@ def calc_tau(z_array_reion_allmodels, cosmology_allmodels, helium_allmodels,
 
         model_tau[-1] = tau_06
 
+        # Then loop down through snapshots (low z to high z) and calculate tau.
         for snapnum in np.arange(len(model_mass_frac) - 2, -1, -1):
 
             this_z = model_z[snapnum]
             prev_z = model_z[snapnum + 1]
 
-            # Hubble Parameter in Mpc/s/Mpc. 
+            # Hubble Parameter in Mpc/s/Mpc.
             H = av.Hubble_Param(this_z, model_h, model_OM) / (av.pc_to_m * 1.0e6 / 1.0e3)
             numerator = ((1 + this_z) **2) *  (1.0 - model_mass_frac[snapnum])
          
@@ -330,17 +457,67 @@ def calc_tau(z_array_reion_allmodels, cosmology_allmodels, helium_allmodels,
 
 def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
               first_snap_allmodels, last_snap_allmodels):
+    """
+    Gathers the power spectra calculated on each processor onto the root rank.
+    Each rank calculates the spectra of only a subset of snapshots so here we
+    gather the spectra of all models and snapshots onto root rank. 
+
+    Parameters
+    ----------
+
+    rank : Integer
+        This processor rank.
+
+    size : Integer
+        The total number of processors executing the pipeline.
+
+    comm : Class ``mpi4py.MPI.Intracomm``
+        The ``mpi4py`` communicator.
+
+    k_allmodels : 3D nested list of floats. Outer length is number of models,
+                  next is number of snapshots processed by this processor and
+                  final is the number of wavenumber bins.
+        Wavenumber the spectra are binned on (units of Mpc/h). Processor
+        unique.
+
+    P21_allmodels, PHII_allmodels : 3D nested lists of floats. Dimensions are
+                                    identical to ``k_allmodels``.
+        The 21cm and HII power spectra for each model at each snapshot.
+        Processor unique.
+
+    first_snap_allmodels, last_snap_allmodels : List of integers. Length is
+                                                number of models.
+        The first and last snapshot that defines the snapshot range that
+        ``cifog`` was run on. 
+
+    Returns
+    ---------
+
+    For all non-zero ranks, the returns are:
+        None, None, None.
+
+    k_master, P21_master, PHII_master : 3D nested lists of floats. Dimensions
+                                        are identical to `k_allmodels` except
+                                        the 2nd axis length is the snapshot
+                                        range for that particular model (not a
+                                        subset).
+        The wavenumber bins, 21cm and HII power spectra for each model for all
+        snapshots. 
+    """
 
     def generate_tag(rank):
         tag = int(rank*100)
 
         return tag
 
+    # Rank 0 will gather the wavenumber bins/power spectra from all other
+    # ranks. 
     if rank == 0:
         k_master = []
         P21_master = []
         PHII_master = []
 
+        # Go through each model. 
         for model_number in range(len(k_allmodels)):
 
             k_master.append([])
@@ -355,6 +532,12 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
                         first_snap_allmodels[model_number]
             rank_count = 0
             my_count = 0
+
+            # Then go through each snapshot.
+            # In the main data loop (``generate_data()``) the snapshots are
+            # scatter sequentially. Hence when we gather, we get snap0 from
+            # rank 0, snap1 from rank 1 etc. So we increase rank_count for each
+            # snapshot and then reset it when we reach `size`.
             for snap_idx in range(num_snaps):
 
                 if rank_count == 0:
@@ -362,10 +545,11 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
                     this_P21 = model_P21[my_count] 
                     this_PHII = model_PHII[my_count] 
                     my_count += 1
-
                 else:
+                    # Each rank will use a unique tag.
                     tag = generate_tag(rank_count) 
- 
+
+                    # Then the tag is offset for each data array. 
                     this_k = comm.recv(source = rank_count,
                                        tag = tag)
                     this_P21 = comm.recv(source = rank_count,
@@ -373,6 +557,7 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
                     this_PHII = comm.recv(source = rank_count,
                                           tag = tag+2)
 
+                # Now we have the data, append it to the master.
                 k_master[model_number].append(this_k)
                 P21_master[model_number].append(this_P21)
                 PHII_master[model_number].append(this_PHII)
@@ -381,9 +566,15 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
                 if rank_count == size:
                     rank_count = 0
 
+            # Snapshot Loop.
+        # Model Loop.
+
         return k_master, P21_master, PHII_master
 
     else:
+
+        # For all other ranks, go through the power spectra it calculated and
+        # send it back to the root rank.
         for model_number in range(len(k_allmodels)):
             for idx in range(len(P21_allmodels[model_number])):
 
@@ -397,17 +588,27 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
                 comm.send(P21_this_idx, dest = 0, tag = tag+1)
                 comm.send(PHII_this_idx, dest = 0, tag = tag+2)
 
+        # Non-zero ranks return junk.
         return None, None, None
  
 
 def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
-                          model_tags, reion_plots, output_dir):
+                          model_tags, reion_plots, output_dir, output_format):
     """    
     Wrapper function to handle reading in of data + calculating reionization 
     properties, then calling the specified plotting routines.
 
     Parameters
     ----------
+
+    rank : Integer
+        This processor rank.
+
+    size : Integer
+        The total number of processors executing the pipeline.
+
+    comm : Class ``mpi4py.MPI.Intracomm``
+        The ``mpi4py`` communicator.
 
     reion_ini_files, gal_ini_files : List of strings 
         ``.ini`` file corresponding to each model that we're plotting.  We need
@@ -422,12 +623,16 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
 
     output_dir : String
         Directory where the plots are saved. If this directory does not exist,
-        it is created beforehand. 
+        it is created beforehand.
+
+    output_format : String
+        The format of the saved figures.
 
     Returns
     ---------
 
-    None.
+    None. All figures are saved to the ``output_dir`` in format
+    ``output_format``. 
     """
 
     # Check to see if the output directory exists.
@@ -474,7 +679,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                reion_data["t_bigbang_allmodels"],
                                master_mass_frac,
                                reion_plots["duration_definition"],
-                               model_tags, output_dir, "history")
+                               model_tags, output_dir, "history",
+                               output_format)
 
 
 
@@ -490,7 +696,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                 reion_data["cosmology_allmodels"],
                                 reion_data["t_bigbang_allmodels"],
                                 master_nion, 
-                                model_tags, output_dir, "nion")
+                                model_tags, output_dir, "nion", output_format)
 
     if reion_plots["ps_fixed_XHI"]:
         print("Rank {0} Calculating power spectra at fixed neutral "
@@ -512,10 +718,10 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
             print("Plotting PS at fixed neutral fraction.")
             reionplot.plot_ps_fixed_XHI(k, P21, PHII,
                                         reion_plots["fixed_XHI_values"],
-                                        model_tags, output_dir, "ps_fixed_XHI")
+                                        model_tags, output_dir, "ps_fixed_XHI",
+                    `                   output_format)
 
     if reion_plots["contours"] and rank == 0:
-
         # tau is used for multiple plots. So check if we need to calculate it.
         try:
             tau_allmodels
@@ -524,6 +730,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                      reion_data["cosmology_allmodels"],
                                      reion_data["helium_allmodels"],
                                      master_mass_frac)
+
+        # For the contours, only plot the optical depth at the highest z.
         tau_highz = []
         for model_number in range(len(tau_allmodels)):
             tau_highz.append(tau_allmodels[model_number][0])
@@ -536,16 +744,16 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
         print("Plotting contours of constant tau.")
         reionplot.plot_tau_contours(tau_highz, reion_completed,
                                     reion_plots["alpha_beta_limits"],
-                                    output_dir, "tau_contours")
+                                    output_dir, "tau_contours", output_format)
 
         print("Plotting contours of constant reionization duration.")
         reionplot.plot_duration_contours(duration_z, duration_t,
                                          reion_completed,
                                          reion_plots["alpha_beta_limits"],
-                                         output_dir, "duration_contours")
+                                         output_dir, "duration_contours",
+                                         output_format)
 
     if reion_plots["optical_depth"] and rank == 0:
-
         # tau is used for multiple plots. So check if we need to calculate it.
         try:
             tau_allmodels
@@ -561,7 +769,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                            reion_data["cosmology_allmodels"],
                            reion_data["t_bigbang_allmodels"],
                            tau_allmodels,
-                           model_tags, output_dir, "optical_depth")
+                           model_tags, output_dir, "optical_depth",
+                           output_format)
 
     if reion_plots["optical_depth"] and reion_plots["history"] and rank == 0:
         reionplot.plot_combined_history_tau(reion_data["z_array_reion_allmodels"],
@@ -570,7 +779,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                             reion_data["t_bigbang_allmodels"],
                                             master_mass_frac, tau_allmodels, 
                                             model_tags, output_dir,
-                                            "history_tau")
+                                            "history_tau", output_format)
 
     if reion_plots["ps_scales"]:
         k, P21, PHII = gather_ps(rank, size, comm,
@@ -585,11 +794,10 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                      reion_plots["fixed_XHI_values"],
                                      reion_plots["small_scale_def"],
                                      reion_plots["large_scale_def"],
-                                     model_tags, output_dir, "ps_scales")
-
+                                     model_tags, output_dir, "ps_scales",
+                                     output_format)
 
     if reion_plots["slices_fixed_XHI"] and rank == 0:
-
         print("Plotting slices at fixed XHI fractions.")
         reionplot.plot_slices_XHI(reion_data["z_array_reion_allmodels"],
                                   reion_data["cosmology_allmodels"],
@@ -602,7 +810,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                   reion_plots["fixed_XHI_values"],
                                   reion_plots["cut_slice"],
                                   reion_plots["cut_thickness"],
-                                  model_tags, output_dir, "slices_XHI")
+                                  model_tags, output_dir, "slices_XHI",
+                                  output_format)
 
 
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
@@ -613,6 +822,15 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
     Parameters
     ----------
+
+    rank : Integer
+        This processor rank.
+
+    size : Integer
+        The total number of processors executing the pipeline.
+
+    comm : Class ``mpi4py.MPI.Intracomm``
+        The ``mpi4py`` communicator.
 
     reion_ini_files, gal_ini_files : List of strings 
         ``.ini`` file corresponding to each model that we're plotting.  We need
@@ -635,10 +853,11 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
         print("Generating reionization data for a total of {0} "
               "models.".format(len(reion_ini_files)))
 
-    # ============================= #
-    # General stuff for each model.
-    # ============================= #
-
+    # ======================================================================= #
+    # We calculate values for all models and put them into lists that are     #
+    # indexed by ``model_number``. So first we need to set up the outer-lists #
+    # then we will append to these for each model.                            #
+    # ======================================================================= #
     # Unlike GalaxyData where we use the whole redshift range, here we only use
     # the range that covers reionization.
     z_array_reion_allmodels = []
@@ -660,11 +879,15 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
     cosmology_allmodels = []
     t_bigbang_allmodels = []
 
+    # Be careful, we use neutral fraction values here.
     volume_frac_allmodels = []
     mass_frac_allmodels = []
 
+    # These are the nion grids used in cifog, so these are **actual** escaping
+    # ionizing photons.
     nion_allmodels = []
 
+    # Power Spectra.
     k_allmodels = []
     P21_allmodels = []
     PHII_allmodels = []
@@ -696,14 +919,16 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
         GridSize = int(SAGE_params["GridSize"])
         GridSize_allmodels.append(GridSize)
 
+        # Careful, cifog uses Mpc/h.
         boxsize = float(SAGE_params["BoxSize"])
         boxsize_allmodels.append(boxsize)
+        # However we use the volume as Mpc^3.
+        model_volume = pow(float(SAGE_params["BoxSize"]) / \
+                           float(SAGE_params["Hubble_h"]),3)
 
         helium = float(cifog_params["Y"])
         helium_allmodels.append(helium)
 
-        model_volume = pow(float(SAGE_params["BoxSize"]) / \
-                           float(SAGE_params["Hubble_h"]),3)
         model_hubble_h = float(SAGE_params["Hubble_h"])
         model_halopartcut = int(SAGE_params["HaloPartCut"])
 
@@ -716,6 +941,8 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
         z_array_reion_allmodels.append(z_array_reion)
         lookback_array_reion_allmodels.append(lookback_array_reion)
 
+        # Determine the base file names for the ionization, ionizing photons
+        # and density fields. 
         XHII_fbase = cifog_params["output_XHII_file"]
         XHII_fbase_allmodels.append(XHII_fbase)
 
@@ -733,15 +960,11 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
         nion_precision = int(cifog_params["nionFilesAreInDoublePrecision"])
         nion_precision += 1
 
-        XHII_precision = 2  # XHII is assumed to have double precision.
+        # The ionization fields are assumed to have double precision.
+        XHII_precision = 2
         XHII_precision_allmodels.append(XHII_precision)
 
-        # ============ #
-        # Array setup. #
-        # ============ #
-
-        ## NOTE NOTE NOTE NOTE NOTE NOTE ##
-        # These are all HI fractions # 
+        # Now it's time to set up all the arrays for this model number. 
         volume_frac_allmodels.append(np.zeros(last_snap - first_snap))
         mass_frac_allmodels.append(np.zeros(last_snap - first_snap))
 
@@ -770,18 +993,21 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
             # Be aware we track everything using the neutral HI fraction.
             # For the mass fraction, weight it by the density and normalize.
-            volume_frac = 1.0 - np.mean(XHII)  # Nothing special for volume frac.
+            volume_frac = 1.0 - np.mean(XHII)
             mass_frac = 1.0 - np.sum(XHII * density / np.sum(density))
 
             volume_frac_allmodels[model_number][snap_idx] = volume_frac
             mass_frac_allmodels[model_number][snap_idx] = mass_frac
 
+            # Only need ionizing photons if we're plotting it.
             if reion_plots["nion"]:
                 nion_path = "{0}_{1:03d}".format(nion_fbase, snapnum)
                 nion = rs.read_binary_grid(nion_path, GridSize, nion_precision)
 
                 nion_allmodels[model_number][snap_idx] = np.sum(nion)
 
+            # If we're plotting the power spectra in scale space need to
+            # calculate them at every single snapshot.
             if reion_plots["ps_scales"]:
                 T0 = T_naught(z_array_reion[snap_idx], cosmology.H(0).value/100.0,
                               cosmology.Om0, cosmology.Ob0)
@@ -794,7 +1020,6 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 k_allmodels[model_number].append(tmp_k)
                 P21_allmodels[model_number].append(tmp_PowSpec * T0*T0 * tmp_k**3 * 2.0*np.pi)
                 PHII_allmodels[model_number].append(tmp_Pspec_HII)
-
         # Snapshot Loop.
 
         # Ionizing emissitivty is scaled by the simulation volume (in Mpc^3).
@@ -802,6 +1027,8 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
     # Model Number Loop.
 
+    # Everything has been calculated. Now construct a dictionary that contains
+    # all the data (for easy passing) and return it. 
     reion_data = {"z_array_reion_allmodels" : z_array_reion_allmodels,
                   "lookback_array_reion_allmodels" : lookback_array_reion_allmodels,
                   "cosmology_allmodels" : cosmology_allmodels,

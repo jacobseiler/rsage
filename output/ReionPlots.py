@@ -17,13 +17,12 @@ import ObservationalData as Obs
 
 from mpi4py import MPI
 
-output_format = "png"
-
 
 def plot_history(z_array_reion_allmodels, 
                  lookback_array_reion_allmodels, cosmo_allmodels,
                  t_bigbang_allmodels, mass_frac_allmodels, duration_definition, 
-                 model_tags, output_dir, output_tag, passed_ax=None):
+                 model_tags, output_dir, output_tag, output_format,
+                 passed_ax=None):
 
     if passed_ax:
         ax1 = passed_ax
@@ -87,7 +86,7 @@ def plot_history(z_array_reion_allmodels,
 
 def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
               cosmo_allmodels, t_bigbang_allmodels, nion_allmodels,
-              model_tags, output_dir, output_tag):
+              model_tags, output_dir, output_tag, output_format):
 
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
@@ -146,7 +145,7 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
 
 def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
-                      output_tag):
+                      output_tag, output_format):
 
     fig, ax = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
                            sharey='row', figsize=(16, 6))
@@ -245,7 +244,7 @@ def plot_incomp_contour(reion_comp_allmodels, alpha, beta, ax):
 
 
 def plot_tau_contours(tau_highz, reion_completed, alpha_beta_limits,
-                      output_dir, output_tag):
+                      output_dir, output_tag, output_format):
 
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
@@ -308,7 +307,8 @@ def plot_tau_contours(tau_highz, reion_completed, alpha_beta_limits,
 
 
 def plot_duration_contours(duration_z, duration_t, reion_completed,
-                           alpha_beta_limits, output_dir, output_tag):
+                           alpha_beta_limits, output_dir, output_tag,
+                           output_format):
 
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
@@ -373,7 +373,8 @@ def plot_duration_contours(duration_z, duration_t, reion_completed,
 
 def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
              cosmo_allmodels, t_bigbang_allmodels, tau_allmodels,
-             model_tags, output_dir, output_tag, passed_ax=None):
+             model_tags, output_dir, output_tag, output_format,
+             passed_ax=None):
    
  
     if passed_ax:
@@ -428,7 +429,7 @@ def plot_combined_history_tau(z_array_reion_allmodels,
                               lookback_array_reion_allmodels,                              
                               cosmo_allmodels, t_bigbang_allmodels, 
                               mass_frac_allmodels, tau_allmodels, model_tags,
-                              output_dir, output_tag):
+                              output_dir, output_tag, output_format):
 
     fig, ax = plt.subplots(nrows = 1, ncols = 2, 
                            sharex=False, sharey=False, figsize=(16, 8))
@@ -461,7 +462,7 @@ def plot_combined_history_tau(z_array_reion_allmodels,
 def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
                    mass_frac_allmodels, fixed_XHI_values,
                    small_scale_def, large_scale_def, model_tags, output_dir,
-                   output_tag):
+                   output_tag, output_format):
 
     num_models = len(k_allmodels)
 
@@ -586,7 +587,7 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
                     XHII_precision_allmodels, GridSize_allmodels,
                     boxsize_allmodels, first_snap_allmodels,
                     fixed_XHI_values, cut_slice, cut_thickness, model_tags,
-                    output_dir, output_tag):
+                    output_dir, output_tag, output_format):
 
     num_models = len(mass_frac_allmodels)
     num_fractions = len(fixed_XHI_values)

@@ -16,13 +16,11 @@ import ObservationalData as obs
 
 from mpi4py import MPI
 
-output_format = "png"
-
 
 def plot_nion(rank, comm,
               z_array_full_allmodels, lookback_array_full_allmodels,
               sum_nion_allmodels, cosmo, t_bigbang, 
-              model_tags, output_dir, output_tag):
+              model_tags, output_dir, output_tag, output_format):
 
     master_sum = collective.collect_hist_across_tasks(rank, comm, 
                                                       sum_nion_allmodels)
@@ -92,7 +90,7 @@ def plot_nion(rank, comm,
 def plot_mstar_fesc(rank, comm, mstar_bins, mstar_bin_width, 
                     z_array_full_allmodels, mean_mstar_fesc_allmodels, 
                     std_mstar_fesc_allmodels, N_mstar_fesc_allmodels,
-                    model_tags, output_dir, output_tag,
+                    model_tags, output_dir, output_tag, output_format,
                     plot_models_at_snaps=None, plot_snaps_for_models=None):
 
     master_mean, master_std, master_N, _ = \
@@ -193,7 +191,7 @@ def plot_mstar_fesc(rank, comm, mstar_bins, mstar_bin_width,
 
 def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
              z_array_full_allmodels, SMF, cosmology_allmodels, 
-             model_tags, output_dir, output_tag,
+             model_tags, output_dir, output_tag, output_format,
              plot_z=[6.0, 7.0, 8.0]):
 
     master_counts = collective.collect_hist_across_tasks(rank, comm, 
@@ -288,7 +286,7 @@ def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
 def plot_mstar_fej(rank, comm, mstar_bins, mstar_bin_width, 
                    z_array_full_allmodels, mean_mstar_fej_allmodels, 
                    std_mstar_fej_allmodels, N_mstar_fej_allmodels,
-                   model_tags, output_dir, output_tag,
+                   model_tags, output_dir, output_tag, output_format,
                    plot_models_at_snaps=None, plot_snaps_for_models=None):
 
     fig, ax, nrows = plot_2D_line(rank, comm, mstar_bins, mstar_bin_width,
@@ -346,7 +344,7 @@ def plot_mstar_fej(rank, comm, mstar_bins, mstar_bin_width,
 def plot_mstar_SFR(rank, comm, mstar_bins, mstar_bin_width, 
                    z_array_full_allmodels, mean_mstar_SFR_allmodels, 
                    std_mstar_SFR_allmodels, N_mstar_SFR_allmodels,
-                   model_tags, output_dir, output_tag,
+                   model_tags, output_dir, output_tag, output_format,
                    plot_models_at_snaps=None, plot_snaps_for_models=None):
 
     fig, ax, nrows = plot_2D_line(rank, comm, mstar_bins, mstar_bin_width,
@@ -390,75 +388,6 @@ def plot_mstar_SFR(rank, comm, mstar_bins, mstar_bin_width,
         #                                 fontsize = ps.global_fontsize)
 
     leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(ps.global_legendsize)
-
-    plt.tight_layout()
-    plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
-
-    outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig.savefig(outputFile1, bbox_inches='tight')  # Save the figure
-    print('Saved file to {0}'.format(outputFile1))
-    plt.close(fig)
-
-
-def plot_mstar_infall(rank, comm, mstar_bins, mstar_bin_width, 
-                   z_array_full_allmodels, mean_mstar_infall_allmodels, 
-                   std_mstar_infall_allmodels, N_mstar_infall_allmodels,
-                   model_tags, output_dir, output_tag,
-                   plot_models_at_snaps=None, plot_snaps_for_models=None):
-
-    fig, ax, nrows = plot_2D_line(rank, comm, mstar_bins, mstar_bin_width,
-                                  z_array_full_allmodels, 
-                                  mean_mstar_infall_allmodels,
-                                  std_mstar_infall_allmodels,
-                                  N_mstar_infall_allmodels, model_tags, 
-                                  plot_models_at_snaps, plot_snaps_for_models) 
-
-    if rank != 0:
-        return
-
-    delta_fontsize = 10
-
-    # Set variables for every column.
-    tick_locs = np.arange(4.0, 11.0)
-    for ax_count in range(nrows):
-        if nrows != 1:
-            this_ax = ax[nrows-1, ax_count]
-        else:
-            this_ax = ax
-
-        this_ax.set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
-                           size = ps.global_fontsize)
-        this_ax.set_xlim([4.8, 10.2])
-        this_ax.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
-        this_ax.xaxis.set_major_locator(mtick.MultipleLocator(1.0))
-        this_ax.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
-                                fontsize = ps.global_fontsize)
-
-    # Set variables for every row.
-    tick_locs = np.arange(-0.10, 0.80, 0.10)
-    for ax_count in range(nrows):
-        if nrows != 1:
-            this_ax = ax[ax_count, 0]
-        else:
-            this_ax = ax
-        this_ax.set_ylabel(r'$\mathbf{\langle Infall\rangle_{M_*} [M_\odot \: yr^{-1}]}$', 
-                                   size = ps.global_labelsize-delta_fontsize)
-        this_ax.set_yscale('log')
-        #ax[ax_count, 0].set_ylim([-0.02, 1.0])
-        #ax[ax_count, 0].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))       
-        #ax[ax_count, 0].yaxis.set_major_locator(mtick.MultipleLocator(0.1))       
-        #ax[ax_count, 0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
-        #                                 fontsize = ps.global_fontsize)
-
-    if nrows != 1:
-        this_ax = ax[0,0]
-    else:
-        this_ax = ax
-
-    leg = this_ax.legend(loc='upper right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize)

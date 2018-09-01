@@ -8,7 +8,7 @@ You should not need to touch this file.  Please refer to the ``paper_plots.py``
 documentation for full information on how to use this plotting pipeline. 
 
 Author: Jacob Seiler
-Version: 0.1
+Version: 0.2
 """
 
 from __future__ import print_function
@@ -43,7 +43,7 @@ def set_cosmology(Hubble_h, Omega_m, Omega_b):
     Returns
     ---------
 
-    cosmo : astropy.cosmology class
+    cosmo : Class ``astropy.cosmology`` 
         ``Astropy`` class containing the cosmology for this model.
 
     t_bigbang : float
@@ -147,13 +147,22 @@ def do_2D_binning(data_x, data_y, mean_curr, std_curr, N_curr, bins):
 
 
 def plot_galaxy_properties(rank, size, comm, ini_files, model_tags, 
-                           galaxy_plots, output_dir):
+                           galaxy_plots, output_dir, output_format):
     """    
     Wrapper function to handle reading in of data + calculating galaxy
     properties, then calling the specified plotting routines.
 
     Parameters
     ----------
+
+    rank : Integer
+        This processor rank.
+
+    size : Integer
+        The total number of processors executing the pipeline.
+
+    comm : Class ``mpi4py.MPI.Intracomm``
+        The ``mpi4py`` communicator.
 
     ini_files : List of strings 
         ``.ini`` file corresponding to each model that we're plotting.
@@ -169,10 +178,14 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
         Directory where the plots are saved. If this directory does not exist,
         it is created beforehand. 
 
+    output_format : String
+        The format of the saved figures.
+
     Returns
     ---------
 
-    None.
+    None. All figures are saved to the ``output_dir`` in format
+    ``output_format``. 
     """
 
     # Check to see if the output directory exists.
@@ -195,7 +208,7 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                           galaxy_data["sum_nion_allmodels"],
                           galaxy_data["cosmology_allmodels"],
                           galaxy_data["t_bigbang_allmodels"],
-                          model_tags, output_dir, "nion")
+                          model_tags, output_dir, "nion", output_format)
 
     if galaxy_plots["mstar_fesc"]:
         galplot.plot_mstar_fesc(rank, comm,
@@ -206,6 +219,7 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                 galaxy_data["std_mstar_fesc_allmodels"],
                                 galaxy_data["N_mstar_fesc_allmodels"],
                                 model_tags, output_dir, "mstar_fesc",
+                                output_format,
                                 plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
                                 plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
@@ -216,7 +230,7 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                          galaxy_data["z_array_full_allmodels"],
                          galaxy_data["SMF_allmodels"],
                          galaxy_data["cosmology_allmodels"],
-                         model_tags, output_dir, "SMF_gridinfall")
+                         model_tags, output_dir, "SMF", output_format)
 
     if galaxy_plots["mstar_fej"]:
         galplot.plot_mstar_fej(rank, comm,
@@ -226,7 +240,7 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                galaxy_data["mean_mstar_fej_allmodels"],
                                galaxy_data["std_mstar_fej_allmodels"],
                                galaxy_data["N_mstar_fej_allmodels"],
-                               model_tags, output_dir, "mstar",
+                               model_tags, output_dir, "mstar", output_format,
                                plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
                                plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
@@ -239,18 +253,7 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                galaxy_data["std_mstar_SFR_allmodels"],
                                galaxy_data["N_mstar_SFR_allmodels"],
                                model_tags, output_dir, "mstar_SFR",
-                               plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
-                               plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
-
-    if galaxy_plots["mstar_infall"]:
-        galplot.plot_mstar_infall(rank, comm,
-                               galaxy_data["mstar_bins"],
-                               galaxy_data["mstar_bin_width"],
-                               galaxy_data["z_array_full_allmodels"],
-                               galaxy_data["mean_mstar_infall_allmodels"],
-                               galaxy_data["std_mstar_infall_allmodels"],
-                               galaxy_data["N_mstar_infall_allmodels"],
-                               model_tags, output_dir, "mstar_infall",
+                               output_format,
                                plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
                                plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
@@ -262,6 +265,15 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
 
     Parameters
     ----------
+
+    rank : Integer
+        This processor rank.
+
+    size : Integer
+        The total number of processors executing the pipeline.
+
+    comm : Class ``mpi4py.MPI.Intracomm``
+        The ``mpi4py`` communicator.
 
     ini_files : List of strings 
         ``.ini`` file corresponding to each model that we're plotting.
@@ -288,11 +300,10 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                            mstar_bin_width)
 
     # ======================================================================= #
-    # We calculate values for all models and put them into lists that are
-    # indexed by ``model_number``. So first we need to set up the outerl-lists
-    # then we will append to these for each model. 
+    # We calculate values for all models and put them into lists that are     #
+    # indexed by ``model_number``. So first we need to set up the outer-lists #
+    # then we will append to these for each model.                            #
     # ======================================================================= #
-
     # General stuff for each model.
     z_array_full_allmodels = []
     lookback_array_full_allmodels = []
@@ -325,11 +336,6 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
     std_mstar_SFR_allmodels = []
     N_mstar_SFR_allmodels = []
 
-    # Infall rate as a function of stellar mass (Mstar). 
-    mean_mstar_infall_allmodels = []
-    std_mstar_infall_allmodels = []
-    N_mstar_infall_allmodels = []
-
     # All outer arrays set up, time to read in the data!
     for model_number, ini_file in enumerate(ini_files):
 
@@ -346,12 +352,12 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
         first_snap = int(SAGE_params["LowSnap"])
         last_snap = int(SAGE_params["LastSnapShotNr"])
         GridSize = int(SAGE_params["GridSize"])
-        model_volume = pow(float(SAGE_params["BoxSize"]) / \
-                           float(SAGE_params["Hubble_h"]),3)
         model_hubble_h = float(SAGE_params["Hubble_h"])
         model_halopartcut = int(SAGE_params["HaloPartCut"])
 
-        mass_cut = 1.0e9/1.0e10 * float(SAGE_params["Hubble_h"])
+        # Careful, volume is in Mpc^3.
+        model_volume = pow(float(SAGE_params["BoxSize"]) / \
+                           float(SAGE_params["Hubble_h"]),3)        
 
         # Load the redshift file and calculate the lookback times. 
         z_array_full, lookback_array_full = load_redshifts(SAGE_params["FileWithSnapList"],
@@ -422,26 +428,22 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
             N_mstar_SFR_allmodels[model_number].append(np.zeros(mstar_Nbins,
                                                                 dtype=np.float32))
 
-        # Star formation rate as a function of stellar mass.
-        mean_mstar_infall_allmodels.append([]) 
-        std_mstar_infall_allmodels.append([])
-        N_mstar_infall_allmodels.append([]) 
-        for snap_count in range(len(z_array_full)):
-            mean_mstar_infall_allmodels[model_number].append(np.zeros(mstar_Nbins,
-                                                                   dtype=np.float32))
-            std_mstar_infall_allmodels[model_number].append(np.zeros(mstar_Nbins,
-                                                                  dtype=np.float32))
-            N_mstar_infall_allmodels[model_number].append(np.zeros(mstar_Nbins,
-                                                                dtype=np.float32))
+        # Check to see if we're only using a subset of the files.
+        if galaxy_plots["FirstFile"]:
+            first_file = galaxy_plots["FirstFile"]
+        else:
+            first_file = int(SAGE_params["FirstFile"])
 
+        if galaxy_plots["lastFile"]:
+            last_file = galaxy_plots["FirstFile"]
+        else:
+            last_file = int(SAGE_params["LastFile"])
 
         # ========================================================= #
         # Now go through each file and calculate the stuff we need. #
         # ========================================================= #
         # Parallelize over number of files.
-        for fnr in range(int(SAGE_params["FirstFile"]) + rank,
-                         int(SAGE_params["LastFile"])+1, size):
-#                         1, size):
+        for fnr in range(first_file + rank, last_file + 1, size):
 
             print("Rank {0}: Model {1} File {2}".format(rank, model_number,
                                                         fnr))
@@ -468,13 +470,7 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                 fesc = G.Gridfesc[Gals_exist, snapnum]
                 fej = G.EjectedFraction[Gals_exist, snapnum]
                 SFR = G.GridSFR[Gals_exist, snapnum]
-                #infall = G.GridInfallRate[Gals_exist, snapnum]
 
-                '''
-                if snapnum == 70:
-                    print(np.log10(G.GridHaloMass[Gals_exist,snapnum][0:20]*1.0e10 /model_hubble_h))
-                    print(fesc[0:20])
-                '''
                 # Calculate the mean fesc as a function of stellar mass.
                 if galaxy_plots["mstar_fesc"]:
                     mean_mstar_fesc_allmodels[model_number][snap_count], \
@@ -506,21 +502,10 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                                       std_mstar_SFR_allmodels[model_number][snap_count],
                                       N_mstar_SFR_allmodels[model_number][snap_count],
                                       mstar_bins)
-
-                if galaxy_plots["mstar_infall"]:   
-                    mean_mstar_infall_allmodels[model_number][snap_count], \
-                    std_mstar_infall_allmodels[model_number][snap_count], \
-                    N_mstar_infall_allmodels[model_number][snap_count] = \
-                        do_2D_binning(log_mass, infall,
-                                      mean_mstar_infall_allmodels[model_number][snap_count],
-                                      std_mstar_infall_allmodels[model_number][snap_count],
-                                      N_mstar_infall_allmodels[model_number][snap_count],
-                                      mstar_bins)
  
                 SMF_thissnap = np.histogram(log_mass, bins=mstar_bins)
                 SMF_allmodels[model_number][snap_count] += SMF_thissnap[0]
                 # Snapshot loop.
-            #print(mean_mstar_fesc_allmodels[0][80])
             # File Loop.
         # Model Loop.
 
@@ -530,7 +515,6 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
         # Stellar Mass Function is normalized by boxsize and bin width.
         SMF_allmodels[model_number] = np.divide(SMF_allmodels[model_number],
                                                 model_volume * mstar_bin_width)
-
 
     # Everything has been calculated. Now construct a dictionary that contains
     # all the data (for easy passing) and return it. 
@@ -551,9 +535,5 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                    "N_mstar_fej_allmodels" : N_mstar_fej_allmodels,
                    "mean_mstar_SFR_allmodels" : mean_mstar_SFR_allmodels,
                    "std_mstar_SFR_allmodels" : std_mstar_SFR_allmodels,
-                   "N_mstar_SFR_allmodels" : N_mstar_SFR_allmodels,
-                   "mean_mstar_infall_allmodels" : mean_mstar_infall_allmodels,
-                   "std_mstar_infall_allmodels" : std_mstar_infall_allmodels,
-                   "N_mstar_infall_allmodels" : N_mstar_infall_allmodels}
-
+                   "N_mstar_SFR_allmodels" : N_mstar_SFR_allmodels}
     return galaxy_data
