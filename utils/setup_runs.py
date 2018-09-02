@@ -466,17 +466,21 @@ if __name__ == '__main__':
     # Specify here the SAGE parameters that you want to change for each run #
     #########################################################################
 
-    fescPrescription = [3, 3, 3]
-    #alpha = [0.00, 0.00, 0.10, 0.10, 0.20, 0.20, 0.30, 0.30]
-    #beta = [0.25, 0.30, 0.25, 0.30, 0.25, 0.30, 0.25, 0.30]
-    MH_low = [1.0e8, 1.0e8, 1.0e8]
-    fesc_low = [0.95, 0.90, 0.85]
-    MH_high = [1.0e12, 1.0e12, 1.0e12]
-    fesc_high = [0.05, 0.05, 0.05]
+    fescPrescription = [5, 5, 5, 5, 5, 5]
+    alpha = [1.50, 2.00, 2.50, 3.00, 3.50, 4.00]
+    beta = [0.50, 0.50, 0.50, 0.50, 0.50, 0.50]
+    delta = [1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
+    #MH_low = [1.0e8, 1.0e8, 1.0e8]
+    #fesc_low = [0.95, 0.90, 0.85]
+    #MH_high = [1.0e12, 1.0e12, 1.0e12]
+    #fesc_high = [0.05, 0.05, 0.05]
 
-    FileNameGalaxies = ["MHneg_1e8_1e12_0.95_0.05",
-                        "MHneg_1e8_1e12_0.90_0.05",
-                        "MHneg_1e8_1e12_0.85_0.05"]
+    FileNameGalaxies = ["SFR_alpha1.50_beta0.50_delta1.00",
+                        "SFR_alpha2.00_beta0.50_delta1.00",
+                        "SFR_alpha2.50_beta0.50_delta1.00",
+                        "SFR_alpha3.00_beta0.50_delta1.00",
+                        "SFR_alpha3.50_beta0.50_delta1.00",
+                        "SFR_alpha4.00_beta0.50_delta1.00"]
 
     '''
     FileNameGalaxies = ["fej_alpha0.00_beta0.25",
@@ -490,12 +494,13 @@ if __name__ == '__main__':
     '''
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription,
-                           #"alpha" : alpha,
-                           #"beta" : beta,
-                           "MH_low" : MH_low,
-                           "fesc_low" : fesc_low,
-                           "MH_high" : MH_high,
-                           "fesc_high" : fesc_high,
+                           "alpha" : alpha,
+                           "beta" : beta,
+                           "delta" : delta,
+                           #"MH_low" : MH_low,
+                           #"fesc_low" : fesc_low,
+                           #"MH_high" : MH_high,
+                           #"fesc_high" : fesc_high,
                            "FileNameGalaxies" : FileNameGalaxies
                          }
 
@@ -509,9 +514,13 @@ if __name__ == '__main__':
     # Specify here the path directory for each run #
     ################################################
 
-    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg"]
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR"]
+
 
     #########################################################################
     # Specify here the path to the base ini files (shouldn't need to touch) #  

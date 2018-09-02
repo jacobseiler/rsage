@@ -668,8 +668,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                   "dz {4:.2f}\tdt {5:.2f}Myr\tReion Completed {6}" \
                   .format(model_number, duration_z[model_number][0],
                           duration_z[model_number][1], duration_z[model_number][-1],
-                          duration_z[model_number][-1]-duration_z[model_number][0],
-                          duration_t[model_number][0]-duration_t[model_number][-1],
+                          duration_z[model_number][0]-duration_z[model_number][-1],
+                          duration_t[model_number][-1]-duration_t[model_number][0],
                           reion_completed[model_number]))
 
         print("Plotting the reionization history.")
@@ -678,7 +678,6 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                reion_data["cosmology_allmodels"],
                                reion_data["t_bigbang_allmodels"],
                                master_mass_frac,
-                               reion_plots["duration_definition"],
                                model_tags, output_dir, "history",
                                output_format)
 
@@ -719,7 +718,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
             reionplot.plot_ps_fixed_XHI(k, P21, PHII,
                                         reion_plots["fixed_XHI_values"],
                                         model_tags, output_dir, "ps_fixed_XHI",
-                    `                   output_format)
+                                        output_format)
 
     if reion_plots["contours"] and rank == 0:
         # tau is used for multiple plots. So check if we need to calculate it.

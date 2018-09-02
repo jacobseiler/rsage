@@ -19,21 +19,70 @@ from mpi4py import MPI
 
 
 def plot_history(z_array_reion_allmodels, 
-                 lookback_array_reion_allmodels, cosmo_allmodels,
-                 t_bigbang_allmodels, mass_frac_allmodels, duration_definition, 
+                 lookback_array_reion_allmodels, cosmology_allmodels,
+                 t_bigbang_allmodels, mass_frac_allmodels, 
                  model_tags, output_dir, output_tag, output_format,
                  passed_ax=None):
+    """
+    Plots the evolution of the neutral hydrogen fraction as a function of
+    lookback time. 
 
+    .. note::
+        The snapshot range only covers reionization (not the full simulation
+        snapshot range).
+
+    Parameters
+    ----------
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    lookback_array_reion_allmodels : 2D nested list of floats. Dimensions
+                                     identical to ``z_array_reion_allmodels``. 
+        The lookback time at each snapshot for each model. Units are Myr.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``astropy`` class containing the cosmology for each model.
+
+    t_bigbang_allmodels : List of floats. Length is number of models.
+        The lookback time to the Big Bang for each model. Units is Gyr.
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    passed_ax : ``matplotlib`` axes, optional
+        If defined, the history will be plotted onto the passed axis and
+        returned.  The figure will not be saved. 
+
+    Returns
+    ---------
+
+    If ``passed_ax = None``, None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+
+    If ``passed_ax`` is passed, the axis is returned with the ionization
+    history plotted.
+    """
     if passed_ax:
         ax1 = passed_ax
     else:
         fig1 = plt.figure(figsize = (8,8))
         ax1 = fig1.add_subplot(111)
 
-    # When we plot the models, we also want to determine the duration of
-    # reionization for each.
-    duration_z = []
-    duration_t = []
     for model_number in range(len(z_array_reion_allmodels)):
 
         ax1.plot(lookback_array_reion_allmodels[model_number], 
@@ -61,7 +110,7 @@ def plot_history(z_array_reion_allmodels,
 
     ax1.set_xlim(ps.time_xlim)
 
-    ax2 = ps.add_time_z_axis(ax1, cosmo_allmodels[0],
+    ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3)
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
@@ -85,8 +134,55 @@ def plot_history(z_array_reion_allmodels,
 
 
 def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
-              cosmo_allmodels, t_bigbang_allmodels, nion_allmodels,
+              cosmology_allmodels, t_bigbang_allmodels, nion_allmodels,
               model_tags, output_dir, output_tag, output_format):
+    """
+    Plots the ionizing emissivity as a function of lookback time.
+
+    .. note::
+        The snapshot range only covers reionization (not the full simulation
+        snapshot range).
+
+    Parameters
+    ----------
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    lookback_array_reion_allmodels : 2D nested list of floats. Dimensions
+                                     identical to ``z_array_reion_allmodels``. 
+        The lookback time at each snapshot for each model. Units are Myr.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``astropy`` class containing the cosmology for each model.
+
+    t_bigbang_allmodels : List of floats. Length is number of models.
+        The lookback time to the Big Bang for each model. Units is Gyr.
+
+    nion_allmodels : 2D nested list of floats. Dimensions equal to
+                     ``z_array_reion_allmodels``.
+        The ionizing emissivity at each snapshot for each model. Units is
+        1.0e50 Photons/Mpc^3. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
@@ -102,7 +198,7 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
                  ls = ps.linestyles[model_number],
                  label = model_tags[model_number])
 
-    ax1 = ps.plot_bouwens2015(cosmo_allmodels[0], t_bigbang_allmodels[0], ax1)
+    ax1 = ps.plot_bouwens2015(cosmology_allmodels[0], t_bigbang_allmodels[0], ax1)
 
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
                    fontsize = ps.global_labelsize)
@@ -122,7 +218,7 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
     ax1.set_xlim(ps.time_xlim)
 
-    ax2 = ps.add_time_z_axis(ax1, cosmo_allmodels[0],
+    ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3)
 
     ax1.text(350, 50.0, r"$\mathbf{68\%}$", horizontalalignment='center', 
@@ -146,6 +242,40 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
 def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                       output_tag, output_format):
+    """
+    Plots the 21cm power spectrum at specified fixed neutral fractions. 
+
+    Parameters
+    ----------
+
+    k : 3D nested list of floats. Outer length is number of models. Next is
+        number of HI fractions we're plotting (``fixed_XHI_values``) then 
+        finally is number of bins.
+        The wavenumber the spectra are binned on. Units are Mpc/h.
+
+    P21, PHII : 3D nested list of floats. Dimensions are identical to ``k``.
+        The 21cm and HII power spectra. 21cm units are mK and HII is unitless.
+
+    fixed_XHI_values : List of floats
+        The mass-averaged neutral hydrogen fraction we're plotting at.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     fig, ax = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
                            sharey='row', figsize=(16, 6))
@@ -245,6 +375,38 @@ def plot_incomp_contour(reion_comp_allmodels, alpha, beta, ax):
 
 def plot_tau_contours(tau_highz, reion_completed, alpha_beta_limits,
                       output_dir, output_tag, output_format):
+    """
+    Plots contours of constant optical depth tau. We recommend only plotting
+    this if you're read the data for different alpha/beta normalization values. 
+
+    Parameters
+    ----------
+
+    tau_highz: List of floats. Length is number of models. 
+        The optical depth at the highest redshift (snap 0).
+
+    reion_completed : List of integers. Length is number of models.
+        Flag which denotes whether reionization has been completed for a given
+        model.
+
+    alpha_beta_limits : 2x3 list of floats.
+        Defines the minimum, maximum and step size of the alpha and beta values
+        that we read data from.  The 0th row is the alpha values, 1st is beta.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
@@ -372,7 +534,7 @@ def plot_duration_contours(duration_z, duration_t, reion_completed,
 
 
 def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
-             cosmo_allmodels, t_bigbang_allmodels, tau_allmodels,
+             cosmology_allmodels, t_bigbang_allmodels, tau_allmodels,
              model_tags, output_dir, output_tag, output_format,
              passed_ax=None):
    
@@ -402,7 +564,7 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
-    ax2 = ps.add_time_z_axis(ax1, cosmo_allmodels[0],
+    ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3)
 
     ax1.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
@@ -427,7 +589,7 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
 def plot_combined_history_tau(z_array_reion_allmodels,
                               lookback_array_reion_allmodels,                              
-                              cosmo_allmodels, t_bigbang_allmodels, 
+                              cosmology_allmodels, t_bigbang_allmodels, 
                               mass_frac_allmodels, tau_allmodels, model_tags,
                               output_dir, output_tag, output_format):
 
@@ -438,13 +600,15 @@ def plot_combined_history_tau(z_array_reion_allmodels,
     # calculate the duration as it was already done when `plot_history` was
     # called from `ReionData.py`.
     ax[0] = plot_history(z_array_reion_allmodels, 
-                         lookback_array_reion_allmodels, cosmo_allmodels,
+                         lookback_array_reion_allmodels, cosmology_allmodels,
                          t_bigbang_allmodels, mass_frac_allmodels, None, 
-                         model_tags, output_dir, output_tag, passed_ax=ax[0])
+                         model_tags, output_dir, output_tag, output_format,
+                         passed_ax=ax[0])
 
     ax[1] = plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
-                     cosmo_allmodels, t_bigbang_allmodels, tau_allmodels,
-                     model_tags, output_dir, output_tag, passed_ax=ax[1])
+                     cosmology_allmodels, t_bigbang_allmodels, tau_allmodels,
+                     model_tags, output_dir, output_tag, output_format,
+                     passed_ax=ax[1])
 
     leg = ax[0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame

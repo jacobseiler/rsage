@@ -17,16 +17,52 @@ import ObservationalData as obs
 from mpi4py import MPI
 
 
-def plot_nion(rank, comm,
-              z_array_full_allmodels, lookback_array_full_allmodels,
-              sum_nion_allmodels, cosmo, t_bigbang, 
+def plot_nion(z_array_full_allmodels, lookback_array_full_allmodels,
+              cosmology_allmodels, t_bigbang_allmodels, nion_allmodels,
               model_tags, output_dir, output_tag, output_format):
+    """
+    Plots the ionizing emissivity (using the galaxy data files).
 
-    master_sum = collective.collect_hist_across_tasks(rank, comm, 
-                                                      sum_nion_allmodels)
+    Parameters
+    ----------
 
-    if rank != 0:
-        return 
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    lookback_array_reion_allmodels : 2D nested list of floats. Dimensions
+                                     identical to ``z_array_reion_allmodels``. 
+        The lookback time at each snapshot for each model. Units are Myr.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``astropy`` class containing the cosmology for each model.
+
+    t_bigbang_allmodels : List of floats. Length is number of models.
+        The lookback time to the Big Bang for each model. Units is Gyr.
+
+    nion_allmodels : 2D nested list of floats. Dimensions equal to
+                     ``z_array_reion_allmodels``.
+        The number of ionizing photons (that escaped) for each model at each
+        snapshot. Units is number per Mpc^3.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String.
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String.
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
@@ -34,7 +70,7 @@ def plot_nion(rank, comm,
     for model_number in range(len(z_array_full_allmodels)):
 
         # Units for photons are 1.0e50 so move to log properly.
-        log_sum = 50 + np.log10(master_sum[model_number])
+        log_sum = 50 + np.log10(nion_allmodels[model_number])
 
         ax1.plot(lookback_array_full_allmodels[model_number], 
                  log_sum, 
@@ -42,7 +78,8 @@ def plot_nion(rank, comm,
                  ls = ps.linestyles[model_number],
                  label = model_tags[model_number])
 
-    ax1 = ps.plot_bouwens2015(cosmo[0], t_bigbang[0], ax1)
+    ax1 = ps.plot_bouwens2015(cosmology_allmodels[0], t_bigbang_allmodels[0],
+                              ax1)
 
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
                    fontsize = ps.global_labelsize)
@@ -62,7 +99,8 @@ def plot_nion(rank, comm,
 
     ax1.set_xlim(ps.time_xlim)
 
-    ax2 = ps.add_time_z_axis(ax1, cosmo[0], t_bigbang[0]/1.0e3)
+    ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
+                             t_bigbang_allmodels[0]/1.0e3)
 
     ax1.text(350, 50.0, r"$\mathbf{68\%}$", horizontalalignment='center', 
              verticalalignment = 'center', fontsize = ps.global_labelsize-4)
@@ -87,23 +125,63 @@ def plot_nion(rank, comm,
     plt.close(fig1)
 
 
-def plot_mstar_fesc(rank, comm, mstar_bins, mstar_bin_width, 
-                    z_array_full_allmodels, mean_mstar_fesc_allmodels, 
-                    std_mstar_fesc_allmodels, N_mstar_fesc_allmodels,
-                    model_tags, output_dir, output_tag, output_format,
-                    plot_models_at_snaps=None, plot_snaps_for_models=None):
+def plot_mstar_fesc(mstar_bins, mstar_bin_width, 
+                    z_array_full_allmodels, mean_allmodels, std_allmodels,
+                    N_allmodels, model_tags, output_dir, output_tag,
+                    output_format, plot_models_at_snaps=None,
+                    plot_snaps_for_models=None):
+    """
+    Plots the escape fraction as a function of stellar mass. 
 
-    master_mean, master_std, master_N, _ = \
-        collective.collect_across_tasks(rank, comm, \
-                                        mean_mstar_fesc_allmodels, \
-                                        std_mstar_fesc_allmodels, \
-                                        N_mstar_fesc_allmodels, \
-                                        z_array_full_allmodels, \
-                                        z_array_full_allmodels, \
-                                        binned=True)
+    Parameters
+    ----------
 
-    if rank != 0:
-        return 
+    mstar_bins : List of floats
+        Stellar mass bins that the data is binned on. Units are Msun.
+
+    mstar_bin_width : Float
+        The bin separation between the stellar mass bins. 
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    mean_allmodels, std_allmodels, N_allmodels : 3D nested lists of floats.
+                                                 Outer length is number of
+                                                 models, next is number of
+                                                 snapshots in the model and
+                                                 final is the number of
+                                                 ``mstar_bins``. 
+        The mean and standard deviation for the escape fraction in each stellar
+        mass bin.  Also the number of data points in each bin. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    plot_models_at_snaps : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots each model at the specified snapshots. That is,
+        each panel will be for one model at the specified snapshots.
+
+    plot_snaps_for_models : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots all models at a single, specified snapshot. That
+        is, each panel will be for all models at one specified snapshot. 
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     # Our plotting area will be a square so find out the max NxN deimsnion.
     if plot_models_at_snaps: 
@@ -125,7 +203,7 @@ def plot_mstar_fesc(rank, comm, mstar_bins, mstar_bin_width,
                         str(int(round(z_array_full_allmodels[model_number][snap],0))) + \
                        "}$"                
 
-            mean = master_mean[model_number][snap]
+            mean = mean_allmodels[model_number][snap]
             w_low = np.where(master_N[model_number][snap] < 4)[0]
             mean[w_low] = np.nan
 
@@ -189,16 +267,57 @@ def plot_mstar_fesc(rank, comm, mstar_bins, mstar_bin_width,
     plt.close(fig)
 
 
-def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
-             z_array_full_allmodels, SMF, cosmology_allmodels, 
-             model_tags, output_dir, output_tag, output_format,
-             plot_z=[6.0, 7.0, 8.0]):
+def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
+             cosmology_allmodels, SMF, model_tags, output_dir, output_tag,
+             output_format, plot_z=[6.0, 7.0, 8.0]):
+    """
+    Plots the stellar mass function. That is, the number count of galaxies
+    binned on stellar mass. 
 
-    master_counts = collective.collect_hist_across_tasks(rank, comm, 
-                                                         SMF)
+    Parameters
+    ----------
 
-    if rank != 0:
-        return 
+    mstar_bins : List of floats
+        Stellar mass bins that the data is binned on. Units are Msun.
+
+    mstar_bin_width : Float
+        The bin separation between the stellar mass bins. 
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``astropy`` class containing the cosmology for each model.
+
+    SMF : 3D nested lists of floats. Outer length is number of models, next is
+          number of snapshots in the model and final is the number of
+          ``mstar_bins``.
+        The stellar mass function at each snapshot for each model.  That is,
+        the number of galaxies within each stellar mass bin
+        (given by ``mstar_bins``).
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    plot_z : List of floats, optional
+        The redshift at which we wish to plot the stellar mass function.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     fig, ax = plt.subplots(nrows=1, ncols=len(plot_z), 
                            sharex='col', sharey='row', figsize=(16,6))
@@ -218,10 +337,10 @@ def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
             else:
                 label = model_tags[model_number]
             ax[count].plot(mstar_bins[:-1] + mstar_bin_width*0.5,
-                             master_counts[model_number][snap],
-                             color = ps.colors[model_number],
-                             ls = ps.linestyles[model_number],
-                             label = label)
+                           SMF[model_number][snap],
+                           color = ps.colors[model_number],
+                           ls = ps.linestyles[model_number],
+                           label = label)
 
             if model_number == 0:
             
@@ -229,19 +348,15 @@ def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
                 ax[count].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
                                           fontsize = ps.global_fontsize)
                 ax[count].set_xlim([6.8, 10.3])
-                ax[count].tick_params(which = 'both', direction='in', 
-                                      width = ps.global_tickwidth)
-                ax[count].tick_params(which = 'major',
-                                      length = ps.global_ticklength)
-                ax[count].tick_params(which = 'minor',
-                                      length = ps.global_ticklength-2)
                 ax[count].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
                                      fontsize = ps.global_labelsize)
                 ax[count].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
                 #ax[count].set_xticks(np.arange(6.0, 12.0))
                 
-                for axis in ['top','bottom','left','right']: # Adjust axis thickness.
-                    ax[count].spines[axis].set_linewidth(ps.global_axiswidth)
+                ax[count] = ps.adjust_axis(ax[count], ps.global_axiswidth,
+                                           ps.global_tickwidth,
+                                           ps.global_major_ticklength,
+                                           ps.global_minor_ticklength) 
 
     # Since y-axis is shared, only need to do this once.
     ax[0].set_yscale('log', nonposy='clip')
@@ -283,21 +398,70 @@ def plot_SMF(rank, comm, mstar_bins, mstar_bin_width,
     plt.close(fig)
 
 
-def plot_mstar_fej(rank, comm, mstar_bins, mstar_bin_width, 
-                   z_array_full_allmodels, mean_mstar_fej_allmodels, 
-                   std_mstar_fej_allmodels, N_mstar_fej_allmodels,
-                   model_tags, output_dir, output_tag, output_format,
+def plot_mstar_fej(mstar_bins, mstar_bin_width, z_array_full_allmodels,
+                   mean_allmodels, std_allmodels, N_allmodels, model_tags,
+                   output_dir, output_tag, output_format,
                    plot_models_at_snaps=None, plot_snaps_for_models=None):
+    """
+    Plots the fraction of baryons in the ejected reservoir as a function of
+    stellar mass.
 
-    fig, ax, nrows = plot_2D_line(rank, comm, mstar_bins, mstar_bin_width,
+    Parameters
+    ----------
+
+    mstar_bins : List of floats
+        Stellar mass bins that the data is binned on. Units are Msun.
+
+    mstar_bin_width : Float
+        The bin separation between the stellar mass bins. 
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+
+    mean_allmodels, std_allmodels, N_allmodels : 3D nested lists of floats.
+                                                 Outer length is number of
+                                                 models, next is number of
+                                                 snapshots in the model and
+                                                 final is the number of
+                                                 ``mstar_bins``. 
+        The mean and standard deviation for the ejected fraction in each stellar
+        mass bin.  Also the number of data points in each bin. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    plot_models_at_snaps : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots each model at the specified snapshots. That is,
+        each panel will be for one model at the specified snapshots.
+
+    plot_snaps_for_models : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots all models at a single, specified snapshot. That
+        is, each panel will be for all models at one specified snapshot. 
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    fig, ax, nrows = plot_2D_line(mstar_bins, mstar_bin_width,
                                   z_array_full_allmodels, 
-                                  mean_mstar_fej_allmodels,
-                                  std_mstar_fej_allmodels,
-                                  N_mstar_fej_allmodels, model_tags, 
-                                  plot_models_at_snaps, plot_snaps_for_models) 
-
-    if rank != 0:
-        return
+                                  mean_allmodels, std_allmodels, N_allmodels,
+                                  model_tags, plot_models_at_snaps,
+                                  plot_snaps_for_models)
 
     # Set variables for every column.
     tick_locs = np.arange(4.0, 11.0)
@@ -341,21 +505,68 @@ def plot_mstar_fej(rank, comm, mstar_bins, mstar_bin_width,
     plt.close(fig)
 
 
-def plot_mstar_SFR(rank, comm, mstar_bins, mstar_bin_width, 
-                   z_array_full_allmodels, mean_mstar_SFR_allmodels, 
-                   std_mstar_SFR_allmodels, N_mstar_SFR_allmodels,
-                   model_tags, output_dir, output_tag, output_format,
+def plot_mstar_SFR(mstar_bins, mstar_bin_width, z_array_full_allmodels,
+                   mean_allmodels, std_allmodels, N_allmodels, model_tags,
+                   output_dir, output_tag, output_format,
                    plot_models_at_snaps=None, plot_snaps_for_models=None):
+    """
+    Plots the star formation rate as a function of stellar mass.
 
-    fig, ax, nrows = plot_2D_line(rank, comm, mstar_bins, mstar_bin_width,
-                                  z_array_full_allmodels, 
-                                  mean_mstar_SFR_allmodels,
-                                  std_mstar_SFR_allmodels,
-                                  N_mstar_SFR_allmodels, model_tags, 
-                                  plot_models_at_snaps, plot_snaps_for_models) 
+    Parameters
+    ----------
 
-    if rank != 0:
-        return
+    mstar_bins : List of floats
+        Stellar mass bins that the data is binned on. Units are Msun.
+
+    mstar_bin_width : Float
+        The bin separation between the stellar mass bins. 
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+
+    mean_allmodels, std_allmodels, N_allmodels : 3D nested lists of floats.
+                                                 Outer length is number of
+                                                 models, next is number of
+                                                 snapshots in the model and
+                                                 final is the number of
+                                                 ``mstar_bins``. 
+        The mean and standard deviation for the SFR in each stellar mass bin.
+        Also the number of data points in each bin. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    plot_models_at_snaps : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots each model at the specified snapshots. That is,
+        each panel will be for one model at the specified snapshots.
+
+    plot_snaps_for_models : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots all models at a single, specified snapshot. That
+        is, each panel will be for all models at one specified snapshot. 
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    fig, ax, nrows = plot_2D_line(mstar_bins, mstar_bin_width,
+                                  z_array_full_allmodels, mean_allmodels,
+                                  std_allmodels, N_allmodels, model_tags,
+                                  plot_models_at_snaps, plot_snaps_for_models)
 
     delta_fontsize = 10
 
@@ -401,21 +612,58 @@ def plot_mstar_SFR(rank, comm, mstar_bins, mstar_bin_width,
     plt.close(fig)
 
 
-def plot_2D_line(rank, comm, bins, bin_width, binning_array_allmodels,
+def plot_2D_line(bins, bin_width, binning_array_allmodels,
                  mean_array_allmodels, std_array_allmodels, N_array_allmodels,
                  model_tags, plot_models_at_snaps, plot_snaps_for_models):
+    """
+    Takes 2D binned arrays and creates a square plot of them. The number of
+    rows and columns is equal to the number of models. 
 
-    master_mean, master_std, master_N, _ = \
-        collective.collect_across_tasks(rank, comm,
-                                        mean_array_allmodels,
-                                        std_array_allmodels,                                        
-                                        N_array_allmodels,
-                                        binning_array_allmodels,
-                                        binning_array_allmodels,
-                                        binned=True)
+    Parameters
+    ----------
 
-    if rank != 0:
-        return None, None 
+    bins : List of floats
+        Bins that the data is binned on.
+
+    bin_width : Float
+        The bin separation between the bins. 
+
+    mean_allmodels, std_allmodels, N_allmodels : 3D nested lists of floats.
+                                                 Outer length is number of
+                                                 models, next is number of
+                                                 snapshots in the model and
+                                                 final is the number of
+                                                 ``bins``. 
+        The mean and standard deviation for data in each bin. Also the
+        number of data points in each bin. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    plot_models_at_snaps : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots each model at the specified snapshots. That is,
+        each panel will be for one model at the specified snapshots.
+
+    plot_snaps_for_models : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots all models at a single, specified snapshot. That
+        is, each panel will be for all models at one specified snapshot. 
+
+    Returns
+    ---------
+
+    fig : ``matplotlib`` Figure
+        The created figure.
+
+    ax : If number models is 1, a single ``matplotlib`` axes. Otherwise, 2D
+         nested list of ``matplotlib`` axes with square dimension equal to the
+         number of models.
+        The axes for each panel in the figure.
+
+    nrows : Integer
+        The number of rows (and columns) in the figure.
+    """
 
     # Our plotting area will be a square so find out the max NxN deimsnion.
     if plot_models_at_snaps: 
@@ -440,28 +688,25 @@ def plot_2D_line(rank, comm, bins, bin_width, binning_array_allmodels,
 
             z_label = r"$\mathbf{z = " + \
                         str(int(round(binning_array_allmodels[model_number][snap],0))) + \
-                       "}$"                
+                       "}$"
 
-            mean = master_mean[model_number][snap]
-            w_low = np.where(master_N[model_number][snap] < 4)[0]
+            mean = mean_array_allmodels[model_number][snap]
+            w_low = np.where(N_array_allmodels[model_number][snap] < 4)[0]
             mean[w_low] = np.nan
 
             this_ax.plot(bins[:-1] + bin_width*0.5,
-                         mean, 
+                         mean,
                          color = ps.colors[snap_count],
                          ls = ps.linestyles[0],
-                         label = z_label) 
+                         label = z_label)
 
         this_ax.text(0.05, 0.65, model_tags[model_number],
                      transform = this_ax.transAxes,
-                     fontsize = ps.global_fontsize) 
+                     fontsize = ps.global_fontsize)
 
-        for axis in ['top','bottom','left','right']: # Adjust axis thickness.
-            this_ax.spines[axis].set_linewidth(ps.global_axiswidth)
-
-        this_ax.tick_params(which = 'both', direction='in', width =
-                                       ps.global_tickwidth)
-        this_ax.tick_params(which = 'major', length = ps.global_ticklength)
-        this_ax.tick_params(which = 'minor', length = ps.global_ticklength-2)
+        this_ax = ps.adjust_axis(this_ax, ps.global_axiswidth,
+                                 ps.global_tickwidth,
+                                 ps.global_major_ticklength,
+                                 ps.global_minor_ticklength)
 
     return fig, ax, nrows

@@ -202,60 +202,91 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
 
     # Then find what plots we need and plot em!
     if galaxy_plots["nion"]:
-        galplot.plot_nion(rank, comm,
-                          galaxy_data["z_array_full_allmodels"],
-                          galaxy_data["lookback_array_full_allmodels"],
-                          galaxy_data["sum_nion_allmodels"],
-                          galaxy_data["cosmology_allmodels"],
-                          galaxy_data["t_bigbang_allmodels"],
-                          model_tags, output_dir, "nion", output_format)
+
+        nion_allmodels = collective.collect_hist_across_tasks(rank, comm, 
+                                                              galaxy_data["sum_nion_allmodels"])
+
+        if rank == 0:
+            galplot.plot_nion(galaxy_data["z_array_full_allmodels"],
+                              galaxy_data["lookback_array_full_allmodels"],            
+                              galaxy_data["cosmology_allmodels"],
+                              galaxy_data["t_bigbang_allmodels"],
+                              nion_allmodels,
+                              model_tags, output_dir, "nion", output_format)
 
     if galaxy_plots["mstar_fesc"]:
-        galplot.plot_mstar_fesc(rank, comm,
-                                galaxy_data["mstar_bins"],
-                                galaxy_data["mstar_bin_width"],
-                                galaxy_data["z_array_full_allmodels"],
-                                galaxy_data["mean_mstar_fesc_allmodels"],
-                                galaxy_data["std_mstar_fesc_allmodels"],
-                                galaxy_data["N_mstar_fesc_allmodels"],
-                                model_tags, output_dir, "mstar_fesc",
-                                output_format,
-                                plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
-                                plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+
+        master_mean_mstar_fesc, master_std_mstar_fesc, master_N_mstar_fesc_ = \
+            collective.collect_across_tasks(galaxy_data["mean_mstar_fesc_allmodels"], \
+                                            galaxy_data["std_mstar_fesc_allmodels"], \
+                                            galaxy_data["N_mstar_fesc_allmodels"], \
+                                            galaxy_data["z_array_full_allmodels"], \
+                                            galaxy_data["z_array_full_allmodels"], \
+                                            binned=True)
+
+        if rank == 0:
+            galplot.plot_mstar_fesc(galaxy_data["mstar_bins"],
+                                    galaxy_data["mstar_bin_width"],
+                                    galaxy_data["z_array_full_allmodels"],
+                                    master_mean_mstar_fesc,
+                                    master_std_mstar_fesc,
+                                    master_N_mstar_fesc, model_tags,
+                                    output_dir, "mstar_fesc", output_format,
+                                    plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
+                                    plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
     if galaxy_plots["SMF"]:
-        galplot.plot_SMF(rank, comm,
-                         galaxy_data["mstar_bins"],
-                         galaxy_data["mstar_bin_width"],
-                         galaxy_data["z_array_full_allmodels"],
-                         galaxy_data["SMF_allmodels"],
-                         galaxy_data["cosmology_allmodels"],
-                         model_tags, output_dir, "SMF", output_format)
+
+        master_SMF_allmodels = collective.collect_hist_across_tasks(rank, comm,
+                                                                    galaxy_data["SMF_allmodels"]) 
+
+        if rank == 0:
+            galplot.plot_SMF(galaxy_data["mstar_bins"],
+                             galaxy_data["mstar_bin_width"],
+                             galaxy_data["z_array_full_allmodels"],
+                             galaxy_data["cosmology_allmodels"],
+                             master_SMF_allmodels,
+                             model_tags, output_dir, "SMF", output_format)
 
     if galaxy_plots["mstar_fej"]:
-        galplot.plot_mstar_fej(rank, comm,
-                               galaxy_data["mstar_bins"],
-                               galaxy_data["mstar_bin_width"],
-                               galaxy_data["z_array_full_allmodels"],
-                               galaxy_data["mean_mstar_fej_allmodels"],
-                               galaxy_data["std_mstar_fej_allmodels"],
-                               galaxy_data["N_mstar_fej_allmodels"],
-                               model_tags, output_dir, "mstar", output_format,
-                               plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
-                               plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+
+        master_mean_mstar_fej, master_std_mstar_fej, master_N_mstar_fej = \
+            collective.collect_across_tasks(galaxy_data["mean_mstar_fej_allmodels"],
+                                            galaxy_data["std_mstar_fej_allmodels"],
+                                            galaxy_data["N_mstar_fej_allmodels"],
+                                            galaxy_data["z_array_full_allmodels"],
+                                            galaxy_data["z_array_full_allmodels"],
+                                            binned=True)
+
+        if rank == 0:        
+            galplot.plot_mstar_fej(galaxy_data["mstar_bins"],
+                                   galaxy_data["mstar_bin_width"],
+                                   galaxy_data["z_array_full_allmodels"],
+                                   master_mean_mstar_fej, master_std_mstar_fej,
+                                   master_N_mstar_fej, model_tags, output_dir,
+                                   "mstar", output_format,
+                                   plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
+                                   plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
     if galaxy_plots["mstar_SFR"]:
-        galplot.plot_mstar_SFR(rank, comm,
-                               galaxy_data["mstar_bins"],
-                               galaxy_data["mstar_bin_width"],
-                               galaxy_data["z_array_full_allmodels"],
-                               galaxy_data["mean_mstar_SFR_allmodels"],
-                               galaxy_data["std_mstar_SFR_allmodels"],
-                               galaxy_data["N_mstar_SFR_allmodels"],
-                               model_tags, output_dir, "mstar_SFR",
-                               output_format,
-                               plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
-                               plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+
+        master_mean_mstar_SFR, master_std_mstar_SFR, master_N_mstar_SFR = \
+            collective.collect_across_tasks(galaxy_data["mean_mstar_SFR_allmodels"],
+                                            galaxy_data["std_mstar_SFR_allmodels"],
+                                            galaxy_data["N_mstar_SFR_allmodels"],
+                                            galaxy_data["z_array_full_allmodels"],
+                                            galaxy_data["z_array_full_allmodels"],
+                                            binned=True)
+
+        if rank == 0:
+            galplot.plot_mstar_SFR(galaxy_data["mstar_bins"],
+                                   galaxy_data["mstar_bin_width"],
+                                   galaxy_data["z_array_full_allmodels"],
+                                   master_mean_mstar_SFR, master_std_mstar_SFR,
+                                   master_N_mstar_SFR, model_tags, output_dir,
+                                   "mstar_SFR", output_format,
+                                   plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
+                                   plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
 
 def generate_data(rank, size, comm, ini_files, galaxy_plots):
