@@ -8,6 +8,9 @@ correctly specified and also submit them (**BE CAREFUL WHEN SUBMITTING**).
 
 All ``.ini`` and ``.slurm`` files are created using template files.  Examples
 files are included in the base repo.
+
+Author: Jacob Seiler
+Version: 0.1.
 """
 
 #!/usr/bin/env python
@@ -59,15 +62,16 @@ def check_input_parameters(SAGE_fields_update, cifog_fields_update,
 
     Errors 
     ----------
-        ValueError:
-            Raised if any of the fields in ``SAGE_fields_update`` or
-            ``cifog_fields_update`` have different lengths.
 
-            Raised if any of the fields in ``SAGE_fields_update`` or
-            ``cifog_fields_update`` have different lengths to that of
-            ``run_directories``.
+    ValueError:
+        Raised if any of the fields in ``SAGE_fields_update`` or
+        ``cifog_fields_update`` have different lengths.
 
-            Raised in any of the template files do not exist.    
+        Raised if any of the fields in ``SAGE_fields_update`` or
+        ``cifog_fields_update`` have different lengths to that of
+        ``run_directories``.
+
+        Raised in any of the template files do not exist.    
     """
 
     # Compare every field within ``SAGE_fields_update`` and
@@ -256,56 +260,57 @@ def get_nion_fname(SAGE_params):
         Tag for the ionizing photon files that ``SAGE`` creates. 
     """
 
-    fesc_prescription = SAGE_params["fescPrescription"]
-    
+    fesc_prescription = int(SAGE_params["fescPrescription"])
+
     if fesc_prescription == 0:
         nion_fname = "{0}_fesc{1:.2f}_HaloPartCut{2}_nionHI" \
                       .format(SAGE_params["FileNameGalaxies"],
-                              SAGE_params["beta"],
-                              SAGE_params["HaloPartCut"])
+                              float(SAGE_params["beta"]),
+                              int(SAGE_params["HaloPartCut"]))
 
     elif fesc_prescription == 1:
         nion_fname = "{0}_ejected_{1:.3f}_{2:.3f}_HaloPartCut{3}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
-                             SAGE_params["alpha"],
-                             SAGE_params["beta"],
-                             SAGE_params["HaloPartCut"])
+                             float(SAGE_params["alpha"]),
+                             float(SAGE_params["beta"]),
+                             int(SAGE_params["HaloPartCut"]))
 
     elif fesc_prescription == 2:
         nion_fname = "{0}_quasar_{1:.2f}_{2:.2f}_{3:.2f}_HaloPartCut{4}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
-                             SAGE_params["quasar_baseline"],
-                             SAGE_params["quasar_boosted"],
-                             SAGE_params["N_dyntime"],
-                             SAGE_params["HaloPartCut"])
+                             float(SAGE_params["quasar_baseline"]),
+                             float(SAGE_params["quasar_boosted"]),
+                             float(SAGE_params["N_dyntime"]),
+                             int(SAGE_params["HaloPartCut"]))
 
     elif fesc_prescription == 3: 
         nion_fname = "{0}_myMH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
-                             SAGE_params["MH_low"],
-                             SAGE_params["fesc_low"],
-                             SAGE_params["MH_high"],
-                             SAGE_params["fesc_high"],
-                             SAGE_params["HaloPartCut"])
+                             float(SAGE_params["MH_low"]),
+                             float(SAGE_params["fesc_low"]),
+                             float(SAGE_params["MH_high"]),
+                             float(SAGE_params["fesc_high"]),
+                             int(SAGE_params["HaloPartCut"]))
 
     elif fesc_prescription == 4:
         nion_fname = "{0}_AnneMH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
-                             SAGE_params["MH_low"],
-                             SAGE_params["fesc_low"],
-                             SAGE_params["MH_high"],
-                             SAGE_params["fesc_high"],
-                             SAGE_params["HaloPartCut"])
+                             float(SAGE_params["MH_low"]),
+                             float(SAGE_params["fesc_low"]),
+                             float(SAGE_params["MH_high"]),
+                             float(SAGE_params["fesc_high"]),
+                             int(SAGE_params["HaloPartCut"]))
 
     elif fesc_prescription == 5: 
         nion_fname = "{0}_SFR_{1:.3f}_{2:.3f}_{3:.3f}_HaloPartCut{4}_nionHI" \
                      .format(SAGE_params["FileNameGalaxies"],
-                             SAGE_params["alpha"],
-                             SAGE_params["beta"],
-                             SAGE_params["delta"],
-                             SAGE_params["HaloPartCut"])
+                             float(SAGE_params["alpha"]),
+                             float(SAGE_params["beta"]),
+                             float(SAGE_params["delta"]),
+                             int(SAGE_params["HaloPartCut"]))
     else:
-        print("Select a valid fescPrescription, [0, 4].")
+        print("Select a valid fescPrescription, [0, 5].")
+        print("Current value is {0}".format(fesc_prescription))
         raise ValueError
 
     return nion_fname
