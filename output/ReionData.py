@@ -698,8 +698,6 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                 model_tags, output_dir, "nion", output_format)
 
     if reion_plots["ps_fixed_XHI"]:
-        print("Rank {0} Calculating power spectra at fixed neutral "
-              "fractions.".format(rank))
         k, P21, PHII = determine_ps_fixed_XHI(rank, size, comm,
                                               reion_data["z_array_reion_allmodels"],
                                               reion_data["cosmology_allmodels"],
