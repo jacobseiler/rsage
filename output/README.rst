@@ -64,6 +64,7 @@ for both galaxy and reionization properties. These are followed by a series of
 options for which snapshots/fixed neutral fractions etc are used to plot at.
 
 **Galaxy Properties**
+
 - ``gal_nion``, the evolution of the ionizing emissivity as a function of time
   since Big Bang. If you're plotting galaxy properties and want the ionizing
   emissivity use this. If you're plotting reionization properties use
@@ -80,6 +81,7 @@ options for which snapshots/fixed neutral fractions etc are used to plot at.
 - ``SMF``, the stellar mass function.
 
 **Reionization Properties**
+
 - ``history``, the evolution of the neutral hydrogen fraction as a function of
   time since the Big Bang.
 - ``reion_nion``, the evolution of the ionizing emissivity as a function of time
