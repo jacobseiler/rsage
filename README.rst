@@ -61,7 +61,7 @@ To facilitate this we have included a utility script to generate multiple
 fields to change for any number of runs.  
 
 Authors and Reference Papers
-====================
+============================
 
 The underlying semi-analytic galaxy evolution model was developed by `Darren Croton <https://github.com/darrencroton/sage>`_ and is described in `Croton et al., 2016 <https://arxiv.org/abs/1601.04709>`_.
 The semi-numerical model used to compute ionization fields was developed by `Anne Hutter <https://github.com/annehutter/grid-model>`_ and is described in `Hutter, 2018 <https://arxiv.org/abs/1803.00088>`_.
