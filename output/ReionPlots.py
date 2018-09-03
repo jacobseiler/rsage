@@ -25,7 +25,7 @@ def plot_history(z_array_reion_allmodels,
                  passed_ax=None):
     """
     Plots the evolution of the neutral hydrogen fraction as a function of
-    lookback time. 
+    time since Big Bang.
 
     .. note::
         The snapshot range only covers reionization (not the full simulation
@@ -137,7 +137,7 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
               cosmology_allmodels, t_bigbang_allmodels, nion_allmodels,
               model_tags, output_dir, output_tag, output_format):
     """
-    Plots the ionizing emissivity as a function of lookback time.
+    Plots the ionizing emissivity as a function of time since Big Bang. 
 
     .. note::
         The snapshot range only covers reionization (not the full simulation
@@ -251,7 +251,7 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     k : 3D nested list of floats. Outer length is number of models. Next is
         number of HI fractions we're plotting (``fixed_XHI_values``) then 
         finally is number of bins.
-        The wavenumber the spectra are binned on. Units are Mpc/h.
+        The wavenumber the spectra are binned on. Units are h/Mpc. 
 
     P21, PHII : 3D nested list of floats. Dimensions are identical to ``k``.
         The 21cm and HII power spectra. 21cm units are mK and HII is unitless.
@@ -346,6 +346,35 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
 
 
 def plot_incomp_contour(reion_comp_allmodels, alpha, beta, ax):
+    """
+    For some models of fesc reionization has not completed. When we plot
+    contours (of constant tau or duration), we wish to mark which parameter
+    choices did not complete reionization.
+
+    This function plots a shaded regions to cover these incomplete models. 
+
+    Parameters
+    ----------
+
+    reion_comp_allmodels : List of integers. Length is number of models. 
+        Flag which denotes whether reionization has been completed for a given
+        model.
+
+    alpha : List of floats. 
+        Range of alpha values used for the fesc models. 
+
+    beta : List of floats. 
+        Range of beta values used for the fesc models. 
+
+    ax : ``matplotlib`` axis object.
+        The axis we're plotting the shaded region on.
+
+    Returns
+    ---------
+
+    ax : ``matplotlib`` axis object.
+        The axis with the shaded region plotted on it.
+    """
 
     incomp_alpha_inds = np.where(reion_comp_allmodels[0] == 0)[0]
     incomp_beta_inds = np.where(reion_comp_allmodels[1] == 0)[0]
@@ -468,9 +497,42 @@ def plot_tau_contours(tau_highz, reion_completed, alpha_beta_limits,
     plt.close()
 
 
-def plot_duration_contours(duration_z, duration_t, reion_completed,
-                           alpha_beta_limits, output_dir, output_tag,
-                           output_format):
+def plot_duration_contours(duration_t, reion_completed, alpha_beta_limits,
+                           output_dir, output_tag, output_format):
+    """
+    Plots contours of constant reionization duration. We recommend only plotting
+    this if you're read the data for different alpha/beta normalization values. 
+
+    Parameters
+    ----------
+
+    duration_t : 2D nested list of floats. Outer length is number of models,
+                 inner is 3.
+        The lookback time corresponding to the start, middle and end of
+        reionization. Units is Myr.
+
+    reion_completed : List of integers. Length is number of models.
+        Flag which denotes whether reionization has been completed for a given
+        model.
+
+    alpha_beta_limits : 2x3 list of floats.
+        Defines the minimum, maximum and step size of the alpha and beta values
+        that we read data from.  The 0th row is the alpha values, 1st is beta.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
@@ -484,8 +546,6 @@ def plot_duration_contours(duration_z, duration_t, reion_completed,
     if alpha_beta_limits[0][0] == alpha_beta_limits[1][0] == 0:
         reion_completed = np.insert(reion_completed, [0], 0)
         dt = np.insert(dt, [0], np.nan)
-
-    print(dt)
 
     alpha_low = alpha_beta_limits[0][0]
     alpha_high = alpha_beta_limits[0][1]
@@ -537,6 +597,56 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
              cosmology_allmodels, t_bigbang_allmodels, tau_allmodels,
              model_tags, output_dir, output_tag, output_format,
              passed_ax=None):
+    """
+    Plots the evolution of the Thomson optical depth tau as a function of
+    time since Big Bang.
+
+    Parameters
+    ----------
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    lookback_array_reion_allmodels : 2D nested list of floats. Dimensions
+                                     identical to ``z_array_reion_allmodels``. 
+        The lookback time at each snapshot for each model. Units are Myr.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``astropy`` class containing the cosmology for each model.
+
+    t_bigbang_allmodels : List of floats. Length is number of models.
+        The lookback time to the Big Bang for each model. Units is Gyr.
+
+    tau_allmodels : 2D nested list of floats. Dimensions equal to 
+                    ``z_array_reion_allmodels``.
+        The Thomson optical depth for each model at each snapshot.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    passed_ax : ``matplotlib`` axes, optional
+        If defined, the history will be plotted onto the passed axis and
+        returned.  The figure will not be saved. 
+
+    Returns
+    ---------
+
+    If ``passed_ax = None``, None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+
+    If ``passed_ax`` is passed, the axis is returned with the ionization
+    history plotted.
+    """
    
  
     if passed_ax:
@@ -592,16 +702,65 @@ def plot_combined_history_tau(z_array_reion_allmodels,
                               cosmology_allmodels, t_bigbang_allmodels, 
                               mass_frac_allmodels, tau_allmodels, model_tags,
                               output_dir, output_tag, output_format):
+    """
+    Plots the evolution of ionized hydrogen and Thomson optical depth (as a
+    function of time since Big Bang) on a single plot.
+
+    Parameters
+    ----------
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    lookback_array_reion_allmodels : 2D nested list of floats. Dimensions
+                                     identical to ``z_array_reion_allmodels``. 
+        The lookback time at each snapshot for each model. Units are Myr.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``astropy`` class containing the cosmology for each model.
+
+    t_bigbang_allmodels : List of floats. Length is number of models.
+        The lookback time to the Big Bang for each model. Units is Gyr.
+
+    tau_allmodels : 2D nested list of floats. Dimensions equal to 
+                    ``z_array_reion_allmodels``.
+        The Thomson optical depth for each model at each snapshot.
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    passed_ax : ``matplotlib`` axes, optional
+        If defined, the history will be plotted onto the passed axis and
+        returned.  The figure will not be saved. 
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     fig, ax = plt.subplots(nrows = 1, ncols = 2, 
                            sharex=False, sharey=False, figsize=(16, 8))
 
-    # Note: The `None` here is the duration definition.  We don't want to
-    # calculate the duration as it was already done when `plot_history` was
-    # called from `ReionData.py`.
+    # Pass each axis to the correct function to create the plots.
     ax[0] = plot_history(z_array_reion_allmodels, 
                          lookback_array_reion_allmodels, cosmology_allmodels,
-                         t_bigbang_allmodels, mass_frac_allmodels, None, 
+                         t_bigbang_allmodels, mass_frac_allmodels,
                          model_tags, output_dir, output_tag, output_format,
                          passed_ax=ax[0])
 
@@ -627,6 +786,55 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
                    mass_frac_allmodels, fixed_XHI_values,
                    small_scale_def, large_scale_def, model_tags, output_dir,
                    output_tag, output_format):
+    """
+    Plots the small scale 21cm power spectrum as a function of the large scale
+    21cm power. 
+
+    We also mark the specified ``fixed_XHI_values`` to draw the eye.
+
+    .. note::
+        The snapshot range only covers reionization (not the full simulation
+        snapshot range).
+
+    Parameters
+    ----------
+
+    k_allmodels : 3D nested list of floats. Outer length is number of models.
+                  Next is the number of snapshots then finally is the number of
+                  bins. 
+        The wavenumber the spectra are binned on. Units are h/Mpc.
+
+    P21, PHII : 3D nested list of floats. Dimensions are identical to ``k``.
+        The 21cm and HII power spectra. 21cm units are mK and HII is unitless.
+
+    mass_frac_allmodels : 2D nested list of floats. Outer length is number of
+                          models, inner is number of snapshots. 
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    fixed_XHI_values : List of floats
+        The mass-averaged neutral hydrogen fraction we're marking on the plot. 
+
+    small_scale_def, large_scale_def : Floats.
+        The wavenumber values (in h/Mpc) that correspond to 'small' and 'large'
+        scales.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     num_models = len(k_allmodels)
 
@@ -752,6 +960,74 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
                     boxsize_allmodels, first_snap_allmodels,
                     fixed_XHI_values, cut_slice, cut_thickness, model_tags,
                     output_dir, output_tag, output_format):
+    """
+    Plots slices of the ionization fields for each model at fixed neutral
+    hydrogen fractions.
+
+    .. note::
+        The snapshot range only covers reionization (not the full simulation
+        snapshot range).
+
+    Parameters
+    ----------
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``Astropy`` class containing the cosmology for each model.
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    XHII_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the ionization fields for each model.
+
+    XHII_precision_allmodels : List of integers. Length is number of models.
+        The precision of the ionization fields for each model.
+        1 : Float, 2 : Double.
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    boxsize_allmodels : List of integers. Length is number of models.
+        The simulation box size for each model (units are Mpc/h).
+
+    first_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` starts calculations for each model.
+
+    fixed_XHI_values : List of floats.
+        The neutral hydrogen fractions we're calculating the slices at.
+        Defined by the user in ``paper_plots.py``.
+
+    cut_slice : Integer.
+        The grid index for model 0 that we're cutting at. All other models are
+        normalized to ensure the cut is at the same spatial position at model 0.
+
+    cut_thickness : Integer.
+        The thickness (in grid cells) that the model 0 slice will be. All other
+        models normalized to ensure the same spatial thickness as model 0. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
 
     num_models = len(mass_frac_allmodels)
     num_fractions = len(fixed_XHI_values)

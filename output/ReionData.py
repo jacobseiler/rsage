@@ -664,8 +664,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                           master_mass_frac, reion_plots["duration_definition"])
 
         for model_number in range(len(master_mass_frac)):
-            print("Model {0}: Start {1:.2f} \tMid {2:.2f}\tEnd {3:.2f}\t"
-                  "dz {4:.2f}\tdt {5:.2f}Myr\tReion Completed {6}" \
+            print("Model {0}: Start {1:.3f} \tMid {2:.3f}\tEnd {3:.23}\t"
+                  "dz {4:.3f}\tdt {5:.2f}Myr\tReion Completed {6}" \
                   .format(model_number, duration_z[model_number][0],
                           duration_z[model_number][1], duration_z[model_number][-1],
                           duration_z[model_number][0]-duration_z[model_number][-1],
@@ -746,8 +746,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                     output_dir, "tau_contours", output_format)
 
         print("Plotting contours of constant reionization duration.")
-        reionplot.plot_duration_contours(duration_z, duration_t,
-                                         reion_completed,
+        reionplot.plot_duration_contours(duration_t, reion_completed,
                                          reion_plots["alpha_beta_limits"],
                                          output_dir, "duration_contours",
                                          output_format)
