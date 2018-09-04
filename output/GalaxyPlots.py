@@ -331,11 +331,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
 
         # Then plot only those snapshots.
         for count, snap in enumerate(plot_snaps):
-            # If only one model is used, don't use a labels.
-            if len(z_array_full_allmodels) == 1:
-                label = ""
-            else:
-                label = model_tags[model_number]
+            label = model_tags[model_number]
             ax[count].plot(mstar_bins[:-1] + mstar_bin_width*0.5,
                            SMF[model_number][snap],
                            color = ps.colors[model_number],
@@ -351,8 +347,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
                 ax[count].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
                                      fontsize = ps.global_labelsize)
                 ax[count].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
-                #ax[count].set_xticks(np.arange(6.0, 12.0))
-                
+
                 ax[count] = ps.adjust_axis(ax[count], ps.global_axiswidth,
                                            ps.global_tickwidth,
                                            ps.global_major_ticklength,
@@ -362,7 +357,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     ax[0].set_yscale('log', nonposy='clip')
     ax[0].set_yticklabels([r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-4}}$", r"$\mathbf{10^{-3}}$",
                            r"$\mathbf{10^{-2}}$",r"$\mathbf{10^{-1}}$"]) 
-    ax[0].set_ylim([1e-5, 1e1])
+    ax[0].set_ylim([1e-5, 3e-1])
     #ax[0].set_ylabel(r'\mathbf{$\log_{10} \Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]}$', 
     ax[0].set_ylabel(r'$\mathbf{log_{10} \: \Phi\ [Mpc^{-3}\: dex^{-1}]}$', 
                      fontsize = ps.global_labelsize) 
@@ -383,8 +378,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     ax[0].text(0.7, 0.9, r"$\mathbf{z = 6}$", transform = ax[0].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
     ax[1].text(0.7, 0.9, r"$\mathbf{z = 7}$", transform = ax[1].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
     ax[2].text(0.7, 0.9, r"$\mathbf{z = 8}$", transform = ax[2].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
-                               
-    #leg = ax[0,0].legend(loc=2, bbox_to_anchor = (0.2, -0.5), numpoints=1, labelspacing=0.1)
+
     leg = ax[0].legend(loc='lower left', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text

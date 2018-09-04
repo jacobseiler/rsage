@@ -197,9 +197,6 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
     # First calculate all the properties and statistics we need.
     galaxy_data = generate_data(rank, size, comm, ini_files, galaxy_plots)
 
-    # Set label sizes, colours etc.
-    ps.Set_Params_Plot()
-
     # Then find what plots we need and plot em!
     if galaxy_plots["nion"]:
 
@@ -460,12 +457,12 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                                                                 dtype=np.float32))
 
         # Check to see if we're only using a subset of the files.
-        if galaxy_plots["FirstFile"]:
+        if galaxy_plots["first_file"]:
             first_file = galaxy_plots["FirstFile"]
         else:
             first_file = int(SAGE_params["FirstFile"])
 
-        if galaxy_plots["lastFile"]:
+        if galaxy_plots["last_file"]:
             last_file = galaxy_plots["FirstFile"]
         else:
             last_file = int(SAGE_params["LastFile"])
