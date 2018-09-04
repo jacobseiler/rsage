@@ -645,9 +645,6 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
     reion_data = generate_data(rank, size, comm, reion_ini_files,
                                gal_ini_files, reion_plots)
 
-    # Set label sizes, colours etc.
-    ps.Set_Params_Plot()
-
     # Gather all the fractions onto the master process.
     # This will be used for many different plots. 
     master_mass_frac = collective.collect_hist_across_tasks(rank, comm, 

@@ -88,7 +88,7 @@ def plot_history(z_array_reion_allmodels,
         ax1.plot(lookback_array_reion_allmodels[model_number], 
                  mass_frac_allmodels[model_number], 
                  color = ps.colors[model_number],
-                 ls = ps.linestyles[model_number],
+                 dashes=ps.dashes[model_number],
                  label = model_tags[model_number])
 
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
@@ -195,7 +195,7 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
         ax1.plot(lookback_array_reion_allmodels[model_number], 
                  log_sum, 
                  color = ps.colors[model_number],
-                 ls = ps.linestyles[model_number],
+                 dashes=ps.dashes[model_number],
                  label = model_tags[model_number])
 
     ax1 = ps.plot_bouwens2015(cosmology_allmodels[0], t_bigbang_allmodels[0], ax1)
@@ -291,7 +291,7 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
             this_ax.plot(k[model_number][fraction][w],
                          P21[model_number][fraction][w],
                          color = ps.colors[model_number],
-                         ls = ps.linestyles[model_number],
+                         dashes=ps.dashes[model_number],
                          lw = 2, rasterized=True, label = label)
             
             if model_number != 0:
@@ -659,7 +659,7 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
         ax1.plot(lookback_array_reion_allmodels[model_number], 
                  tau_allmodels[model_number], 
                  color = ps.colors[model_number],
-                 ls = ps.linestyles[model_number],
+                 dashes=ps.dashes[model_number],
                  label = model_tags[model_number])
         
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr}]$",
@@ -886,7 +886,7 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
         ax1.plot(P21_small_scale[model_number],
                  P21_large_scale[model_number],
                  color = ps.colors[model_number],
-                 ls = '-',
+                 dashes=ps.dashes[model_number],
                  label = model_tags[model_number],
                  zorder = 1) 
 
@@ -931,6 +931,11 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
+
+    ax1.text(16, 5, r"$\mathbf{Start}$", 
+             fontsize = ps.global_fontsize-4)
+    ax1.text(2, 7, r"$\mathbf{End}$",
+             fontsize = ps.global_fontsize-4)
 
     for count, val in enumerate(fixed_XHI_values):
         HI_string = "{0:.2f}".format(val)
@@ -1032,7 +1037,7 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
     num_models = len(mass_frac_allmodels)
     num_fractions = len(fixed_XHI_values)
 
-    fig, ax = plt.subplots(nrows=num_models, ncols=num_fractions,
+    fig, ax = plt.subplots(nrows=num_fractions, ncols=num_models,
                            sharey=False, sharex=False, figsize=(12, 12))
     fig.subplots_adjust(wspace = 0.02, hspace = 0.02)
 

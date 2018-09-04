@@ -87,6 +87,67 @@ def Set_Params_Plot():
     time_xlim = [290, 930]
     time_tickinterval = 25
 
+
+def rsage_paper_plot_params():
+
+    global global_labelsize
+    global global_fontsize
+    global global_legendsize
+    global global_linewidth
+    global global_tickinterval
+    global global_tickwidth
+    global global_ticklength
+    global global_major_ticklength
+    global global_minor_ticklength
+    global global_errorwidth
+    global global_axiswidth
+
+    global colors
+    global markers
+    global dashes 
+
+    global z_plot
+    global time_xlim
+    global time_tickinterval 
+
+    global_labelsize = 30
+    global_fontsize = 22
+    global_legendsize = 20
+    global_linewidth = 4
+    global_tickinterval = 0.25
+    global_tickwidth = 2
+    global_ticklength = 6
+    global_major_ticklength = 6 
+    global_minor_ticklength = 4 
+    global_errorwidth = 3
+    global_axiswidth = 2
+
+    matplotlib.rcdefaults()
+    plt.rc('lines', linewidth=global_linewidth)
+    plt.rc('font', weight='bold') 
+    plt.rc('legend', numpoints=1, fontsize='x-large')
+    plt.rc('text', usetex=True)
+
+    plt.rc('xtick', labelsize=global_fontsize)
+    plt.rc('ytick', labelsize=global_fontsize)
+    plt.rc('text', usetex=True)
+
+    np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
+
+    colors = ["k", "#dd1c77", "#3182bd", "#f03b20", "#31a354", "b", "y"] 
+    markers = ['X', 'o', '^', 's', 'D']
+    linestyles = ['-', '--', '-.', ':', '-']
+    dashes = ['',
+              [3, 3, 3, 3],
+              [7, 1, 1, 1],
+              [1, 1, 1, 1],
+              [5, 1, 5, 1],
+              '', '']
+    z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
+    time_xlim = [290, 930]
+    time_tickinterval = 25
+
+
 def plot_xy(ax, x_data, y_data, y_std, snapshot_labels, model_labels):
 	'''
 	Plots a simple x-y line for the given data.
