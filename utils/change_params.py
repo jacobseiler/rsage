@@ -471,22 +471,30 @@ if __name__ == '__main__':
     # Specify here the SAGE parameters that you want to change for each run #
     #########################################################################
 
-    fescPrescription = [1, 1]
-    alpha = [0.3, 0.2]
-    beta = [0.13, 0.18]
-    #delta = [1.00]
+    fescPrescription = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+    alpha = [0.50, 0.60, 0.70, 0.80, 0.90, 1.10, 1.20, 1.30, 1.40, 1.40]
+    beta = [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
+    delta = [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
     #MH_low = [1.0e8, 1.0e8, 1.0e8]
     #fesc_low = [0.95, 0.90, 0.85]
     #MH_high = [1.0e12, 1.0e12, 1.0e12]
     #fesc_high = [0.05, 0.05, 0.05]
 
-    FileNameGalaxies = ["fej_alpha0.30_beta0.13",
-                        "fej_alpha0.20_beta0.18"]
+    FileNameGalaxies = ["SFR_alpha0.50_beta1.00_delta1.00",
+                        "SFR_alpha0.60_beta1.00_delta1.00",
+                        "SFR_alpha0.70_beta1.00_delta1.00",
+                        "SFR_alpha0.80_beta1.00_delta1.00",
+                        "SFR_alpha0.90_beta1.00_delta1.00",
+                        "SFR_alpha1.10_beta1.00_delta1.00",
+                        "SFR_alpha1.20_beta1.00_delta1.00",
+                        "SFR_alpha1.30_beta1.00_delta1.00",
+                        "SFR_alpha1.40_beta1.00_delta1.00",
+                        "SFR_alpha1.50_beta1.00_delta1.00"]
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription,
                            "alpha" : alpha,
                            "beta" : beta,
-                           #"delta" : delta,
+                           "delta" : delta,
                            #"MH_low" : MH_low,
                            #"fesc_low" : fesc_low,
                            #"MH_high" : MH_high,
@@ -504,8 +512,16 @@ if __name__ == '__main__':
     # Specify here the path directory for each run #
     ################################################
 
-    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej"]
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR"]
 
     #########################################################################
     # Specify here the path to the base ini files (shouldn't need to touch) #  

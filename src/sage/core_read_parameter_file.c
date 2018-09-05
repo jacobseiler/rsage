@@ -350,7 +350,6 @@ int32_t read_parameter_file(char *fname)
   {
     return EXIT_FAILURE;
   }
-	printf("\n");
 	
 	assert(LastSnapShotNr+1 > 0 && LastSnapShotNr+1 < ABSOLUTEMAXSNAPS);
 	MAXSNAPS = LastSnapShotNr + 1;

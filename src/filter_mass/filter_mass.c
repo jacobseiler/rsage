@@ -157,8 +157,6 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName,
     }
 
     free_memory(&TreeNHalos, &HaloID, &ReionMod);
-
-    printf("\n\n"); 
   }
 
   // Everything done, time to free!
