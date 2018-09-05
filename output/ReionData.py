@@ -119,7 +119,7 @@ def T_naught(z, h, OM, OB):
     Output brightness temperature has units of mK.
     """
 
-    T0 = 28.5 * ((1.0+z)/10.0)**(0.5) * OB/0.042 * h/0.73 * (OM/0.24)**(-0.5)
+    T0 = 28.5 * ((1.0+z)/10.0)**(0.5) * OB/0.042 * h/0.73 * (0.24/OM)**(0.5)
     return T0
 
 
@@ -304,7 +304,7 @@ def determine_ps_fixed_XHI(rank, size, comm,
                                                              model_boxsize)
 
         k.append(tmp_k)
-        P21.append(tmp_PowSpec * T0*T0 * tmp_k**3 * 2.0*np.pi)
+        P21.append(tmp_PowSpec * T0*T0 * tmp_k**3 * 4.0*np.pi)
         PHII.append(tmp_Pspec_HII)
 
     comm.Barrier()

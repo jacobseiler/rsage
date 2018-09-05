@@ -306,7 +306,7 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
             this_ax.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
                                size = ps.global_labelsize)
             this_ax.set_xscale('log')
-            this_ax.set_xlim([7e-2, 6])
+            #this_ax.set_xlim([7e-2, 6])
 
             HI_string = "{0:.2f}".format(fixed_XHI_values[fraction])
 
@@ -904,7 +904,7 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
                         zorder = 2)
 
     # Make a one-to-one line and plot it.
-    one_to_one = np.arange(0.0, 40.0, 1e-6) 
+    one_to_one = np.arange(0.0, 60.0, 1e-6) 
     ax1.plot(one_to_one, one_to_one, ls = '--', lw = 0.5, color = 'k')
 
     small_scale_string = "{0:.1f}".format(small_scale_def)
@@ -921,20 +921,20 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     max_small_quot, max_small_rem = divmod(max_smallscale, 5) 
 
     ax1.set_xlim([0.0, (max_small_quot+1)*5])
-    ax1.set_ylim([0.0, (max_small_quot+1)*5]) 
+    ax1.set_ylim([0.0, (max_small_quot+1)*5 - 5]) 
 
-    ax1.xaxis.set_minor_locator(mtick.MultipleLocator(1))
-    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(1))
+    ax1.xaxis.set_minor_locator(mtick.MultipleLocator(5))
+    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(5))
 
-    ax1.xaxis.set_major_locator(mtick.MultipleLocator(5))
-    ax1.yaxis.set_major_locator(mtick.MultipleLocator(5))
+    ax1.xaxis.set_major_locator(mtick.MultipleLocator(10))
+    ax1.yaxis.set_major_locator(mtick.MultipleLocator(10))
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
-    ax1.text(16, 5, r"$\mathbf{Start}$", 
+    ax1.text(30, 10, r"$\mathbf{Start}$", 
              fontsize = ps.global_fontsize-4)
-    ax1.text(2, 7, r"$\mathbf{End}$",
+    ax1.text(2, 10, r"$\mathbf{End}$",
              fontsize = ps.global_fontsize-4)
 
     for count, val in enumerate(fixed_XHI_values):
@@ -952,7 +952,7 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
                      markerscale=6)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(ps.global_legendsize)
+        t.set_fontsize(ps.global_legendsize-2)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
