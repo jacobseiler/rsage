@@ -1058,11 +1058,8 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
             snap_idx = (np.abs(mass_frac_allmodels[model_number] - frac_val)).argmin()
             snap_z = z_array_reion_allmodels[model_number][snap_idx]
 
-            # These are cifog files so need to add 1.
-            cifog_snapnum = snap_idx + first_snap_allmodels[model_number] + 1
-
             XHII_path = "{0}_{1:03d}".format(XHII_fbase_allmodels[model_number],
-                                             cifog_snapnum)
+                                             snapnum)
             XHII = rs.read_binary_grid(XHII_path, GridSize_allmodels[model_number],
                                        XHII_precision_allmodels[model_number])
 

@@ -280,11 +280,10 @@ def determine_ps_fixed_XHI(rank, size, comm,
         redshift = z_array_reion_allmodels[model_number][snapnum]
 
         snapnum += first_snap_allmodels[model_number]
-        cifog_snapnum = snapnum + 1
 
         # Load the XHII and density fields and calculate!
         XHII_path = "{0}_{1:03d}".format(XHII_fbase_allmodels[model_number],
-                                         cifog_snapnum)
+                                         snapnum)
         XHII = rs.read_binary_grid(XHII_path, GridSize_allmodels[model_number],
                                    XHII_precision_allmodels[model_number]) 
 
@@ -973,11 +972,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
             # Where this snapshot slices into the global arrays.
             snap_idx = snapnum - first_snap
 
-            # cifog numbering is weird and is shifted by +1.
-            # E.g., nion file 027 is used to produce XHII file 028.
-            cifog_snapnum = snapnum + 1
-
-            XHII_path = "{0}_{1:03d}".format(XHII_fbase, cifog_snapnum)
+            XHII_path = "{0}_{1:03d}".format(XHII_fbase, snapnum)
             XHII = rs.read_binary_grid(XHII_path, GridSize, XHII_precision) 
 
             density_path = "{0}{1:03d}.dens.dat".format(density_fbase, snapnum)
