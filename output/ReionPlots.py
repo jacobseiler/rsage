@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import matplotlib.patheffects as PathEffects
 import numpy as np
+import os
 
 from astropy import cosmology
 
@@ -661,7 +662,10 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
                  color = ps.colors[model_number],
                  dashes=ps.dashes[model_number],
                  label = model_tags[model_number])
-        
+
+        print("Model {0}\tHigh z Tau {1}".format(model_number,
+                                                 tau_allmodels[model_number][0]))
+
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr}]$",
                   size = ps.global_labelsize)
 
@@ -920,8 +924,19 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     max_smallscale = np.ceil(np.max(P21_small_scale))
     max_small_quot, max_small_rem = divmod(max_smallscale, 5) 
 
-    ax1.set_xlim([0.0, (max_small_quot+1)*5])
-    ax1.set_ylim([0.0, (max_small_quot+1)*5 - 5]) 
+    max_largescale = np.ceil(np.max(P21_large_scale))
+    max_large_quot, max_large_rem = divmod(max_largescale, 5) 
+
+    print("max_smallscale {0}\tmax_largescale {1}".format(max_smallscale,
+                                                          max_largescale))
+
+    if max_smallscale > max_largescale:
+        max_scale_quot = max_small_quot
+    else:
+        max_scale_quot = max_large_quot
+
+    ax1.set_xlim([0.0, (max_scale_quot+1)*5])
+    ax1.set_ylim([0.0, (max_scale_quot+1)*5]) 
 
     ax1.xaxis.set_minor_locator(mtick.MultipleLocator(5))
     ax1.yaxis.set_minor_locator(mtick.MultipleLocator(5))
@@ -1131,3 +1146,54 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
+
+
+def determine_bubble_size(z_array_reion_allmodels, mass_frac_allmodels,
+                          first_snap_allmodels, GridSize_allmodels,
+                          boxsize_allmodels, fixed_XHI_values, model_tags,
+                          output_dir): 
+
+    MCDir = output_dir + '/MC/'
+
+    mean_R = []
+    std_R = []
+    median_R = []
+
+    for model_number in range(len(mass_frac_allmodels)):
+        model_gridsize = GridSize_allmodels[model_number]
+        model_boxsize = boxsize_allmodels[model_number]
+
+        mean_R.append([])
+        std_R.append([])
+        median_R.append([])
+
+        print("Model {0}".format(model_number))
+
+        for frac_number, frac_val in enumerate(fixed_XHI_values):
+
+            # First find the snapshot that corresponds to this XHI value.
+            snap_idx = (np.abs(mass_frac_allmodels[model_number] - frac_val)).argmin()
+            snap_z = z_array_reion_allmodels[model_number][snap_idx]
+
+
+            infile = "{0}{1}_z_{2:.3f}.dat".format(MCDir,
+                                                   model_tags[model_number],
+                                                   snap_z) 
+
+            if (os.path.exists(infile) == False):
+                print("Could not find file {0}.  Skipping and moving on".format(infile))
+                exit() 
+            fd = open(infile, 'rb')
+
+            R = np.loadtxt(fd)
+            print("Maximum radius before scaling is {0} cells.".format(max(R)))
+            R *= model_boxsize/model_gridsize
+            print("Maximum radius after scaling is {0} Mpc/h.".format(max(R)))
+
+            mean_R[model_number].append(np.mean(R))
+            std_R[model_number].append(np.std(R))
+            median_R[model_number].append(np.median(R))
+
+            print("<xHI> = {0}\tmean R {1:.4f}\tstd R {2:.4f}\tMed R "
+                  "{3:.3f}".format(frac_val, np.mean(R), np.std(R),
+                                   np.median(R)))

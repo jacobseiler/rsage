@@ -17,6 +17,8 @@ import numpy as np
 from numpy.fft import fftn, ifftn
 import scipy.integrate as integrate
 import os
+import time
+import random
 
 import AllVars as av
 import ReadScripts as rs
@@ -590,7 +592,103 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
 
         # Non-zero ranks return junk.
         return None, None, None
- 
+
+
+def calculate_bubble_MC(ionized_cells, Ncell, output_file):
+# Calculate the size of ionized/neutral bubbles by choosing an ionized/neutral cell and measuring the distance to a cell of the opposite phase.
+
+## Input ##
+# z is the redshift we are doing the MC walk at.
+# ionized_cells is the array that contains the ionization state of a cell.
+
+## Output ##
+# The output file will be of the form '*OutputDir*/MC/*output_tag*_*z*.dat'
+
+    def MC_walk(cells, indices, phase, N, Ncell, output_file):
+        # Function for the MC walk to calculate bubble size.
+    
+        ## Input ##
+        # cells is the array that contains the ionization field (0 or 1).
+        # indices is a length 3 array containing the x,y,z indices of the cells that are neutral (phase = 0) or ionized (phase = 1)
+        # phase is 0 if we are starting with neutral or 1 if we are starting with ionized cell.
+        # N is the number of random points we select.
+    
+        ## Output ##
+        # A .dat file containing the results of the MC walk (number of steps until it encounters a phase transition).
+
+        radii = []
+
+        for j in range(0,int(N)):
+                        
+            #if (j%20000 == 0):
+            #    print("On walk number {0}".format(j))
+    
+			## Select a random direction to walk through ##
+            direction = random.randint(1,6)
+
+            if direction == 1:
+                x = 1
+                y = 0
+                z = 0
+            elif direction == 2:
+                x = -1 
+                y = 0
+                z = 0
+            elif direction == 3:
+                x = 0
+                y = 1
+                z = 0
+            elif direction == 4:
+                x = 0
+                y = -1
+                z = 0
+            elif direction == 5:
+                x = 0
+                y = 0
+                z = 1
+            else:
+                x = 0
+                y = 0
+                z = -1
+
+			# Pick the x,y,z coordinates of a random ionized/neutral cell
+            random_index = random.randint(0,len(indices[0])-1)
+            walk_x = indices[0][random_index]
+            walk_y = indices[1][random_index]
+            walk_z = indices[2][random_index]
+
+            R = 0
+            phase_transition = phase
+
+            while (phase_transition == phase): # While we haven't changed phase yet.
+                R += 1 # Keep increasing the radius until we do.
+                phase_transition = cells[(walk_x + R*x) % Ncell, (walk_y + R*y) % Ncell, (walk_z + R*z) % Ncell]
+                if (phase_transition > 0.8):
+                    phase_transition = 1
+                else:
+                    phase_transition = 0	
+                if (R >= Ncell): # If the radius has gone beyond the number of available cells, 
+                    phase_transition = (phase + 1) % 2 # We force the change.
+
+            radii.append(R)
+			
+        np.savetxt(output_file, radii, delimiter = ',')
+        #print("MC file saved as {0}".format(outfile))
+
+    #print("")
+    #print("Calculating bubble size using MC walk.")	
+
+    N = 1e5
+
+    start_time = time.time()
+
+    ionized_indices= np.where(ionized_cells > 0.8) # Calculate the array indices corresponding to neutral/ionized cells.
+    unionized_indices = np.where(ionized_cells < 0.2)
+
+    MC_walk(ionized_cells, ionized_indices, 1, N, Ncell, output_file)
+
+    #print("MC took {0} seconds.".format(time.time() - start_time))
+
 
 def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                           model_tags, reion_plots, output_dir, output_format):
@@ -643,7 +741,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
 
     # First calculate all the properties and statistics we need.
     reion_data = generate_data(rank, size, comm, reion_ini_files,
-                               gal_ini_files, reion_plots)
+                               gal_ini_files, reion_plots, output_dir,
+                               model_tags)
 
     # Gather all the fractions onto the master process.
     # This will be used for many different plots. 
@@ -807,8 +906,19 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                   output_format)
 
 
+    if reion_plots["bubble_size"] and rank == 0:
+        print("Determining bubble sizes at fixed XHI.")
+        reionplot.determine_bubble_size(reion_data["z_array_reion_allmodels"],
+                                        master_mass_frac,
+                                        reion_data["first_snap_allmodels"],
+                                        reion_data["GridSize_allmodels"],
+                                        reion_data["boxsize_allmodels"],
+                                        reion_plots["fixed_XHI_values"],
+                                        model_tags, output_dir)
+
+
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
-                  reion_plots):
+                  reion_plots, output_dir, model_tags):
     """    
     Reads in the galaxy data for calculate all the require properties for each
     models.
@@ -833,6 +943,13 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
         Controls which of the plots we will make.  Keys are the name of each
         plot (e.g., ``reion``) and the value specifies if we are plotting it. If
         we're not plotting a property we don't need to calculate stuff for it! 
+
+    output_dir : String
+        Directory where the plots are saved. Used to save MC data.
+
+    model_tags : List of strings
+        String that will appear on the legend of the plot for each model. Used
+        to save MC data with a unique name.
 
     Returns
     ---------
@@ -1013,6 +1130,17 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 k_allmodels[model_number].append(tmp_k)
                 P21_allmodels[model_number].append(tmp_PowSpec * T0*T0 * tmp_k**3 * 4.0*np.pi)
                 PHII_allmodels[model_number].append(tmp_Pspec_HII)
+           
+            if reion_plots["bubble_size"] and \
+               (mass_frac < 0.95 and mass_frac > 0.05):
+
+                # Only calculate the MC if the file doesn't exist.
+                MC_path = "{0}/MC/{1}_z_{2:.3f}.txt".format(output_dir,
+                                                            model_tags[model_number],
+                                                            z_array_reion[snap_idx]) 
+                if (os.path.exists(infile) == False):
+                    calculate_bubble_MC(XHII, GridSize, MC_path)
+            
         # Snapshot Loop.
 
         # Ionizing emissitivty is scaled by the simulation volume (in Mpc^3).

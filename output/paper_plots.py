@@ -20,6 +20,7 @@ import GalaxyData as galdata
 import ReionData as reiondata
 import MiscData as misc
 import AllVars as av
+import PlotScripts as ps
 
 import numpy as np 
 from mpi4py import MPI
@@ -34,6 +35,9 @@ output_format = "png"
 if __name__ == "__main__":
 
     av.Set_Constants()
+
+    # Set label sizes, colours etc.
+    ps.rsage_paper_plot_params()
 
     # Directory name where we want the plots to be saved.
     output_directory = "./fej_sametau"
@@ -51,27 +55,12 @@ if __name__ == "__main__":
     gal_ini_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_SAGE.ini"
     gal_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.05_SAGE.ini"
     gal_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.00_delta1.00_SAGE.ini"
-    gal_ini_model6="/home/jseiler/rsage/ini_files/kali_noreion_SAGE.ini"
-    gal_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg/ini_files/MHneg_1e8_1e12_0.95_0.05_SAGE.ini"
 
+    gal_ini_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.12_SAGE.ini"
+    gal_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.19_SAGE.ini"
 
-    gal_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha4.50_beta0.50_delta1.00_SAGE.ini"
-    gal_ini_model10="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha5.00_beta0.50_delta1.00_SAGE.ini"
-    gal_ini_model11="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha5.50_beta0.50_delta1.00_SAGE.ini"
-    gal_ini_model12="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha6.00_beta0.50_delta1.00_SAGE.ini"
-    gal_ini_model13="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha6.50_beta0.50_delta1.00_SAGE.ini"
-    gal_ini_model14="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha7.00_beta0.50_delta1.00_SAGE.ini"
-
-    gal_ini_model15="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.05_SAGE.ini"
-    gal_ini_model16="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.15_SAGE.ini"
-    gal_ini_model17="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.20_SAGE.ini"
-
-    reion_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha4.50_beta0.50_delta1.00_cifog.ini"
-    reion_ini_model10="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha5.00_beta0.50_delta1.00_cifog.ini"
-    reion_ini_model11="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha5.50_beta0.50_delta1.00_cifog.ini"
-    reion_ini_model12="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha6.00_beta0.50_delta1.00_cifog.ini"
-    reion_ini_model13="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha6.50_beta0.50_delta1.00_cifog.ini"
-    reion_ini_model14="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha7.00_beta0.50_delta1.00_cifog.ini"
+    gal_ini_model8="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha4.50_beta0.50_delta1.00_SAGE.ini"
+    gal_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.63_beta1.50_delta1.00_SAGE.ini"
 
     # Then the .ini files for cifog reionization.
     reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.3_cifog.ini"
@@ -79,12 +68,12 @@ if __name__ == "__main__":
     reion_ini_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_cifog.ini"
     reion_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.05_cifog.ini"
     reion_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.00_delta1.00_cifog.ini"
-    reion_ini_model6="/home/jseiler/rsage/ini_files/kali_noreion_cifog.ini"
-    reion_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_myMHneg/ini_files/MHneg_1e8_1e12_0.95_0.05_cifog.ini"
 
-    reion_ini_model15="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.05_cifog.ini"
-    reion_ini_model16="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.15_cifog.ini"
-    reion_ini_model17="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.20_cifog.ini"
+    reion_ini_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.12_cifog.ini"
+    reion_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.19_cifog.ini"
+
+    reion_ini_model8="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha4.50_beta0.50_delta1.00_cifog.ini"
+    reion_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.63_beta1.50_delta1.00_cifog.ini"
 
     # All .ini files included in this array will be plotted.
     gal_ini_files = [gal_ini_model1,
@@ -93,55 +82,49 @@ if __name__ == "__main__":
                      gal_ini_model4, 
                      gal_ini_model5]
 
-    '''
-    gal_ini_files = [gal_ini_model9,
-                     gal_ini_model10,
-                     gal_ini_model11,
-                     gal_ini_model12,
-                     gal_ini_model13,
-                     gal_ini_model14]
-    '''
     reion_ini_files = [reion_ini_model1,
                        reion_ini_model2,
                        reion_ini_model3,
                        reion_ini_model4,
                        reion_ini_model5]
 
-    gal_ini_files = [gal_ini_model15,
-                     gal_ini_model16,
-                     gal_ini_model17]
+    
+    gal_ini_files = [gal_ini_model4,
+                     gal_ini_model6, 
+                     gal_ini_model7] 
 
-    reion_ini_files = [reion_ini_model15,
-                       reion_ini_model16,
-                       reion_ini_model17]
+    reion_ini_files = [reion_ini_model4,
+                       reion_ini_model6, 
+                       reion_ini_model7] 
 
+    ''' 
+    gal_ini_files = [gal_ini_model5,
+                     gal_ini_model8, 
+                     gal_ini_model9] 
+
+    reion_ini_files = [reion_ini_model5,
+                       reion_ini_model8, 
+                       reion_ini_model9] 
+    '''  
+    #gal_ini_files = [gal_ini_model1]
+    #reion_ini_files = [reion_ini_model1]
+   
     # These are the labels that will appear on the axis legends for each model.
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1} \: Mine}$"]
-
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+  
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.40, \beta = 0.05}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.30, \beta = 0.15}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.20, \beta = 0.20}$"]
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.30, \beta = 0.12}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.20, \beta = 0.19}$"]
+    '''    
+    model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 1.00 \: \beta = 1.00}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 4.50 \: \beta = 0.50}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 0.63 \: \beta = 1.50}$"]
     '''
-    model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 4.50}$", 
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 5.00}$", 
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 5.50}$", 
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 6.00}$", 
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 6.50}$", 
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 7.00}$"]
 
-    model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.00, \beta = 0.05}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.10, \beta = 0.05}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.20, \beta = 0.05}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.30, \beta = 0.05}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.40, \beta = 0.05}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.50, \beta = 0.05}$",
-                  r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.60, \beta = 0.05}$"]
-    '''
     # ============================================================= #
     # Switches to control what plots to make. 0 to skip, 1 to plot. #
     # ============================================================= #
@@ -149,11 +132,11 @@ if __name__ == "__main__":
     # ==================== #
     # Galaxy Plot Toggles. # 
     # ==================== #
-    gal_nion = 0
+    gal_nion   = 0
     mstar_fesc = 0
-    mstar_fej = 0
-    mstar_SFR = 0
-    SMF = 0
+    mstar_fej  = 0
+    mstar_SFR  = 0
+    SMF        = 0
 
     # ==================== #
     # Galaxy Plot Options. # 
@@ -200,12 +183,13 @@ if __name__ == "__main__":
     # =========================== #
     # Reionization Plot Toggles . # 
     # =========================== #
-    history = 1
-    reion_nion = 1
-    ps_fixed_XHI = 0
-    optical_depth = 1
-    ps_scales = 0
+    history          = 1
+    reion_nion       = 1
+    ps_fixed_XHI     = 1
+    optical_depth    = 1
+    ps_scales        = 1
     slices_fixed_XHI = 0
+    bubble_size      = 0
 
     # ========================== #
     # Reionization Plot Options. # 
@@ -263,6 +247,7 @@ if __name__ == "__main__":
                    "contours" :            contours, 
                    "optical_depth" :       optical_depth,
                    "ps_scales" :           ps_scales,
+                   "bubble_size" :         bubble_size,
                    "slices_fixed_XHI" :    slices_fixed_XHI,
                    "fixed_XHI_values" :    fixed_XHI_values,
                    "alpha_beta_limits" :   alpha_beta_limits,
