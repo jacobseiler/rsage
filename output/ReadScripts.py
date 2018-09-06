@@ -531,6 +531,7 @@ def read_cifog_ini(fname):
                     "nionFilesAreInDoublePrecision", "inputFilesAreComoving",
                     "inputFilesAreSimulation", "SimulationLowSnap",
                     "SimulationHighSnap", "inputIgmDensityFile",
+                    "inputIgmDensitySuffix",
                     "densityInOverdensity", "meanDensity", "inputIgmClumpFile",
                     "inputSourcesFile", "inputNionFile", "nion_factor",
                     "output_XHII_file", "write_photHI_file",
