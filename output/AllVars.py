@@ -904,9 +904,6 @@ def calc_cross_corr(grid1, grid2, my_BoxSize):
     modes1 = ifftn(grid1)
     modes2 = ifftn(grid2)
 
-    #grid1 = grid1/np.mean(grid1)
-    #grid2 = grid2/np.mean(grid2)
-
     kmid_bins, pspec1, p_err = modes_to_pspec(modes1,
                                               my_BoxSize)
 

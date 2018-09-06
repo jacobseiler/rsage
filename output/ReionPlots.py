@@ -286,12 +286,17 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     fig, ax = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
                            sharey='row', figsize=(16, 6))
 
+    fig2, ax2 = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
+                             sharey='row', figsize=(16, 6))
+
     for model_number in range(len(k)):
         for fraction in range(len(fixed_XHI_values)):
 
             this_ax = ax[fraction]
+            this_ax2 = ax2[fraction]
 
             w = np.where(k[model_number][fraction] > 9e-2)[0]
+            w = w[0:-1]
             label = model_tags[model_number]
  
             this_ax.plot(k[model_number][fraction][w],
@@ -299,6 +304,12 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                          color = ps.colors[model_number],
                          dashes=ps.dashes[model_number],
                          lw = 2, rasterized=True, label = label)
+            
+            this_ax2.plot(k[model_number][fraction][w],
+                          PHII[model_number][fraction][w],
+                          color = ps.colors[model_number],
+                          dashes=ps.dashes[model_number],
+                          lw = 2, rasterized=True, label = label)
             
             if model_number != 0:
                 continue
@@ -308,18 +319,30 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                                      ps.global_major_ticklength,
                                      ps.global_minor_ticklength)
 
+            this_ax2 = ps.adjust_axis(this_ax2, ps.global_axiswidth,
+                                      ps.global_tickwidth,
+                                      ps.global_major_ticklength,
+                                      ps.global_minor_ticklength)
 
             this_ax.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
                                size = ps.global_labelsize)
             this_ax.set_xscale('log')
+
+            this_ax2.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+                                size = ps.global_labelsize)
+            this_ax2.set_xscale('log')
+
             #this_ax.set_xlim([7e-2, 6])
 
             HI_string = "{0:.2f}".format(fixed_XHI_values[fraction])
 
             label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
+
             this_ax.text(0.05, 0.9, label, transform = this_ax.transAxes,
                          fontsize = ps.global_fontsize)
 
+            this_ax2.text(0.05, 0.9, label, transform = this_ax.transAxes,
+                          fontsize = ps.global_fontsize)
 
             #tick_locs = np.arange(-3, 2.5, 1.0)
             #this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
@@ -328,6 +351,10 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     ax[0].set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right]}$',
                      size = ps.global_labelsize)
     ax[0].set_yscale('log', nonposy='clip')
+
+    ax2[0].set_ylabel(r'$\mathbf{\Delta_{\chi_\mathrm{HII}}^2}$',
+                      size = ps.global_labelsize)
+    ax2[0].set_yscale('log', nonposy='clip')
 
     #tick_locs = np.arange(-1.0, 5.5, 1.0)
     #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
@@ -338,16 +365,32 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize-2)
+    leg.draw_frame(False)  # Don't want a box frame
 
-    plt.tight_layout()
-    plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
+    leg2 = ax2[0].legend(loc='lower right', numpoints=1,
+                       labelspacing=0.1)
+    for t in leg2.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize-2)
+    leg2.draw_frame(False)  # Don't want a box frame
 
+    fig.tight_layout()
+    fig.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
+    fig2.tight_layout()
+    fig2.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile = "{0}/{1}.{2}".format(output_dir,
                                      output_tag,
                                      output_format)
-    plt.savefig(outputFile)  # Save the figure
+    fig.savefig(outputFile)
     print('Saved file to {0}'.format(outputFile))
+
+    outputFile = "{0}/{1}_HII.{2}".format(output_dir,
+                                          output_tag,
+                                          output_format)
+    fig2.savefig(outputFile)
+    print('Saved file to {0}'.format(outputFile))
+
     plt.close()
 
 
@@ -665,7 +708,7 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
         ax1.plot(lookback_array_reion_allmodels[model_number], 
                  tau_allmodels[model_number], 
                  color = ps.colors[model_number],
-                 dashes=ps.dashes[model_number],
+                 dashes =ps.dashes[model_number],
                  label = model_tags[model_number])
 
         print("Model {0}\tHigh z Tau {1}".format(model_number,
@@ -932,9 +975,6 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     max_largescale = np.ceil(np.max(P21_large_scale))
     max_large_quot, max_large_rem = divmod(max_largescale, 5) 
 
-    print("max_smallscale {0}\tmax_largescale {1}".format(max_smallscale,
-                                                          max_largescale))
-
     if max_smallscale > max_largescale:
         max_scale_quot = max_small_quot
     else:
@@ -1180,8 +1220,7 @@ def determine_bubble_size(z_array_reion_allmodels, mass_frac_allmodels,
             snap_idx = (np.abs(mass_frac_allmodels[model_number] - frac_val)).argmin()
             snap_z = z_array_reion_allmodels[model_number][snap_idx]
 
-
-            infile = "{0}{1}_z_{2:.3f}.dat".format(MCDir,
+            infile = "{0}{1}_z_{2:.3f}.txt".format(MCDir,
                                                    model_tags[model_number],
                                                    snap_z) 
 
@@ -1202,3 +1241,84 @@ def determine_bubble_size(z_array_reion_allmodels, mass_frac_allmodels,
             print("<xHI> = {0}\tmean R {1:.4f}\tstd R {2:.4f}\tMed R "
                   "{3:.3f}".format(frac_val, np.mean(R), np.std(R),
                                    np.median(R)))
+
+
+def plot_zreion_dens_cross(k, crosscorr, bias, model_tags, output_dir,
+                           output_tag, output_format):
+
+    fig1 = plt.figure(figsize = (8,8))
+    ax1 = fig1.add_subplot(111)
+
+    fig2 = plt.figure(figsize = (8,8))
+    ax2 = fig2.add_subplot(111)
+
+    for model_number in range(len(k)):
+
+        w = np.where(k[model_number] > 9e-2)[0]
+        w = w[0:-1]
+        label = model_tags[model_number]
+
+        ax1.plot(k[model_number][w],
+                 crosscorr[model_number][w],
+                 color=ps.colors[model_number],
+                 dashes=ps.dashes[model_number],
+                 rasterized=True, label = label)
+
+        ax2.plot(k[model_number][w],
+                 bias[model_number][w],
+                 color=ps.colors[model_number],
+                 dashes=ps.dashes[model_number],
+                 rasterized=True, label = label)
+
+    ax1.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+                       size = ps.global_labelsize)
+    ax1.set_xscale('log')
+
+    ax2.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+                       size = ps.global_labelsize)
+    ax2.set_xscale('log')
+    ax2.set_yscale('log')
+
+    #tick_locs = np.arange(-3, 2.5, 1.0)
+    #this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+    #                        fontsize = ps.global_fontsize)
+
+    ax1.set_ylabel(r"$\mathbf{r_{z_{reion}, \delta}}$",
+                   size = ps.global_labelsize)
+
+    ax2.set_ylabel(r"$\mathbf{b_{z_{reion}, \delta}}$",
+                   size = ps.global_labelsize)
+    #tick_locs = np.arange(-1.0, 5.5, 1.0)
+    #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+    #                      fontsize = ps.global_fontsize)
+
+    leg1 = ax1.legend(loc='upper right', numpoints=1,
+                      labelspacing=0.1)
+    leg1.draw_frame(False)  # Don't want a box frame
+    for t in leg1.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize-2)
+    leg1.draw_frame(False)  # Don't want a box frame
+
+    leg2 = ax2.legend(loc='upper right', numpoints=1,
+                      labelspacing=0.1)
+    leg2.draw_frame(False)  # Don't want a box frame
+    for t in leg2.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize-2)
+    leg2.draw_frame(False)  # Don't want a box frame
+
+    fig1.tight_layout()
+    fig2.tight_layout()
+
+    outputFile1 = "{0}/{1}.{2}".format(output_dir,
+                                       output_tag,
+                                       output_format)
+    fig1.savefig(outputFile1)
+    print('Saved file to {0}'.format(outputFile1))
+
+    outputFile2 = "{0}/bias_{1}.{2}".format(output_dir,
+                                            output_tag,
+                                            output_format)
+    fig2.savefig(outputFile2)
+    print('Saved file to {0}'.format(outputFile2))
+
+    plt.close()

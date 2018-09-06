@@ -40,7 +40,7 @@ if __name__ == "__main__":
     ps.rsage_paper_plot_params()
 
     # Directory name where we want the plots to be saved.
-    output_directory = "./fej_sametau"
+    output_directory = "./paper_models"
 
     # Format all plots are saved as.
     output_format = "png"
@@ -88,7 +88,7 @@ if __name__ == "__main__":
                        reion_ini_model4,
                        reion_ini_model5]
 
-    
+    '''
     gal_ini_files = [gal_ini_model4,
                      gal_ini_model6, 
                      gal_ini_model7] 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                        reion_ini_model6, 
                        reion_ini_model7] 
 
-    ''' 
+
     gal_ini_files = [gal_ini_model5,
                      gal_ini_model8, 
                      gal_ini_model9] 
@@ -105,21 +105,21 @@ if __name__ == "__main__":
     reion_ini_files = [reion_ini_model5,
                        reion_ini_model8, 
                        reion_ini_model9] 
-    '''  
+    '''
     #gal_ini_files = [gal_ini_model1]
     #reion_ini_files = [reion_ini_model1]
-   
+
     # These are the labels that will appear on the axis legends for each model.
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
-  
+    '''
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.40, \beta = 0.05}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.30, \beta = 0.12}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.20, \beta = 0.19}$"]
-    '''    
+
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 1.00 \: \beta = 1.00}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 4.50 \: \beta = 0.50}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 0.63 \: \beta = 1.50}$"]
@@ -188,13 +188,14 @@ if __name__ == "__main__":
     # =========================== #
     # Reionization Plot Toggles . # 
     # =========================== #
-    history          = 0
-    reion_nion       = 1
-    ps_fixed_XHI     = 0
-    optical_depth    = 0
-    ps_scales        = 0
-    slices_fixed_XHI = 0
-    bubble_size      = 0
+    history           = 0
+    reion_nion        = 0
+    ps_fixed_XHI      = 0
+    optical_depth     = 0
+    ps_scales         = 0
+    slices_fixed_XHI  = 0
+    bubble_size       = 0
+    zreion_dens_cross = 1
 
     # ========================== #
     # Reionization Plot Options. # 
@@ -207,7 +208,7 @@ if __name__ == "__main__":
     duration_definition = [0.90, 0.50, 0.01]  
 
     # What k value (Mpc/h) defines 'small' and 'large' scales?                                             
-    small_scale_def = 2.0
+    small_scale_def = 1.0
     large_scale_def = 0.3
 
     # For plots of the slices of the ionization field, what grid index should
@@ -254,6 +255,7 @@ if __name__ == "__main__":
                    "ps_scales" :           ps_scales,
                    "bubble_size" :         bubble_size,
                    "slices_fixed_XHI" :    slices_fixed_XHI,
+                   "zreion_dens_cross" :   zreion_dens_cross,
                    "fixed_XHI_values" :    fixed_XHI_values,
                    "alpha_beta_limits" :   alpha_beta_limits,
                    "duration_definition" : duration_definition,

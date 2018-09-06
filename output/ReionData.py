@@ -263,6 +263,10 @@ def determine_ps_fixed_XHI(rank, size, comm,
             idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
             snap_idx_target[model_number].append(idx)
 
+            if rank == 0:
+                print("Model {0}\tFrac {1}\tSnap {2}".format(model_number,
+                                                             val, idx+28))
+
     flat_snap_idx_target = [item for sublist in snap_idx_target for item in sublist]
 
     # Now every rank knows what snapshot indices correspond to the fixed HI
@@ -278,6 +282,7 @@ def determine_ps_fixed_XHI(rank, size, comm,
 
         # The `snap_idx_target` value will be the relative snapshot number.
         # Hence need to add the `first_snap` for this model to get absolute.
+
         snapnum = flat_snap_idx_target[idx]
         redshift = z_array_reion_allmodels[model_number][snapnum]
 
@@ -307,7 +312,7 @@ def determine_ps_fixed_XHI(rank, size, comm,
 
         k.append(tmp_k)
         P21.append(tmp_PowSpec * T0*T0 * tmp_k**3 * 4.0*np.pi)
-        PHII.append(tmp_Pspec_HII)
+        PHII.append(tmp_Pspec_HII * tmp_k**3 * 4.0*np.pi)
 
     comm.Barrier()
 
@@ -690,6 +695,50 @@ def calculate_bubble_MC(ionized_cells, Ncell, output_file):
     #print("MC took {0} seconds.".format(time.time() - start_time))
 
 
+def zreion_dens_cross(density_fbase_allmodels, density_precision_allmodels,
+                      zreion_path_allmodels, GridSize_allmodels,
+                      boxsize_allmodels, last_snap_allmodels):
+
+    k_allmodels = []
+    crosspspec_allmodels = []
+    crosscorr_allmodels = []
+    bias_allmodels = []
+
+    for model_number in range(len(zreion_path_allmodels)):
+
+        reshape = True
+        density_path = "{0}{1:03d}.dens.dat".format(density_fbase_allmodels[model_number],
+                                                    last_snap_allmodels[model_number])
+
+        density = rs.read_binary_grid(density_path,
+                                      GridSize_allmodels[model_number],
+                                      density_precision_allmodels[model_number],
+                                      reshape)
+
+        density = density/np.mean(density) - 1.0
+
+        precision = 2
+        zreion = rs.read_binary_grid(zreion_path_allmodels[model_number],
+                                     GridSize_allmodels[model_number],
+                                     precision, reshape)
+
+        zreion = zreion/np.mean(zreion) - 1.0
+
+        kmid_bins, cross_pspec, pspec_zreion, pspec_dens = \
+            av.calc_cross_corr(zreion, density, boxsize_allmodels[model_number]) 
+
+        crosscorr = cross_pspec / (pspec_zreion * pspec_dens)**0.5
+        bias = (pspec_zreion / pspec_dens)**0.5
+
+        k_allmodels.append(kmid_bins)
+        crosspspec_allmodels.append(cross_pspec)
+        crosscorr_allmodels.append(crosscorr)
+        bias_allmodels.append(bias)
+
+    return k_allmodels, crosspspec_allmodels, crosscorr_allmodels, \
+           bias_allmodels
+
+
 def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                           model_tags, reion_plots, output_dir, output_format):
     """    
@@ -738,6 +787,10 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
             print("Made output directory {0}".format(output_dir))
+
+            MC_dir = "{0}/MC".format(output_dir)
+            os.makedirs(MC_dir)
+            print("Made directory {0}".format(MC_dir))
 
     # First calculate all the properties and statistics we need.
     reion_data = generate_data(rank, size, comm, reion_ini_files,
@@ -917,6 +970,19 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                         reion_plots["fixed_XHI_values"],
                                         model_tags, output_dir)
 
+    if reion_plots["zreion_dens_cross"] and rank == 0:
+        print("Calculating the zreion-density cross correlation.")
+        k, crosspspec, crosscorr, bias = \
+            zreion_dens_cross(reion_data["density_fbase_allmodels"],
+                              reion_data["density_precision_allmodels"],
+                              reion_data["zreion_path_allmodels"],
+                              reion_data["GridSize_allmodels"],
+                              reion_data["boxsize_allmodels"],
+                              reion_data["last_snap_allmodels"])
+
+        reionplot.plot_zreion_dens_cross(k, crosscorr, bias, model_tags,
+                                         output_dir, "zreion_dens_crosscorr",
+                                         output_format)
 
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   reion_plots, output_dir, model_tags):
@@ -962,7 +1028,8 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
     if rank == 0:
         print("Generating reionization data for a total of {0} "
-              "models.".format(len(reion_ini_files)))
+              "models and saving plots in directory {1}" \
+              .format(len(reion_ini_files), output_dir))
 
     # ======================================================================= #
     # We calculate values for all models and put them into lists that are     #
@@ -980,6 +1047,9 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
     XHII_precision_allmodels = []
     density_fbase_allmodels = []
     density_precision_allmodels = []
+
+    zreion_path_allmodels = []
+
     first_snap_allmodels = []
     last_snap_allmodels = []
 
@@ -1064,6 +1134,10 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
         density_fbase = cifog_params["inputIgmDensityFile"]
         density_fbase_allmodels.append(density_fbase)
 
+        zreion_path = "{0}/{1}".format(SAGE_params["PhotoionDir"],
+                                       SAGE_params["ReionRedshiftName"])
+        zreion_path_allmodels.append(zreion_path)
+
         nion_fbase = cifog_params["inputNionFile"]
 
         # cifog uses 0 for floating point and 1 for double precision.
@@ -1134,8 +1208,8 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
                 k_allmodels[model_number].append(tmp_k)
                 P21_allmodels[model_number].append(tmp_PowSpec * T0*T0 * tmp_k**3 * 4.0*np.pi)
-                PHII_allmodels[model_number].append(tmp_Pspec_HII)
-           
+                PHII_allmodels[model_number].append(tmp_Pspec_HII * tmp_k**3 * 4.0*np.pi)
+
             if reion_plots["bubble_size"] and \
                (mass_frac < 0.95 and mass_frac > 0.05):
 
@@ -1143,7 +1217,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 MC_path = "{0}/MC/{1}_z_{2:.3f}.txt".format(output_dir,
                                                             model_tags[model_number],
                                                             z_array_reion[snap_idx]) 
-                if (os.path.exists(infile) == False):
+                if (os.path.exists(MC_path) == False):
                     calculate_bubble_MC(XHII, GridSize, MC_path)
             
         # Snapshot Loop.
@@ -1169,6 +1243,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   "XHII_precision_allmodels" : XHII_precision_allmodels,
                   "density_fbase_allmodels" : density_fbase_allmodels,
                   "density_precision_allmodels" : density_precision_allmodels,
+                  "zreion_path_allmodels": zreion_path_allmodels,
                   "GridSize_allmodels" : GridSize_allmodels,
                   "boxsize_allmodels" : boxsize_allmodels,
                   "helium_allmodels" : helium_allmodels,
