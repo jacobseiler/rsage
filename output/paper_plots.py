@@ -183,11 +183,11 @@ if __name__ == "__main__":
     # =========================== #
     # Reionization Plot Toggles . # 
     # =========================== #
-    history          = 1
+    history          = 0
     reion_nion       = 1
-    ps_fixed_XHI     = 1
-    optical_depth    = 1
-    ps_scales        = 1
+    ps_fixed_XHI     = 0
+    optical_depth    = 0
+    ps_scales        = 0
     slices_fixed_XHI = 0
     bubble_size      = 0
 

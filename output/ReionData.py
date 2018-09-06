@@ -790,7 +790,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                 reion_data["lookback_array_reion_allmodels"],
                                 reion_data["cosmology_allmodels"],
                                 reion_data["t_bigbang_allmodels"],
-                                master_nion, 
+                                master_nion,
+                                reion_data["nion_factor_allmodels"], 
                                 model_tags, output_dir, "nion", output_format)
 
     if reion_plots["ps_fixed_XHI"]:
@@ -985,6 +986,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
     GridSize_allmodels = []
     boxsize_allmodels = []
     helium_allmodels = []
+    nion_factor_allmodels = []
 
     cosmology_allmodels = []
     t_bigbang_allmodels = []
@@ -1038,6 +1040,9 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
         helium = float(cifog_params["Y"])
         helium_allmodels.append(helium)
+
+        nion_factor = float(cifog_params["nion_factor"])
+        nion_factor_allmodels.append(nion_factor) 
 
         model_hubble_h = float(SAGE_params["Hubble_h"])
         model_halopartcut = int(SAGE_params["HaloPartCut"])
@@ -1167,6 +1172,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   "GridSize_allmodels" : GridSize_allmodels,
                   "boxsize_allmodels" : boxsize_allmodels,
                   "helium_allmodels" : helium_allmodels,
+                  "nion_factor_allmodels" : nion_factor_allmodels,
                   "first_snap_allmodels" : first_snap_allmodels,
                   "last_snap_allmodels" : last_snap_allmodels}
 

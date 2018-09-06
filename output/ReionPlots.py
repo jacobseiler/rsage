@@ -136,7 +136,8 @@ def plot_history(z_array_reion_allmodels,
 
 def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
               cosmology_allmodels, t_bigbang_allmodels, nion_allmodels,
-              model_tags, output_dir, output_tag, output_format):
+              nion_factor_allmodels, model_tags, output_dir, output_tag,
+              output_format):
     """
     Plots the ionizing emissivity as a function of time since Big Bang. 
 
@@ -164,8 +165,11 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
     nion_allmodels : 2D nested list of floats. Dimensions equal to
                      ``z_array_reion_allmodels``.
-        The ionizing emissivity at each snapshot for each model. Units is
-        1.0e50 Photons/Mpc^3. 
+        The ionizing emissivity at each snapshot for each model. Units
+        specified by ``nion_factor``. 
+
+    nion_factor_allmodels : Nested list of floats. Length is number of models.
+        The conversion from code units for ``nion_allmodels`` to [Photons/s].
 
     model_tags : List of strings. Length is number of models.
         Legend entry for each model.
@@ -190,8 +194,9 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
     for model_number in range(len(z_array_reion_allmodels)):
 
-        # Units for photons are 1.0e50 so move to log properly.
-        log_sum = 50 + np.log10(nion_allmodels[model_number])
+        # Units for photons are given by nion_factor so move to log properly.
+        log_sum = np.log10(nion_factor_allmodels[model_number]) + \
+                  np.log10(nion_allmodels[model_number])
 
         ax1.plot(lookback_array_reion_allmodels[model_number], 
                  log_sum, 
