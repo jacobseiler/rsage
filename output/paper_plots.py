@@ -154,6 +154,10 @@ if __name__ == "__main__":
     plot_models_at_snaps = None  # For each panel, plot one specified snapshot 
                                  # for all models.
 
+    # For the stellar mass function, we may only want to plot at specific
+    # redshifts for each model.
+    SMF_plot_z = [[6.0, 7.0, 8.0]]
+
     # If you only want to use a specific range of files, specify here. If you
     # want to use all the files from a model, set these to `None`.
     first_file = None
@@ -169,6 +173,7 @@ if __name__ == "__main__":
                     "mstar_SFR" :             mstar_SFR,
                     "plot_snaps_for_models" : plot_snaps_for_models,
                     "plot_models_at_snaps" :  plot_models_at_snaps,
+                    "SMF_plot_z" :            SMF_plot_z,
                     "first_file" :            first_file,
                     "last_file" :             last_file}
 

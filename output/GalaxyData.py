@@ -243,6 +243,7 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                              galaxy_data["z_array_full_allmodels"],
                              galaxy_data["cosmology_allmodels"],
                              master_SMF_allmodels,
+                             galaxy_plots["SMF_plot_z"],
                              model_tags, output_dir, "SMF", output_format)
 
     if galaxy_plots["mstar_fej"]:

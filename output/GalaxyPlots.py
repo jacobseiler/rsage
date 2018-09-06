@@ -268,8 +268,8 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
 
 
 def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
-             cosmology_allmodels, SMF, model_tags, output_dir, output_tag,
-             output_format, plot_z=[6.0, 7.0, 8.0]):
+             cosmology_allmodels, SMF, plot_z, model_tags, output_dir,
+             output_tag, output_format):
     """
     Plots the stellar mass function. That is, the number count of galaxies
     binned on stellar mass. 
@@ -298,6 +298,10 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
         the number of galaxies within each stellar mass bin
         (given by ``mstar_bins``).
 
+    plot_z : 2D nested list of floats. Outer length is equal to number of models.
+        The redshift at which we wish to plot the stellar mass function for
+        each model. Specified by user in ``paper_plots.py``.
+
     model_tags : List of strings. Length is number of models.
         Legend entry for each model.
 
@@ -309,9 +313,6 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
 
     output_format : String
         Format the plot is saved in.
-
-    plot_z : List of floats, optional
-        The redshift at which we wish to plot the stellar mass function.
 
     Returns
     ---------
@@ -325,7 +326,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     for model_number in range(len(z_array_full_allmodels)):
         # Here we find the snapshots closest to the redshifts we want to plot.
         plot_snaps = []
-        for val in plot_z:
+        for val in plot_z[model_number]:
             idx = (np.abs(z_array_full_allmodels[model_number] - val)).argmin()
             plot_snaps.append(idx)
 
