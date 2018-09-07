@@ -136,7 +136,6 @@ def rsage_paper_plot_params():
 
     colors = ["k", "#dd1c77", "#3182bd", "#f03b20", "#31a354", "b", "y"] 
     markers = ['X', 'o', '^', 's', 'D']
-    linestyles = ['-', '--', '-.', ':', '-']
     dashes = ['',
               [3, 3, 3, 3],
               [7, 1, 1, 1],
@@ -293,6 +292,9 @@ def add_time_z_axis(ax, cosmo, t_bigbang):
     ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
     ax2.set_xticklabels(z_labels, fontsize = global_fontsize-2) # But label them as redshifts.
 
+    ax2 = adjust_axis(ax2, global_axiswidth, global_tickwidth,
+                      global_major_ticklength, global_minor_ticklength)
+    ax2.tick_params(which = 'both', direction='in', width=tickwidth)
     ax2.set_xlabel(r"$\mathbf{z}$", fontsize = global_fontsize)
 
     return ax2

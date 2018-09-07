@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import matplotlib.patheffects as PathEffects
+from matplotlib import patches
 import numpy as np
 import os
 
@@ -310,7 +311,8 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                           color = ps.colors[model_number],
                           dashes=ps.dashes[model_number],
                           lw = 2, rasterized=True, label = label)
-            
+
+            # Only need to adjust the axis once for each fraction.
             if model_number != 0:
                 continue
 
@@ -344,9 +346,9 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
             this_ax2.text(0.05, 0.9, label, transform = this_ax.transAxes,
                           fontsize = ps.global_fontsize)
 
-            #tick_locs = np.arange(-3, 2.5, 1.0)
-            #this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-            #                        fontsize = ps.global_fontsize)
+            tick_locs = np.arange(-3, 1, 1.0)
+            this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+                                    fontsize = ps.global_fontsize)
 
     ax[0].set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right]}$',
                      size = ps.global_labelsize)
@@ -835,8 +837,9 @@ def plot_combined_history_tau(z_array_reion_allmodels,
 
 
 def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
-                   mass_frac_allmodels, fixed_XHI_values,
-                   small_scale_def, large_scale_def, model_tags, output_dir,
+                   mass_frac_allmodels, z_array_reion_allmodels,
+                   fixed_XHI_values, z_values, small_scale_def, large_scale_def,
+                   small_scale_err, large_scale_err, model_tags, output_dir,
                    output_tag, output_format):
     """
     Plots the small scale 21cm power spectrum as a function of the large scale
@@ -863,12 +866,24 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
                           models, inner is number of snapshots. 
         The mass weighted neutral fraction at each snapshot for each model.
 
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
     fixed_XHI_values : List of floats
         The mass-averaged neutral hydrogen fraction we're marking on the plot. 
+
+    z_values : List of floats
+        If ``None``, does nothing.
+        If not ``None``, marks the specified redshifts on the plot instead of
+        the ``fixed_XHI_values``.
 
     small_scale_def, large_scale_def : Floats.
         The wavenumber values (in h/Mpc) that correspond to 'small' and 'large'
         scales.
+
+    small_scale_err, large_scale_err : Floats.
+        The experimental uncertainty at the small and large scales.
 
     model_tags : List of strings. Length is number of models.
         Legend entry for each model.
@@ -893,26 +908,35 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
 
-    snap_idx_target = []
-
     k_small_scale = []
     k_large_scale = []
 
     P21_small_scale = []
     P21_large_scale = []
 
+    P21_small_scale_err_low = []
+    P21_small_scale_err_up = []
+
+    P21_large_scale_err_low = []
+    P21_large_scale_err_up = []
+
     PHII_small_scale = []
     PHII_large_scale = []
 
     # We first need to find the power on the specified scales.
     for model_number in range(num_models):
-        snap_idx_target.append([])
 
         k_small_scale.append([])
         k_large_scale.append([])
 
         P21_small_scale.append([])
         P21_large_scale.append([])
+
+        P21_small_scale_err_low.append([])
+        P21_small_scale_err_up.append([])
+
+        P21_large_scale_err_low.append([])
+        P21_large_scale_err_up.append([])
 
         PHII_small_scale.append([])
         PHII_large_scale.append([]) 
@@ -925,14 +949,51 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
         for snap_idx in range(len(k_this_model)):
             small_idx = (np.abs(k_this_model[snap_idx] - small_scale_def)).argmin()
             large_idx = (np.abs(k_this_model[snap_idx] - large_scale_def)).argmin()
-            
-            k_small_scale[model_number].append(k_this_model[snap_idx][small_idx])
-            P21_small_scale[model_number].append(P21_this_model[snap_idx][small_idx])
-            PHII_small_scale[model_number].append(PHII_this_model[snap_idx][small_idx])
 
-            k_large_scale[model_number].append(k_this_model[snap_idx][large_idx])
-            P21_large_scale[model_number].append(P21_this_model[snap_idx][large_idx])
-            PHII_large_scale[model_number].append(PHII_this_model[snap_idx][large_idx])
+            # Then grab the relevant values at those scales.
+            k_small = k_this_model[snap_idx][small_idx]
+            k_large = k_this_model[snap_idx][large_idx]
+
+            P21_small = P21_this_model[snap_idx][small_idx]
+            P21_large = P21_this_model[snap_idx][large_idx]
+
+            PHII_small = PHII_this_model[snap_idx][small_idx]
+            PHII_large = PHII_this_model[snap_idx][large_idx]
+
+            # Then append!
+            k_small_scale[model_number].append(k_small)
+            P21_small_scale[model_number].append(P21_small)
+            PHII_small_scale[model_number].append(PHII_small)
+
+            k_large_scale[model_number].append(k_large)
+            P21_large_scale[model_number].append(P21_large)
+            PHII_large_scale[model_number].append(PHII_large)
+
+            # If we're calculating errors, find the region we should shade.
+            # We only have the errors between z = 8-10 so if not in this range,
+            # append nan. 
+            if small_scale_err:
+                if z_array_reion_allmodels[model_number][snap_idx] < 8.0 or \
+                   z_array_reion_allmodels[model_number][snap_idx] > 10.0:
+
+                    P21_small_scale_err_low[model_number].append(P21_small)
+                    P21_small_scale_err_up[model_number].append(P21_small)
+
+                    P21_large_scale_err_low[model_number].append(P21_large)
+                    P21_large_scale_err_up[model_number].append(P21_large)
+
+                else:
+                    P21_small_scale_err_low[model_number].append(P21_small - \
+                                                                 small_scale_err) 
+                    P21_small_scale_err_up[model_number].append(P21_small + \
+                                                                small_scale_err)
+     
+                    P21_large_scale_err_low[model_number].append(P21_large - \
+                                                                 large_scale_err) 
+                    P21_large_scale_err_up[model_number].append(P21_large + \
+                                                                large_scale_err) 
+
+
 
         # Now we have the power we can plot!
         ax1.plot(P21_small_scale[model_number],
@@ -940,20 +1001,35 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
                  color = ps.colors[model_number],
                  dashes=ps.dashes[model_number],
                  label = model_tags[model_number],
-                 zorder = 1) 
+                 zorder = 1)
 
-        # Find the index corresponding to the special HI fractions.
-        for count, val in enumerate(fixed_XHI_values):
-            idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
-            snap_idx_target[model_number].append(idx)
+        # If we specified redshifts to mark, mark them. Otherwise, mark
+        # fixed neutral hydrogen fractions.
+        if z_values: 
+            for count, val in enumerate(z_values):
+                idx = (np.abs(z_array_reion_allmodels[model_number] - val)).argmin()
+                ax1.scatter(P21_small_scale[model_number][idx],
+                            P21_large_scale[model_number][idx],
+                            s=100, rasterized=True,
+                            marker=ps.markers[count],
+                            color=ps.colors[model_number], 
+                            linewidths=2,
+                            zorder=2)
+        else:
+            for count, val in enumerate(fixed_XHI_values):
+                idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
+                ax1.scatter(P21_small_scale[model_number][idx],
+                            P21_large_scale[model_number][idx],
+                            s=100, rasterized=True,
+                            marker=ps.markers[count],
+                            color=ps.colors[model_number], 
+                            linewidths=2,
+                            zorder=2)
 
-            ax1.scatter(P21_small_scale[model_number][idx],
-                        P21_large_scale[model_number][idx],
-                        s = 100, rasterized = True,
-                        marker = ps.markers[count],
-                        color = ps.colors[model_number], 
-                        linewidths = 2,
-                        zorder = 2)
+    # Now add an error ellipse.
+    #e1 = patches.Ellipse((30, 50), small_scale_err, large_scale_err,
+    #                     angle=0, linewidth=2, fill=False, zorder=2)
+    #ax1.add_patch(e1)
 
     # Make a one-to-one line and plot it.
     one_to_one = np.arange(0.0, 60.0, 1e-6) 
@@ -997,16 +1073,30 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     ax1.text(2, 10, r"$\mathbf{End}$",
              fontsize = ps.global_fontsize-4)
 
-    for count, val in enumerate(fixed_XHI_values):
-        HI_string = "{0:.2f}".format(val)
-        label = r"$\mathbf{\langle \chi_{HI}\rangle = " + HI_string + r"}$"
-        ax1.scatter(np.nan, np.nan,
-                    s = 60, rasterized = True,
-                    marker = ps.markers[count],
-                    color = "None",
-                    edgecolors = 'k', 
-                    linewidths = 2,
-                    zorder = 2, label = label)
+    # Now plot some garbage points to add the marked redshifts/neutral
+    # fractions to the legend.
+    if z_values:
+        for count, val in enumerate(z_values):
+            HI_string = "{0:.0f}".format(val)
+            label = r"$\mathbf{z = " + HI_string + r"}$"
+            ax1.scatter(np.nan, np.nan,
+                        s=60, rasterized=True,
+                        marker=ps.markers[count],
+                        color="None",
+                        edgecolors='k', 
+                        linewidths=2,
+                        label=label)
+    else: 
+        for count, val in enumerate(fixed_XHI_values):
+            HI_string = "{0:.2f}".format(val)
+            label = r"$\mathbf{\langle \chi_{HI}\rangle = " + HI_string + r"}$"
+            ax1.scatter(np.nan, np.nan,
+                        s=60, rasterized=True,
+                        marker=ps.markers[count],
+                        color="None",
+                        edgecolors='k', 
+                        linewidths=2,
+                        label=label)
 
     leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1,
                      markerscale=6)
@@ -1014,7 +1104,10 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize-2)
 
-    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    if z_values:
+        outputFile = "{0}/{1}_z_values.{2}".format(output_dir, output_tag, output_format)
+    else:
+        outputFile = "{0}/{1}_XHI_values.{2}".format(output_dir, output_tag, output_format)
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
@@ -1197,6 +1290,44 @@ def determine_bubble_size(z_array_reion_allmodels, mass_frac_allmodels,
                           first_snap_allmodels, GridSize_allmodels,
                           boxsize_allmodels, fixed_XHI_values, model_tags,
                           output_dir): 
+    """
+    Determines the size of ionized regions from the MC walks.
+
+    Parameters
+    ----------
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    first_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` starts calculations for each model.
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    boxsize_allmodels : List of integers. Length is number of models.
+        The simulation box size for each model (units are Mpc/h).
+
+    fixed_XHI_values : List of floats.
+        The neutral hydrogen fractions we're calculating the contours at.
+        Defined by the user in ``paper_plots.py``.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    Returns
+    ---------
+
+    None. The results are printed to ``stdout``.
+    """
 
     MCDir = output_dir + '/MC/'
 
@@ -1245,7 +1376,37 @@ def determine_bubble_size(z_array_reion_allmodels, mass_frac_allmodels,
 
 def plot_zreion_dens_cross(k, crosscorr, bias, model_tags, output_dir,
                            output_tag, output_format):
+    """
+    Plots the cross-correlation between density and zreion.
 
+    Parameters
+    ----------
+
+    k : 3D nested list of floats. Outer length is number of models.
+        Next is the number of snapshots then finally is the number of bins. 
+        The wavenumber the spectra are binned on. Units are h/Mpc.
+
+    crosscorr, bias : 3D nested list of floats. Dimensions are identical to
+                      ``k``.
+        The cross-correlation and bias between the density and zreion. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
 
@@ -1330,7 +1491,57 @@ def plot_dens_reion_contours(mass_frac_allmodels, XHII_fbase_allmodels,
                              first_snap_allmodels, fixed_XHI_values,
                              model_tags, output_dir, output_tag,
                              output_format):
+    """
+    Plots contours of density-ionization.
 
+    Parameters
+    ----------
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    XHII_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the ionization fields for each model.
+
+    XHII_precision_allmodels : List of integers. Length is number of models.
+        The precision of the ionization fields for each model.
+        1 : Float, 2 : Double.
+
+    density_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the density fields for each model.
+
+    density_precision_allmodels : List of integers. Length is number of models.
+        The precision of the density fields for each model.
+        1 : Float, 2 : Double.
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    first_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` starts calculations for each model.
+
+    fixed_XHI_values : List of floats.
+        The neutral hydrogen fractions we're calculating the contours at.
+        Defined by the user in ``paper_plots.py``.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
     from chainconsumer import ChainConsumer
 
     num_models = len(mass_frac_allmodels)
@@ -1387,18 +1598,6 @@ def plot_dens_reion_contours(mass_frac_allmodels, XHII_fbase_allmodels,
 
         fig = c.plotter.plot(figsize="column")
 
-        #ax = fig.get_axes()
-
-        '''        
-        ax1 = ax[2]
-
-        ax1.set_xlabel(
-                       size = ps.global_labelsize)
-
-        ax1.set_ylabel(
-                       size = ps.global_labelsize)
-        '''
-        #fig.tight_layout()
         final_tag = "{0}_XHI{1}".format(output_tag, frac_val)
 
         outputFile = "{0}/{1}.{2}".format(output_dir,
@@ -1406,3 +1605,111 @@ def plot_dens_reion_contours(mass_frac_allmodels, XHII_fbase_allmodels,
                                           output_format)
         fig.savefig(outputFile)
         print('Saved file to {0}'.format(outputFile))
+
+
+def plot_dens_zreion_contours(density_fbase_allmodels,
+                              density_precision_allmodels,
+                              zreion_path_allmodels, GridSize_allmodels,
+                              last_snap_allmodels, model_tags, output_dir,
+                              output_tag, output_format):
+    """
+    Plots contours of density-zreion.
+
+    Parameters
+    ----------
+
+    density_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the density fields for each model.
+
+    density_precision_allmodels : List of integers. Length is number of models.
+        The precision of the density fields for each model.
+        1 : Float, 2 : Double.
+
+    zreion_path_allmodels : List of strings. Length is number of models.
+        The path to the zreion file for each model. 
+
+    XHII_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the ionization fields for each model.
+
+    XHII_precision_allmodels : List of integers. Length is number of models.
+        The precision of the ionization fields for each model.
+        1 : Float, 2 : Double.
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    last_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` ends calculations for each model.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    from chainconsumer import ChainConsumer
+    c = ChainConsumer()
+
+    num_models = len(density_fbase_allmodels)
+    reshape = False
+
+    for model_number in range(num_models):
+
+        model_gridsize = GridSize_allmodels[model_number]
+
+        density_fbase = density_fbase_allmodels[model_number]
+        density_precision = density_precision_allmodels[model_number]
+        density_snap = last_snap_allmodels[model_number]
+
+        density_path = "{0}{1:03d}.dens.dat".format(density_fbase, density_snap)
+        density = rs.read_binary_grid(density_path, model_gridsize,
+                                      density_precision, reshape)
+
+        precision = 2
+        zreion = rs.read_binary_grid(zreion_path_allmodels[model_number],
+                                     GridSize_allmodels[model_number],
+                                     precision, reshape)
+
+        data = np.empty((len(density), 2))
+        data[:,0] = np.log10(density)
+        data[:,1] = zreion 
+
+        x_param = r"$\mathbf{\log_{10}\delta}$"
+        y_param = r"$\mathbf{z_\mathrm{reion}}$"
+        c.add_chain(data, parameters=[x_param, y_param], 
+                    name=model_tags[model_number])
+
+    c.configure(sigmas=[0, 1, 2, 3])
+
+    fig = c.plotter.plot(figsize="column")
+
+    #ax = fig.get_axes()
+
+    '''        
+    ax1 = ax[2]
+
+    ax1.set_xlabel(
+                   size = ps.global_labelsize)
+
+    ax1.set_ylabel(
+                   size = ps.global_labelsize)
+    '''
+    #fig.tight_layout()
+    outputFile = "{0}/{1}.{2}".format(output_dir,
+                                      output_tag, 
+                                      output_format)
+
+    fig.savefig(outputFile)
+    print('Saved file to {0}'.format(outputFile))

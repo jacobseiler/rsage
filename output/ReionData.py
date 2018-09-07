@@ -599,36 +599,67 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
         return None, None, None
 
 
-def calculate_bubble_MC(ionized_cells, Ncell, output_file):
-# Calculate the size of ionized/neutral bubbles by choosing an ionized/neutral cell and measuring the distance to a cell of the opposite phase.
+def calculate_bubble_MC(XHII, output_file, N=1e5):
+    """
+    Determines the size of ionized regions using MC walks.
 
-## Input ##
-# z is the redshift we are doing the MC walk at.
-# ionized_cells is the array that contains the ionization state of a cell.
+    Parameters
+    ----------
 
-## Output ##
-# The output file will be of the form '*OutputDir*/MC/*output_tag*_*z*.dat'
+    XHII : 3D nested list of floats. Lengths are equal and given by the grid
+           size of the model.
+        Grid containing the ionized neutral hydrogen fraction in each cell. 
+
+    output_file : String.
+        Path to where the results of the MC walks will be saved.
+
+    N : Integer, optional.
+        The number of walks performed.
+
+    Returns
+    ---------
+
+    None.
+    """
 
     def MC_walk(cells, indices, phase, N, Ncell, output_file):
-        # Function for the MC walk to calculate bubble size.
+        """
+        Performs the MC walk.
+
+        Parameters
+        ----------
+
+        cells : 3D nested list of floats. Lengths are equal and given
+                ``Ncell``.
+            Grid containing the ionized neutral hydrogen fraction in each cell. 
+
+        indices : List of integers.
+            Indices corresponding to the ionized/neutral grid cells. 
+
+        phase : Integer.
+            Flag denoting whether ``indices`` correspond to neutral (=0) or
+            ionized (=1) cells. 
+
+        N : Integer.
+            The number of walks performed.
+
+        Ncell : Integer.
+            The number of grid cells on a side of ``cells``. 
     
-        ## Input ##
-        # cells is the array that contains the ionization field (0 or 1).
-        # indices is a length 3 array containing the x,y,z indices of the cells that are neutral (phase = 0) or ionized (phase = 1)
-        # phase is 0 if we are starting with neutral or 1 if we are starting with ionized cell.
-        # N is the number of random points we select.
-    
-        ## Output ##
-        # A .dat file containing the results of the MC walk (number of steps until it encounters a phase transition).
+        output_file : String.
+            Path to where the results will be saved.
+
+        Returns
+        ---------
+
+        None. The results of the walk are saved as a ``.txt`` file.
+        """
 
         radii = []
 
-        for j in range(0,int(N)):
-                        
-            #if (j%20000 == 0):
-            #    print("On walk number {0}".format(j))
-    
-			## Select a random direction to walk through ##
+        for j in range(N):
+
+			# Select a random direction to walk through.
             direction = random.randint(1,6)
 
             if direction == 1:
@@ -665,39 +696,67 @@ def calculate_bubble_MC(ionized_cells, Ncell, output_file):
             R = 0
             phase_transition = phase
 
-            while (phase_transition == phase): # While we haven't changed phase yet.
-                R += 1 # Keep increasing the radius until we do.
+            # Then keep walking in that direction until we reach a
+            # neutral/ionized cell.
+            while (phase_transition == phase):
+                R += 1
                 phase_transition = cells[(walk_x + R*x) % Ncell, (walk_y + R*y) % Ncell, (walk_z + R*z) % Ncell]
                 if (phase_transition > 0.8):
                     phase_transition = 1
                 else:
                     phase_transition = 0	
-                if (R >= Ncell): # If the radius has gone beyond the number of available cells, 
-                    phase_transition = (phase + 1) % 2 # We force the change.
-
+                if (R >= Ncell):  # If the radius has gone beyond the number of
+                    phase_transition = (phase + 1) % 2  # available cells,
+                                                        # force the change.
             radii.append(R)
-			
         np.savetxt(output_file, radii, delimiter = ',')
-        #print("MC file saved as {0}".format(outfile))
 
-    #print("")
-    #print("Calculating bubble size using MC walk.")	
+    Ncell = XHII.shape[0]
 
-    N = 1e5
+    # First determine where the ionized cells are.
+    XHII_indices= np.where(XHII > 0.8)
+    phase = 1
 
-    start_time = time.time()
-
-    ionized_indices= np.where(ionized_cells > 0.8) # Calculate the array indices corresponding to neutral/ionized cells.
-    unionized_indices = np.where(ionized_cells < 0.2)
-
-    MC_walk(ionized_cells, ionized_indices, 1, N, Ncell, output_file)
-
-    #print("MC took {0} seconds.".format(time.time() - start_time))
+    MC_walk(XHII, XHII_indices, phase, int(N), Ncell, output_file)
 
 
 def zreion_dens_cross(density_fbase_allmodels, density_precision_allmodels,
                       zreion_path_allmodels, GridSize_allmodels,
                       boxsize_allmodels, last_snap_allmodels):
+    """
+    Determines the size of ionized regions using MC walks.
+
+    Parameters
+    ----------
+
+    density_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the density fields for each model.
+
+    density_precision_allmodels : List of integers. Length is number of models.
+        The precision of the density fields for each model.
+        1 : Float, 2 : Double.
+
+    zreion_path_allmodels : List of strings. Length is number of models.
+        The path to the zreion file for each model. 
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    boxsize_allmodels : List of integers. Length is number of models.
+        The simulation box size for each model (units are Mpc/h).
+
+    last_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` ends calculations for each model.
+
+    Returns
+    ---------
+
+    k_allmodels, crosspspec_allmodels, crosscorr_allmodels, bias_allmodels : 
+    3D nested lists of floats. Outer length is number of models, next is number
+    of snapshots in the model and final is the number of wavenumber bins.
+        The wavenumber bins, crosspower spectrum, cross correlation and bias
+        between the zreion and density fields.
+    """
 
     k_allmodels = []
     crosspspec_allmodels = []
@@ -937,9 +996,13 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
 
         if rank == 0:
             reionplot.plot_ps_scales(k, P21, PHII, master_mass_frac,
+                                     reion_data["z_array_reion_allmodels"],
                                      reion_plots["fixed_XHI_values"],
+                                     reion_plots["ps_scales_z"],
                                      reion_plots["small_scale_def"],
                                      reion_plots["large_scale_def"],
+                                     reion_plots["small_scale_err"],
+                                     reion_plots["large_scale_err"],
                                      model_tags, output_dir, "ps_scales",
                                      output_format)
 
@@ -996,7 +1059,17 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                            reion_plots["fixed_XHI_values"],
                                            model_tags, output_dir,
                                            "dens_ion_contours", output_format)
-                                           
+
+    if reion_plots["dens_zreion_contours"] and rank == 0:
+        print("Plotting contours of density-zreion.")
+        reionplot.plot_dens_zreion_contours(reion_data["density_fbase_allmodels"],
+                                            reion_data["density_precision_allmodels"],
+                                            reion_data["zreion_path_allmodels"],
+                                            reion_data["GridSize_allmodels"],
+                                            reion_data["last_snap_allmodels"],
+                                            model_tags, output_dir,
+                                            "dens_zreion_contours", output_format)
+
 
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   reion_plots, output_dir, model_tags):
@@ -1219,7 +1292,6 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 tmp_k, tmp_PowSpec, tmp_Error, \
                 tmp_k_XHII, tmp_Pspec_HII, tmp_Error_XHII = calc_ps(XHII, density,
                                                                     boxsize)
-
                 k_allmodels[model_number].append(tmp_k)
                 P21_allmodels[model_number].append(tmp_PowSpec * T0*T0 * tmp_k**3 * 4.0*np.pi)
                 PHII_allmodels[model_number].append(tmp_Pspec_HII * tmp_k**3 * 4.0*np.pi)
