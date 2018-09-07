@@ -1322,3 +1322,87 @@ def plot_zreion_dens_cross(k, crosscorr, bias, model_tags, output_dir,
     print('Saved file to {0}'.format(outputFile2))
 
     plt.close()
+
+
+def plot_dens_reion_contours(mass_frac_allmodels, XHII_fbase_allmodels,
+                             XHII_precision_allmodels, density_fbase_allmodels,
+                             density_precision_allmodels, GridSize_allmodels,
+                             first_snap_allmodels, fixed_XHI_values,
+                             model_tags, output_dir, output_tag,
+                             output_format):
+
+    from chainconsumer import ChainConsumer
+
+    num_models = len(mass_frac_allmodels)
+    num_frac = len(fixed_XHI_values)
+
+    # When we load in the data, want to keep it as a 1D array.
+    reshape = False
+
+    for frac_number, frac_val in enumerate(fixed_XHI_values):
+
+        c = ChainConsumer()
+
+        for model_number in range(num_models):
+
+            model_gridsize = GridSize_allmodels[model_number]
+
+            XHII_fbase = XHII_fbase_allmodels[model_number]
+            XHII_precision = XHII_precision_allmodels[model_number]
+
+            density_fbase = density_fbase_allmodels[model_number]
+            density_precision = density_precision_allmodels[model_number]
+
+            # First find the snapshot that corresponds to this XHI value.
+            snap_idx = (np.abs(mass_frac_allmodels[model_number] - frac_val)).argmin()
+
+            # Add 1 for the cifog files. 
+            snapnum = snap_idx + first_snap_allmodels[model_number]
+            cifog_snapnum = snapnum + 1 
+
+            XHII_path = "{0}_{1:03d}".format(XHII_fbase, cifog_snapnum)
+            XHII = rs.read_binary_grid(XHII_path, model_gridsize,
+                                       XHII_precision, reshape)
+            XHI = 1.0 - XHII
+
+            #w_partial = np.where((XHII > 0.0) & (XHII < 1.0))[0]
+            #print("Model {0}\tXHI = {1}".format(model_number, frac_val))
+            #print("Min partial ionization {0}\tMax partial ionization "
+            #      "{1}".format(min(XHII[w_partial]), max(XHII[w_partial])))
+
+            density_path = "{0}{1:03d}.dens.dat".format(density_fbase, snapnum)
+            density = rs.read_binary_grid(density_path, model_gridsize,
+                                          density_precision, reshape)
+
+            data = np.empty((len(density), 2))
+            data[:,0] = np.log10(density)
+            data[:,1] = XHII
+
+            x_param = r"$\mathbf{\log_{10}\delta}$"
+            y_param = r"$\mathbf{\chi_\mathrm{HI}}$"
+            c.add_chain(data, parameters=[x_param, y_param], 
+                        name=model_tags[model_number])
+
+        #c.configure(plot_hists=False)
+
+        fig = c.plotter.plot(figsize="column")
+
+        #ax = fig.get_axes()
+
+        '''        
+        ax1 = ax[2]
+
+        ax1.set_xlabel(
+                       size = ps.global_labelsize)
+
+        ax1.set_ylabel(
+                       size = ps.global_labelsize)
+        '''
+        #fig.tight_layout()
+        final_tag = "{0}_XHI{1}".format(output_tag, frac_val)
+
+        outputFile = "{0}/{1}.{2}".format(output_dir,
+                                          final_tag, 
+                                          output_format)
+        fig.savefig(outputFile)
+        print('Saved file to {0}'.format(outputFile))

@@ -984,6 +984,20 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                          output_dir, "zreion_dens_crosscorr",
                                          output_format)
 
+    if reion_plots["dens_ion_contours"] and rank == 0:
+        print("Plotting contours of density-ionization.")
+        reionplot.plot_dens_reion_contours(master_mass_frac,
+                                           reion_data["XHII_fbase_allmodels"],
+                                           reion_data["XHII_precision_allmodels"],
+                                           reion_data["density_fbase_allmodels"],
+                                           reion_data["density_precision_allmodels"],
+                                           reion_data["GridSize_allmodels"],
+                                           reion_data["first_snap_allmodels"],
+                                           reion_plots["fixed_XHI_values"],
+                                           model_tags, output_dir,
+                                           "dens_ion_contours", output_format)
+                                           
+
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   reion_plots, output_dir, model_tags):
     """    

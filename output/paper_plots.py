@@ -106,15 +106,21 @@ if __name__ == "__main__":
                        reion_ini_model8, 
                        reion_ini_model9] 
     '''
-    #gal_ini_files = [gal_ini_model1]
-    #reion_ini_files = [reion_ini_model1]
-
+    gal_ini_files = [gal_ini_model4,
+                     gal_ini_model5]
+    reion_ini_files = [reion_ini_model4,
+                       reion_ini_model5]
+    
     # These are the labels that will appear on the axis legends for each model.
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+
+    model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+
     '''
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.40, \beta = 0.05}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.30, \beta = 0.12}$",
@@ -195,7 +201,8 @@ if __name__ == "__main__":
     ps_scales         = 0
     slices_fixed_XHI  = 0
     bubble_size       = 0
-    zreion_dens_cross = 1
+    zreion_dens_cross = 0
+    dens_ion_contours = 1
 
     # ========================== #
     # Reionization Plot Options. # 
@@ -256,6 +263,7 @@ if __name__ == "__main__":
                    "bubble_size" :         bubble_size,
                    "slices_fixed_XHI" :    slices_fixed_XHI,
                    "zreion_dens_cross" :   zreion_dens_cross,
+                   "dens_ion_contours" :   dens_ion_contours,
                    "fixed_XHI_values" :    fixed_XHI_values,
                    "alpha_beta_limits" :   alpha_beta_limits,
                    "duration_definition" : duration_definition,
