@@ -1,7 +1,8 @@
 EXEC   = bin/rsage
 
 SOURCES := src/main.c \
-		   src/reion_redshift.c
+		   src/reion_redshift.c \
+		   src/check_ini_files.c
 
 OBJS := $(SOURCES:.c=.o)
 INCL   =	src/main.h \
@@ -79,7 +80,7 @@ endif
 
 CFLAGS += $(GSL_INCL) $(FFTW_INCL)
 
-OPTIMIZE = -g -O3 -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
+OPTIMIZE = -g -O3 -Wextra -Wall -Wshadow # optimization and warning flags -Wunused-parameter  -Werror 
 
 LIBS   = -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB) $(RSAGE_LIB) $(FFTW3_LIBS)
 
