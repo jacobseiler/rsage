@@ -294,7 +294,7 @@ def add_time_z_axis(ax, cosmo, t_bigbang):
 
     ax2 = adjust_axis(ax2, global_axiswidth, global_tickwidth,
                       global_major_ticklength, global_minor_ticklength)
-    ax2.tick_params(which = 'both', direction='in', width=tickwidth)
+    ax2.tick_params(which = 'both', direction='in', width=global_tickwidth)
     ax2.set_xlabel(r"$\mathbf{z}$", fontsize = global_fontsize)
 
     return ax2

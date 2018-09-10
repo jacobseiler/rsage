@@ -33,8 +33,11 @@ Downloading
 Building
 --------------------
 
-Following the cloning and initialization of the submodules, ``RSAGE`` can be built using a single ``make`` command. 
-This will compile three libraries (``src/sage/``, ``src/filter_mass/`` and ``grid-model/``) and link them into a single executable named ``rsage`` in the ``bin/`` directory. 
+.. code::
+
+    $ make 
+
+Will create a single ``rsage`` executable in the ``bin/`` directory.
 
 ``RSAGE`` is fully MPI compatible which can be enabled by setting ``USE-MPI = true``
 in the ``Makefile``. We also offer the ability to build ``RSAGE`` without the
@@ -45,7 +48,7 @@ better model the high redshift Universe.
 Running the code 
 ====================
 
-Like its parent model, ``RSAGE`` requires halo merger trees to run.  In addition to these trees, the computation of the ionization fields with ``cifog`` require dark matter overdensities grids. For testing purposes, we have included a small set of trees and dark matter density fields [here](BROKEN). Example parameter files for running the galaxy model and the semi-numerical reionization model are included in the **ini_files** directory.  For a complete description of the ``cifog`` parameters see the `README <https://github.com/annehutter/grid-model#parameter-file>`_.  The model can be run using
+Like its parent model, ``RSAGE`` requires halo merger trees to run.  In addition to these trees, the computation of the ionization fields with ``cifog`` require dark matter overdensities grids. For testing purposes, we have included a small set of trees and dark matter density fields [here](BROKEN). Example parameter files for running the galaxy model and the semi-numerical reionization model are included in the ``ini_files`` directory.  For a complete description of the ``cifog`` parameters see the `README <https://github.com/annehutter/grid-model#parameter-file>`_.  The model can be run using
 
 .. code::
 

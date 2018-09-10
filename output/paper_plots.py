@@ -40,7 +40,7 @@ if __name__ == "__main__":
     ps.rsage_paper_plot_params()
 
     # Directory name where we want the plots to be saved.
-    output_directory = "./paper_models"
+    output_directory = "./fej_sametau"
 
     # Format all plots are saved as.
     output_format = "png"
@@ -88,7 +88,7 @@ if __name__ == "__main__":
                        reion_ini_model4,
                        reion_ini_model5]
 
-    '''
+
     gal_ini_files = [gal_ini_model4,
                      gal_ini_model6, 
                      gal_ini_model7] 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                        reion_ini_model6, 
                        reion_ini_model7] 
 
-
+    '''
     gal_ini_files = [gal_ini_model5,
                      gal_ini_model8, 
                      gal_ini_model9] 
@@ -121,7 +121,7 @@ if __name__ == "__main__":
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
-    '''   
+
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
@@ -130,6 +130,7 @@ if __name__ == "__main__":
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.30, \beta = 0.12}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.20, \beta = 0.19}$"]
 
+    '''
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 1.00 \: \beta = 1.00}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 4.50 \: \beta = 0.50}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 0.63 \: \beta = 1.50}$"]
@@ -198,10 +199,10 @@ if __name__ == "__main__":
     # =========================== #
     # Reionization Plot Toggles . # 
     # =========================== #
-    history              = 0
-    reion_nion           = 0
+    history              = 1
+    reion_nion           = 1
     ps_fixed_XHI         = 0
-    optical_depth        = 0
+    optical_depth        = 1
     ps_scales            = 1
     slices_fixed_XHI     = 0
     bubble_size          = 0
@@ -223,23 +224,23 @@ if __name__ == "__main__":
     ps_scales_z = None 
 
     # Neutral fractions that define the star/mid/end of reionization.
-    duration_definition = [0.90, 0.50, 0.01]  
+    duration_definition = [0.90, 0.50, 0.01]
 
     # What k value (h/Mpc) defines 'small' and 'large' scales?                                             
-    small_scale_def = 2.0
+    small_scale_def = 4.0
     large_scale_def = 0.3
 
     # The uncertainties of various instruments.
     # Using Cath Trott's Marvelous Spreadsheet, assuming 800 hours integration
     # time with 10MHz bandwidth.
 
-    # Select which instrument to use. Only accepted are "MWA", "SKA", "HERA" or
-    # None. Selecting None will not plot any errors. 
+    # Select which instrument to use. Only accepted are "MWA", "SKA", "HERA", 
+    # "All" or None. Selecting None will not plot any errors. 
     use_instrument = "SKA"
 
     if use_instrument == "MWA":
-        small_scale_err = 1.18e3   # 256 dish configuration at 1.0 h/Mpc.
-        large_scale_err = 0.812  # 256 dish configuration at 0.3 h/Mpc.
+        small_scale_err = 4.52e4   # 256 dish configuration at 1.0 h/Mpc.
+        large_scale_err = 1.18e3  # 256 dish configuration at 0.3 h/Mpc.
 
     elif use_instrument == "SKA":
         small_scale_err = 6.87e-1  # 1.0 h/Mpc. 
@@ -251,6 +252,10 @@ if __name__ == "__main__":
         small_scale_err = 2.25  # 0.56 h/Mpc. 
         large_scale_err = 2.65e-2  # 0.3 h/Mpc.
     elif use_instrument is None:
+        small_scale_err = 2.25  # 0.56 h/Mpc. 
+        large_scale_err = 2.65e-2  # 0.3 h/Mpc.
+    elif use_instrument is None:
+
         small_scale_err = None
         large_scale_err = None
     else:

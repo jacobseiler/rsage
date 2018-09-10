@@ -1032,7 +1032,7 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     #ax1.add_patch(e1)
 
     # Make a one-to-one line and plot it.
-    one_to_one = np.arange(0.0, 60.0, 1e-6) 
+    one_to_one = np.arange(0.0, 120.0, 1e-6) 
     ax1.plot(one_to_one, one_to_one, ls = '--', lw = 0.5, color = 'k')
 
     small_scale_string = "{0:.1f}".format(small_scale_def)
@@ -1068,7 +1068,7 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
-    ax1.text(30, 10, r"$\mathbf{Start}$", 
+    ax1.text(40, 10, r"$\mathbf{Start}$", 
              fontsize = ps.global_fontsize-4)
     ax1.text(2, 10, r"$\mathbf{End}$",
              fontsize = ps.global_fontsize-4)
