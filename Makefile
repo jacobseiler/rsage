@@ -1,8 +1,7 @@
 EXEC   = bin/rsage
 
 SOURCES := src/main.c \
-		   src/reion_redshift.c \
-		   src/check_ini_files.c
+		   src/reion_redshift.c
 
 OBJS := $(SOURCES:.c=.o)
 INCL   =	src/main.h \
