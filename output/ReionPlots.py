@@ -836,7 +836,7 @@ def plot_combined_history_tau(z_array_reion_allmodels,
     plt.close()
 
 
-def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
+def plot_ps_scales(P21_small_scale, P21_large_scale,
                    mass_frac_allmodels, z_array_reion_allmodels,
                    fixed_XHI_values, z_values, small_scale_def, large_scale_def,
                    small_scale_err, large_scale_err, model_tags, output_dir,
@@ -854,13 +854,11 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     Parameters
     ----------
 
-    k_allmodels : 3D nested list of floats. Outer length is number of models.
-                  Next is the number of snapshots then finally is the number of
-                  bins. 
-        The wavenumber the spectra are binned on. Units are h/Mpc.
-
-    P21, PHII : 3D nested list of floats. Dimensions are identical to ``k``.
-        The 21cm and HII power spectra. 21cm units are mK and HII is unitless.
+    P21_small_scale, P21_large_scale : 2D nested list of floats. Outer length
+                                       is number of models. Inner is number of
+                                       snapshots.
+        The 21cm power spectra at small and large scales (given by
+        ``small_scale_def`` and ``large_scale_def``).
 
     mass_frac_allmodels : 2D nested list of floats. Outer length is number of
                           models, inner is number of snapshots. 
@@ -903,99 +901,13 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    num_models = len(k_allmodels)
-
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
 
-    k_small_scale = []
-    k_large_scale = []
+    num_models = len(P21_small_scale)
 
-    P21_small_scale = []
-    P21_large_scale = []
-
-    P21_small_scale_err_low = []
-    P21_small_scale_err_up = []
-
-    P21_large_scale_err_low = []
-    P21_large_scale_err_up = []
-
-    PHII_small_scale = []
-    PHII_large_scale = []
-
-    # We first need to find the power on the specified scales.
     for model_number in range(num_models):
 
-        k_small_scale.append([])
-        k_large_scale.append([])
-
-        P21_small_scale.append([])
-        P21_large_scale.append([])
-
-        P21_small_scale_err_low.append([])
-        P21_small_scale_err_up.append([])
-
-        P21_large_scale_err_low.append([])
-        P21_large_scale_err_up.append([])
-
-        PHII_small_scale.append([])
-        PHII_large_scale.append([]) 
-
-        k_this_model = k_allmodels[model_number]
-        P21_this_model = P21_allmodels[model_number]
-        PHII_this_model = PHII_allmodels[model_number]
-
-        # For all the snapshots find the values at the specified scales.
-        for snap_idx in range(len(k_this_model)):
-            small_idx = (np.abs(k_this_model[snap_idx] - small_scale_def)).argmin()
-            large_idx = (np.abs(k_this_model[snap_idx] - large_scale_def)).argmin()
-
-            # Then grab the relevant values at those scales.
-            k_small = k_this_model[snap_idx][small_idx]
-            k_large = k_this_model[snap_idx][large_idx]
-
-            P21_small = P21_this_model[snap_idx][small_idx]
-            P21_large = P21_this_model[snap_idx][large_idx]
-
-            PHII_small = PHII_this_model[snap_idx][small_idx]
-            PHII_large = PHII_this_model[snap_idx][large_idx]
-
-            # Then append!
-            k_small_scale[model_number].append(k_small)
-            P21_small_scale[model_number].append(P21_small)
-            PHII_small_scale[model_number].append(PHII_small)
-
-            k_large_scale[model_number].append(k_large)
-            P21_large_scale[model_number].append(P21_large)
-            PHII_large_scale[model_number].append(PHII_large)
-
-            # If we're calculating errors, find the region we should shade.
-            # We only have the errors between z = 8-10 so if not in this range,
-            # append nan. 
-            if small_scale_err:
-                if z_array_reion_allmodels[model_number][snap_idx] < 8.0 or \
-                   z_array_reion_allmodels[model_number][snap_idx] > 10.0:
-
-                    P21_small_scale_err_low[model_number].append(P21_small)
-                    P21_small_scale_err_up[model_number].append(P21_small)
-
-                    P21_large_scale_err_low[model_number].append(P21_large)
-                    P21_large_scale_err_up[model_number].append(P21_large)
-
-                else:
-                    P21_small_scale_err_low[model_number].append(P21_small - \
-                                                                 small_scale_err) 
-                    P21_small_scale_err_up[model_number].append(P21_small + \
-                                                                small_scale_err)
-     
-                    P21_large_scale_err_low[model_number].append(P21_large - \
-                                                                 large_scale_err) 
-                    P21_large_scale_err_up[model_number].append(P21_large + \
-                                                                large_scale_err) 
-
-
-
-        # Now we have the power we can plot!
         ax1.plot(P21_small_scale[model_number],
                  P21_large_scale[model_number],
                  color = ps.colors[model_number],
@@ -1111,6 +1023,157 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
+
+
+def plot_beta_scales(k_allmodels, beta_allmodels, beta_small_scales,
+                     beta_large_scales, mass_frac_allmodels,
+                     z_array_reion_allmodels, fixed_XHI_values, ps_scales_z,
+                     small_scale_def, large_scale_def, small_scale_err,
+                     large_scale_err, model_tags, output_dir, output_tag,
+                     output_format):
+    """
+    Plots the small scale 21cm power spectrum as a function of the large scale
+    21cm power. 
+
+    We also mark the specified ``fixed_XHI_values`` to draw the eye.
+
+    .. note::
+        The snapshot range only covers reionization (not the full simulation
+        snapshot range).
+
+    Parameters
+    ----------
+
+    k_allmodels : 3D nested list of floats. Outer length is number of models.
+                  Next is the number of snapshots then finally is the number of
+                  bins.
+        The wavenumber the spectra are binned on. Units are h/Mpc.
+
+    beta_allmodels : 3D nested list of floats. Dimensions are equal to
+                     ``k_allmodels``.
+        The slope of the 21cm power spectra at all scales given by
+        ``k_allmodels``.
+
+    beta_small_scale, beta_large_scale : 2D nested list of floats. Outer length
+                                         is number of models. Inner is number of
+                                         snapshots.
+        The slope of the 21cm power spectra at small and large scales (given by
+        ``small_scale_def`` and ``large_scale_def``).
+
+    mass_frac_allmodels : 2D nested list of floats. Outer length is number of
+                          models, inner is number of snapshots. 
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    fixed_XHI_values : List of floats
+        The mass-averaged neutral hydrogen fraction we're marking on the plot. 
+
+    z_values : List of floats
+        If ``None``, does nothing.
+        If not ``None``, marks the specified redshifts on the plot instead of
+        the ``fixed_XHI_values``.
+
+    small_scale_def, large_scale_def : Floats.
+        The wavenumber values (in h/Mpc) that correspond to 'small' and 'large'
+        scales.
+
+    small_scale_err, large_scale_err : Floats.
+        The experimental uncertainty at the small and large scales.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    fig, ax = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
+                           sharey='row', figsize=(16, 6))
+
+    for model_number in range(len(k_allmodels)):
+        for fraction, val in enumerate(fixed_XHI_values):
+
+            idx = int((np.abs(mass_frac_allmodels[model_number] - val)).argmin())
+            this_ax = ax[fraction]
+
+            w = np.where(k_allmodels[model_number][fraction] > 9e-2)[0]
+            w = w[0:-1]
+            label = model_tags[model_number]
+
+            beta_allmodels[model_number][idx] = np.array(beta_allmodels[model_number][idx])
+
+            this_ax.plot(k_allmodels[model_number][idx][w],
+                         beta_allmodels[model_number][idx][w],
+                         color = ps.colors[model_number],
+                         dashes=ps.dashes[model_number],
+                         lw = 2, rasterized=True, label = label)
+
+            # Only need to adjust the axis once for each fraction.
+            if model_number != 0:
+                continue
+
+            this_ax = ps.adjust_axis(this_ax, ps.global_axiswidth,
+                                     ps.global_tickwidth,
+                                     ps.global_major_ticklength,
+                                     ps.global_minor_ticklength)
+
+            this_ax.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+                               size = ps.global_labelsize)
+            this_ax.set_xscale('log')
+
+            #this_ax.set_xlim([7e-2, 6])
+
+            HI_string = "{0:.2f}".format(fixed_XHI_values[fraction])
+
+            label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
+
+            this_ax.text(0.05, 0.9, label, transform = this_ax.transAxes,
+                         fontsize = ps.global_fontsize)
+
+            tick_locs = np.arange(-3, 1, 1.0)
+            this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+                                    fontsize = ps.global_fontsize)
+
+    ax[0].set_ylabel(r'$\mathbf{\beta}$',
+                     size = ps.global_labelsize)
+    #ax[0].set_yscale('log', nonposy='clip')
+
+    #tick_locs = np.arange(-1.0, 5.5, 1.0)
+    #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+    #                      fontsize = ps.global_fontsize)
+
+    leg = ax[0].legend(loc='lower right', numpoints=1,
+                       labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize-2)
+    leg.draw_frame(False)  # Don't want a box frame
+
+    fig.tight_layout()
+    fig.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
+    outputFile = "{0}/{1}.{2}".format(output_dir,
+                                     output_tag,
+                                     output_format)
+    fig.savefig(outputFile)
+    print('Saved file to {0}'.format(outputFile))
+
+    plt.close()
+
 
 def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
                     mass_frac_allmodels, XHII_fbase_allmodels,

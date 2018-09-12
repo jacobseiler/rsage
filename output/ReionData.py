@@ -798,6 +798,146 @@ def zreion_dens_cross(density_fbase_allmodels, density_precision_allmodels,
            bias_allmodels
 
 
+def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
+                     z_array_reion_allmodels, small_scale_def, large_scale_def,
+                     small_scale_err, large_scale_err, beta_allmodels=None):
+
+    num_models = len(k_allmodels)
+
+    k_small_scale = []
+    k_large_scale = []
+
+    P21_small_scale = []
+    P21_large_scale = []
+
+    PHII_small_scale = []
+    PHII_large_scale = []
+
+    P21_small_scale_err_low = []
+    P21_small_scale_err_up = []
+
+    P21_large_scale_err_low = []
+    P21_large_scale_err_up = []
+
+    if beta_allmodels:
+        beta_small_scale = []
+        beta_large_scale = []
+
+    for model_number in range(num_models):
+
+        k_small_scale.append([])
+        k_large_scale.append([])
+
+        P21_small_scale.append([])
+        P21_large_scale.append([])
+
+        P21_small_scale_err_low.append([])
+        P21_small_scale_err_up.append([])
+
+        P21_large_scale_err_low.append([])
+        P21_large_scale_err_up.append([])
+
+        PHII_small_scale.append([])
+        PHII_large_scale.append([]) 
+
+        k_this_model = k_allmodels[model_number]
+        P21_this_model = P21_allmodels[model_number]
+        PHII_this_model = PHII_allmodels[model_number]
+
+        if beta_allmodels:
+            beta_small_scale.append([])
+            beta_large_scale.append([])
+            beta_this_model = beta_allmodels[model_number]
+
+        # For all the snapshots find the values at the specified scales.
+        for snap_idx in range(len(k_this_model)):
+            small_idx = (np.abs(k_this_model[snap_idx] - small_scale_def)).argmin()
+            large_idx = (np.abs(k_this_model[snap_idx] - large_scale_def)).argmin()
+
+            # Then grab the relevant values at those scales.
+            k_small = k_this_model[snap_idx][small_idx]
+            k_large = k_this_model[snap_idx][large_idx]
+
+            P21_small = P21_this_model[snap_idx][small_idx]
+            P21_large = P21_this_model[snap_idx][large_idx]
+
+            PHII_small = PHII_this_model[snap_idx][small_idx]
+            PHII_large = PHII_this_model[snap_idx][large_idx]
+
+            # Then append!
+            k_small_scale[model_number].append(k_small)
+            P21_small_scale[model_number].append(P21_small)
+            PHII_small_scale[model_number].append(PHII_small)
+
+            k_large_scale[model_number].append(k_large)
+            P21_large_scale[model_number].append(P21_large)
+            PHII_large_scale[model_number].append(PHII_large)
+
+            if beta_allmodels:
+                beta_small = beta_this_model[snap_idx][small_idx]
+                beta_large = beta_this_model[snap_idx][large_idx]
+
+                beta_small_scale[model_number].append(beta_small)
+                beta_large_scale[model_number].append(beta_large)
+
+            # If we're calculating errors, find the region we should shade.
+            # We only have the errors between z = 8-10 so if not in this range,
+            # append nan. 
+            if small_scale_err:
+                if z_array_reion_allmodels[model_number][snap_idx] < 8.0 or \
+                   z_array_reion_allmodels[model_number][snap_idx] > 10.0:
+
+                    P21_small_scale_err_low[model_number].append(P21_small)
+                    P21_small_scale_err_up[model_number].append(P21_small)
+
+                    P21_large_scale_err_low[model_number].append(P21_large)
+                    P21_large_scale_err_up[model_number].append(P21_large)
+
+                else:
+                    P21_small_scale_err_low[model_number].append(P21_small - \
+                                                                 small_scale_err) 
+                    P21_small_scale_err_up[model_number].append(P21_small + \
+                                                                small_scale_err)
+     
+                    P21_large_scale_err_low[model_number].append(P21_large - \
+                                                                 large_scale_err) 
+                    P21_large_scale_err_up[model_number].append(P21_large + \
+                                                                large_scale_err) 
+
+
+    # Throw everything into a dict for easy passing.
+    scale_dict = {"k_small_scale" : k_small_scale,
+                  "k_large_scale" : k_large_scale, 
+                  "P21_small_scale" : P21_small_scale, 
+                  "P21_large_scale" : P21_large_scale, 
+                  "PHII_small_scale" : PHII_small_scale, 
+                  "PHII_large_scale" : PHII_large_scale}
+
+    if beta_allmodels:
+        scale_dict["beta_small_scale"] = beta_small_scale
+        scale_dict["beta_large_scale"] = beta_large_scale
+
+    return scale_dict
+ 
+
+def calc_ps_beta(k, P21, PHII):
+
+    beta = []
+
+    for model_number in range(len(k)):
+        beta.append([])
+        for snapnum in range(len(k[model_number])):
+            beta[model_number].append([])
+            for k_idx in range(len(k[model_number][snapnum])-1):
+                this_beta = (P21[model_number][snapnum][k_idx+1] - \
+                             P21[model_number][snapnum][k_idx]) / \
+                            (k[model_number][snapnum][k_idx+1] - \
+                             k[model_number][snapnum][k_idx])
+                beta[model_number][snapnum].append(this_beta)
+
+    return beta
+
+
 def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                           model_tags, reion_plots, output_dir, output_format):
     """    
@@ -978,6 +1118,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                            output_format)
 
     if reion_plots["optical_depth"] and reion_plots["history"] and rank == 0:
+        print("Plotting the combined optical depth/ionization history.")
         reionplot.plot_combined_history_tau(reion_data["z_array_reion_allmodels"],
                                             reion_data["lookback_array_reion_allmodels"],    
                                             reion_data["cosmology_allmodels"],
@@ -995,7 +1136,27 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                  reion_data["last_snap_allmodels"])
 
         if rank == 0:
-            reionplot.plot_ps_scales(k, P21, PHII, master_mass_frac,
+            print("Plotting the large scale power as a function of small "
+                  "scale.")
+
+            scale_power_dict = calc_scale_power(k, P21, PHII,
+                                                reion_data["z_array_reion_allmodels"],                    
+                                                reion_plots["small_scale_def"],
+                                                reion_plots["large_scale_def"],
+                                                reion_plots["small_scale_err"],
+                                                reion_plots["large_scale_err"])
+
+            k_small_scale = scale_power_dict["k_small_scale"]
+            k_large_scale = scale_power_dict["k_large_scale"]
+
+            P21_small_scale = scale_power_dict["P21_small_scale"]
+            P21_large_scale = scale_power_dict["P21_large_scale"]
+
+            PHII_small_scale = scale_power_dict["PHII_small_scale"]
+            PHII_large_scale = scale_power_dict["PHII_large_scale"]
+
+            reionplot.plot_ps_scales(P21_small_scale,
+                                     P21_large_scale, master_mass_frac, 
                                      reion_data["z_array_reion_allmodels"],
                                      reion_plots["fixed_XHI_values"],
                                      reion_plots["ps_scales_z"],
@@ -1005,6 +1166,52 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                      reion_plots["large_scale_err"],
                                      model_tags, output_dir, "ps_scales",
                                      output_format)
+
+    if reion_plots["ps_beta"]:
+        if not reion_plots["ps_scales"]:
+            k, P21, PHII = gather_ps(rank, size, comm,
+                                     reion_data["k_allmodels"],
+                                     reion_data["P21_allmodels"],
+                                     reion_data["PHII_allmodels"],
+                                     reion_data["first_snap_allmodels"],
+                                     reion_data["last_snap_allmodels"])
+
+        if rank == 0:
+            print("Plotting the slope of the 21cm power spectrum.")
+            beta = calc_ps_beta(k, P21, PHII)
+
+            scale_power_dict = calc_scale_power(k, P21, PHII,
+                                                reion_data["z_array_reion_allmodels"],                    
+                                                reion_plots["small_scale_def"],
+                                                reion_plots["large_scale_def"],
+                                                reion_plots["small_scale_err"],
+                                                reion_plots["large_scale_err"],
+                                                beta)
+
+            k_small_scale = scale_power_dict["k_small_scale"]
+            k_large_scale = scale_power_dict["k_large_scale"]
+
+            P21_small_scale = scale_power_dict["P21_small_scale"]
+            P21_large_scale = scale_power_dict["P21_large_scale"]
+
+            PHII_small_scale = scale_power_dict["PHII_small_scale"]
+            PHII_large_scale = scale_power_dict["PHII_large_scale"]
+
+            beta_small_scale = scale_power_dict["beta_small_scale"]
+            beta_large_scale = scale_power_dict["beta_large_scale"]
+
+            reionplot.plot_beta_scales(k, beta, beta_small_scale,
+                                       beta_large_scale,
+                                       master_mass_frac,
+                                       reion_data["z_array_reion_allmodels"],
+                                       reion_plots["fixed_XHI_values"],
+                                       reion_plots["ps_scales_z"],
+                                       reion_plots["small_scale_def"],
+                                       reion_plots["large_scale_def"],
+                                       reion_plots["small_scale_err"],
+                                       reion_plots["large_scale_err"],
+                                       model_tags, output_dir, "beta_scales",
+                                       output_format)
 
     if reion_plots["slices_fixed_XHI"] and rank == 0:
         print("Plotting slices at fixed XHI fractions.")

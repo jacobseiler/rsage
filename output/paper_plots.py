@@ -40,7 +40,7 @@ if __name__ == "__main__":
     ps.rsage_paper_plot_params()
 
     # Directory name where we want the plots to be saved.
-    output_directory = "./fej_sametau"
+    output_directory = "./beta"
 
     # Format all plots are saved as.
     output_format = "png"
@@ -88,7 +88,7 @@ if __name__ == "__main__":
                        reion_ini_model4,
                        reion_ini_model5]
 
-
+    '''
     gal_ini_files = [gal_ini_model4,
                      gal_ini_model6, 
                      gal_ini_model7] 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                        reion_ini_model6, 
                        reion_ini_model7] 
 
-    '''
+
     gal_ini_files = [gal_ini_model5,
                      gal_ini_model8, 
                      gal_ini_model9] 
@@ -111,10 +111,10 @@ if __name__ == "__main__":
     reion_ini_files = [reion_ini_model4,
                        reion_ini_model5]
     
-
+    '''
     gal_ini_files = [gal_ini_model1]
     reion_ini_files = [reion_ini_model1]
-    '''
+
     # These are the labels that will appear on the axis legends for each model.
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
@@ -122,6 +122,7 @@ if __name__ == "__main__":
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
+    '''
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
@@ -130,7 +131,7 @@ if __name__ == "__main__":
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.30, \beta = 0.12}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej} \: \alpha = 0.20, \beta = 0.19}$"]
 
-    '''
+
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 1.00 \: \beta = 1.00}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 4.50 \: \beta = 0.50}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 0.63 \: \beta = 1.50}$"]
@@ -204,6 +205,7 @@ if __name__ == "__main__":
     ps_fixed_XHI         = 0
     optical_depth        = 1
     ps_scales            = 1
+    ps_beta              = 1
     slices_fixed_XHI     = 0
     bubble_size          = 0
     zreion_dens_cross    = 0
@@ -305,6 +307,7 @@ if __name__ == "__main__":
                    "contours" :             contours, 
                    "optical_depth" :        optical_depth,
                    "ps_scales" :            ps_scales,
+                   "ps_beta" :              ps_beta,
                    "bubble_size" :          bubble_size,
                    "slices_fixed_XHI" :     slices_fixed_XHI,
                    "zreion_dens_cross" :    zreion_dens_cross,
