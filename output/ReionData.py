@@ -801,6 +801,8 @@ def zreion_dens_cross(density_fbase_allmodels, density_precision_allmodels,
 def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
                      z_array_reion_allmodels, small_scale_def, large_scale_def,
                      small_scale_err, large_scale_err, beta_allmodels=None):
+    """
+    """
 
     num_models = len(k_allmodels)
 
@@ -840,9 +842,9 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
         PHII_small_scale.append([])
         PHII_large_scale.append([]) 
 
-        k_this_model = k_allmodels[model_number]
-        P21_this_model = P21_allmodels[model_number]
-        PHII_this_model = PHII_allmodels[model_number]
+        k_this_model = np.array(k_allmodels[model_number])
+        P21_this_model = np.array(P21_allmodels[model_number])
+        PHII_this_model = np.array(PHII_allmodels[model_number])
 
         if beta_allmodels:
             beta_small_scale.append([])
@@ -921,21 +923,66 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
  
 
 def calc_ps_beta(k, P21, PHII):
+    """
+    Calculates the slope of the 21cm power spectra.
+
+    .. note::
+        We calculate the slope on k wavenumbers binned in pseudo-logspace.
+
+    Parameters
+    ----------
+
+    k: 3D nested list of floats. Outer length is number of models, next is
+       number of snapshots processed by this processor and final is the number
+       of wavenumber bins.
+        Wavenumber the spectra are binned on (units of Mpc/h). Processor
+        unique.
+
+    P21_allmodels, PHII_allmodels : 3D nested lists of floats. Dimensions are
+                                    identical to ``k_allmodels``.
+        The 21cm and HII power spectra for each model at each snapshot.
+
+    Returns
+    ---------
+
+    k_allmodels, beta : 3D nested list of floats. Same dimensions as ``k``.
+        The pseudo-logspace wavenumber bins and the slope of the 21cm power
+        spectrum at each wavenumber.
+    """
 
     beta = []
 
+    # We want to calculate beta in binned k to get a better signal. We want
+    # bins spaced every 0.1 from 0.1->1.0 and then spaced every 1.0 from
+    # 1.0->8.0.
+    bins_low = np.arange(0.1, 1.0, 0.1)
+    bins_high = np.arange(1.0, 9.0, 1.0)
+
+    k_bins = np.concatenate((bins_low, bins_high))
+    k_allmodels = []
+
     for model_number in range(len(k)):
         beta.append([])
+        k_allmodels.append([])
+
         for snapnum in range(len(k[model_number])):
             beta[model_number].append([])
-            for k_idx in range(len(k[model_number][snapnum])-1):
-                this_beta = (P21[model_number][snapnum][k_idx+1] - \
-                             P21[model_number][snapnum][k_idx]) / \
-                            (k[model_number][snapnum][k_idx+1] - \
-                             k[model_number][snapnum][k_idx])
-                beta[model_number][snapnum].append(this_beta)
+            k_allmodels[model_number].append([])
 
-    return beta
+            # Calculate the binned 21cm PS.
+            k_inds = np.digitize(k[model_number][snapnum], k_bins)
+            P21_binned = np.empty(len(k_bins))
+            for k_idx in range(len(k_bins)):
+                w_ind = np.where(k_inds == k_idx)[0]
+                P21_binned[k_idx] = np.mean(P21[model_number][snapnum][w_ind])
+
+            for k_idx in range(len(k_bins)-1):
+                this_beta = (P21_binned[k_idx+1] - P21_binned[k_idx]) / \
+                            (k_bins[k_idx+1] - k_bins[k_idx])
+                beta[model_number][snapnum].append(this_beta)
+                k_allmodels[model_number][snapnum].append(k_bins[k_idx])
+
+    return k_allmodels, beta
 
 
 def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
@@ -1178,9 +1225,9 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
 
         if rank == 0:
             print("Plotting the slope of the 21cm power spectrum.")
-            beta = calc_ps_beta(k, P21, PHII)
+            k_bins, beta = calc_ps_beta(k, P21, PHII)
 
-            scale_power_dict = calc_scale_power(k, P21, PHII,
+            scale_power_dict = calc_scale_power(k_bins, P21, PHII,
                                                 reion_data["z_array_reion_allmodels"],                    
                                                 reion_plots["small_scale_def"],
                                                 reion_plots["large_scale_def"],
@@ -1200,7 +1247,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
             beta_small_scale = scale_power_dict["beta_small_scale"]
             beta_large_scale = scale_power_dict["beta_large_scale"]
 
-            reionplot.plot_beta_scales(k, beta, beta_small_scale,
+            reionplot.plot_beta_scales(k_bins, beta, beta_small_scale,
                                        beta_large_scale,
                                        master_mass_frac,
                                        reion_data["z_array_reion_allmodels"],
@@ -1491,7 +1538,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
             # If we're plotting the power spectra in scale space need to
             # calculate them at every single snapshot.
-            if reion_plots["ps_scales"]:
+            if reion_plots["ps_scales"] or reion_plots["ps_beta"]:
                 T0 = T_naught(z_array_reion[snap_idx], cosmology.H(0).value/100.0,
                               cosmology.Om0, cosmology.Ob0)
 

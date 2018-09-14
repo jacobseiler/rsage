@@ -1110,11 +1110,12 @@ def plot_beta_scales(k_allmodels, beta_allmodels, beta_small_scales,
             idx = int((np.abs(mass_frac_allmodels[model_number] - val)).argmin())
             this_ax = ax[fraction]
 
-            w = np.where(k_allmodels[model_number][fraction] > 9e-2)[0]
-            w = w[0:-1]
-            label = model_tags[model_number]
-
+            k_allmodels[model_number][idx] = np.array(k_allmodels[model_number][idx])
             beta_allmodels[model_number][idx] = np.array(beta_allmodels[model_number][idx])
+
+            w = np.where(k_allmodels[model_number][idx] > 9e-2)[0]
+            w = w[1:-1]
+            label = model_tags[model_number]
 
             this_ax.plot(k_allmodels[model_number][idx][w],
                          beta_allmodels[model_number][idx][w],
@@ -1144,9 +1145,9 @@ def plot_beta_scales(k_allmodels, beta_allmodels, beta_small_scales,
             this_ax.text(0.05, 0.9, label, transform = this_ax.transAxes,
                          fontsize = ps.global_fontsize)
 
-            tick_locs = np.arange(-3, 1, 1.0)
-            this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-                                    fontsize = ps.global_fontsize)
+            #tick_locs = np.arange(-3, 1, 1.0)
+            #this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+            #                        fontsize = ps.global_fontsize)
 
     ax[0].set_ylabel(r'$\mathbf{\beta}$',
                      size = ps.global_labelsize)
