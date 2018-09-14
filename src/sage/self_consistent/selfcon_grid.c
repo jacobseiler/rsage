@@ -32,6 +32,7 @@ struct SELFCON_GRID_STRUCT *MPI_sum_grids(void);
 // Local Variables //
 
 #define STARBURSTSTEP 0.1 // This is the step size for the Starburst99 data (in Myr). 
+#define LOOKUPTABLE_MASS 1e6 // The galaxy mass (in Msun) we ran Starburst99 for.
 
 // Local Proto-Types //
 
@@ -494,7 +495,10 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
 
       double t;
       int32_t i, lookup_idx;
-      const double lookuptable_mass = 1.0e-4*Hubble_h;
+
+      // We ran STARBURST99 for a single mass and scale our results.
+      // First convert the mass to internal code units. 
+      const double code_lookuptable_mass = LOOKUPTABLE_MASS*1.0e-10*Hubble_h;
 
       *Ngamma_HI = 0;
       *Ngamma_HeI = 0;
@@ -508,7 +512,7 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
         t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
         lookup_idx = (t / 0.1); // Find the index in the lookup table. 
         
-        *Ngamma_HI += exp10(log10(g->Stellar_Stars[i] / lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);        
+        *Ngamma_HI += exp10(log10(g->Stellar_Stars[i] / code_lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);        
       }
 
       // The units of Ngamma are 1.0e50 photons/s.  Hence a negative value is not allowed.
@@ -523,7 +527,7 @@ int32_t determine_nion(struct GALAXY *g, int32_t snapshot, float *Ngamma_HI, flo
           lookup_idx = (t / 0.1); // Find the index in the lookup table. 
 
           double total = 0.0;
-          total += exp10(log10(g->Stellar_Stars[i] / lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);  
+          total += exp10(log10(g->Stellar_Stars[i] / code_lookuptable_mass) + stars_Ngamma[lookup_idx] - 50.0);  
           printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_Ngamma[lookup_idx] %.4e\tRunningTotal %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_Ngamma[lookup_idx], total); 
         }
         return EXIT_FAILURE;
