@@ -325,8 +325,30 @@ def plot_bouwens2015(cosmo, t_bigbang, ax):
 
 def adjust_axis(ax, axis_width, tickwidth, major_ticklength,
                 minor_ticklength):
+    """
+    Adjusts the tick properties of the axis.  Sets the tick lengths, widths and
+    also ensures that the ticks are pointing inwards.
 
-    for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+    Parameters
+    ----------
+
+    ax : ``matplotlib`` axis.
+        The axis we're adjusting.
+
+    axis_width, tickwidth : Floats.
+        The desired width (or thickness) of the axis and ticks.
+
+    major_ticklength, minor_ticklength : Floats.
+        The desired length of the major and minor ticks.
+
+    Returns
+    ---------
+
+    ax : ``matplotlib`` axis.
+        The axis with the properties adjusted.
+    """
+
+    for axis in ['top','bottom','left','right']:
         ax.spines[axis].set_linewidth(axis_width)
 
     ax.tick_params(which = 'both', direction='in',
