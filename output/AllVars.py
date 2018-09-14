@@ -223,55 +223,103 @@ def Set_Constants():
     density_baryons = 2.5e-7 # Number density of baryons in cm^-3 (flat Universe).
 
 
-def spectralflux_wavelength_to_frequency(Flux, Wavelength):
+def spectralflux_wavelength_to_frequency(flux, wavelength):
+    """
+    Converts a given spectral flux at a specific wavelength (f_lambda) to the
+    spectral flux density at the equivalent frequency (f_nu).
 
-    # For a given spectral flux at a specific wavelength (f_lamba), this function converts it to the spectral flux density at a specific frequency (f_nu).
+    Parameters
+    ----------
 
-    ### INPUT ###
-    # Flux: The spectral flux density in units of erg s^-1 A^-1 cm^-2
-    # Wavelength: The wavelength we are determining the spectral flux density at in units of Angstroms (A).
+    flux : Float.
+        The spectral flux density at the wavelength ``wavelength``.
 
-    ### OUTPUT ###
-    # f_nu: The spectral flux density at a specific frequency in units of Janksy (W Hz^-1 m^-2).
+    wavelength : Float.
+        The wavelength we're converting at.
 
-    f_nu = 3.34e4 * pow(Wavelength, 2) * Flux
+    Returns
+    ---------
+
+    f_nu : Float.
+        The spectral flux density at the ``wavelength`` equivalent frequency.
+
+    Units
+    ---------
+
+    ``flux`` units are erg s^-1 A^-1 cm^-2 (where A is Angstroms).
+    ``wavelength`` units are A.
+    ``f_nu`` units are Janksy (W Hz^-1 m^-2). 
+    """
+
+    f_nu = 3.34e4 * pow(wavelength, 2) * flux
   
     return f_nu
 
-def Luminosity_to_Flux(Luminosity, Distance):
 
-    # Converts a luminosity to an observed flux at some distance.
-    ## NOTE THAT INPUT AND OUTPUT ARE IN LOG UNITS.
+def luminosity_to_flux(luminosity, distance):
+    """
+    Converts an intrinsic luminosity to an observed flux.
 
-    ### INPUT ###
-    # Luminosity: The intrinisic luminosity being converted in units of erg s^-1 A^-1. <<<NOTE MUST BE IN LOG UNITS>>>.
-    # Distance: The distance at which the flux is being observed in units of parsec.
+    Parameters
+    ----------
 
-    ### OUTPUT ###
-    # Flux: The observed flux in units of erg s^-1 A^-1 cm^-2. 
+    luminosity : Float.
+        The instrinsic luminosity we're converting.
 
-    F = Luminosity - np.log10(4*np.pi*pow(Distance * pc_to_m * m_to_cm, 2.0))
+    distance : Float.
+        The distance the flux is being measured/observed at.
 
-    return F
+    Returns
+    ---------
 
-def Luminosity_to_ABMag(Luminosity, Wavelength):
-     
-    # Converts an intrinsic luminosity into absolute AB magnitude at a specified wavelength.
-    ## NOTE THAT INPUT IS IN LOG.
+    flux : Float.
+        The observed flux.
 
-    ### INPUT ###
-    # Luminosity: The intrinsic luminosity of the star in units of erg s^-1 A^-1.  <<NOTE MUST BE IN LOG UNITS>>>.
-    # Wavelength: The wavelength we want the magnitude at.
+    Units
+    ---------
 
-    ### OUTPUT ###
-    # M: The absolute magnitude in the AB system.
+    ``luminosity`` units are log10(erg s^-1 A^-1) (where A is Angstroms).
+    ``distance`` units are pc.
+    ``flux`` units are log10(erg s^-1 A^-1 cm^-2). 
+    """
+
+    flux = luminosity - np.log10(4*np.pi*pow(distance * pc_to_m * m_to_cm, 2.0))
+
+    return flux
+
+
+def luminosity_to_ABMag(luminosity, wavelength):
+    """
+    Converts an intrinsic luminosity to an absolute AB magnitude at a specified
+    wavelength. 
+
+    Parameters
+    ----------
+
+    luminosity : Float.
+        The instrinsic luminosity we're converting.
+
+    wavelength : Float.
+        The wavelength we're calculating the magnitude at. 
+
+    Returns
+    ---------
+
+    M : Float.
+        The AB absolute magnitude.
+
+    Units
+    ---------
+
+    ``luminosity`` units are log10(erg s^-1 A^-1) (where A is Angstroms).
+    ``wavelength`` units are A. 
+    ``M`` units are unitless. 
+    """
 
     Flux = Luminosity_to_Flux(Luminosity, 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units. 
     f_nu = spectralflux_wavelength_to_frequency(10**Flux, 1600) # Spectral flux density in Janksy.
     M = -2.5 * np.log10(f_nu) + 8.90 # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
-    #print "Flux from AllVars.py", Flux
-    #print "M from AllVars.py", M
     return M
 
 
