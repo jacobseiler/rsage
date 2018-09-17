@@ -464,37 +464,86 @@ def submit_slurm_jobs(slurm_names):
         command = "sbatch {0}".format(slurm_fname)        
         subprocess.call(command, shell=True)
          
+
+def create_and_submit(SAGE_fields_update, cifog_fields_update, run_directories,
+                      base_SAGE_ini, base_cifog_ini, base_slurm_file, Nproc,
+                      submit_slurm=0): 
+    """
+    Creates all the new ini files and submits them to the queue (if requested).
+
+    Parameters
+    ----------
+
+    SAGE_fields_update, cifog_fields_update : Dictionaries
+        Fields that will be updated and their new value.
+
+    run_directories : List of strings, length equal to number of runs 
+        Path to the base ``RSAGE`` directory for each run where all the model
+        output will be placed.
+
+    base_SAGE_ini, base_cifog_ini : Strings
+        Paths to the template SAGE and cifog ``.ini`` files.
+
+    base_slurm_file : String
+        Path to the template ``.slurm`` file.
+
+    Nproc : Integer.
+        Number of processors the code will be run on. 
+
+    submit_slurm : Integer, optional.
+        Flag to denote whether we're submitting the jobs to the PBS queue.
+
+        .. note::
+            Be very careful with this. If you have (e.g.,) 8 different
+            parameters, this will submit 8 jobs. 
+
+    Returns
+    ----------
+
+    None.
+    """
+
+    # First ensure that the lengths of the input arrays are all in order.
+    check_input_parameters(SAGE_fields_update, cifog_fields_update,
+                           run_directories, base_SAGE_ini, base_cifog_ini,
+                           base_slurm_file)
+
+    # Then generate the new ini files.
+    SAGE_ini_names, cifog_ini_names = make_ini_files(base_SAGE_ini, base_cifog_ini, 
+                                                     SAGE_fields_update, cifog_fields_update,
+                                                     run_directories)
+
+    # Make the slurm files that correspond to these files.
+    slurm_names = make_slurm_files(base_slurm_file, SAGE_ini_names, 
+                                   cifog_ini_names, run_directories, Nproc)
+
+    # If we're submitting, submit em!
+    if submit_slurm:
+        submit_slurm_jobs(slurm_names)
+
  
 if __name__ == '__main__':
 
-    #########################################################################
+    # ===================================================================== #
     # Specify here the SAGE parameters that you want to change for each run #
-    #########################################################################
-
-    fescPrescription = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
-    alpha = [0.50, 0.60, 0.70, 0.80, 0.90, 1.10, 1.20, 1.30, 1.40, 1.40]
-    beta = [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
-    delta = [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
+    # ===================================================================== #
+    fescPrescription = [0, 0, 0]
+    #alpha = [0.50, 0.60, 0.70, 0.80, 0.90, 1.10, 1.20, 1.30, 1.40, 1.40]
+    beta = [0.15, 0.20, 0.25]
+    #delta = [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
     #MH_low = [1.0e8, 1.0e8, 1.0e8]
     #fesc_low = [0.95, 0.90, 0.85]
     #MH_high = [1.0e12, 1.0e12, 1.0e12]
     #fesc_high = [0.05, 0.05, 0.05]
 
-    FileNameGalaxies = ["SFR_alpha0.50_beta1.00_delta1.00",
-                        "SFR_alpha0.60_beta1.00_delta1.00",
-                        "SFR_alpha0.70_beta1.00_delta1.00",
-                        "SFR_alpha0.80_beta1.00_delta1.00",
-                        "SFR_alpha0.90_beta1.00_delta1.00",
-                        "SFR_alpha1.10_beta1.00_delta1.00",
-                        "SFR_alpha1.20_beta1.00_delta1.00",
-                        "SFR_alpha1.30_beta1.00_delta1.00",
-                        "SFR_alpha1.40_beta1.00_delta1.00",
-                        "SFR_alpha1.50_beta1.00_delta1.00"]
+    FileNameGalaxies = ["const_0.15",
+                        "const_0.20",
+                        "const_0.25"]
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription,
-                           "alpha" : alpha,
+                           #"alpha" : alpha,
                            "beta" : beta,
-                           "delta" : delta,
+                           #"delta" : delta,
                            #"MH_low" : MH_low,
                            #"fesc_low" : fesc_low,
                            #"MH_high" : MH_high,
@@ -502,58 +551,33 @@ if __name__ == '__main__':
                            "FileNameGalaxies" : FileNameGalaxies
                          }
 
-    ##########################################################################
+    # ====================================================================== #
     # Specify here the cifog parameters that you want to change for each run #
-    ##########################################################################
-
+    # ====================================================================== #
     cifog_fields_update = {}
 
-    ################################################
+    # ============================================ #
     # Specify here the path directory for each run #
-    ################################################
+    # ============================================ #
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant",                       
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant"]
 
-    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR"]
-
-    #########################################################################
+    # ===================================================================== #
     # Specify here the path to the base ini files (shouldn't need to touch) #  
-    #########################################################################
-
+    # ===================================================================== #
     base_SAGE_ini = "{0}/../ini_files/kali_SAGE.ini".format(script_dir)
     base_cifog_ini = "{0}/../ini_files/kali_cifog.ini".format(script_dir)
     base_slurm_file = "{0}/../run_rsage.slurm".format(script_dir)
 
-    #####################
-    # Misc for each run # 
-    #####################
-    
+    # Misc. 
     Nproc = 32  # Number of processors to run on.
 
-    #############
-    # Functions # 
-    #############
+    # CAREFUL CAREFUL.
+    # Setting this to 1 will submit the slurm scripts to the PBS queue.
+    submit_slurm = 1
 
-    check_input_parameters(SAGE_fields_update, cifog_fields_update,
-                           run_directories, base_SAGE_ini, base_cifog_ini,
-                           base_slurm_file)
-
-    SAGE_ini_names, cifog_ini_names = make_ini_files(base_SAGE_ini, base_cifog_ini, 
-                                                     SAGE_fields_update, cifog_fields_update,
-                                                     run_directories)
-
-    slurm_names = make_slurm_files(base_slurm_file, SAGE_ini_names, 
-                                   cifog_ini_names, run_directories, Nproc)
-
-    ###########################################################################
-    # CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL CAREFUL # 
-    ###########################################################################
-    # This function will submit all the jobs onto the queue.
-    submit_slurm_jobs(slurm_names)
+    # Now run!
+    create_and_submit(SAGE_fields_update, cifog_fields_update, run_directories,
+                      base_SAGE_ini, base_cifog_ini, base_slurm_file, Nproc,
+                      submit_slurm) 
