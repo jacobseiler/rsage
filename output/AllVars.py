@@ -316,8 +316,8 @@ def luminosity_to_ABMag(luminosity, wavelength):
     ``M`` units are unitless. 
     """
 
-    Flux = Luminosity_to_Flux(Luminosity, 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units. 
-    f_nu = spectralflux_wavelength_to_frequency(10**Flux, 1600) # Spectral flux density in Janksy.
+    flux = luminosity_to_flux(luminosity, 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units. 
+    f_nu = spectralflux_wavelength_to_frequency(10**flux, 1600) # Spectral flux density in Janksy.
     M = -2.5 * np.log10(f_nu) + 8.90 # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
     return M

@@ -112,8 +112,8 @@ float luminosity_to_flux(float luminosity, float distance)
 
 float luminosity_to_ABMag(float luminosity, float wavelength)
 {
-    float Flux = luminosity_to_flux(luminosity, 10.0); // Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units.
-    float f_nu = spectralflux_wavelength_to_frequency(pow(10, Flux), wavelength); // Spectral flux density in Janksy.
+    float flux = luminosity_to_flux(luminosity, 10.0); // Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units.
+    float f_nu = spectralflux_wavelength_to_frequency(pow(10, flux), wavelength); // Spectral flux density in Janksy.
     float M = -2.5 * log10(f_nu) + 8.90; //AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
     return M;
