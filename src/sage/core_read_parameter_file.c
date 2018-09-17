@@ -281,6 +281,10 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &fesc_high;
   id[nt++] = DOUBLE;
 
+  strcpy(tag[nt], "calcUVMag");
+  addr[nt] = &calcUVMag;
+  id[nt++] = INT;
+
   if((fd = fopen(fname, "r")))
   {
     while(!feof(fd))

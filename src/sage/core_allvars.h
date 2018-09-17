@@ -18,6 +18,7 @@ do {                                                                \
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50
 #define  ABSOLUTEMAXSNAPS 1000
+#define STELLAR_TRACKING_TIME 100 // This is the time (Myr) we wish to track the stellar history for. 
 
 #define  MAXLEN      1024
 #define  MAX_STRING_LEN      1024
@@ -465,11 +466,16 @@ extern float N_tbins;
 
 // Ionizing Photon Lookup Tables
 
+extern int32_t PhotonPrescription;
 extern float *stars_tbins;
 extern float *stars_Ngamma;
-extern int32_t PhotonPrescription;
 extern double TimeResolutionStellar; 
 extern int32_t StellarTracking_Len;
 extern int32_t HaloPartCut;
+
+// UV Magnitude
+
+extern int32_t calcUVMag;
+extern float *stars_LUV;
 
 #endif  // #ifndef ALLVARS_H
