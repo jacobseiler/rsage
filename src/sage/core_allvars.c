@@ -226,5 +226,5 @@ int32_t StellarTracking_Len;
 
 // UV Magnitude
 
-int32_t calcUVMag;
+int32_t calcUVmag;
 float *stars_LUV;

@@ -204,6 +204,10 @@ struct GALAXY
                         // Its possible tat we want to do tracking of stellar ages to determine Nion but not do delayed SN (or vice versa).
   double Total_Stellar_SF_Time;
   double Total_Stellar_Stars;
+
+  // UV Magnitudes
+  float *MUV;
+
 }
 *Gal, *HaloGal, *MergedGal;
 
@@ -475,7 +479,7 @@ extern int32_t HaloPartCut;
 
 // UV Magnitude
 
-extern int32_t calcUVMag;
+extern int32_t calcUVmag;
 extern float *stars_LUV;
 
 #endif  // #ifndef ALLVARS_H

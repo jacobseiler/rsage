@@ -13,12 +13,17 @@
 #include "../core_proto.h"
 #include "common.h"
 #include "selfcon_grid.h"
+#include "../UVmag/UVmag.h"
+#include "../utils/conversion.h"
 
 // Local Variables //
 
 // Local Proto-Types //
 
 // External Functions //
+
+// Updated at the end of the STEPS loop for non-merging/disrupted galaxies.
+// For merging/disrupted galaxies, updates before merging/disruption is handled.
 
 void update_temporal_array(int p, int halonr, int steps_completed)
 {
@@ -131,11 +136,27 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 #endif
   }
 
+  if (calcUVmag == 1)
+  {
+    float LUV;
+    status = calc_LUV(&Gal[p], &LUV);
+    if (status != EXIT_SUCCESS)
+    {
+      ABORT(EXIT_FAILURE);
+    }
+
+    // LUV is in units of 1.0e50 ergs s^-1 A^-1. Need to convert to log10 units first.
+    LUV = log10(LUV) + 50.0;
+
+    // We calculat the UV Magnitude at 1600 Angstroms.
+    Gal[p].MUV[SnapCurr] = luminosity_to_ABMag(LUV, 1600); 
+
+  }
 
   double reff = 3.0 * Gal[p].DiskScaleRadius;
-
   // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h 
   double cold_crit = 0.19 * Gal[p].Vvir * reff;
+
   Gal[p].ColdCrit[SnapCurr] = cold_crit;
 
 }
@@ -182,6 +203,7 @@ int32_t malloc_temporal_arrays(struct GALAXY *g)
   ALLOCATE_ARRAY_MEMORY(g->GridNgamma_HI,       MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->Gridfesc,            MAXSNAPS);
   ALLOCATE_ARRAY_MEMORY(g->ColdCrit,            MAXSNAPS);
+  ALLOCATE_ARRAY_MEMORY(g->MUV,                 MAXSNAPS);
 
   if (IRA == 0)
   {
@@ -232,6 +254,7 @@ void free_temporal_arrays(struct GALAXY *g)
   myfree(g->GridNgamma_HI,       sizeof(*(g->GridNgamma_HI))       * MAXSNAPS);
   myfree(g->Gridfesc,            sizeof(*(g->Gridfesc))            * MAXSNAPS);
   myfree(g->ColdCrit,            sizeof(*(g->ColdCrit))            * MAXSNAPS);
+  myfree(g->MUV,                 sizeof(*(g->MUV))                 * MAXSNAPS);
 
   if (IRA == 0)
   {

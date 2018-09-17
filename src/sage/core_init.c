@@ -119,7 +119,7 @@ void sage_init(void)
     }
   }
 
-  if (calcUVMag == 1)
+  if (calcUVmag == 1)
   {
     status = init_UVlookup();
     if (status != EXIT_SUCCESS)
@@ -128,7 +128,7 @@ void sage_init(void)
     }
   }
 
-  if ((PhotonPrescription == 1) || (calcUVMag == 1))
+  if ((PhotonPrescription == 1) || (calcUVmag == 1))
   {
     StellarTracking_Len = STELLAR_TRACKING_TIME / TimeResolutionStellar;
   }

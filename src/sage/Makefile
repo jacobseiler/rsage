@@ -16,7 +16,8 @@ LIBSRC :=  sage.c core_read_parameter_file.c core_init.c core_io_tree.c core_all
            model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
            io/tree_binary.c \
 		   self_consistent/selfcon.c self_consistent/selfcon_grid.c self_consistent/grid.c self_consistent/common.c \
-		   UVmag/init_UV.c
+		   UVmag/UVmag.c \
+		   utils/conversion.c
 
 SRC := main.c $(LIBSRC)
 OBJS := $(SRC:.c=.o)
@@ -28,6 +29,7 @@ INCL   =	core_allvars.h core_proto.h  core_simulation.h \
 			io/tree_binary.h \
 			self_consistent/selfcon.h self_consistent/selfcon_grid.h self_consistent/grid.h self_consistent/common.h \
 			UVmag/UVmag.h \
+			utils/conversion.h \
 			./Makefile
 
 UNAME := $(shell uname)
