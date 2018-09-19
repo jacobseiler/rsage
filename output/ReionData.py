@@ -800,8 +800,51 @@ def zreion_dens_cross(density_fbase_allmodels, density_precision_allmodels,
 
 def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
                      z_array_reion_allmodels, small_scale_def, large_scale_def,
-                     small_scale_err, large_scale_err, calc_beta=False): 
+                     small_scale_err, large_scale_err, calc_beta=False,
+                     debug=False):
     """
+    Calculates the power at specified small and large scales. Also calculates
+    the slope between these points if specified.
+
+    Parameters
+    ----------
+
+    k_allmodels : 3D nested list of floats. Outer length is number of models,
+                  next is number of snapshots processed by this processor and
+                  final is the number of wavenumber bins.
+        Wavenumber the spectra are binned on (units of Mpc/h).
+
+    P21_allmodels, PHII_allmodels : 3D nested lists of floats. Dimensions are
+                                    identical to ``k_allmodels``.
+        The 21cm and HII power spectra for each model at each snapshot.
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    small_scale_def, large_scale_def : Floats.
+        The wavenumber values (in h/Mpc) that correspond to 'small' and 'large'
+        scales.
+
+    small_scale_err, large_scale_err : Floats.
+        The 21cm power spectrum uncertainty a specific instrument (e.g., MWA or
+        SKA, specified by the user in ``paper_plots.py``) has at the small and
+        large scales. 
+
+    calc_beta : Boolean, optional.
+        Flag to denote whether we need to calculate the slope between the large
+        and small scale 21cm spectra.
+
+    debug : Boolean, optional.
+        Flag to control whether we need to print out some information. 
+
+    Returns
+    ---------
+
+    scale_dict : Dictionary.
+        A dictionary containing the k-wavenumber, 21cm power, HII power at
+        large and small scales. If ``calc_beta == True``, also contains the
+        slope between small and large scale power with the associated error.
     """
 
     num_models = len(k_allmodels)
@@ -890,18 +933,21 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
                     P21_large_scale_err_up[model_number].append(P21_large + \
                                                                 large_scale_err) 
 
-
-    # If we want to calculate the slope of the scale-space trajectory (i.e.,
-    # beta), let's do it!
+    # If we want to calculate the slope between large-scale and small-scale
+    # power, do it!
     if calc_beta:
 
         P21_beta = []
         PHII_beta = []
 
+        P21_beta_error = []
+
         for model_number in range(num_models):
 
             P21_beta.append([])
             PHII_beta.append([])
+
+            P21_beta_error.append([])
 
             k_large_scale_this_model = k_large_scale[model_number]
             k_small_scale_this_model = k_small_scale[model_number]
@@ -913,29 +959,44 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
             PHII_large_scale_this_model = PHII_large_scale[model_number]
 
             for snap_idx in range(len(P21_small_scale_this_model)):
-                P21_beta_this_snap = (P21_large_scale_this_model[snap_idx] - \
-                                      P21_small_scale_this_model[snap_idx]) / \
-                                     (k_large_scale_this_model[snap_idx] - \
-                                      k_small_scale_this_model[snap_idx])
 
-                PHII_beta_this_snap = (PHII_large_scale_this_model[snap_idx] - \
-                                       PHII_small_scale_this_model[snap_idx]) / \
-                                     (k_large_scale_this_model[snap_idx] - \
-                                      k_small_scale_this_model[snap_idx])
+                k_large_snap = k_large_scale_this_model[snap_idx]
+                k_small_snap = k_small_scale_this_model[snap_idx]
 
-                '''
-                P21_beta_this_snap = (np.log10(P21_large_scale_this_model[snap_idx]) - \
-                                      np.log10(P21_small_scale_this_model[snap_idx])) / \
-                                     (np.log10(k_large_scale_this_model[snap_idx]) - \
-                                      np.log10(k_small_scale_this_model[snap_idx]))
+                P21_large_snap = P21_large_scale_this_model[snap_idx]
+                P21_small_snap = P21_small_scale_this_model[snap_idx]
 
-                PHII_beta_this_snap = (np.log10(PHII_large_scale_this_model[snap_idx]) - \
-                                      np.log10(PHII_small_scale_this_model[snap_idx])) / \
-                                     (np.log10(k_large_scale_this_model[snap_idx]) - \
-                                      np.log10(k_small_scale_this_model[snap_idx]))
-                '''
-                P21_beta[model_number].append(P21_beta_this_snap)
-                PHII_beta[model_number].append(PHII_beta_this_snap)
+                PHII_large_snap = PHII_large_scale_this_model[snap_idx]
+                PHII_small_snap = PHII_small_scale_this_model[snap_idx]
+
+                P21_beta_snap = (P21_large_snap - P21_small_snap) / \
+                                (k_large_snap - k_small_snap)
+
+                PHII_beta_snap = (PHII_large_snap - PHII_small_snap) / \
+                                 (k_large_snap - k_small_snap)
+
+                # Assume that there's no uncertainty in the k-values. Then
+                # delta(Slope)/slope = sqrt((delta(P_Large)/P_large)^2 + (delta(P_small)/P_small)^2)
+                P21_error_snap = P21_beta_snap * np.sqrt((large_scale_err/P21_large_snap)**2 + \
+                                                         (small_scale_err/P21_small_snap)**2)
+
+                if debug:
+                    print("")
+                    print("Snap {0}".format(snap_idx))
+                    print("P21_small {0}\tP21_small_err {1}\tFrac "
+                          "{2}".format(P21_small_snap, small_scale_err,
+                                       small_scale_err / P21_small_snap))
+                    print("P21_large {0}\tP21_large_err {1}\tFrac "
+                          "{2}".format(P21_large_snap, large_scale_err,
+                                       large_scale_err / P21_large_snap))
+                    print("P21_beta {0}\tP21_beta_error {1}".format(P21_beta_snap,
+                                                                    P21_error_snap))
+                    print("")
+
+                P21_beta[model_number].append(P21_beta_snap)
+                PHII_beta[model_number].append(PHII_beta_snap)
+
+                P21_beta_error[model_number].append(P21_error_snap)
 
     # Throw everything into a dict for easy passing.
     scale_dict = {"k_small_scale" : k_small_scale,
@@ -948,6 +1009,7 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
     if calc_beta:
         scale_dict["P21_beta"] = P21_beta
         scale_dict["PHII_beta"] = PHII_beta
+        scale_dict["P21_beta_error"] = P21_beta_error
 
     return scale_dict
  
@@ -1193,13 +1255,16 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
             if reion_plots["ps_scales_beta"]:
 
                 P21_beta = scale_power_dict["P21_beta"]
+                P21_beta_error = scale_power_dict["P21_beta_error"]
                 PHII_beta = scale_power_dict["PHII_beta"]
 
-                reionplot.plot_ps_beta(P21_beta, PHII_beta, master_mass_frac,
+                reionplot.plot_ps_beta(P21_beta, P21_beta_error,
                                        reion_data["z_array_reion_allmodels"],
                                        reion_data["lookback_array_reion_allmodels"],
                                        reion_data["cosmology_allmodels"],
                                        reion_data["t_bigbang_allmodels"],
+                                       reion_plots["small_scale_def"],
+                                       reion_plots["large_scale_def"],
                                        model_tags, output_dir,
                                        "ps_scales_beta", output_format)
 

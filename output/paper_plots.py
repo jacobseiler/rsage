@@ -40,7 +40,7 @@ if __name__ == "__main__":
     ps.rsage_paper_plot_params()
 
     # Directory name where we want the plots to be saved.
-    output_directory = "./beta"
+    output_directory = "./paper"
 
     # Format all plots are saved as.
     output_format = "png"
@@ -50,11 +50,11 @@ if __name__ == "__main__":
     # `OutputDir`)  **MUST** be absolute paths, **NOT** relative.
 
     # First we specify the .ini files for the SAGE galaxy evolution.
-    gal_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.3_SAGE.ini"
-    gal_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e8_1e12_0.90_0.05_SAGE.ini"   
+    gal_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.25_SAGE.ini"
+    gal_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_5e7_1e12_0.99_0.05_SAGE.ini"   
     gal_ini_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_SAGE.ini"
-    gal_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.05_SAGE.ini"
-    gal_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.00_delta1.00_SAGE.ini"
+    gal_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.00_SAGE.ini"
+    gal_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.70_beta1.50_delta1.00_SAGE.ini"
 
     gal_ini_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.12_SAGE.ini"
     gal_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.19_SAGE.ini"
@@ -63,11 +63,11 @@ if __name__ == "__main__":
     gal_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.63_beta1.50_delta1.00_SAGE.ini"
 
     # Then the .ini files for cifog reionization.
-    reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.3_cifog.ini"
-    reion_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e8_1e12_0.90_0.05_cifog.ini"   
+    reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.25_cifog.ini"
+    reion_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_5e7_1e12_0.99_0.05_cifog.ini"   
     reion_ini_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_cifog.ini"
-    reion_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.05_cifog.ini"
-    reion_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.00_delta1.00_cifog.ini"
+    reion_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.00_cifog.ini"
+    reion_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.70_beta1.50_delta1.00_cifog.ini"
 
     reion_ini_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.12_cifog.ini"
     reion_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.19_cifog.ini"
@@ -111,18 +111,105 @@ if __name__ == "__main__":
     reion_ini_files = [reion_ini_model4,
                        reion_ini_model5]
     
-    '''
+    gal_ini_model10="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_SAGE.ini"
+    gal_ini_model11="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_5e7_1e12_0.99_0.05_SAGE.ini"
+    gal_ini_model12="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_8e7_1e12_0.99_0.05_SAGE.ini"
+
+    reion_ini_model10="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_cifog.ini"
+    reion_ini_model11="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_5e7_1e12_0.99_0.05_cifog.ini"
+    reion_ini_model12="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_8e7_1e12_0.99_0.05_cifog.ini"
+
+    gal_ini_files = [gal_ini_model2,
+                     gal_ini_model10,
+                     gal_ini_model11,
+                     gal_ini_model12]
+
+    reion_ini_files = [reion_ini_model2,
+                     reion_ini_model10,
+                     reion_ini_model11,
+                     reion_ini_model12]
+
+    gal_ini_model13="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.20_beta3.50_delta1.00_SAGE.ini"
+    gal_ini_model14="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.20_beta4.50_delta1.00_SAGE.ini"
+    gal_ini_model15="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.30_beta2.30_delta1.00_SAGE.ini"
+    gal_ini_model16="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.30_beta1.30_delta1.00_SAGE.ini"
+
+    reion_ini_model13="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.20_beta3.50_delta1.00_cifog.ini"
+    reion_ini_model14="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.20_beta4.50_delta1.00_cifog.ini"
+    reion_ini_model15="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.30_beta2.30_delta1.00_cifog.ini"
+    reion_ini_model16="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.30_beta1.30_delta1.00_cifog.ini"
+
+    gal_ini_files = [gal_ini_model13,
+                     gal_ini_model14,
+                     gal_ini_model15,
+                     gal_ini_model16]
+
+    reion_ini_files = [reion_ini_model13,
+                     reion_ini_model14,
+                     reion_ini_model15,
+                     reion_ini_model16]
+
+
+    gal_ini_model17="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.15_SAGE.ini"
+    gal_ini_model18="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
+    gal_ini_model19="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.25_SAGE.ini"
+    gal_ini_model20="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.3_SAGE.ini"
+
+    reion_ini_model17="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.15_cifog.ini"
+    reion_ini_model18="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_cifog.ini"
+    reion_ini_model19="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.25_cifog.ini"
+    reion_ini_model20="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.3_cifog.ini"
+
+    gal_ini_files = [gal_ini_model17,
+                     gal_ini_model18,
+                     gal_ini_model19,
+                     gal_ini_model20]
+
+    reion_ini_files = [reion_ini_model17,
+                     reion_ini_model18,
+                     reion_ini_model19,
+                     reion_ini_model20]
+
+    gal_ini_model100="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.50_delta1.00_SAGE.ini"
+    gal_ini_model101="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.90_beta1.50_delta1.00_SAGE.ini"
+    gal_ini_model102="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.80_beta1.50_delta1.00_SAGE.ini"
+    gal_ini_model103="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.70_beta1.50_delta1.00_SAGE.ini"
+    gal_ini_model104="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.60_beta1.50_delta1.00_SAGE.ini"
+
+    reion_ini_model100="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.50_delta1.00_cifog.ini"
+    reion_ini_model101="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.90_beta1.50_delta1.00_cifog.ini"
+    reion_ini_model102="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.80_beta1.50_delta1.00_cifog.ini"
+    reion_ini_model103="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.70_beta1.50_delta1.00_cifog.ini"
+    reion_ini_model104="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.60_beta1.50_delta1.00_cifog.ini"
+
+    gal_ini_files = [gal_ini_model100,
+                     gal_ini_model101,
+                     gal_ini_model102,
+                     gal_ini_model103,
+                     gal_ini_model104]
+
+    reion_ini_files = [reion_ini_model100,
+                     reion_ini_model101,
+                     reion_ini_model102,
+                     reion_ini_model103,
+                     reion_ini_model104]
+
     gal_ini_files = [gal_ini_model1]
     reion_ini_files = [reion_ini_model1]
+    '''   
 
     # These are the labels that will appear on the axis legends for each model.
-    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.30}$",
+    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.25}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
-
     '''
+    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.15}$",
+                  r"$\mathbf{f_\mathrm{esc} = 0.20}$",
+                  r"$\mathbf{f_\mathrm{esc} = 0.25}$",
+                  r"$\mathbf{f_\mathrm{esc} = 0.30}$"]
+    
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
@@ -136,7 +223,25 @@ if __name__ == "__main__":
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 4.50 \: \beta = 0.50}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 0.63 \: \beta = 1.50}$"]
     '''
+    '''
+    model_tags = ["Min = 1e8",
+                  "Min = 1e7",
+                  "Min = 5e7",
+                  "Min = 8e7"]
+    
 
+    model_tags = ["alpha0.20 beta3.50",
+                  "alpha0.20 beta4.50",
+                  "alpha0.30 beta2.30",
+                  "alpha0.30 beta1.30"]
+
+
+    model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 1.00 \: \beta = 1.50}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 0.90 \: \beta = 1.50}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 0.80 \: \beta = 1.50}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 0.70 \: \beta = 1.50}$",
+                  r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR \: \alpha = 0.60 \: \beta = 1.50}$"]
+    '''
     # ============================================================= #
     # Switches to control what plots to make. 0 to skip, 1 to plot. #
     # ============================================================= #
@@ -204,8 +309,8 @@ if __name__ == "__main__":
     reion_nion           = 1
     ps_fixed_XHI         = 0
     optical_depth        = 1
-    ps_scales            = 1
-    ps_beta              = 1
+    ps_scales            = 0
+    ps_scales_beta       = 0
     slices_fixed_XHI     = 0
     bubble_size          = 0
     zreion_dens_cross    = 0
@@ -229,7 +334,7 @@ if __name__ == "__main__":
     duration_definition = [0.90, 0.50, 0.01]
 
     # What k value (h/Mpc) defines 'small' and 'large' scales?                                             
-    small_scale_def = 4.0
+    small_scale_def = 2.0
     large_scale_def = 0.3
 
     # The uncertainties of various instruments.
@@ -240,13 +345,16 @@ if __name__ == "__main__":
     # "All" or None. Selecting None will not plot any errors. 
     use_instrument = "SKA"
 
+    # First define the number of hours we will be integrating for.
+    integration_time = 400
+
     if use_instrument == "MWA":
         small_scale_err = 4.52e4   # 256 dish configuration at 1.0 h/Mpc.
         large_scale_err = 1.18e3  # 256 dish configuration at 0.3 h/Mpc.
 
     elif use_instrument == "SKA":
-        small_scale_err = 6.87e-1  # 1.0 h/Mpc. 
-        large_scale_err = 5.74e-3  # 0.3 h/Mpc. 
+        small_scale_err = 1.37  # 1.0 h/Mpc. 
+        large_scale_err = 1.15e-2  # 0.3 h/Mpc. 
 
     elif use_instrument == "HERA":
         # WARNING: HERA ONLY PROBES 0.0757 h/Mpc to 0.5604 h/Mpc.
@@ -264,6 +372,11 @@ if __name__ == "__main__":
         print("The only accepted values for 'use_instrument' are 'MWA', "
               "'SKA', 'HERA' or None.")
         raise ValueError
+
+    # The error scales linearly with integration time. So we scale all our
+    # values to an integration time of 400 hours. 
+    small_scale_err *= (400.0 / integration_time)
+    large_scale_err *= (400.0 / integration_time)
 
     # For plots of the slices of the ionization field, what grid index should
     # we start our cuts and what should the thickness (in grid cells) be?  All
@@ -307,7 +420,7 @@ if __name__ == "__main__":
                    "contours" :             contours, 
                    "optical_depth" :        optical_depth,
                    "ps_scales" :            ps_scales,
-                   "ps_beta" :              ps_beta,
+                   "ps_scales_beta" :       ps_scales_beta,
                    "bubble_size" :          bubble_size,
                    "slices_fixed_XHI" :     slices_fixed_XHI,
                    "zreion_dens_cross" :    zreion_dens_cross,

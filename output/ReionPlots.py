@@ -1023,10 +1023,17 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize-2)
 
+
+    tag = "{0}_smallscale{1}_largescale{2}".format(output_tag, small_scale_def,
+                                                   large_scale_def)
     if z_values:
-        outputFile = "{0}/{1}_z_values.{2}".format(output_dir, output_tag, output_format)
+        name_tag = "z_values"
     else:
-        outputFile = "{0}/{1}_XHI_values.{2}".format(output_dir, output_tag, output_format)
+        name_tag = "XHI_values"
+
+    outputFile = "{0}/{1}_{2}.{3}".format(output_dir, tag, name_tag,
+                                          output_format)
+
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
@@ -1634,10 +1641,65 @@ def plot_dens_zreion_contours(density_fbase_allmodels,
     fig.savefig(outputFile)
     print('Saved file to {0}'.format(outputFile))
 
-def plot_ps_beta(P21_beta, PHII_beta, master_mass_frac,
+
+def plot_ps_beta(P21_beta, P21_beta_error, mass_frac_allmodels,
                  z_array_reion_allmodels, lookback_array_reion_allmodels,
-                 cosmology_allmodels, t_bigbang_allmodels,
-                 model_tags, output_dir, output_tag, output_format):
+                 cosmology_allmodels, t_bigbang_allmodels, small_scale_def,
+                 large_scale_def, model_tags, output_dir, output_tag,
+                 output_format):
+    """
+    Plots the (temporal) evolution of the slope between large and small scale
+    21cm power. 
+
+    .. note::
+        The snapshot range only covers reionization (not the full simulation
+        snapshot range).
+
+    Parameters
+    ----------
+
+    P21_beta, P21_beta_error : 2D nested list of floats. Outer length is number
+                               of models. Inner is number of snapshots.
+        The slope (and error) between large scale and small scale (given by 
+        ``small_scale_def`` and ``large_scale_def``) 21cm power spectra.
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    lookback_array_reion_allmodels : 2D nested list of floats. Dimensions
+                                     identical to ``z_array_reion_allmodels``. 
+        The lookback time at each snapshot for each model. Units are Myr.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``astropy`` class containing the cosmology for each model.
+
+    t_bigbang_allmodels : List of floats. Length is number of models.
+        The lookback time to the Big Bang for each model. Units is Gyr.
+
+    small_scale_def, large_scale_def : Floats.
+        The wavenumber values (in h/Mpc) that correspond to 'small' and 'large'
+        scales.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
 
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
@@ -1650,30 +1712,30 @@ def plot_ps_beta(P21_beta, PHII_beta, master_mass_frac,
         redshift = z_array_reion_allmodels[model_number][0:num_snaps]
         lookback = lookback_array_reion_allmodels[model_number][0:num_snaps]
 
-        # The values of beta can be extremely spiky if for example the slope
-        # becomes negative for a snapshot before switching back.  To prevent
-        # this, we will first calculate the running average over three
-        # snapshots. 
-
-        # Taken from https://gist.github.com/rday/5716218
-        def moving_average(data, window_len):
-            weights = np.ones(window_len) / window_len
-            return np.convolve(data, weights, mode='valid')
-
-        #avg = moving_average(np.asarray(P21_beta[model_number]), 3)
+        this_beta = np.array(P21_beta[model_number])
 
         ax1.plot(lookback, P21_beta[model_number],
-                 color = ps.colors[model_number],
+                 color=ps.colors[model_number],
                  dashes=ps.dashes[model_number],
-                 label = model_tags[model_number],
-                 zorder = 1)
+                 label=model_tags[model_number],
+                 zorder=1)
+
+        # Want to add shaded regions that correspond to error.
+        this_err = np.array(P21_beta_error[model_number])
+        beta_err_lower = this_beta - this_err 
+        beta_err_upper = this_beta + this_err
+
+        ax1.fill_between(lookback, beta_err_lower, beta_err_upper,
+                         facecolor=ps.colors[model_number], alpha=0.25)
 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
                    fontsize = ps.global_labelsize)
-    ax1.set_ylabel(r"$\mathbf{Large-Scale \: Small-Scale \: Slope}$") 
+    ax1.set_ylabel(r"$\mathbf{Slope \: [mK^2 h^{-1}Mpc]}$",
+                   fontsize = ps.global_labelsize) 
+    ax1.axhline(y=0, xmin=0, xmax=np.amax(lookback), lw=0.5, ls='--', color='k')
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
@@ -1684,8 +1746,11 @@ def plot_ps_beta(P21_beta, PHII_beta, master_mass_frac,
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize-2)
 
-    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    #outputFile = "{0}/log_{1}.{2}".format(output_dir, output_tag, output_format)
+
+    tag = "{0}_smallscale{1}_largescale{2}".format(output_tag, small_scale_def,
+                                                   large_scale_def)
+
+    outputFile = "{0}/{1}.{2}".format(output_dir, tag, output_format)
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
