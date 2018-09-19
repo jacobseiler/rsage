@@ -800,7 +800,7 @@ def zreion_dens_cross(density_fbase_allmodels, density_precision_allmodels,
 
 def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
                      z_array_reion_allmodels, small_scale_def, large_scale_def,
-                     small_scale_err, large_scale_err, beta_allmodels=None):
+                     small_scale_err, large_scale_err, calc_beta=False): 
     """
     """
 
@@ -820,10 +820,6 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
 
     P21_large_scale_err_low = []
     P21_large_scale_err_up = []
-
-    if beta_allmodels:
-        beta_small_scale = []
-        beta_large_scale = []
 
     for model_number in range(num_models):
 
@@ -845,11 +841,6 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
         k_this_model = np.array(k_allmodels[model_number])
         P21_this_model = np.array(P21_allmodels[model_number])
         PHII_this_model = np.array(PHII_allmodels[model_number])
-
-        if beta_allmodels:
-            beta_small_scale.append([])
-            beta_large_scale.append([])
-            beta_this_model = beta_allmodels[model_number]
 
         # For all the snapshots find the values at the specified scales.
         for snap_idx in range(len(k_this_model)):
@@ -874,13 +865,6 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
             k_large_scale[model_number].append(k_large)
             P21_large_scale[model_number].append(P21_large)
             PHII_large_scale[model_number].append(PHII_large)
-
-            if beta_allmodels:
-                beta_small = beta_this_model[snap_idx][small_idx]
-                beta_large = beta_this_model[snap_idx][large_idx]
-
-                beta_small_scale[model_number].append(beta_small)
-                beta_large_scale[model_number].append(beta_large)
 
             # If we're calculating errors, find the region we should shade.
             # We only have the errors between z = 8-10 so if not in this range,
@@ -907,6 +891,52 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
                                                                 large_scale_err) 
 
 
+    # If we want to calculate the slope of the scale-space trajectory (i.e.,
+    # beta), let's do it!
+    if calc_beta:
+
+        P21_beta = []
+        PHII_beta = []
+
+        for model_number in range(num_models):
+
+            P21_beta.append([])
+            PHII_beta.append([])
+
+            k_large_scale_this_model = k_large_scale[model_number]
+            k_small_scale_this_model = k_small_scale[model_number]
+
+            P21_small_scale_this_model = P21_small_scale[model_number]
+            P21_large_scale_this_model = P21_large_scale[model_number]
+
+            PHII_small_scale_this_model = PHII_small_scale[model_number]
+            PHII_large_scale_this_model = PHII_large_scale[model_number]
+
+            for snap_idx in range(len(P21_small_scale_this_model)):
+                P21_beta_this_snap = (P21_large_scale_this_model[snap_idx] - \
+                                      P21_small_scale_this_model[snap_idx]) / \
+                                     (k_large_scale_this_model[snap_idx] - \
+                                      k_small_scale_this_model[snap_idx])
+
+                PHII_beta_this_snap = (PHII_large_scale_this_model[snap_idx] - \
+                                       PHII_small_scale_this_model[snap_idx]) / \
+                                     (k_large_scale_this_model[snap_idx] - \
+                                      k_small_scale_this_model[snap_idx])
+
+                '''
+                P21_beta_this_snap = (np.log10(P21_large_scale_this_model[snap_idx]) - \
+                                      np.log10(P21_small_scale_this_model[snap_idx])) / \
+                                     (np.log10(k_large_scale_this_model[snap_idx]) - \
+                                      np.log10(k_small_scale_this_model[snap_idx]))
+
+                PHII_beta_this_snap = (np.log10(PHII_large_scale_this_model[snap_idx]) - \
+                                      np.log10(PHII_small_scale_this_model[snap_idx])) / \
+                                     (np.log10(k_large_scale_this_model[snap_idx]) - \
+                                      np.log10(k_small_scale_this_model[snap_idx]))
+                '''
+                P21_beta[model_number].append(P21_beta_this_snap)
+                PHII_beta[model_number].append(PHII_beta_this_snap)
+
     # Throw everything into a dict for easy passing.
     scale_dict = {"k_small_scale" : k_small_scale,
                   "k_large_scale" : k_large_scale, 
@@ -915,75 +945,12 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
                   "PHII_small_scale" : PHII_small_scale, 
                   "PHII_large_scale" : PHII_large_scale}
 
-    if beta_allmodels:
-        scale_dict["beta_small_scale"] = beta_small_scale
-        scale_dict["beta_large_scale"] = beta_large_scale
+    if calc_beta:
+        scale_dict["P21_beta"] = P21_beta
+        scale_dict["PHII_beta"] = PHII_beta
 
     return scale_dict
  
-
-def calc_ps_beta(k, P21, PHII):
-    """
-    Calculates the slope of the 21cm power spectra.
-
-    .. note::
-        We calculate the slope on k wavenumbers binned in pseudo-logspace.
-
-    Parameters
-    ----------
-
-    k: 3D nested list of floats. Outer length is number of models, next is
-       number of snapshots processed by this processor and final is the number
-       of wavenumber bins.
-        Wavenumber the spectra are binned on (units of Mpc/h). Processor
-        unique.
-
-    P21_allmodels, PHII_allmodels : 3D nested lists of floats. Dimensions are
-                                    identical to ``k_allmodels``.
-        The 21cm and HII power spectra for each model at each snapshot.
-
-    Returns
-    ---------
-
-    k_allmodels, beta : 3D nested list of floats. Same dimensions as ``k``.
-        The pseudo-logspace wavenumber bins and the slope of the 21cm power
-        spectrum at each wavenumber.
-    """
-
-    beta = []
-
-    # We want to calculate beta in binned k to get a better signal. We want
-    # bins spaced every 0.1 from 0.1->1.0 and then spaced every 1.0 from
-    # 1.0->8.0.
-    bins_low = np.arange(0.1, 1.0, 0.1)
-    bins_high = np.arange(1.0, 9.0, 1.0)
-
-    k_bins = np.concatenate((bins_low, bins_high))
-    k_allmodels = []
-
-    for model_number in range(len(k)):
-        beta.append([])
-        k_allmodels.append([])
-
-        for snapnum in range(len(k[model_number])):
-            beta[model_number].append([])
-            k_allmodels[model_number].append([])
-
-            # Calculate the binned 21cm PS.
-            k_inds = np.digitize(k[model_number][snapnum], k_bins)
-            P21_binned = np.empty(len(k_bins))
-            for k_idx in range(len(k_bins)):
-                w_ind = np.where(k_inds == k_idx)[0]
-                P21_binned[k_idx] = np.mean(P21[model_number][snapnum][w_ind])
-
-            for k_idx in range(len(k_bins)-1):
-                this_beta = (P21_binned[k_idx+1] - P21_binned[k_idx]) / \
-                            (k_bins[k_idx+1] - k_bins[k_idx])
-                beta[model_number][snapnum].append(this_beta)
-                k_allmodels[model_number][snapnum].append(k_bins[k_idx])
-
-    return k_allmodels, beta
-
 
 def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                           model_tags, reion_plots, output_dir, output_format):
@@ -1174,7 +1141,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                             model_tags, output_dir,
                                             "history_tau", output_format)
 
-    if reion_plots["ps_scales"]:
+    if reion_plots["ps_scales"] or reion_plots["ps_scales_beta"]:
         k, P21, PHII = gather_ps(rank, size, comm,
                                  reion_data["k_allmodels"],
                                  reion_data["P21_allmodels"],
@@ -1186,54 +1153,20 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
             print("Plotting the large scale power as a function of small "
                   "scale.")
 
+            if reion_plots["ps_scales_beta"]:
+                calc_beta = True
+            else:
+                calc_beta = False 
+
+            # Now that we have all the PS on the master rank, calculate the
+            # amplitude at the specified scales.
             scale_power_dict = calc_scale_power(k, P21, PHII,
                                                 reion_data["z_array_reion_allmodels"],                    
                                                 reion_plots["small_scale_def"],
                                                 reion_plots["large_scale_def"],
                                                 reion_plots["small_scale_err"],
-                                                reion_plots["large_scale_err"])
-
-            k_small_scale = scale_power_dict["k_small_scale"]
-            k_large_scale = scale_power_dict["k_large_scale"]
-
-            P21_small_scale = scale_power_dict["P21_small_scale"]
-            P21_large_scale = scale_power_dict["P21_large_scale"]
-
-            PHII_small_scale = scale_power_dict["PHII_small_scale"]
-            PHII_large_scale = scale_power_dict["PHII_large_scale"]
-
-            reionplot.plot_ps_scales(P21_small_scale,
-                                     P21_large_scale, master_mass_frac, 
-                                     reion_data["z_array_reion_allmodels"],
-                                     reion_plots["fixed_XHI_values"],
-                                     reion_plots["ps_scales_z"],
-                                     reion_plots["small_scale_def"],
-                                     reion_plots["large_scale_def"],
-                                     reion_plots["small_scale_err"],
-                                     reion_plots["large_scale_err"],
-                                     model_tags, output_dir, "ps_scales",
-                                     output_format)
-
-    if reion_plots["ps_beta"]:
-        if not reion_plots["ps_scales"]:
-            k, P21, PHII = gather_ps(rank, size, comm,
-                                     reion_data["k_allmodels"],
-                                     reion_data["P21_allmodels"],
-                                     reion_data["PHII_allmodels"],
-                                     reion_data["first_snap_allmodels"],
-                                     reion_data["last_snap_allmodels"])
-
-        if rank == 0:
-            print("Plotting the slope of the 21cm power spectrum.")
-            k_bins, beta = calc_ps_beta(k, P21, PHII)
-
-            scale_power_dict = calc_scale_power(k_bins, P21, PHII,
-                                                reion_data["z_array_reion_allmodels"],                    
-                                                reion_plots["small_scale_def"],
-                                                reion_plots["large_scale_def"],
-                                                reion_plots["small_scale_err"],
                                                 reion_plots["large_scale_err"],
-                                                beta)
+                                                calc_beta=calc_beta)
 
             k_small_scale = scale_power_dict["k_small_scale"]
             k_large_scale = scale_power_dict["k_large_scale"]
@@ -1244,21 +1177,33 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
             PHII_small_scale = scale_power_dict["PHII_small_scale"]
             PHII_large_scale = scale_power_dict["PHII_large_scale"]
 
-            beta_small_scale = scale_power_dict["beta_small_scale"]
-            beta_large_scale = scale_power_dict["beta_large_scale"]
+            if reion_plots["ps_scales"]:
+                reionplot.plot_ps_scales(P21_small_scale,
+                                         P21_large_scale, master_mass_frac, 
+                                         reion_data["z_array_reion_allmodels"],
+                                         reion_plots["fixed_XHI_values"],
+                                         reion_plots["ps_scales_z"],
+                                         reion_plots["small_scale_def"],
+                                         reion_plots["large_scale_def"],
+                                         reion_plots["small_scale_err"],
+                                         reion_plots["large_scale_err"],
+                                         model_tags, output_dir, "ps_scales",
+                                         output_format)
 
-            reionplot.plot_beta_scales(k_bins, beta, beta_small_scale,
-                                       beta_large_scale,
-                                       master_mass_frac,
+            if reion_plots["ps_scales_beta"]:
+
+                P21_beta = scale_power_dict["P21_beta"]
+                PHII_beta = scale_power_dict["PHII_beta"]
+
+                reionplot.plot_ps_beta(P21_beta, PHII_beta, master_mass_frac,
                                        reion_data["z_array_reion_allmodels"],
-                                       reion_plots["fixed_XHI_values"],
-                                       reion_plots["ps_scales_z"],
-                                       reion_plots["small_scale_def"],
-                                       reion_plots["large_scale_def"],
-                                       reion_plots["small_scale_err"],
-                                       reion_plots["large_scale_err"],
-                                       model_tags, output_dir, "beta_scales",
-                                       output_format)
+                                       reion_data["lookback_array_reion_allmodels"],
+                                       reion_data["cosmology_allmodels"],
+                                       reion_data["t_bigbang_allmodels"],
+                                       model_tags, output_dir,
+                                       "ps_scales_beta", output_format)
+
+
 
     if reion_plots["slices_fixed_XHI"] and rank == 0:
         print("Plotting slices at fixed XHI fractions.")
@@ -1538,7 +1483,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
             # If we're plotting the power spectra in scale space need to
             # calculate them at every single snapshot.
-            if reion_plots["ps_scales"] or reion_plots["ps_beta"]:
+            if reion_plots["ps_scales"] or reion_plots["ps_scales_beta"]:
                 T0 = T_naught(z_array_reion[snap_idx], cosmology.H(0).value/100.0,
                               cosmology.Om0, cosmology.Ob0)
 

@@ -113,7 +113,7 @@ def plot_history(z_array_reion_allmodels,
     ax1.set_xlim(ps.time_xlim)
 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
-                             t_bigbang_allmodels[0]/1.0e3)
+                             t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
@@ -226,7 +226,7 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax1.set_xlim(ps.time_xlim)
 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
-                             t_bigbang_allmodels[0]/1.0e3)
+                             t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
     ax1.text(350, 50.0, r"$\mathbf{68\%}$", horizontalalignment='center', 
              verticalalignment = 'center', fontsize = ps.global_labelsize-4)
@@ -729,12 +729,19 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
-                             t_bigbang_allmodels[0]/1.0e3)
+                             t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
     ax1.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
                      color = 'k', alpha = 0.3)
     ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
     ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$")
+
+    plot_planck_2018 = 0
+    if plot_planck_2018:
+        ax1.fill_between(np.arange(200, 1200, 0.01), 0.054 - 0.007, 0.054 + 0.007,
+                         color = 'c', alpha = 0.3)
+        ax1.axhline(y = 0.054, xmin = 0, xmax = 20, color = 'c', alpha = 0.3)
+        ax1.text(850, 0.0520, r"$\mathrm{Planck \: 2018}$")
 
     if not passed_ax:
         leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
@@ -1022,157 +1029,6 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
         outputFile = "{0}/{1}_XHI_values.{2}".format(output_dir, output_tag, output_format)
     plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
-    plt.close()
-
-
-def plot_beta_scales(k_allmodels, beta_allmodels, beta_small_scales,
-                     beta_large_scales, mass_frac_allmodels,
-                     z_array_reion_allmodels, fixed_XHI_values, ps_scales_z,
-                     small_scale_def, large_scale_def, small_scale_err,
-                     large_scale_err, model_tags, output_dir, output_tag,
-                     output_format):
-    """
-    Plots the small scale 21cm power spectrum as a function of the large scale
-    21cm power. 
-
-    We also mark the specified ``fixed_XHI_values`` to draw the eye.
-
-    .. note::
-        The snapshot range only covers reionization (not the full simulation
-        snapshot range).
-
-    Parameters
-    ----------
-
-    k_allmodels : 3D nested list of floats. Outer length is number of models.
-                  Next is the number of snapshots then finally is the number of
-                  bins.
-        The wavenumber the spectra are binned on. Units are h/Mpc.
-
-    beta_allmodels : 3D nested list of floats. Dimensions are equal to
-                     ``k_allmodels``.
-        The slope of the 21cm power spectra at all scales given by
-        ``k_allmodels``.
-
-    beta_small_scale, beta_large_scale : 2D nested list of floats. Outer length
-                                         is number of models. Inner is number of
-                                         snapshots.
-        The slope of the 21cm power spectra at small and large scales (given by
-        ``small_scale_def`` and ``large_scale_def``).
-
-    mass_frac_allmodels : 2D nested list of floats. Outer length is number of
-                          models, inner is number of snapshots. 
-        The mass weighted neutral fraction at each snapshot for each model.
-
-    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
-                              of models, inner is number of snapshots.
-        The redshift at each snapshot for each model.
-
-    fixed_XHI_values : List of floats
-        The mass-averaged neutral hydrogen fraction we're marking on the plot. 
-
-    z_values : List of floats
-        If ``None``, does nothing.
-        If not ``None``, marks the specified redshifts on the plot instead of
-        the ``fixed_XHI_values``.
-
-    small_scale_def, large_scale_def : Floats.
-        The wavenumber values (in h/Mpc) that correspond to 'small' and 'large'
-        scales.
-
-    small_scale_err, large_scale_err : Floats.
-        The experimental uncertainty at the small and large scales.
-
-    model_tags : List of strings. Length is number of models.
-        Legend entry for each model.
-
-    output_dir : String
-        Directory where the plot is saved.
-
-    output_tag : String.
-        Tag added to the name of the output file.
-
-    output_format : String
-        Format the plot is saved in.
-
-    Returns
-    ---------
-
-    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
-    """
-
-    fig, ax = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
-                           sharey='row', figsize=(16, 6))
-
-    for model_number in range(len(k_allmodels)):
-        for fraction, val in enumerate(fixed_XHI_values):
-
-            idx = int((np.abs(mass_frac_allmodels[model_number] - val)).argmin())
-            this_ax = ax[fraction]
-
-            k_allmodels[model_number][idx] = np.array(k_allmodels[model_number][idx])
-            beta_allmodels[model_number][idx] = np.array(beta_allmodels[model_number][idx])
-
-            w = np.where(k_allmodels[model_number][idx] > 9e-2)[0]
-            w = w[1:-1]
-            label = model_tags[model_number]
-
-            this_ax.plot(k_allmodels[model_number][idx][w],
-                         beta_allmodels[model_number][idx][w],
-                         color = ps.colors[model_number],
-                         dashes=ps.dashes[model_number],
-                         lw = 2, rasterized=True, label = label)
-
-            # Only need to adjust the axis once for each fraction.
-            if model_number != 0:
-                continue
-
-            this_ax = ps.adjust_axis(this_ax, ps.global_axiswidth,
-                                     ps.global_tickwidth,
-                                     ps.global_major_ticklength,
-                                     ps.global_minor_ticklength)
-
-            this_ax.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
-                               size = ps.global_labelsize)
-            this_ax.set_xscale('log')
-
-            #this_ax.set_xlim([7e-2, 6])
-
-            HI_string = "{0:.2f}".format(fixed_XHI_values[fraction])
-
-            label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
-
-            this_ax.text(0.05, 0.9, label, transform = this_ax.transAxes,
-                         fontsize = ps.global_fontsize)
-
-            #tick_locs = np.arange(-3, 1, 1.0)
-            #this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-            #                        fontsize = ps.global_fontsize)
-
-    ax[0].set_ylabel(r'$\mathbf{\beta}$',
-                     size = ps.global_labelsize)
-    #ax[0].set_yscale('log', nonposy='clip')
-
-    #tick_locs = np.arange(-1.0, 5.5, 1.0)
-    #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-    #                      fontsize = ps.global_fontsize)
-
-    leg = ax[0].legend(loc='lower right', numpoints=1,
-                       labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(ps.global_legendsize-2)
-    leg.draw_frame(False)  # Don't want a box frame
-
-    fig.tight_layout()
-    fig.subplots_adjust(wspace = 0.0, hspace = 0.0)
-
-    outputFile = "{0}/{1}.{2}".format(output_dir,
-                                     output_tag,
-                                     output_format)
-    fig.savefig(outputFile)
-    print('Saved file to {0}'.format(outputFile))
-
     plt.close()
 
 
@@ -1777,3 +1633,59 @@ def plot_dens_zreion_contours(density_fbase_allmodels,
 
     fig.savefig(outputFile)
     print('Saved file to {0}'.format(outputFile))
+
+def plot_ps_beta(P21_beta, PHII_beta, master_mass_frac,
+                 z_array_reion_allmodels, lookback_array_reion_allmodels,
+                 cosmology_allmodels, t_bigbang_allmodels,
+                 model_tags, output_dir, output_tag, output_format):
+
+    fig1 = plt.figure(figsize = (8,8))
+    ax1 = fig1.add_subplot(111)
+
+    num_models = len(P21_beta)
+
+    for model_number in range(num_models):
+
+        num_snaps = len(P21_beta[model_number])
+        redshift = z_array_reion_allmodels[model_number][0:num_snaps]
+        lookback = lookback_array_reion_allmodels[model_number][0:num_snaps]
+
+        # The values of beta can be extremely spiky if for example the slope
+        # becomes negative for a snapshot before switching back.  To prevent
+        # this, we will first calculate the running average over three
+        # snapshots. 
+
+        # Taken from https://gist.github.com/rday/5716218
+        def moving_average(data, window_len):
+            weights = np.ones(window_len) / window_len
+            return np.convolve(data, weights, mode='valid')
+
+        #avg = moving_average(np.asarray(P21_beta[model_number]), 3)
+
+        ax1.plot(lookback, P21_beta[model_number],
+                 color = ps.colors[model_number],
+                 dashes=ps.dashes[model_number],
+                 label = model_tags[model_number],
+                 zorder = 1)
+
+    ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
+                             t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
+
+    ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
+                   fontsize = ps.global_labelsize)
+    ax1.set_ylabel(r"$\mathbf{Large-Scale \: Small-Scale \: Slope}$") 
+
+    ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
+                         ps.global_major_ticklength, ps.global_minor_ticklength) 
+
+    leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                     markerscale=6)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize-2)
+
+    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    #outputFile = "{0}/log_{1}.{2}".format(output_dir, output_tag, output_format)
+    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile))
+    plt.close()
