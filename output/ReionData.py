@@ -831,6 +831,8 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
         SKA, specified by the user in ``paper_plots.py``) has at the small and
         large scales. 
 
+        If ``None``, then the errors will not be calculated.
+
     calc_beta : Boolean, optional.
         Flag to denote whether we need to calculate the slope between the large
         and small scale 21cm spectra.
@@ -942,6 +944,7 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
 
         P21_beta_error = []
 
+
         for model_number in range(num_models):
 
             P21_beta.append([])
@@ -975,11 +978,22 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
                 PHII_beta_snap = (PHII_large_snap - PHII_small_snap) / \
                                  (k_large_snap - k_small_snap)
 
-                # Assume that there's no uncertainty in the k-values. Then
-                # delta(Slope)/slope = sqrt((delta(P_Large)/P_large)^2 + (delta(P_small)/P_small)^2)
-                P21_error_snap = P21_beta_snap * np.sqrt((large_scale_err/P21_large_snap)**2 + \
-                                                         (small_scale_err/P21_small_snap)**2)
 
+                # If there's no error defined, skip this calculation. 
+                if not small_scale_err or not large_scale_err:
+                    P21_beta_error = None
+                    continue
+
+                # Assume that there's no uncertainty in the k-values. Then
+                # delta(Slope) is sqrt(large scale error^2 + small scale
+                # error^2) divided by the difference in scales.
+                P21_error_snap = np.sqrt(large_scale_err**2 + \
+                                         small_scale_err**2) / \
+                                 (k_large_snap - k_small_snap)
+                # Error can only be positive...
+                P21_error_snap = np.abs(P21_error_snap)
+
+                debug = True
                 if debug:
                     print("")
                     print("Snap {0}".format(snap_idx))

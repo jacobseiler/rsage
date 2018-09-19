@@ -284,10 +284,10 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    fig, ax = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
-                           sharey='row', figsize=(16, 6))
+    fig1, ax = plt.subplots(nrows=1, ncols=len(fixed_XHI_values),
+                            sharey='row', figsize=(16, 6))
 
-    fig2, ax2 = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
+    fig2, ax2 = plt.subplots(nrows=1, ncols=len(fixed_XHI_values),
                              sharey='row', figsize=(16, 6))
 
     for model_number in range(len(k)):
@@ -375,8 +375,8 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
         t.set_fontsize(ps.global_legendsize-2)
     leg2.draw_frame(False)  # Don't want a box frame
 
-    fig.tight_layout()
-    fig.subplots_adjust(wspace = 0.0, hspace = 0.0)
+    fig1.tight_layout()
+    fig1.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     fig2.tight_layout()
     fig2.subplots_adjust(wspace = 0.0, hspace = 0.0)
@@ -384,7 +384,7 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     outputFile = "{0}/{1}.{2}".format(output_dir,
                                      output_tag,
                                      output_format)
-    fig.savefig(outputFile)
+    fig1.savefig(outputFile)
     print('Saved file to {0}'.format(outputFile))
 
     outputFile = "{0}/{1}_HII.{2}".format(output_dir,
@@ -543,7 +543,7 @@ def plot_tau_contours(tau_highz, reion_completed, alpha_beta_limits,
                         fontsize = ps.global_fontsize)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -639,7 +639,7 @@ def plot_duration_contours(duration_t, reion_completed, alpha_beta_limits,
                         fontsize = ps.global_fontsize)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -736,7 +736,7 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
     ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$")
 
-    plot_planck_2018 = 0
+    plot_planck_2018 = 1
     if plot_planck_2018:
         ax1.fill_between(np.arange(200, 1200, 0.01), 0.054 - 0.007, 0.054 + 0.007,
                          color = 'c', alpha = 0.3)
@@ -753,7 +753,7 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
         return ax1
     else:
         outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-        plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
         plt.close()
 
@@ -815,7 +815,7 @@ def plot_combined_history_tau(z_array_reion_allmodels,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    fig, ax = plt.subplots(nrows = 1, ncols = 2, 
+    fig1, ax = plt.subplots(nrows = 1, ncols = 2, 
                            sharex=False, sharey=False, figsize=(16, 8))
 
     # Pass each axis to the correct function to create the plots.
@@ -838,7 +838,7 @@ def plot_combined_history_tau(z_array_reion_allmodels,
     plt.tight_layout()    
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -1034,7 +1034,7 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
     outputFile = "{0}/{1}_{2}.{3}".format(output_dir, tag, name_tag,
                                           output_format)
 
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -1117,9 +1117,9 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
     num_models = len(mass_frac_allmodels)
     num_fractions = len(fixed_XHI_values)
 
-    fig, ax = plt.subplots(nrows=num_fractions, ncols=num_models,
+    fig1, ax = plt.subplots(nrows=num_fractions, ncols=num_models,
                            sharey=False, sharex=False, figsize=(12, 12))
-    fig.subplots_adjust(wspace = 0.02, hspace = 0.02)
+    fig1.subplots_adjust(wspace = 0.02, hspace = 0.02)
 
     # Each model can have a different gridsize.  We want to cut at the same
     # spatial location for each model so we will normalize to model 0.
@@ -1197,9 +1197,9 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
     # Model Loop.
 
     # All the models have been plotted. Now lets fix up the colorbar.
-    cax = fig.add_axes([0.91, 0.11, 0.03, 0.77])
+    cax = fig1.add_axes([0.91, 0.11, 0.03, 0.77])
     ticks = np.arange(-8.0, 1.0, 1.0)
-    cbar = fig.colorbar(im, cax=cax, ticks=ticks) 
+    cbar = fig1.colorbar(im, cax=cax, ticks=ticks) 
     cbar.ax.set_yticklabels([r"$\mathbf{%d}$" % x for x in ticks], 
                             fontsize = ps.global_legendsize+10)
     cbar.ax.set_ylabel(r'$\mathbf{log_{10}\left(\chi_{HI}\right)}$',
@@ -1208,7 +1208,7 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
 
     # Done! Save time.
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -1523,14 +1523,14 @@ def plot_dens_reion_contours(mass_frac_allmodels, XHII_fbase_allmodels,
 
         #c.configure(plot_hists=False)
 
-        fig = c.plotter.plot(figsize="column")
+        fig1 = c.plotter.plot(figsize="column")
 
         final_tag = "{0}_XHI{1}".format(output_tag, frac_val)
 
         outputFile = "{0}/{1}.{2}".format(output_dir,
                                           final_tag, 
                                           output_format)
-        fig.savefig(outputFile)
+        fig1.savefig(outputFile)
         print('Saved file to {0}'.format(outputFile))
 
 
@@ -1620,7 +1620,7 @@ def plot_dens_zreion_contours(density_fbase_allmodels,
 
     c.configure(sigmas=[0, 1, 2, 3])
 
-    fig = c.plotter.plot(figsize="column")
+    fig1 = c.plotter.plot(figsize="column")
 
     #ax = fig.get_axes()
 
@@ -1633,16 +1633,16 @@ def plot_dens_zreion_contours(density_fbase_allmodels,
     ax1.set_ylabel(
                    size = ps.global_labelsize)
     '''
-    #fig.tight_layout()
+    #fig1.tight_layout()
     outputFile = "{0}/{1}.{2}".format(output_dir,
                                       output_tag, 
                                       output_format)
 
-    fig.savefig(outputFile)
+    fig1.savefig(outputFile)
     print('Saved file to {0}'.format(outputFile))
 
 
-def plot_ps_beta(P21_beta, P21_beta_error, mass_frac_allmodels,
+def plot_ps_beta(P21_beta, P21_beta_error,
                  z_array_reion_allmodels, lookback_array_reion_allmodels,
                  cosmology_allmodels, t_bigbang_allmodels, small_scale_def,
                  large_scale_def, model_tags, output_dir, output_tag,
@@ -1662,6 +1662,8 @@ def plot_ps_beta(P21_beta, P21_beta_error, mass_frac_allmodels,
                                of models. Inner is number of snapshots.
         The slope (and error) between large scale and small scale (given by 
         ``small_scale_def`` and ``large_scale_def``) 21cm power spectra.
+
+        If ``P21_beta_error`` is ``None``, then no errors will be plotted.
 
     z_array_reion_allmodels : 2D nested list of floats. Outer length is number
                               of models, inner is number of snapshots.
@@ -1720,13 +1722,19 @@ def plot_ps_beta(P21_beta, P21_beta_error, mass_frac_allmodels,
                  label=model_tags[model_number],
                  zorder=1)
 
-        # Want to add shaded regions that correspond to error.
-        this_err = np.array(P21_beta_error[model_number])
-        beta_err_lower = this_beta - this_err 
-        beta_err_upper = this_beta + this_err
+        # If we've calculated error, add it to the plot.
+        if P21_beta_error:
+            this_err = np.array(P21_beta_error[model_number])
+            beta_err_lower = this_beta - this_err 
+            beta_err_upper = this_beta + this_err
 
-        ax1.fill_between(lookback, beta_err_lower, beta_err_upper,
-                         facecolor=ps.colors[model_number], alpha=0.25)
+            print(beta_err_lower)
+            print(beta_err_upper)
+            print(beta_err_upper - beta_err_lower)
+            print(lookback)
+
+            ax1.fill_between(lookback, beta_err_lower, beta_err_upper,
+                             facecolor=ps.colors[model_number], alpha=0.25)
 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
@@ -1734,8 +1742,9 @@ def plot_ps_beta(P21_beta, P21_beta_error, mass_frac_allmodels,
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
                    fontsize = ps.global_labelsize)
     ax1.set_ylabel(r"$\mathbf{Slope \: [mK^2 h^{-1}Mpc]}$",
-                   fontsize = ps.global_labelsize) 
-    ax1.axhline(y=0, xmin=0, xmax=np.amax(lookback), lw=0.5, ls='--', color='k')
+                   fontsize = ps.global_labelsize)
+
+    ax1.axhline(y=0, xmin=0, xmax=max(ps.time_xlim), lw=0.5, ls='--', color='k')
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
@@ -1751,6 +1760,6 @@ def plot_ps_beta(P21_beta, P21_beta_error, mass_frac_allmodels,
                                                    large_scale_def)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()

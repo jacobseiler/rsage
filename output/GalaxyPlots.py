@@ -189,8 +189,8 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
     else:
         nrows = int(np.ceil(np.sqrt(len(plot_snaps_for_models)))) 
 
-    fig, ax = plt.subplots(nrows=nrows, ncols=nrows, 
-                           sharex='col', sharey='row', figsize=(16,6))
+    fig1, ax = plt.subplots(nrows=nrows, ncols=nrows, 
+                            sharex='col', sharey='row', figsize=(16,6))
 
     row_ax = -1
     for count, model_number in enumerate(range(len(z_array_full_allmodels))):
@@ -262,9 +262,9 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile1))
-    plt.close(fig)
+    plt.close(fig1)
 
 
 def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
@@ -320,8 +320,8 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    fig, ax = plt.subplots(nrows=1, ncols=len(plot_z), 
-                           sharex='col', sharey='row', figsize=(16,6))
+    fig1, ax = plt.subplots(nrows=1, ncols=len(plot_z), 
+                            sharex='col', sharey='row', figsize=(16,6))
 
     for model_number in range(len(z_array_full_allmodels)):
         # Here we find the snapshots closest to the redshifts we want to plot.
@@ -388,9 +388,9 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     plt.tight_layout()
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile1))
-    plt.close(fig)
+    plt.close(fig1)
 
 
 def plot_mstar_fej(mstar_bins, mstar_bin_width, z_array_full_allmodels,
@@ -452,7 +452,7 @@ def plot_mstar_fej(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    fig, ax, nrows = plot_2D_line(mstar_bins, mstar_bin_width,
+    fig1, ax, nrows = plot_2D_line(mstar_bins, mstar_bin_width,
                                   z_array_full_allmodels, 
                                   mean_allmodels, std_allmodels, N_allmodels,
                                   model_tags, plot_models_at_snaps,
@@ -495,9 +495,9 @@ def plot_mstar_fej(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile1))
-    plt.close(fig)
+    plt.close(fig1)
 
 
 def plot_mstar_SFR(mstar_bins, mstar_bin_width, z_array_full_allmodels,
@@ -558,10 +558,10 @@ def plot_mstar_SFR(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    fig, ax, nrows = plot_2D_line(mstar_bins, mstar_bin_width,
-                                  z_array_full_allmodels, mean_allmodels,
-                                  std_allmodels, N_allmodels, model_tags,
-                                  plot_models_at_snaps, plot_snaps_for_models)
+    fig1, ax, nrows = plot_2D_line(mstar_bins, mstar_bin_width,
+                                   z_array_full_allmodels, mean_allmodels,
+                                   std_allmodels, N_allmodels, model_tags,
+                                   plot_models_at_snaps, plot_snaps_for_models)
 
     delta_fontsize = 10
 
@@ -602,9 +602,9 @@ def plot_mstar_SFR(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile1))
-    plt.close(fig)
+    plt.close(fig1)
 
 
 def plot_2D_line(bins, bin_width, binning_array_allmodels,
@@ -648,7 +648,7 @@ def plot_2D_line(bins, bin_width, binning_array_allmodels,
     Returns
     ---------
 
-    fig : ``matplotlib`` Figure
+    fig1 : ``matplotlib`` Figure
         The created figure.
 
     ax : If number models is 1, a single ``matplotlib`` axes. Otherwise, 2D
@@ -666,8 +666,8 @@ def plot_2D_line(bins, bin_width, binning_array_allmodels,
     else:
         nrows = int(np.ceil(np.sqrt(len(plot_snaps_for_models)))) 
 
-    fig, ax = plt.subplots(nrows=nrows, ncols=nrows, 
-                           sharex='col', sharey='row', figsize=(16,6))
+    fig1, ax = plt.subplots(nrows=nrows, ncols=nrows, 
+                            sharex='col', sharey='row', figsize=(16,6))
 
     row_ax = -1
     for count, model_number in enumerate(range(len(binning_array_allmodels))):
@@ -704,4 +704,4 @@ def plot_2D_line(bins, bin_width, binning_array_allmodels,
                                  ps.global_major_ticklength,
                                  ps.global_minor_ticklength)
 
-    return fig, ax, nrows
+    return fig1, ax, nrows
