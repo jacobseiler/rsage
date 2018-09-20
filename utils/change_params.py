@@ -427,7 +427,8 @@ def make_slurm_files(base_slurm_file, SAGE_ini_names, cifog_ini_names,
         line_numbers = [2, 4, 17, 19, 20, 24, 25]  
         string_names = [job_name, ntask, NUMPROC, SAGE_ini, cifog_ini, 
                         run_prefix, path_to_log]
-        for line, name in zip(line_numbers, string_names): 
+        for line, name in zip(line_numbers, string_names):
+            # Use @ as the delimiter here for sed. 
             command = "sed -i '{0}s@.*@{1}@' {2} ".format(line, name,
                                                           tmp_slurm_fname)
             subprocess.call(command, shell=True)
@@ -527,27 +528,29 @@ if __name__ == '__main__':
     # ===================================================================== #
     # Specify here the SAGE parameters that you want to change for each run #
     # ===================================================================== #
-    fescPrescription = [0, 0, 0]
-    #alpha = [0.50, 0.60, 0.70, 0.80, 0.90, 1.10, 1.20, 1.30, 1.40, 1.40]
-    beta = [0.15, 0.20, 0.25]
-    #delta = [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
-    #MH_low = [1.0e8, 1.0e8, 1.0e8]
-    #fesc_low = [0.95, 0.90, 0.85]
-    #MH_high = [1.0e12, 1.0e12, 1.0e12]
-    #fesc_high = [0.05, 0.05, 0.05]
+    fescPrescription = [4, 4, 4, 4, 4]
+    #alpha = [0.35]
+    #beta = [0.35, 0.40, 0.45]
+    #delta = [1.00, 1.00, 1.00, 1.00]
+    MH_low = [1e8, 1e8, 1e8, 1e8, 1e8]
+    fesc_low = [0.01, 0.01, 0.01, 0.01, 0.01]
+    MH_high = [5.0e11, 1.0e12, 1.0e12, 5.0e11, 1.0e11]
+    fesc_high = [0.50, 0.45, 0.40, 0.40, 0.40]
 
-    FileNameGalaxies = ["const_0.15",
-                        "const_0.20",
-                        "const_0.25"]
+    FileNameGalaxies = ["MHpos_1e8_5e11_0.01_0.50",
+                        "MHpos_1e8_1e12_0.01_0.45",
+                        "MHpos_1e8_1e12_0.01_0.40",
+                        "MHpos_1e8_5e11_0.01_0.40",
+                        "MHpos_1e8_1e11_0.01_0.40"]
 
     SAGE_fields_update = { "fescPrescription" : fescPrescription,
                            #"alpha" : alpha,
-                           "beta" : beta,
+                           #"beta" : beta,
                            #"delta" : delta,
-                           #"MH_low" : MH_low,
-                           #"fesc_low" : fesc_low,
-                           #"MH_high" : MH_high,
-                           #"fesc_high" : fesc_high,
+                           "MH_low" : MH_low,
+                           "fesc_low" : fesc_low,
+                           "MH_high" : MH_high,
+                           "fesc_high" : fesc_high,
                            "FileNameGalaxies" : FileNameGalaxies
                          }
 
@@ -559,9 +562,11 @@ if __name__ == '__main__':
     # ============================================ #
     # Specify here the path directory for each run #
     # ============================================ #
-    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant",                       
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant",
-                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant"]
+    run_directories = ["/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos",
+                       "/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos"]                       
 
     # ===================================================================== #
     # Specify here the path to the base ini files (shouldn't need to touch) #  

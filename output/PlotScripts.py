@@ -273,7 +273,7 @@ def plot_SMBH_z8(ax, linewidth = 1.0, alpha = 1.0):
     ax.plot(Obs.Mstar, Obs.Huang_z8_BHSM, alpha = alpha, lw = linewidth, ls = '-.', label = "Huang et al. 2018", color = Obs.SMBH_colors[0], rasterized = True)
   
 
-def add_time_z_axis(ax, cosmo, t_bigbang):
+def add_time_z_axis(ax, cosmo, t_bigbang, my_time_xlim):
 
     tick_locs = np.arange(200.0, 1000.0, 100.0)
     ax.xaxis.set_minor_locator(mtick.MultipleLocator(time_tickinterval))
@@ -281,14 +281,14 @@ def add_time_z_axis(ax, cosmo, t_bigbang):
     ax.xaxis.set_major_locator(mtick.MultipleLocator(100))
     ax.set_xticklabels(tick_labels, fontsize = global_fontsize)
 
-    ax.set_xlim(time_xlim)
+    ax.set_xlim(my_time_xlim)
 
     ax2 = ax.twiny()
 
     t_plot = (t_bigbang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
     z_labels = ["$\mathbf{%d}$" % x for x in z_plot] # Properly Latex-ize the labels.
 
-    ax2.set_xlim(time_xlim)
+    ax2.set_xlim(my_time_xlim)
     ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
     ax2.set_xticklabels(z_labels, fontsize = global_fontsize-2) # But label them as redshifts.
 

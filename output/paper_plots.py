@@ -40,7 +40,7 @@ if __name__ == "__main__":
     ps.rsage_paper_plot_params()
 
     # Directory name where we want the plots to be saved.
-    output_directory = "./paper"
+    output_directory = "./2018_planck"
 
     # Format all plots are saved as.
     output_format = "png"
@@ -50,11 +50,11 @@ if __name__ == "__main__":
     # `OutputDir`)  **MUST** be absolute paths, **NOT** relative.
 
     # First we specify the .ini files for the SAGE galaxy evolution.
-    gal_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.25_SAGE.ini"
-    gal_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_5e7_1e12_0.99_0.05_SAGE.ini"   
+    gal_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
+    gal_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_SAGE.ini"   
     gal_ini_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_SAGE.ini"
-    gal_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.00_SAGE.ini"
-    gal_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.70_beta1.50_delta1.00_SAGE.ini"
+    gal_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.00_SAGE.ini"
+    gal_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.50_delta1.00_SAGE.ini"
 
     gal_ini_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.12_SAGE.ini"
     gal_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.19_SAGE.ini"
@@ -63,11 +63,11 @@ if __name__ == "__main__":
     gal_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.63_beta1.50_delta1.00_SAGE.ini"
 
     # Then the .ini files for cifog reionization.
-    reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.25_cifog.ini"
-    reion_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_5e7_1e12_0.99_0.05_cifog.ini"   
+    reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_cifog.ini"
+    reion_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_cifog.ini"   
     reion_ini_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.50_cifog.ini"
-    reion_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.40_beta0.00_cifog.ini"
-    reion_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.70_beta1.50_delta1.00_cifog.ini"
+    reion_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.00_cifog.ini"
+    reion_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.50_delta1.00_cifog.ini"
 
     reion_ini_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.12_cifog.ini"
     reion_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.19_cifog.ini"
@@ -196,20 +196,20 @@ if __name__ == "__main__":
 
     gal_ini_files = [gal_ini_model1]
     reion_ini_files = [reion_ini_model1]
-    '''   
+    '''
 
     # These are the labels that will appear on the axis legends for each model.
-    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.25}$",
+    model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.20}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
-    '''
+    '''   
     model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.15}$",
                   r"$\mathbf{f_\mathrm{esc} = 0.20}$",
                   r"$\mathbf{f_\mathrm{esc} = 0.25}$",
                   r"$\mathbf{f_\mathrm{esc} = 0.30}$"]
-    
+
     model_tags = [r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                   r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
@@ -307,10 +307,10 @@ if __name__ == "__main__":
     # =========================== #
     history              = 1
     reion_nion           = 1
-    ps_fixed_XHI         = 0
+    ps_fixed_XHI         = 1
     optical_depth        = 1
-    ps_scales            = 0
-    ps_scales_beta       = 0
+    ps_scales            = 1
+    ps_scales_beta       = 1
     slices_fixed_XHI     = 0
     bubble_size          = 0
     zreion_dens_cross    = 0
@@ -334,11 +334,11 @@ if __name__ == "__main__":
     duration_definition = [0.90, 0.50, 0.01]
 
     # What k value (h/Mpc) defines 'small' and 'large' scales?                                             
-    small_scale_def = 2.0
+    small_scale_def = 1.0
     large_scale_def = 0.3
 
     # The uncertainties of various instruments.
-    # Using Cath Trott's Marvelous Spreadsheet, assuming 800 hours integration
+    # Using Cath Trott's Marvelous Spreadsheet, assuming 400 hours integration
     # time with 10MHz bandwidth.
 
     # Select which instrument to use. Only accepted are "MWA", "SKA", "HERA", 
@@ -362,10 +362,6 @@ if __name__ == "__main__":
         small_scale_err = 2.25  # 0.56 h/Mpc. 
         large_scale_err = 2.65e-2  # 0.3 h/Mpc.
     elif use_instrument is None:
-        small_scale_err = 2.25  # 0.56 h/Mpc. 
-        large_scale_err = 2.65e-2  # 0.3 h/Mpc.
-    elif use_instrument is None:
-
         small_scale_err = None
         large_scale_err = None
     else:
@@ -374,9 +370,10 @@ if __name__ == "__main__":
         raise ValueError
 
     # The error scales linearly with integration time. So we scale all our
-    # values to an integration time of 400 hours. 
-    small_scale_err *= (400.0 / integration_time)
-    large_scale_err *= (400.0 / integration_time)
+    # values to an integration time of 400 hours.
+    if use_instrument:
+        small_scale_err *= (400.0 / integration_time)
+        large_scale_err *= (400.0 / integration_time)
 
     # For plots of the slices of the ionization field, what grid index should
     # we start our cuts and what should the thickness (in grid cells) be?  All
