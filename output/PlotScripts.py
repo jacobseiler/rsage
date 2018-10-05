@@ -83,8 +83,8 @@ def Set_Params_Plot():
     #colors = ['k', 'r', 'b', 'g', 'm', 'c', 'k']
     markers = ['X', 'o', '^', 's', 'D']
     linestyles = ['-', '--', '-.', ':', '-', '-', '-', '-', '-']
-    z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
-    time_xlim = [290, 930]
+    z_plot = np.arange(5, 15, 1)  #Range of redshift we wish to plot.
+    time_xlim = [290, 960]
     time_tickinterval = 25
 
 
@@ -134,16 +134,19 @@ def rsage_paper_plot_params():
 
     np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
 
-    colors = ["k", "#dd1c77", "#3182bd", "#f03b20", "#31a354", "b", "y"] 
+    colors = ["k", "#dd1c77", "#3182bd", "#f03b20", "#31a354", "b", "y", "c",
+              "g", "m"] 
     markers = ['X', 'o', '^', 's', 'D']
     dashes = ['',
               [3, 3, 3, 3],
               [7, 1, 1, 1],
               [1, 1, 1, 1],
               [5, 1, 5, 1],
-              '', '']
-    z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
-    time_xlim = [290, 930]
+              '', '', '', '', ''
+              '', '', '', '', '']
+
+    z_plot = np.arange(6, 14, 1)  #Range of redshift we wish to plot.
+    time_xlim = [290, 980]
     time_tickinterval = 25
 
 

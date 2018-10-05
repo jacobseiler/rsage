@@ -621,7 +621,7 @@ def calculate_bubble_MC(XHII, output_file, N=1e5):
 
     None.
     """
-
+   
     def MC_walk(cells, indices, phase, N, Ncell, output_file):
         """
         Performs the MC walk.
@@ -992,8 +992,7 @@ def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
                                  (k_large_snap - k_small_snap)
                 # Error can only be positive...
                 P21_error_snap = np.abs(P21_error_snap)
-
-                debug = True
+                
                 if debug:
                     print("")
                     print("Snap {0}".format(snap_idx))
@@ -1102,8 +1101,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                           master_mass_frac, reion_plots["duration_definition"])
 
         for model_number in range(len(master_mass_frac)):
-            print("Model {0}: Start {1:.3f} \tMid {2:.3f}\tEnd {3:.23}\t"
-                  "dz {4:.3f}\tdt {5:.2f}Myr\tReion Completed {6}" \
+            print("Model {0}: Start {1:.2f} \tMid {2:.2f}\tEnd {3:.2f}\t"
+                  "dz {4:.2f}\tdt {5:.1f}Myr\tReion Completed {6}" \
                   .format(model_number, duration_z[model_number][0],
                           duration_z[model_number][1], duration_z[model_number][-1],
                           duration_z[model_number][0]-duration_z[model_number][-1],
@@ -1582,7 +1581,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                                                             model_tags[model_number],
                                                             z_array_reion[snap_idx]) 
                 if (os.path.exists(MC_path) == False):
-                    calculate_bubble_MC(XHII, GridSize, MC_path)
+                    calculate_bubble_MC(XHII, MC_path)
             
         # Snapshot Loop.
 

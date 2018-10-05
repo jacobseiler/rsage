@@ -75,7 +75,7 @@ def plot_nion(z_array_full_allmodels, lookback_array_full_allmodels,
         ax1.plot(lookback_array_full_allmodels[model_number], 
                  log_sum, 
                  color = ps.colors[model_number],
-                 ls = ps.linestyles[model_number],
+                 dashes=ps.dashes[model_number],
                  label = model_tags[model_number])
 
     ax1 = ps.plot_bouwens2015(cosmology_allmodels[0], t_bigbang_allmodels[0],
@@ -184,10 +184,10 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
     """
 
     # Our plotting area will be a square so find out the max NxN deimsnion.
-    if plot_models_at_snaps: 
-        nrows = int(np.ceil(np.sqrt(len(plot_models_at_snaps))))
+    if plot_models_at_snaps:
+        nrows = int((np.sqrt(len(plot_models_at_snaps))))
     else:
-        nrows = int(np.ceil(np.sqrt(len(plot_snaps_for_models)))) 
+        nrows = int((np.sqrt(len(plot_snaps_for_models)))) 
 
     fig1, ax = plt.subplots(nrows=nrows, ncols=nrows, 
                             sharex='col', sharey='row', figsize=(16,6))
@@ -204,13 +204,13 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
                        "}$"                
 
             mean = mean_allmodels[model_number][snap]
-            w_low = np.where(master_N[model_number][snap] < 4)[0]
+            w_low = np.where(N_allmodels[model_number][snap] < 4)[0]
             mean[w_low] = np.nan
 
             ax[row_ax, col_ax]. plot(mstar_bins[:-1] + mstar_bin_width*0.5,
                                      mean, 
-                                     color = ps.colors[snap_count],
-                                     ls = ps.linestyles[0],
+                                     color=ps.colors[snap_count],
+                                     dashes=ps.dashes[snap_count],
                                      label = z_label) 
 
         ax[row_ax, col_ax].text(0.05, 0.65, model_tags[model_number],
@@ -242,15 +242,15 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
         print("{0} {1}".format(label, loc)) 
 
     # Set variables for every row.
-    tick_locs = np.arange(-0.10, 0.80, 0.10)
+    tick_locs = np.arange(-0.10, 0.60, 0.10)
     for ax_count in range(nrows):
         ax[ax_count, 0].set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
                                    size = ps.global_labelsize)
 
-        ax[ax_count, 0].set_ylim([-0.02, 0.72])
-        ax[ax_count, 0].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))       
-        ax[ax_count, 0].yaxis.set_major_locator(mtick.MultipleLocator(0.1))       
-        ax[ax_count, 0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+        ax[ax_count, 0].set_ylim([-0.02, 0.58])
+        ax[ax_count, 0].yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+        ax[ax_count, 0].yaxis.set_major_locator(mtick.MultipleLocator(0.1))
+        ax[ax_count, 0].set_yticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs], 
                                          fontsize = ps.global_fontsize)
 
     leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
@@ -320,7 +320,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    fig1, ax = plt.subplots(nrows=1, ncols=len(plot_z), 
+    fig1, ax = plt.subplots(nrows=1, ncols=len(plot_z[0]), 
                             sharex='col', sharey='row', figsize=(16,6))
 
     for model_number in range(len(z_array_full_allmodels)):
@@ -336,7 +336,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
             ax[count].plot(mstar_bins[:-1] + mstar_bin_width*0.5,
                            SMF[model_number][snap],
                            color = ps.colors[model_number],
-                           ls = ps.linestyles[model_number],
+                           dashes=ps.dashes[model_number],
                            label = label)
 
             if model_number == 0:
@@ -666,6 +666,8 @@ def plot_2D_line(bins, bin_width, binning_array_allmodels,
     else:
         nrows = int(np.ceil(np.sqrt(len(plot_snaps_for_models)))) 
 
+    print(nrows)
+    exit()
     fig1, ax = plt.subplots(nrows=nrows, ncols=nrows, 
                             sharex='col', sharey='row', figsize=(16,6))
 
@@ -691,9 +693,9 @@ def plot_2D_line(bins, bin_width, binning_array_allmodels,
 
             this_ax.plot(bins[:-1] + bin_width*0.5,
                          mean,
-                         color = ps.colors[snap_count],
-                         ls = ps.linestyles[0],
-                         label = z_label)
+                         color=ps.colors[snap_count],
+                         dashes=ps.dashes[0],
+                         label=z_label)
 
         this_ax.text(0.05, 0.65, model_tags[model_number],
                      transform = this_ax.transAxes,

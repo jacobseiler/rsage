@@ -105,7 +105,7 @@ def plot_history(z_array_reion_allmodels,
                    fontsize = ps.global_labelsize)
 
     tick_locs = np.arange(-0.2, 1.1, 0.2)
-    ax1.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs],
+    ax1.set_yticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs],
                         fontsize = ps.global_fontsize)
     ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
     ax1.set_ylim([-0.05, 1.05])
@@ -721,8 +721,12 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
     ax1.set_ylabel(r"$\mathbf{\tau}$",
                  size = ps.global_labelsize)
-    ax1.set_ylim([0.042, 0.072])
-    tick_locs = np.arange(0.04, 0.075, 0.005)
+
+    ax1.yaxis.set_major_locator(mtick.MultipleLocator(0.005))
+    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.0025))
+
+    ax1.set_ylim([0.044, 0.062])
+    tick_locs = np.arange(0.040, 0.065, 0.005)
     ax1.set_yticklabels([r"$\mathbf{%.3f}$" % x for x in tick_locs],
                         fontsize = ps.global_fontsize)
 
@@ -731,17 +735,18 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
-    ax1.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
-                     color = 'k', alpha = 0.3)
-    ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
-    ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$")
+    ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.2)
+    ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$", fontsize=14)
 
     plot_planck_2018 = 1
     if plot_planck_2018:
         ax1.fill_between(np.arange(200, 1200, 0.01), 0.054 - 0.007, 0.054 + 0.007,
-                         color = 'c', alpha = 0.3)
-        ax1.axhline(y = 0.054, xmin = 0, xmax = 20, color = 'c', alpha = 0.3)
-        ax1.text(850, 0.0520, r"$\mathrm{Planck \: 2018}$")
+                         color = 'k', alpha = 0.4)
+        ax1.axhline(y = 0.054, xmin = 0, xmax = 20, color = 'k', alpha = 0.4)
+        ax1.text(850, 0.0530, r"$\mathrm{Planck \: 2018}$", fontsize=14)
+    else:
+        ax1.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
+                         color = 'k', alpha = 0.2)
 
     if not passed_ax:
         leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
@@ -915,23 +920,39 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
 
     for model_number in range(num_models):
 
+        if model_number < 3:
+            label = model_tags[model_number]
+            color = ps.colors[model_number]
+            dashes = ps.dashes[model_number]
+            lw = ps.global_linewidth
+            alpha = 1.0
+            s = 100
+        else:
+            label = ""
+            color = ps.colors[model_number-3]
+            dashes = ps.dashes[model_number-3]
+            lw = 1
+            alpha = 0.7 
+            s = 50
+
         ax1.plot(P21_small_scale[model_number],
                  P21_large_scale[model_number],
-                 color = ps.colors[model_number],
-                 dashes=ps.dashes[model_number],
-                 label = model_tags[model_number],
-                 zorder = 1)
+                 color=color,
+                 dashes=dashes,
+                 label=label, lw=lw, 
+                 zorder=1, alpha=alpha)
 
         # If we specified redshifts to mark, mark them. Otherwise, mark
         # fixed neutral hydrogen fractions.
-        if z_values: 
+        if z_values:
+
             for count, val in enumerate(z_values):
                 idx = (np.abs(z_array_reion_allmodels[model_number] - val)).argmin()
                 ax1.scatter(P21_small_scale[model_number][idx],
                             P21_large_scale[model_number][idx],
-                            s=100, rasterized=True,
+                            s=s, rasterized=True,
                             marker=ps.markers[count],
-                            color=ps.colors[model_number], 
+                            color=color,
                             linewidths=2,
                             zorder=2)
         else:
@@ -944,11 +965,6 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
                             color=ps.colors[model_number], 
                             linewidths=2,
                             zorder=2)
-
-    # Now add an error ellipse.
-    #e1 = patches.Ellipse((30, 50), small_scale_err, large_scale_err,
-    #                     angle=0, linewidth=2, fill=False, zorder=2)
-    #ax1.add_patch(e1)
 
     # Make a one-to-one line and plot it.
     one_to_one = np.arange(0.0, 120.0, 1e-6) 
@@ -987,10 +1003,10 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
-    ax1.text(40, 10, r"$\mathbf{Start}$", 
-             fontsize = ps.global_fontsize-4)
+    ax1.text(20, 10, r"$\mathbf{Start}$", 
+             fontsize=ps.global_fontsize-4)
     ax1.text(2, 10, r"$\mathbf{End}$",
-             fontsize = ps.global_fontsize-4)
+             fontsize=ps.global_fontsize-4)
 
     # Now plot some garbage points to add the marked redshifts/neutral
     # fractions to the legend.
@@ -1716,11 +1732,22 @@ def plot_ps_beta(P21_beta, P21_beta_error,
 
         this_beta = np.array(P21_beta[model_number])
 
+        if model_number < 3:
+            label = model_tags[model_number]
+            color = ps.colors[model_number]
+            dashes = ps.dashes[model_number]
+            lw = ps.global_linewidth
+            alpha = 1.0
+        else:
+            label = ""
+            color = ps.colors[model_number-3]
+            dashes = ps.dashes[model_number-3]
+            lw = 1
+            alpha = 0.7
+
         ax1.plot(lookback, P21_beta[model_number],
-                 color=ps.colors[model_number],
-                 dashes=ps.dashes[model_number],
-                 label=model_tags[model_number],
-                 zorder=1)
+                 color=color, dashes=dashes, label=label, lw=lw, zorder=1,
+                 alpha=alpha)
 
         # If we've calculated error, add it to the plot.
         if P21_beta_error:
@@ -1728,20 +1755,16 @@ def plot_ps_beta(P21_beta, P21_beta_error,
             beta_err_lower = this_beta - this_err 
             beta_err_upper = this_beta + this_err
 
-            print(beta_err_lower)
-            print(beta_err_upper)
-            print(beta_err_upper - beta_err_lower)
-            print(lookback)
-
-            ax1.fill_between(lookback, beta_err_lower, beta_err_upper,
-                             facecolor=ps.colors[model_number], alpha=0.25)
+            if model_number < 3:
+                ax1.fill_between(lookback, beta_err_lower, beta_err_upper,
+                                 facecolor=ps.colors[model_number], alpha=0.25)
 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
     ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
                    fontsize = ps.global_labelsize)
-    ax1.set_ylabel(r"$\mathbf{Slope \: [mK^2 h^{-1}Mpc]}$",
+    ax1.set_ylabel(r"$\mathbf{21cm \: Power \: Slope \: [mK^2 h^{-1}Mpc]}$",
                    fontsize = ps.global_labelsize)
 
     ax1.axhline(y=0, xmin=0, xmax=max(ps.time_xlim), lw=0.5, ls='--', color='k')
