@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import matplotlib.patheffects as PathEffects
+from matplotlib import patches
 import numpy as np
 import os
 
@@ -104,7 +105,7 @@ def plot_history(z_array_reion_allmodels,
                    fontsize = ps.global_labelsize)
 
     tick_locs = np.arange(-0.2, 1.1, 0.2)
-    ax1.set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs],
+    ax1.set_yticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs],
                         fontsize = ps.global_fontsize)
     ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
     ax1.set_ylim([-0.05, 1.05])
@@ -112,7 +113,7 @@ def plot_history(z_array_reion_allmodels,
     ax1.set_xlim(ps.time_xlim)
 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
-                             t_bigbang_allmodels[0]/1.0e3)
+                             t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
@@ -225,7 +226,7 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax1.set_xlim(ps.time_xlim)
 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
-                             t_bigbang_allmodels[0]/1.0e3)
+                             t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
     ax1.text(350, 50.0, r"$\mathbf{68\%}$", horizontalalignment='center', 
              verticalalignment = 'center', fontsize = ps.global_labelsize-4)
@@ -283,15 +284,20 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    fig, ax = plt.subplots(nrows = 1, ncols = len(fixed_XHI_values),
-                           sharey='row', figsize=(16, 6))
+    fig1, ax = plt.subplots(nrows=1, ncols=len(fixed_XHI_values),
+                            sharey='row', figsize=(16, 6))
+
+    fig2, ax2 = plt.subplots(nrows=1, ncols=len(fixed_XHI_values),
+                             sharey='row', figsize=(16, 6))
 
     for model_number in range(len(k)):
         for fraction in range(len(fixed_XHI_values)):
 
             this_ax = ax[fraction]
+            this_ax2 = ax2[fraction]
 
             w = np.where(k[model_number][fraction] > 9e-2)[0]
+            w = w[0:-1]
             label = model_tags[model_number]
  
             this_ax.plot(k[model_number][fraction][w],
@@ -300,6 +306,13 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                          dashes=ps.dashes[model_number],
                          lw = 2, rasterized=True, label = label)
             
+            this_ax2.plot(k[model_number][fraction][w],
+                          PHII[model_number][fraction][w],
+                          color = ps.colors[model_number],
+                          dashes=ps.dashes[model_number],
+                          lw = 2, rasterized=True, label = label)
+
+            # Only need to adjust the axis once for each fraction.
             if model_number != 0:
                 continue
 
@@ -308,26 +321,42 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                                      ps.global_major_ticklength,
                                      ps.global_minor_ticklength)
 
+            this_ax2 = ps.adjust_axis(this_ax2, ps.global_axiswidth,
+                                      ps.global_tickwidth,
+                                      ps.global_major_ticklength,
+                                      ps.global_minor_ticklength)
 
             this_ax.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
                                size = ps.global_labelsize)
             this_ax.set_xscale('log')
+
+            this_ax2.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+                                size = ps.global_labelsize)
+            this_ax2.set_xscale('log')
+
             #this_ax.set_xlim([7e-2, 6])
 
             HI_string = "{0:.2f}".format(fixed_XHI_values[fraction])
 
             label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
+
             this_ax.text(0.05, 0.9, label, transform = this_ax.transAxes,
                          fontsize = ps.global_fontsize)
 
+            this_ax2.text(0.05, 0.9, label, transform = this_ax.transAxes,
+                          fontsize = ps.global_fontsize)
 
-            #tick_locs = np.arange(-3, 2.5, 1.0)
-            #this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-            #                        fontsize = ps.global_fontsize)
+            tick_locs = np.arange(-3, 1, 1.0)
+            this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+                                    fontsize = ps.global_fontsize)
 
     ax[0].set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right]}$',
                      size = ps.global_labelsize)
     ax[0].set_yscale('log', nonposy='clip')
+
+    ax2[0].set_ylabel(r'$\mathbf{\Delta_{\chi_\mathrm{HII}}^2}$',
+                      size = ps.global_labelsize)
+    ax2[0].set_yscale('log', nonposy='clip')
 
     #tick_locs = np.arange(-1.0, 5.5, 1.0)
     #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
@@ -338,16 +367,32 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize-2)
+    leg.draw_frame(False)  # Don't want a box frame
 
-    plt.tight_layout()
-    plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
+    leg2 = ax2[0].legend(loc='lower right', numpoints=1,
+                       labelspacing=0.1)
+    for t in leg2.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize-2)
+    leg2.draw_frame(False)  # Don't want a box frame
 
+    fig1.tight_layout()
+    fig1.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
+    fig2.tight_layout()
+    fig2.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile = "{0}/{1}.{2}".format(output_dir,
                                      output_tag,
                                      output_format)
-    plt.savefig(outputFile)  # Save the figure
+    fig1.savefig(outputFile)
     print('Saved file to {0}'.format(outputFile))
+
+    outputFile = "{0}/{1}_HII.{2}".format(output_dir,
+                                          output_tag,
+                                          output_format)
+    fig2.savefig(outputFile)
+    print('Saved file to {0}'.format(outputFile))
+
     plt.close()
 
 
@@ -498,7 +543,7 @@ def plot_tau_contours(tau_highz, reion_completed, alpha_beta_limits,
                         fontsize = ps.global_fontsize)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -594,7 +639,7 @@ def plot_duration_contours(duration_t, reion_completed, alpha_beta_limits,
                         fontsize = ps.global_fontsize)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -665,7 +710,7 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
         ax1.plot(lookback_array_reion_allmodels[model_number], 
                  tau_allmodels[model_number], 
                  color = ps.colors[model_number],
-                 dashes=ps.dashes[model_number],
+                 dashes =ps.dashes[model_number],
                  label = model_tags[model_number])
 
         print("Model {0}\tHigh z Tau {1}".format(model_number,
@@ -676,20 +721,32 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
     ax1.set_ylabel(r"$\mathbf{\tau}$",
                  size = ps.global_labelsize)
-    ax1.set_ylim([0.042, 0.072])
-    tick_locs = np.arange(0.04, 0.075, 0.005)
+
+    ax1.yaxis.set_major_locator(mtick.MultipleLocator(0.005))
+    ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.0025))
+
+    ax1.set_ylim([0.044, 0.062])
+    tick_locs = np.arange(0.040, 0.065, 0.005)
     ax1.set_yticklabels([r"$\mathbf{%.3f}$" % x for x in tick_locs],
                         fontsize = ps.global_fontsize)
 
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
-                             t_bigbang_allmodels[0]/1.0e3)
+                             t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
-    ax1.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
-                     color = 'k', alpha = 0.3)
-    ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.3)
-    ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$")
+    ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.2)
+    ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$", fontsize=14)
+
+    plot_planck_2018 = 1
+    if plot_planck_2018:
+        ax1.fill_between(np.arange(200, 1200, 0.01), 0.054 - 0.007, 0.054 + 0.007,
+                         color = 'k', alpha = 0.4)
+        ax1.axhline(y = 0.054, xmin = 0, xmax = 20, color = 'k', alpha = 0.4)
+        ax1.text(850, 0.0530, r"$\mathrm{Planck \: 2018}$", fontsize=14)
+    else:
+        ax1.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
+                         color = 'k', alpha = 0.2)
 
     if not passed_ax:
         leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
@@ -701,7 +758,7 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
         return ax1
     else:
         outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-        plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
         print('Saved file to {0}'.format(outputFile))
         plt.close()
 
@@ -763,7 +820,7 @@ def plot_combined_history_tau(z_array_reion_allmodels,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    fig, ax = plt.subplots(nrows = 1, ncols = 2, 
+    fig1, ax = plt.subplots(nrows = 1, ncols = 2, 
                            sharex=False, sharey=False, figsize=(16, 8))
 
     # Pass each axis to the correct function to create the plots.
@@ -786,14 +843,15 @@ def plot_combined_history_tau(z_array_reion_allmodels,
     plt.tight_layout()    
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
 
-def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
-                   mass_frac_allmodels, fixed_XHI_values,
-                   small_scale_def, large_scale_def, model_tags, output_dir,
+def plot_ps_scales(P21_small_scale, P21_large_scale,
+                   mass_frac_allmodels, z_array_reion_allmodels,
+                   fixed_XHI_values, z_values, small_scale_def, large_scale_def,
+                   small_scale_err, large_scale_err, model_tags, output_dir,
                    output_tag, output_format):
     """
     Plots the small scale 21cm power spectrum as a function of the large scale
@@ -808,24 +866,34 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     Parameters
     ----------
 
-    k_allmodels : 3D nested list of floats. Outer length is number of models.
-                  Next is the number of snapshots then finally is the number of
-                  bins. 
-        The wavenumber the spectra are binned on. Units are h/Mpc.
-
-    P21, PHII : 3D nested list of floats. Dimensions are identical to ``k``.
-        The 21cm and HII power spectra. 21cm units are mK and HII is unitless.
+    P21_small_scale, P21_large_scale : 2D nested list of floats. Outer length
+                                       is number of models. Inner is number of
+                                       snapshots.
+        The 21cm power spectra at small and large scales (given by
+        ``small_scale_def`` and ``large_scale_def``).
 
     mass_frac_allmodels : 2D nested list of floats. Outer length is number of
                           models, inner is number of snapshots. 
         The mass weighted neutral fraction at each snapshot for each model.
 
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
     fixed_XHI_values : List of floats
         The mass-averaged neutral hydrogen fraction we're marking on the plot. 
+
+    z_values : List of floats
+        If ``None``, does nothing.
+        If not ``None``, marks the specified redshifts on the plot instead of
+        the ``fixed_XHI_values``.
 
     small_scale_def, large_scale_def : Floats.
         The wavenumber values (in h/Mpc) that correspond to 'small' and 'large'
         scales.
+
+    small_scale_err, large_scale_err : Floats.
+        The experimental uncertainty at the small and large scales.
 
     model_tags : List of strings. Length is number of models.
         Legend entry for each model.
@@ -845,75 +913,61 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    num_models = len(k_allmodels)
-
     fig1 = plt.figure(figsize = (8,8))
     ax1 = fig1.add_subplot(111)
 
-    snap_idx_target = []
+    num_models = len(P21_small_scale)
 
-    k_small_scale = []
-    k_large_scale = []
-
-    P21_small_scale = []
-    P21_large_scale = []
-
-    PHII_small_scale = []
-    PHII_large_scale = []
-
-    # We first need to find the power on the specified scales.
     for model_number in range(num_models):
-        snap_idx_target.append([])
 
-        k_small_scale.append([])
-        k_large_scale.append([])
+        if model_number < 3:
+            label = model_tags[model_number]
+            color = ps.colors[model_number]
+            dashes = ps.dashes[model_number]
+            lw = ps.global_linewidth
+            alpha = 1.0
+            s = 100
+        else:
+            label = ""
+            color = ps.colors[model_number-3]
+            dashes = ps.dashes[model_number-3]
+            lw = 1
+            alpha = 0.7 
+            s = 50
 
-        P21_small_scale.append([])
-        P21_large_scale.append([])
-
-        PHII_small_scale.append([])
-        PHII_large_scale.append([]) 
-
-        k_this_model = k_allmodels[model_number]
-        P21_this_model = P21_allmodels[model_number]
-        PHII_this_model = PHII_allmodels[model_number]
-
-        # For all the snapshots find the values at the specified scales.
-        for snap_idx in range(len(k_this_model)):
-            small_idx = (np.abs(k_this_model[snap_idx] - small_scale_def)).argmin()
-            large_idx = (np.abs(k_this_model[snap_idx] - large_scale_def)).argmin()
-            
-            k_small_scale[model_number].append(k_this_model[snap_idx][small_idx])
-            P21_small_scale[model_number].append(P21_this_model[snap_idx][small_idx])
-            PHII_small_scale[model_number].append(PHII_this_model[snap_idx][small_idx])
-
-            k_large_scale[model_number].append(k_this_model[snap_idx][large_idx])
-            P21_large_scale[model_number].append(P21_this_model[snap_idx][large_idx])
-            PHII_large_scale[model_number].append(PHII_this_model[snap_idx][large_idx])
-
-        # Now we have the power we can plot!
         ax1.plot(P21_small_scale[model_number],
                  P21_large_scale[model_number],
-                 color = ps.colors[model_number],
-                 dashes=ps.dashes[model_number],
-                 label = model_tags[model_number],
-                 zorder = 1) 
+                 color=color,
+                 dashes=dashes,
+                 label=label, lw=lw, 
+                 zorder=1, alpha=alpha)
 
-        # Find the index corresponding to the special HI fractions.
-        for count, val in enumerate(fixed_XHI_values):
-            idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
-            snap_idx_target[model_number].append(idx)
+        # If we specified redshifts to mark, mark them. Otherwise, mark
+        # fixed neutral hydrogen fractions.
+        if z_values:
 
-            ax1.scatter(P21_small_scale[model_number][idx],
-                        P21_large_scale[model_number][idx],
-                        s = 100, rasterized = True,
-                        marker = ps.markers[count],
-                        color = ps.colors[model_number], 
-                        linewidths = 2,
-                        zorder = 2)
+            for count, val in enumerate(z_values):
+                idx = (np.abs(z_array_reion_allmodels[model_number] - val)).argmin()
+                ax1.scatter(P21_small_scale[model_number][idx],
+                            P21_large_scale[model_number][idx],
+                            s=s, rasterized=True,
+                            marker=ps.markers[count],
+                            color=color,
+                            linewidths=2,
+                            zorder=2)
+        else:
+            for count, val in enumerate(fixed_XHI_values):
+                idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
+                ax1.scatter(P21_small_scale[model_number][idx],
+                            P21_large_scale[model_number][idx],
+                            s=100, rasterized=True,
+                            marker=ps.markers[count],
+                            color=ps.colors[model_number], 
+                            linewidths=2,
+                            zorder=2)
 
     # Make a one-to-one line and plot it.
-    one_to_one = np.arange(0.0, 60.0, 1e-6) 
+    one_to_one = np.arange(0.0, 120.0, 1e-6) 
     ax1.plot(one_to_one, one_to_one, ls = '--', lw = 0.5, color = 'k')
 
     small_scale_string = "{0:.1f}".format(small_scale_def)
@@ -932,9 +986,6 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     max_largescale = np.ceil(np.max(P21_large_scale))
     max_large_quot, max_large_rem = divmod(max_largescale, 5) 
 
-    print("max_smallscale {0}\tmax_largescale {1}".format(max_smallscale,
-                                                          max_largescale))
-
     if max_smallscale > max_largescale:
         max_scale_quot = max_small_quot
     else:
@@ -952,21 +1003,35 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
-    ax1.text(30, 10, r"$\mathbf{Start}$", 
-             fontsize = ps.global_fontsize-4)
+    ax1.text(20, 10, r"$\mathbf{Start}$", 
+             fontsize=ps.global_fontsize-4)
     ax1.text(2, 10, r"$\mathbf{End}$",
-             fontsize = ps.global_fontsize-4)
+             fontsize=ps.global_fontsize-4)
 
-    for count, val in enumerate(fixed_XHI_values):
-        HI_string = "{0:.2f}".format(val)
-        label = r"$\mathbf{\langle \chi_{HI}\rangle = " + HI_string + r"}$"
-        ax1.scatter(np.nan, np.nan,
-                    s = 60, rasterized = True,
-                    marker = ps.markers[count],
-                    color = "None",
-                    edgecolors = 'k', 
-                    linewidths = 2,
-                    zorder = 2, label = label)
+    # Now plot some garbage points to add the marked redshifts/neutral
+    # fractions to the legend.
+    if z_values:
+        for count, val in enumerate(z_values):
+            HI_string = "{0:.0f}".format(val)
+            label = r"$\mathbf{z = " + HI_string + r"}$"
+            ax1.scatter(np.nan, np.nan,
+                        s=60, rasterized=True,
+                        marker=ps.markers[count],
+                        color="None",
+                        edgecolors='k', 
+                        linewidths=2,
+                        label=label)
+    else: 
+        for count, val in enumerate(fixed_XHI_values):
+            HI_string = "{0:.2f}".format(val)
+            label = r"$\mathbf{\langle \chi_{HI}\rangle = " + HI_string + r"}$"
+            ax1.scatter(np.nan, np.nan,
+                        s=60, rasterized=True,
+                        marker=ps.markers[count],
+                        color="None",
+                        edgecolors='k', 
+                        linewidths=2,
+                        label=label)
 
     leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1,
                      markerscale=6)
@@ -974,10 +1039,21 @@ def plot_ps_scales(k_allmodels, P21_allmodels, PHII_allmodels,
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize-2)
 
-    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+
+    tag = "{0}_smallscale{1}_largescale{2}".format(output_tag, small_scale_def,
+                                                   large_scale_def)
+    if z_values:
+        name_tag = "z_values"
+    else:
+        name_tag = "XHI_values"
+
+    outputFile = "{0}/{1}_{2}.{3}".format(output_dir, tag, name_tag,
+                                          output_format)
+
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
+
 
 def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
                     mass_frac_allmodels, XHII_fbase_allmodels,
@@ -1057,9 +1133,9 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
     num_models = len(mass_frac_allmodels)
     num_fractions = len(fixed_XHI_values)
 
-    fig, ax = plt.subplots(nrows=num_fractions, ncols=num_models,
+    fig1, ax = plt.subplots(nrows=num_fractions, ncols=num_models,
                            sharey=False, sharex=False, figsize=(12, 12))
-    fig.subplots_adjust(wspace = 0.02, hspace = 0.02)
+    fig1.subplots_adjust(wspace = 0.02, hspace = 0.02)
 
     # Each model can have a different gridsize.  We want to cut at the same
     # spatial location for each model so we will normalize to model 0.
@@ -1137,9 +1213,9 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
     # Model Loop.
 
     # All the models have been plotted. Now lets fix up the colorbar.
-    cax = fig.add_axes([0.91, 0.11, 0.03, 0.77])
+    cax = fig1.add_axes([0.91, 0.11, 0.03, 0.77])
     ticks = np.arange(-8.0, 1.0, 1.0)
-    cbar = fig.colorbar(im, cax=cax, ticks=ticks) 
+    cbar = fig1.colorbar(im, cax=cax, ticks=ticks) 
     cbar.ax.set_yticklabels([r"$\mathbf{%d}$" % x for x in ticks], 
                             fontsize = ps.global_legendsize+10)
     cbar.ax.set_ylabel(r'$\mathbf{log_{10}\left(\chi_{HI}\right)}$',
@@ -1148,7 +1224,7 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
 
     # Done! Save time.
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    plt.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -1157,6 +1233,44 @@ def determine_bubble_size(z_array_reion_allmodels, mass_frac_allmodels,
                           first_snap_allmodels, GridSize_allmodels,
                           boxsize_allmodels, fixed_XHI_values, model_tags,
                           output_dir): 
+    """
+    Determines the size of ionized regions from the MC walks.
+
+    Parameters
+    ----------
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    first_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` starts calculations for each model.
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    boxsize_allmodels : List of integers. Length is number of models.
+        The simulation box size for each model (units are Mpc/h).
+
+    fixed_XHI_values : List of floats.
+        The neutral hydrogen fractions we're calculating the contours at.
+        Defined by the user in ``paper_plots.py``.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    Returns
+    ---------
+
+    None. The results are printed to ``stdout``.
+    """
 
     MCDir = output_dir + '/MC/'
 
@@ -1180,8 +1294,7 @@ def determine_bubble_size(z_array_reion_allmodels, mass_frac_allmodels,
             snap_idx = (np.abs(mass_frac_allmodels[model_number] - frac_val)).argmin()
             snap_z = z_array_reion_allmodels[model_number][snap_idx]
 
-
-            infile = "{0}{1}_z_{2:.3f}.dat".format(MCDir,
+            infile = "{0}{1}_z_{2:.3f}.txt".format(MCDir,
                                                    model_tags[model_number],
                                                    snap_z) 
 
@@ -1202,3 +1315,474 @@ def determine_bubble_size(z_array_reion_allmodels, mass_frac_allmodels,
             print("<xHI> = {0}\tmean R {1:.4f}\tstd R {2:.4f}\tMed R "
                   "{3:.3f}".format(frac_val, np.mean(R), np.std(R),
                                    np.median(R)))
+
+
+def plot_zreion_dens_cross(k, crosscorr, bias, model_tags, output_dir,
+                           output_tag, output_format):
+    """
+    Plots the cross-correlation between density and zreion.
+
+    Parameters
+    ----------
+
+    k : 3D nested list of floats. Outer length is number of models.
+        Next is the number of snapshots then finally is the number of bins. 
+        The wavenumber the spectra are binned on. Units are h/Mpc.
+
+    crosscorr, bias : 3D nested list of floats. Dimensions are identical to
+                      ``k``.
+        The cross-correlation and bias between the density and zreion. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+    fig1 = plt.figure(figsize = (8,8))
+    ax1 = fig1.add_subplot(111)
+
+    fig2 = plt.figure(figsize = (8,8))
+    ax2 = fig2.add_subplot(111)
+
+    for model_number in range(len(k)):
+
+        w = np.where(k[model_number] > 9e-2)[0]
+        w = w[0:-1]
+        label = model_tags[model_number]
+
+        ax1.plot(k[model_number][w],
+                 crosscorr[model_number][w],
+                 color=ps.colors[model_number],
+                 dashes=ps.dashes[model_number],
+                 rasterized=True, label = label)
+
+        ax2.plot(k[model_number][w],
+                 bias[model_number][w],
+                 color=ps.colors[model_number],
+                 dashes=ps.dashes[model_number],
+                 rasterized=True, label = label)
+
+    ax1.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+                       size = ps.global_labelsize)
+    ax1.set_xscale('log')
+
+    ax2.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+                       size = ps.global_labelsize)
+    ax2.set_xscale('log')
+    ax2.set_yscale('log')
+
+    #tick_locs = np.arange(-3, 2.5, 1.0)
+    #this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+    #                        fontsize = ps.global_fontsize)
+
+    ax1.set_ylabel(r"$\mathbf{r_{z_{reion}, \delta}}$",
+                   size = ps.global_labelsize)
+
+    ax2.set_ylabel(r"$\mathbf{b_{z_{reion}, \delta}}$",
+                   size = ps.global_labelsize)
+    #tick_locs = np.arange(-1.0, 5.5, 1.0)
+    #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+    #                      fontsize = ps.global_fontsize)
+
+    leg1 = ax1.legend(loc='upper right', numpoints=1,
+                      labelspacing=0.1)
+    leg1.draw_frame(False)  # Don't want a box frame
+    for t in leg1.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize-2)
+    leg1.draw_frame(False)  # Don't want a box frame
+
+    leg2 = ax2.legend(loc='upper right', numpoints=1,
+                      labelspacing=0.1)
+    leg2.draw_frame(False)  # Don't want a box frame
+    for t in leg2.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize-2)
+    leg2.draw_frame(False)  # Don't want a box frame
+
+    fig1.tight_layout()
+    fig2.tight_layout()
+
+    outputFile1 = "{0}/{1}.{2}".format(output_dir,
+                                       output_tag,
+                                       output_format)
+    fig1.savefig(outputFile1)
+    print('Saved file to {0}'.format(outputFile1))
+
+    outputFile2 = "{0}/bias_{1}.{2}".format(output_dir,
+                                            output_tag,
+                                            output_format)
+    fig2.savefig(outputFile2)
+    print('Saved file to {0}'.format(outputFile2))
+
+    plt.close()
+
+
+def plot_dens_reion_contours(mass_frac_allmodels, XHII_fbase_allmodels,
+                             XHII_precision_allmodels, density_fbase_allmodels,
+                             density_precision_allmodels, GridSize_allmodels,
+                             first_snap_allmodels, fixed_XHI_values,
+                             model_tags, output_dir, output_tag,
+                             output_format):
+    """
+    Plots contours of density-ionization.
+
+    Parameters
+    ----------
+
+    mass_frac_allmodels : 2D nested list of floats. Dimensions equal to
+                          ``z_array_reion_allmodels``.
+        The mass weighted neutral fraction at each snapshot for each model.
+
+    XHII_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the ionization fields for each model.
+
+    XHII_precision_allmodels : List of integers. Length is number of models.
+        The precision of the ionization fields for each model.
+        1 : Float, 2 : Double.
+
+    density_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the density fields for each model.
+
+    density_precision_allmodels : List of integers. Length is number of models.
+        The precision of the density fields for each model.
+        1 : Float, 2 : Double.
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    first_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` starts calculations for each model.
+
+    fixed_XHI_values : List of floats.
+        The neutral hydrogen fractions we're calculating the contours at.
+        Defined by the user in ``paper_plots.py``.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+    from chainconsumer import ChainConsumer
+
+    num_models = len(mass_frac_allmodels)
+    num_frac = len(fixed_XHI_values)
+
+    # When we load in the data, want to keep it as a 1D array.
+    reshape = False
+
+    for frac_number, frac_val in enumerate(fixed_XHI_values):
+
+        c = ChainConsumer()
+
+        for model_number in range(num_models):
+
+            model_gridsize = GridSize_allmodels[model_number]
+
+            XHII_fbase = XHII_fbase_allmodels[model_number]
+            XHII_precision = XHII_precision_allmodels[model_number]
+
+            density_fbase = density_fbase_allmodels[model_number]
+            density_precision = density_precision_allmodels[model_number]
+
+            # First find the snapshot that corresponds to this XHI value.
+            snap_idx = (np.abs(mass_frac_allmodels[model_number] - frac_val)).argmin()
+
+            # Add 1 for the cifog files. 
+            snapnum = snap_idx + first_snap_allmodels[model_number]
+            cifog_snapnum = snapnum + 1 
+
+            XHII_path = "{0}_{1:03d}".format(XHII_fbase, cifog_snapnum)
+            XHII = rs.read_binary_grid(XHII_path, model_gridsize,
+                                       XHII_precision, reshape)
+            XHI = 1.0 - XHII
+
+            #w_partial = np.where((XHII > 0.0) & (XHII < 1.0))[0]
+            #print("Model {0}\tXHI = {1}".format(model_number, frac_val))
+            #print("Min partial ionization {0}\tMax partial ionization "
+            #      "{1}".format(min(XHII[w_partial]), max(XHII[w_partial])))
+
+            density_path = "{0}{1:03d}.dens.dat".format(density_fbase, snapnum)
+            density = rs.read_binary_grid(density_path, model_gridsize,
+                                          density_precision, reshape)
+
+            data = np.empty((len(density), 2))
+            data[:,0] = np.log10(density)
+            data[:,1] = XHII
+
+            x_param = r"$\mathbf{\log_{10}\delta}$"
+            y_param = r"$\mathbf{\chi_\mathrm{HI}}$"
+            c.add_chain(data, parameters=[x_param, y_param], 
+                        name=model_tags[model_number])
+
+        #c.configure(plot_hists=False)
+
+        fig1 = c.plotter.plot(figsize="column")
+
+        final_tag = "{0}_XHI{1}".format(output_tag, frac_val)
+
+        outputFile = "{0}/{1}.{2}".format(output_dir,
+                                          final_tag, 
+                                          output_format)
+        fig1.savefig(outputFile)
+        print('Saved file to {0}'.format(outputFile))
+
+
+def plot_dens_zreion_contours(density_fbase_allmodels,
+                              density_precision_allmodels,
+                              zreion_path_allmodels, GridSize_allmodels,
+                              last_snap_allmodels, model_tags, output_dir,
+                              output_tag, output_format):
+    """
+    Plots contours of density-zreion.
+
+    Parameters
+    ----------
+
+    density_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the density fields for each model.
+
+    density_precision_allmodels : List of integers. Length is number of models.
+        The precision of the density fields for each model.
+        1 : Float, 2 : Double.
+
+    zreion_path_allmodels : List of strings. Length is number of models.
+        The path to the zreion file for each model. 
+
+    XHII_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the ionization fields for each model.
+
+    XHII_precision_allmodels : List of integers. Length is number of models.
+        The precision of the ionization fields for each model.
+        1 : Float, 2 : Double.
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    last_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` ends calculations for each model.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    from chainconsumer import ChainConsumer
+    c = ChainConsumer()
+
+    num_models = len(density_fbase_allmodels)
+    reshape = False
+
+    for model_number in range(num_models):
+
+        model_gridsize = GridSize_allmodels[model_number]
+
+        density_fbase = density_fbase_allmodels[model_number]
+        density_precision = density_precision_allmodels[model_number]
+        density_snap = last_snap_allmodels[model_number]
+
+        density_path = "{0}{1:03d}.dens.dat".format(density_fbase, density_snap)
+        density = rs.read_binary_grid(density_path, model_gridsize,
+                                      density_precision, reshape)
+
+        precision = 2
+        zreion = rs.read_binary_grid(zreion_path_allmodels[model_number],
+                                     GridSize_allmodels[model_number],
+                                     precision, reshape)
+
+        data = np.empty((len(density), 2))
+        data[:,0] = np.log10(density)
+        data[:,1] = zreion 
+
+        x_param = r"$\mathbf{\log_{10}\delta}$"
+        y_param = r"$\mathbf{z_\mathrm{reion}}$"
+        c.add_chain(data, parameters=[x_param, y_param], 
+                    name=model_tags[model_number])
+
+    c.configure(sigmas=[0, 1, 2, 3])
+
+    fig1 = c.plotter.plot(figsize="column")
+
+    #ax = fig.get_axes()
+
+    '''        
+    ax1 = ax[2]
+
+    ax1.set_xlabel(
+                   size = ps.global_labelsize)
+
+    ax1.set_ylabel(
+                   size = ps.global_labelsize)
+    '''
+    #fig1.tight_layout()
+    outputFile = "{0}/{1}.{2}".format(output_dir,
+                                      output_tag, 
+                                      output_format)
+
+    fig1.savefig(outputFile)
+    print('Saved file to {0}'.format(outputFile))
+
+
+def plot_ps_beta(P21_beta, P21_beta_error,
+                 z_array_reion_allmodels, lookback_array_reion_allmodels,
+                 cosmology_allmodels, t_bigbang_allmodels, small_scale_def,
+                 large_scale_def, model_tags, output_dir, output_tag,
+                 output_format):
+    """
+    Plots the (temporal) evolution of the slope between large and small scale
+    21cm power. 
+
+    .. note::
+        The snapshot range only covers reionization (not the full simulation
+        snapshot range).
+
+    Parameters
+    ----------
+
+    P21_beta, P21_beta_error : 2D nested list of floats. Outer length is number
+                               of models. Inner is number of snapshots.
+        The slope (and error) between large scale and small scale (given by 
+        ``small_scale_def`` and ``large_scale_def``) 21cm power spectra.
+
+        If ``P21_beta_error`` is ``None``, then no errors will be plotted.
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    lookback_array_reion_allmodels : 2D nested list of floats. Dimensions
+                                     identical to ``z_array_reion_allmodels``. 
+        The lookback time at each snapshot for each model. Units are Myr.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``astropy`` class containing the cosmology for each model.
+
+    t_bigbang_allmodels : List of floats. Length is number of models.
+        The lookback time to the Big Bang for each model. Units is Gyr.
+
+    small_scale_def, large_scale_def : Floats.
+        The wavenumber values (in h/Mpc) that correspond to 'small' and 'large'
+        scales.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+
+    fig1 = plt.figure(figsize = (8,8))
+    ax1 = fig1.add_subplot(111)
+
+    num_models = len(P21_beta)
+
+    for model_number in range(num_models):
+
+        num_snaps = len(P21_beta[model_number])
+        redshift = z_array_reion_allmodels[model_number][0:num_snaps]
+        lookback = lookback_array_reion_allmodels[model_number][0:num_snaps]
+
+        this_beta = np.array(P21_beta[model_number])
+
+        if model_number < 3:
+            label = model_tags[model_number]
+            color = ps.colors[model_number]
+            dashes = ps.dashes[model_number]
+            lw = ps.global_linewidth
+            alpha = 1.0
+        else:
+            label = ""
+            color = ps.colors[model_number-3]
+            dashes = ps.dashes[model_number-3]
+            lw = 1
+            alpha = 0.7
+
+        ax1.plot(lookback, P21_beta[model_number],
+                 color=color, dashes=dashes, label=label, lw=lw, zorder=1,
+                 alpha=alpha)
+
+        # If we've calculated error, add it to the plot.
+        if P21_beta_error:
+            this_err = np.array(P21_beta_error[model_number])
+            beta_err_lower = this_beta - this_err 
+            beta_err_upper = this_beta + this_err
+
+            if model_number < 3:
+                ax1.fill_between(lookback, beta_err_lower, beta_err_upper,
+                                 facecolor=ps.colors[model_number], alpha=0.25)
+
+    ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
+                             t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
+
+    ax1.set_xlabel(r"$\mathbf{Time \: since \: Big \: Bang \: [Myr]}$", 
+                   fontsize = ps.global_labelsize)
+    ax1.set_ylabel(r"$\mathbf{21cm \: Power \: Slope \: [mK^2 h^{-1}Mpc]}$",
+                   fontsize = ps.global_labelsize)
+
+    ax1.axhline(y=0, xmin=0, xmax=max(ps.time_xlim), lw=0.5, ls='--', color='k')
+
+    ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
+                         ps.global_major_ticklength, ps.global_minor_ticklength) 
+
+    leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                     markerscale=6)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize-2)
+
+
+    tag = "{0}_smallscale{1}_largescale{2}".format(output_tag, small_scale_def,
+                                                   large_scale_def)
+
+    outputFile = "{0}/{1}.{2}".format(output_dir, tag, output_format)
+    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile))
+    plt.close()

@@ -42,6 +42,10 @@
 // Filter Mass Declarations //
 #include "filter_mass/filter_mass.h"
 
+/*
+// Misc Declarations //
+#include "check_ini_files.h"
+*/
 #endif
 
 #define MAXLEN 1024
@@ -158,6 +162,16 @@ int main(int argc, char **argv)
     {
       goto err;
     }
+
+    /*
+    status = check_ini_files(&simParam, PhotoionName, PhotoionDir, fescPrescription, alpha, beta, delta,
+                             quasar_baseline, quasar_boosted, N_dyntime, MH_low, fesc_low,
+                             MH_high, fesc_high, HaloPartCut);
+    if (status !=  EXIT_SUCCESS)
+    {
+      goto err;
+    }
+    */
   }
 #endif
 

@@ -263,6 +263,10 @@ def determine_ps_fixed_XHI(rank, size, comm,
             idx = (np.abs(mass_frac_allmodels[model_number] - val)).argmin()
             snap_idx_target[model_number].append(idx)
 
+            if rank == 0:
+                print("Model {0}\tFrac {1}\tSnap {2}".format(model_number,
+                                                             val, idx+28))
+
     flat_snap_idx_target = [item for sublist in snap_idx_target for item in sublist]
 
     # Now every rank knows what snapshot indices correspond to the fixed HI
@@ -278,6 +282,7 @@ def determine_ps_fixed_XHI(rank, size, comm,
 
         # The `snap_idx_target` value will be the relative snapshot number.
         # Hence need to add the `first_snap` for this model to get absolute.
+
         snapnum = flat_snap_idx_target[idx]
         redshift = z_array_reion_allmodels[model_number][snapnum]
 
@@ -307,7 +312,7 @@ def determine_ps_fixed_XHI(rank, size, comm,
 
         k.append(tmp_k)
         P21.append(tmp_PowSpec * T0*T0 * tmp_k**3 * 4.0*np.pi)
-        PHII.append(tmp_Pspec_HII)
+        PHII.append(tmp_Pspec_HII * tmp_k**3 * 4.0*np.pi)
 
     comm.Barrier()
 
@@ -594,36 +599,67 @@ def gather_ps(rank, size, comm, k_allmodels, P21_allmodels, PHII_allmodels,
         return None, None, None
 
 
-def calculate_bubble_MC(ionized_cells, Ncell, output_file):
-# Calculate the size of ionized/neutral bubbles by choosing an ionized/neutral cell and measuring the distance to a cell of the opposite phase.
+def calculate_bubble_MC(XHII, output_file, N=1e5):
+    """
+    Determines the size of ionized regions using MC walks.
 
-## Input ##
-# z is the redshift we are doing the MC walk at.
-# ionized_cells is the array that contains the ionization state of a cell.
+    Parameters
+    ----------
 
-## Output ##
-# The output file will be of the form '*OutputDir*/MC/*output_tag*_*z*.dat'
+    XHII : 3D nested list of floats. Lengths are equal and given by the grid
+           size of the model.
+        Grid containing the ionized neutral hydrogen fraction in each cell. 
 
+    output_file : String.
+        Path to where the results of the MC walks will be saved.
+
+    N : Integer, optional.
+        The number of walks performed.
+
+    Returns
+    ---------
+
+    None.
+    """
+   
     def MC_walk(cells, indices, phase, N, Ncell, output_file):
-        # Function for the MC walk to calculate bubble size.
+        """
+        Performs the MC walk.
+
+        Parameters
+        ----------
+
+        cells : 3D nested list of floats. Lengths are equal and given
+                ``Ncell``.
+            Grid containing the ionized neutral hydrogen fraction in each cell. 
+
+        indices : List of integers.
+            Indices corresponding to the ionized/neutral grid cells. 
+
+        phase : Integer.
+            Flag denoting whether ``indices`` correspond to neutral (=0) or
+            ionized (=1) cells. 
+
+        N : Integer.
+            The number of walks performed.
+
+        Ncell : Integer.
+            The number of grid cells on a side of ``cells``. 
     
-        ## Input ##
-        # cells is the array that contains the ionization field (0 or 1).
-        # indices is a length 3 array containing the x,y,z indices of the cells that are neutral (phase = 0) or ionized (phase = 1)
-        # phase is 0 if we are starting with neutral or 1 if we are starting with ionized cell.
-        # N is the number of random points we select.
-    
-        ## Output ##
-        # A .dat file containing the results of the MC walk (number of steps until it encounters a phase transition).
+        output_file : String.
+            Path to where the results will be saved.
+
+        Returns
+        ---------
+
+        None. The results of the walk are saved as a ``.txt`` file.
+        """
 
         radii = []
 
-        for j in range(0,int(N)):
-                        
-            #if (j%20000 == 0):
-            #    print("On walk number {0}".format(j))
-    
-			## Select a random direction to walk through ##
+        for j in range(N):
+
+			# Select a random direction to walk through.
             direction = random.randint(1,6)
 
             if direction == 1:
@@ -660,35 +696,336 @@ def calculate_bubble_MC(ionized_cells, Ncell, output_file):
             R = 0
             phase_transition = phase
 
-            while (phase_transition == phase): # While we haven't changed phase yet.
-                R += 1 # Keep increasing the radius until we do.
+            # Then keep walking in that direction until we reach a
+            # neutral/ionized cell.
+            while (phase_transition == phase):
+                R += 1
                 phase_transition = cells[(walk_x + R*x) % Ncell, (walk_y + R*y) % Ncell, (walk_z + R*z) % Ncell]
                 if (phase_transition > 0.8):
                     phase_transition = 1
                 else:
                     phase_transition = 0	
-                if (R >= Ncell): # If the radius has gone beyond the number of available cells, 
-                    phase_transition = (phase + 1) % 2 # We force the change.
-
+                if (R >= Ncell):  # If the radius has gone beyond the number of
+                    phase_transition = (phase + 1) % 2  # available cells,
+                                                        # force the change.
             radii.append(R)
-			
         np.savetxt(output_file, radii, delimiter = ',')
-        #print("MC file saved as {0}".format(outfile))
 
-    #print("")
-    #print("Calculating bubble size using MC walk.")	
+    Ncell = XHII.shape[0]
 
-    N = 1e5
+    # First determine where the ionized cells are.
+    XHII_indices= np.where(XHII > 0.8)
+    phase = 1
 
-    start_time = time.time()
+    MC_walk(XHII, XHII_indices, phase, int(N), Ncell, output_file)
 
-    ionized_indices= np.where(ionized_cells > 0.8) # Calculate the array indices corresponding to neutral/ionized cells.
-    unionized_indices = np.where(ionized_cells < 0.2)
 
-    MC_walk(ionized_cells, ionized_indices, 1, N, Ncell, output_file)
+def zreion_dens_cross(density_fbase_allmodels, density_precision_allmodels,
+                      zreion_path_allmodels, GridSize_allmodels,
+                      boxsize_allmodels, last_snap_allmodels):
+    """
+    Determines the size of ionized regions using MC walks.
 
-    #print("MC took {0} seconds.".format(time.time() - start_time))
+    Parameters
+    ----------
 
+    density_fbase_allmodels : List of strings. Length is number of models.
+        The base filename for the density fields for each model.
+
+    density_precision_allmodels : List of integers. Length is number of models.
+        The precision of the density fields for each model.
+        1 : Float, 2 : Double.
+
+    zreion_path_allmodels : List of strings. Length is number of models.
+        The path to the zreion file for each model. 
+
+    GridSize_allmodels : List of integers. Length is number of models.
+        The number of grid cells (along a box size) for each model.
+
+    boxsize_allmodels : List of integers. Length is number of models.
+        The simulation box size for each model (units are Mpc/h).
+
+    last_snap_allmodels : List of integers. Length is number of models.
+        The snapshot where ``cifog`` ends calculations for each model.
+
+    Returns
+    ---------
+
+    k_allmodels, crosspspec_allmodels, crosscorr_allmodels, bias_allmodels : 
+    3D nested lists of floats. Outer length is number of models, next is number
+    of snapshots in the model and final is the number of wavenumber bins.
+        The wavenumber bins, crosspower spectrum, cross correlation and bias
+        between the zreion and density fields.
+    """
+
+    k_allmodels = []
+    crosspspec_allmodels = []
+    crosscorr_allmodels = []
+    bias_allmodels = []
+
+    for model_number in range(len(zreion_path_allmodels)):
+
+        reshape = True
+        density_path = "{0}{1:03d}.dens.dat".format(density_fbase_allmodels[model_number],
+                                                    last_snap_allmodels[model_number])
+
+        density = rs.read_binary_grid(density_path,
+                                      GridSize_allmodels[model_number],
+                                      density_precision_allmodels[model_number],
+                                      reshape)
+
+        density = density/np.mean(density) - 1.0
+
+        precision = 2
+        zreion = rs.read_binary_grid(zreion_path_allmodels[model_number],
+                                     GridSize_allmodels[model_number],
+                                     precision, reshape)
+
+        zreion = zreion/np.mean(zreion) - 1.0
+
+        kmid_bins, cross_pspec, pspec_zreion, pspec_dens = \
+            av.calc_cross_corr(zreion, density, boxsize_allmodels[model_number]) 
+
+        crosscorr = cross_pspec / (pspec_zreion * pspec_dens)**0.5
+        bias = (pspec_zreion / pspec_dens)**0.5
+
+        k_allmodels.append(kmid_bins)
+        crosspspec_allmodels.append(cross_pspec)
+        crosscorr_allmodels.append(crosscorr)
+        bias_allmodels.append(bias)
+
+    return k_allmodels, crosspspec_allmodels, crosscorr_allmodels, \
+           bias_allmodels
+
+
+def calc_scale_power(k_allmodels, P21_allmodels, PHII_allmodels,
+                     z_array_reion_allmodels, small_scale_def, large_scale_def,
+                     small_scale_err, large_scale_err, calc_beta=False,
+                     debug=False):
+    """
+    Calculates the power at specified small and large scales. Also calculates
+    the slope between these points if specified.
+
+    Parameters
+    ----------
+
+    k_allmodels : 3D nested list of floats. Outer length is number of models,
+                  next is number of snapshots processed by this processor and
+                  final is the number of wavenumber bins.
+        Wavenumber the spectra are binned on (units of Mpc/h).
+
+    P21_allmodels, PHII_allmodels : 3D nested lists of floats. Dimensions are
+                                    identical to ``k_allmodels``.
+        The 21cm and HII power spectra for each model at each snapshot.
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    small_scale_def, large_scale_def : Floats.
+        The wavenumber values (in h/Mpc) that correspond to 'small' and 'large'
+        scales.
+
+    small_scale_err, large_scale_err : Floats.
+        The 21cm power spectrum uncertainty a specific instrument (e.g., MWA or
+        SKA, specified by the user in ``paper_plots.py``) has at the small and
+        large scales. 
+
+        If ``None``, then the errors will not be calculated.
+
+    calc_beta : Boolean, optional.
+        Flag to denote whether we need to calculate the slope between the large
+        and small scale 21cm spectra.
+
+    debug : Boolean, optional.
+        Flag to control whether we need to print out some information. 
+
+    Returns
+    ---------
+
+    scale_dict : Dictionary.
+        A dictionary containing the k-wavenumber, 21cm power, HII power at
+        large and small scales. If ``calc_beta == True``, also contains the
+        slope between small and large scale power with the associated error.
+    """
+
+    num_models = len(k_allmodels)
+
+    k_small_scale = []
+    k_large_scale = []
+
+    P21_small_scale = []
+    P21_large_scale = []
+
+    PHII_small_scale = []
+    PHII_large_scale = []
+
+    P21_small_scale_err_low = []
+    P21_small_scale_err_up = []
+
+    P21_large_scale_err_low = []
+    P21_large_scale_err_up = []
+
+    for model_number in range(num_models):
+
+        k_small_scale.append([])
+        k_large_scale.append([])
+
+        P21_small_scale.append([])
+        P21_large_scale.append([])
+
+        P21_small_scale_err_low.append([])
+        P21_small_scale_err_up.append([])
+
+        P21_large_scale_err_low.append([])
+        P21_large_scale_err_up.append([])
+
+        PHII_small_scale.append([])
+        PHII_large_scale.append([]) 
+
+        k_this_model = np.array(k_allmodels[model_number])
+        P21_this_model = np.array(P21_allmodels[model_number])
+        PHII_this_model = np.array(PHII_allmodels[model_number])
+
+        # For all the snapshots find the values at the specified scales.
+        for snap_idx in range(len(k_this_model)):
+            small_idx = (np.abs(k_this_model[snap_idx] - small_scale_def)).argmin()
+            large_idx = (np.abs(k_this_model[snap_idx] - large_scale_def)).argmin()
+
+            # Then grab the relevant values at those scales.
+            k_small = k_this_model[snap_idx][small_idx]
+            k_large = k_this_model[snap_idx][large_idx]
+
+            P21_small = P21_this_model[snap_idx][small_idx]
+            P21_large = P21_this_model[snap_idx][large_idx]
+
+            PHII_small = PHII_this_model[snap_idx][small_idx]
+            PHII_large = PHII_this_model[snap_idx][large_idx]
+
+            # Then append!
+            k_small_scale[model_number].append(k_small)
+            P21_small_scale[model_number].append(P21_small)
+            PHII_small_scale[model_number].append(PHII_small)
+
+            k_large_scale[model_number].append(k_large)
+            P21_large_scale[model_number].append(P21_large)
+            PHII_large_scale[model_number].append(PHII_large)
+
+            # If we're calculating errors, find the region we should shade.
+            # We only have the errors between z = 8-10 so if not in this range,
+            # append nan. 
+            if small_scale_err:
+                if z_array_reion_allmodels[model_number][snap_idx] < 8.0 or \
+                   z_array_reion_allmodels[model_number][snap_idx] > 10.0:
+
+                    P21_small_scale_err_low[model_number].append(P21_small)
+                    P21_small_scale_err_up[model_number].append(P21_small)
+
+                    P21_large_scale_err_low[model_number].append(P21_large)
+                    P21_large_scale_err_up[model_number].append(P21_large)
+
+                else:
+                    P21_small_scale_err_low[model_number].append(P21_small - \
+                                                                 small_scale_err) 
+                    P21_small_scale_err_up[model_number].append(P21_small + \
+                                                                small_scale_err)
+     
+                    P21_large_scale_err_low[model_number].append(P21_large - \
+                                                                 large_scale_err) 
+                    P21_large_scale_err_up[model_number].append(P21_large + \
+                                                                large_scale_err) 
+
+    # If we want to calculate the slope between large-scale and small-scale
+    # power, do it!
+    if calc_beta:
+
+        P21_beta = []
+        PHII_beta = []
+
+        P21_beta_error = []
+
+
+        for model_number in range(num_models):
+
+            P21_beta.append([])
+            PHII_beta.append([])
+
+            P21_beta_error.append([])
+
+            k_large_scale_this_model = k_large_scale[model_number]
+            k_small_scale_this_model = k_small_scale[model_number]
+
+            P21_small_scale_this_model = P21_small_scale[model_number]
+            P21_large_scale_this_model = P21_large_scale[model_number]
+
+            PHII_small_scale_this_model = PHII_small_scale[model_number]
+            PHII_large_scale_this_model = PHII_large_scale[model_number]
+
+            for snap_idx in range(len(P21_small_scale_this_model)):
+
+                k_large_snap = k_large_scale_this_model[snap_idx]
+                k_small_snap = k_small_scale_this_model[snap_idx]
+
+                P21_large_snap = P21_large_scale_this_model[snap_idx]
+                P21_small_snap = P21_small_scale_this_model[snap_idx]
+
+                PHII_large_snap = PHII_large_scale_this_model[snap_idx]
+                PHII_small_snap = PHII_small_scale_this_model[snap_idx]
+
+                P21_beta_snap = (P21_large_snap - P21_small_snap) / \
+                                (k_large_snap - k_small_snap)
+
+                PHII_beta_snap = (PHII_large_snap - PHII_small_snap) / \
+                                 (k_large_snap - k_small_snap)
+
+
+                # If there's no error defined, skip this calculation. 
+                if not small_scale_err or not large_scale_err:
+                    P21_beta_error = None
+                    continue
+
+                # Assume that there's no uncertainty in the k-values. Then
+                # delta(Slope) is sqrt(large scale error^2 + small scale
+                # error^2) divided by the difference in scales.
+                P21_error_snap = np.sqrt(large_scale_err**2 + \
+                                         small_scale_err**2) / \
+                                 (k_large_snap - k_small_snap)
+                # Error can only be positive...
+                P21_error_snap = np.abs(P21_error_snap)
+                
+                if debug:
+                    print("")
+                    print("Snap {0}".format(snap_idx))
+                    print("P21_small {0}\tP21_small_err {1}\tFrac "
+                          "{2}".format(P21_small_snap, small_scale_err,
+                                       small_scale_err / P21_small_snap))
+                    print("P21_large {0}\tP21_large_err {1}\tFrac "
+                          "{2}".format(P21_large_snap, large_scale_err,
+                                       large_scale_err / P21_large_snap))
+                    print("P21_beta {0}\tP21_beta_error {1}".format(P21_beta_snap,
+                                                                    P21_error_snap))
+                    print("")
+
+                P21_beta[model_number].append(P21_beta_snap)
+                PHII_beta[model_number].append(PHII_beta_snap)
+
+                P21_beta_error[model_number].append(P21_error_snap)
+
+    # Throw everything into a dict for easy passing.
+    scale_dict = {"k_small_scale" : k_small_scale,
+                  "k_large_scale" : k_large_scale, 
+                  "P21_small_scale" : P21_small_scale, 
+                  "P21_large_scale" : P21_large_scale, 
+                  "PHII_small_scale" : PHII_small_scale, 
+                  "PHII_large_scale" : PHII_large_scale}
+
+    if calc_beta:
+        scale_dict["P21_beta"] = P21_beta
+        scale_dict["PHII_beta"] = PHII_beta
+        scale_dict["P21_beta_error"] = P21_beta_error
+
+    return scale_dict
+ 
 
 def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                           model_tags, reion_plots, output_dir, output_format):
@@ -739,6 +1076,10 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
             os.makedirs(output_dir)
             print("Made output directory {0}".format(output_dir))
 
+            MC_dir = "{0}/MC".format(output_dir)
+            os.makedirs(MC_dir)
+            print("Made directory {0}".format(MC_dir))
+
     # First calculate all the properties and statistics we need.
     reion_data = generate_data(rank, size, comm, reion_ini_files,
                                gal_ini_files, reion_plots, output_dir,
@@ -760,8 +1101,8 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                           master_mass_frac, reion_plots["duration_definition"])
 
         for model_number in range(len(master_mass_frac)):
-            print("Model {0}: Start {1:.3f} \tMid {2:.3f}\tEnd {3:.23}\t"
-                  "dz {4:.3f}\tdt {5:.2f}Myr\tReion Completed {6}" \
+            print("Model {0}: Start {1:.2f} \tMid {2:.2f}\tEnd {3:.2f}\t"
+                  "dz {4:.2f}\tdt {5:.1f}Myr\tReion Completed {6}" \
                   .format(model_number, duration_z[model_number][0],
                           duration_z[model_number][1], duration_z[model_number][-1],
                           duration_z[model_number][0]-duration_z[model_number][-1],
@@ -866,6 +1207,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                            output_format)
 
     if reion_plots["optical_depth"] and reion_plots["history"] and rank == 0:
+        print("Plotting the combined optical depth/ionization history.")
         reionplot.plot_combined_history_tau(reion_data["z_array_reion_allmodels"],
                                             reion_data["lookback_array_reion_allmodels"],    
                                             reion_data["cosmology_allmodels"],
@@ -874,7 +1216,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                             model_tags, output_dir,
                                             "history_tau", output_format)
 
-    if reion_plots["ps_scales"]:
+    if reion_plots["ps_scales"] or reion_plots["ps_scales_beta"]:
         k, P21, PHII = gather_ps(rank, size, comm,
                                  reion_data["k_allmodels"],
                                  reion_data["P21_allmodels"],
@@ -883,12 +1225,63 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                  reion_data["last_snap_allmodels"])
 
         if rank == 0:
-            reionplot.plot_ps_scales(k, P21, PHII, master_mass_frac,
-                                     reion_plots["fixed_XHI_values"],
-                                     reion_plots["small_scale_def"],
-                                     reion_plots["large_scale_def"],
-                                     model_tags, output_dir, "ps_scales",
-                                     output_format)
+            print("Plotting the large scale power as a function of small "
+                  "scale.")
+
+            if reion_plots["ps_scales_beta"]:
+                calc_beta = True
+            else:
+                calc_beta = False 
+
+            # Now that we have all the PS on the master rank, calculate the
+            # amplitude at the specified scales.
+            scale_power_dict = calc_scale_power(k, P21, PHII,
+                                                reion_data["z_array_reion_allmodels"],                    
+                                                reion_plots["small_scale_def"],
+                                                reion_plots["large_scale_def"],
+                                                reion_plots["small_scale_err"],
+                                                reion_plots["large_scale_err"],
+                                                calc_beta=calc_beta)
+
+            k_small_scale = scale_power_dict["k_small_scale"]
+            k_large_scale = scale_power_dict["k_large_scale"]
+
+            P21_small_scale = scale_power_dict["P21_small_scale"]
+            P21_large_scale = scale_power_dict["P21_large_scale"]
+
+            PHII_small_scale = scale_power_dict["PHII_small_scale"]
+            PHII_large_scale = scale_power_dict["PHII_large_scale"]
+
+            if reion_plots["ps_scales"]:
+                reionplot.plot_ps_scales(P21_small_scale,
+                                         P21_large_scale, master_mass_frac, 
+                                         reion_data["z_array_reion_allmodels"],
+                                         reion_plots["fixed_XHI_values"],
+                                         reion_plots["ps_scales_z"],
+                                         reion_plots["small_scale_def"],
+                                         reion_plots["large_scale_def"],
+                                         reion_plots["small_scale_err"],
+                                         reion_plots["large_scale_err"],
+                                         model_tags, output_dir, "ps_scales",
+                                         output_format)
+
+            if reion_plots["ps_scales_beta"]:
+
+                P21_beta = scale_power_dict["P21_beta"]
+                P21_beta_error = scale_power_dict["P21_beta_error"]
+                PHII_beta = scale_power_dict["PHII_beta"]
+
+                reionplot.plot_ps_beta(P21_beta, P21_beta_error,
+                                       reion_data["z_array_reion_allmodels"],
+                                       reion_data["lookback_array_reion_allmodels"],
+                                       reion_data["cosmology_allmodels"],
+                                       reion_data["t_bigbang_allmodels"],
+                                       reion_plots["small_scale_def"],
+                                       reion_plots["large_scale_def"],
+                                       model_tags, output_dir,
+                                       "ps_scales_beta", output_format)
+
+
 
     if reion_plots["slices_fixed_XHI"] and rank == 0:
         print("Plotting slices at fixed XHI fractions.")
@@ -916,6 +1309,43 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                         reion_data["boxsize_allmodels"],
                                         reion_plots["fixed_XHI_values"],
                                         model_tags, output_dir)
+
+    if reion_plots["zreion_dens_cross"] and rank == 0:
+        print("Calculating the zreion-density cross correlation.")
+        k, crosspspec, crosscorr, bias = \
+            zreion_dens_cross(reion_data["density_fbase_allmodels"],
+                              reion_data["density_precision_allmodels"],
+                              reion_data["zreion_path_allmodels"],
+                              reion_data["GridSize_allmodels"],
+                              reion_data["boxsize_allmodels"],
+                              reion_data["last_snap_allmodels"])
+
+        reionplot.plot_zreion_dens_cross(k, crosscorr, bias, model_tags,
+                                         output_dir, "zreion_dens_crosscorr",
+                                         output_format)
+
+    if reion_plots["dens_ion_contours"] and rank == 0:
+        print("Plotting contours of density-ionization.")
+        reionplot.plot_dens_reion_contours(master_mass_frac,
+                                           reion_data["XHII_fbase_allmodels"],
+                                           reion_data["XHII_precision_allmodels"],
+                                           reion_data["density_fbase_allmodels"],
+                                           reion_data["density_precision_allmodels"],
+                                           reion_data["GridSize_allmodels"],
+                                           reion_data["first_snap_allmodels"],
+                                           reion_plots["fixed_XHI_values"],
+                                           model_tags, output_dir,
+                                           "dens_ion_contours", output_format)
+
+    if reion_plots["dens_zreion_contours"] and rank == 0:
+        print("Plotting contours of density-zreion.")
+        reionplot.plot_dens_zreion_contours(reion_data["density_fbase_allmodels"],
+                                            reion_data["density_precision_allmodels"],
+                                            reion_data["zreion_path_allmodels"],
+                                            reion_data["GridSize_allmodels"],
+                                            reion_data["last_snap_allmodels"],
+                                            model_tags, output_dir,
+                                            "dens_zreion_contours", output_format)
 
 
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
@@ -962,7 +1392,8 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
     if rank == 0:
         print("Generating reionization data for a total of {0} "
-              "models.".format(len(reion_ini_files)))
+              "models and saving plots in directory {1}" \
+              .format(len(reion_ini_files), output_dir))
 
     # ======================================================================= #
     # We calculate values for all models and put them into lists that are     #
@@ -980,6 +1411,9 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
     XHII_precision_allmodels = []
     density_fbase_allmodels = []
     density_precision_allmodels = []
+
+    zreion_path_allmodels = []
+
     first_snap_allmodels = []
     last_snap_allmodels = []
 
@@ -1064,6 +1498,10 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
         density_fbase = cifog_params["inputIgmDensityFile"]
         density_fbase_allmodels.append(density_fbase)
 
+        zreion_path = "{0}/{1}".format(SAGE_params["PhotoionDir"],
+                                       SAGE_params["ReionRedshiftName"])
+        zreion_path_allmodels.append(zreion_path)
+
         nion_fbase = cifog_params["inputNionFile"]
 
         # cifog uses 0 for floating point and 1 for double precision.
@@ -1123,7 +1561,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
             # If we're plotting the power spectra in scale space need to
             # calculate them at every single snapshot.
-            if reion_plots["ps_scales"]:
+            if reion_plots["ps_scales"] or reion_plots["ps_scales_beta"]:
                 T0 = T_naught(z_array_reion[snap_idx], cosmology.H(0).value/100.0,
                               cosmology.Om0, cosmology.Ob0)
 
@@ -1131,11 +1569,10 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 tmp_k, tmp_PowSpec, tmp_Error, \
                 tmp_k_XHII, tmp_Pspec_HII, tmp_Error_XHII = calc_ps(XHII, density,
                                                                     boxsize)
-
                 k_allmodels[model_number].append(tmp_k)
                 P21_allmodels[model_number].append(tmp_PowSpec * T0*T0 * tmp_k**3 * 4.0*np.pi)
-                PHII_allmodels[model_number].append(tmp_Pspec_HII)
-           
+                PHII_allmodels[model_number].append(tmp_Pspec_HII * tmp_k**3 * 4.0*np.pi)
+
             if reion_plots["bubble_size"] and \
                (mass_frac < 0.95 and mass_frac > 0.05):
 
@@ -1143,8 +1580,8 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 MC_path = "{0}/MC/{1}_z_{2:.3f}.txt".format(output_dir,
                                                             model_tags[model_number],
                                                             z_array_reion[snap_idx]) 
-                if (os.path.exists(infile) == False):
-                    calculate_bubble_MC(XHII, GridSize, MC_path)
+                if (os.path.exists(MC_path) == False):
+                    calculate_bubble_MC(XHII, MC_path)
             
         # Snapshot Loop.
 
@@ -1169,6 +1606,7 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                   "XHII_precision_allmodels" : XHII_precision_allmodels,
                   "density_fbase_allmodels" : density_fbase_allmodels,
                   "density_precision_allmodels" : density_precision_allmodels,
+                  "zreion_path_allmodels": zreion_path_allmodels,
                   "GridSize_allmodels" : GridSize_allmodels,
                   "boxsize_allmodels" : boxsize_allmodels,
                   "helium_allmodels" : helium_allmodels,

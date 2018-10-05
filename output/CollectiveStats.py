@@ -98,6 +98,9 @@ def collect_across_tasks(rank, comm, mean_per_task, std_per_task, N_per_task, Sn
     rank: Integer
         Rank of the task.
 
+    comm : Class ``mpi4py.MPI.Intracomm``
+        The ``mpi4py`` communicator.
+
     mean_per_task, std_per_task, N_per_task: Nested 2D (or 3D if binned == True) arrays of floats.  
                                              Outer length is equal to the number of models.
                                              Inner length is equal to the number of snapshots the data has been calculated for.

@@ -83,8 +83,8 @@ def Set_Params_Plot():
     #colors = ['k', 'r', 'b', 'g', 'm', 'c', 'k']
     markers = ['X', 'o', '^', 's', 'D']
     linestyles = ['-', '--', '-.', ':', '-', '-', '-', '-', '-']
-    z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
-    time_xlim = [290, 930]
+    z_plot = np.arange(5, 15, 1)  #Range of redshift we wish to plot.
+    time_xlim = [290, 960]
     time_tickinterval = 25
 
 
@@ -134,17 +134,19 @@ def rsage_paper_plot_params():
 
     np.set_printoptions(formatter={'float': lambda x: "{0:0.10e}".format(x)})
 
-    colors = ["k", "#dd1c77", "#3182bd", "#f03b20", "#31a354", "b", "y"] 
+    colors = ["k", "#dd1c77", "#3182bd", "#f03b20", "#31a354", "b", "y", "c",
+              "g", "m"] 
     markers = ['X', 'o', '^', 's', 'D']
-    linestyles = ['-', '--', '-.', ':', '-']
     dashes = ['',
               [3, 3, 3, 3],
               [7, 1, 1, 1],
               [1, 1, 1, 1],
               [5, 1, 5, 1],
-              '', '']
-    z_plot = np.arange(6, 15, 1)  #Range of redshift we wish to plot.
-    time_xlim = [290, 930]
+              '', '', '', '', ''
+              '', '', '', '', '']
+
+    z_plot = np.arange(6, 14, 1)  #Range of redshift we wish to plot.
+    time_xlim = [290, 980]
     time_tickinterval = 25
 
 
@@ -274,7 +276,7 @@ def plot_SMBH_z8(ax, linewidth = 1.0, alpha = 1.0):
     ax.plot(Obs.Mstar, Obs.Huang_z8_BHSM, alpha = alpha, lw = linewidth, ls = '-.', label = "Huang et al. 2018", color = Obs.SMBH_colors[0], rasterized = True)
   
 
-def add_time_z_axis(ax, cosmo, t_bigbang):
+def add_time_z_axis(ax, cosmo, t_bigbang, my_time_xlim):
 
     tick_locs = np.arange(200.0, 1000.0, 100.0)
     ax.xaxis.set_minor_locator(mtick.MultipleLocator(time_tickinterval))
@@ -282,17 +284,20 @@ def add_time_z_axis(ax, cosmo, t_bigbang):
     ax.xaxis.set_major_locator(mtick.MultipleLocator(100))
     ax.set_xticklabels(tick_labels, fontsize = global_fontsize)
 
-    ax.set_xlim(time_xlim)
+    ax.set_xlim(my_time_xlim)
 
     ax2 = ax.twiny()
 
     t_plot = (t_bigbang - cosmo.lookback_time(z_plot).value) * 1.0e3 # Corresponding Time values on the bottom.
     z_labels = ["$\mathbf{%d}$" % x for x in z_plot] # Properly Latex-ize the labels.
 
-    ax2.set_xlim(time_xlim)
+    ax2.set_xlim(my_time_xlim)
     ax2.set_xticks(t_plot) # Set the ticks according to the time values on the bottom,
     ax2.set_xticklabels(z_labels, fontsize = global_fontsize-2) # But label them as redshifts.
 
+    ax2 = adjust_axis(ax2, global_axiswidth, global_tickwidth,
+                      global_major_ticklength, global_minor_ticklength)
+    ax2.tick_params(which = 'both', direction='in', width=global_tickwidth)
     ax2.set_xlabel(r"$\mathbf{z}$", fontsize = global_fontsize)
 
     return ax2
@@ -323,8 +328,30 @@ def plot_bouwens2015(cosmo, t_bigbang, ax):
 
 def adjust_axis(ax, axis_width, tickwidth, major_ticklength,
                 minor_ticklength):
+    """
+    Adjusts the tick properties of the axis.  Sets the tick lengths, widths and
+    also ensures that the ticks are pointing inwards.
 
-    for axis in ['top','bottom','left','right']: # Adjust axis thickness.
+    Parameters
+    ----------
+
+    ax : ``matplotlib`` axis.
+        The axis we're adjusting.
+
+    axis_width, tickwidth : Floats.
+        The desired width (or thickness) of the axis and ticks.
+
+    major_ticklength, minor_ticklength : Floats.
+        The desired length of the major and minor ticks.
+
+    Returns
+    ---------
+
+    ax : ``matplotlib`` axis.
+        The axis with the properties adjusted.
+    """
+
+    for axis in ['top','bottom','left','right']:
         ax.spines[axis].set_linewidth(axis_width)
 
     ax.tick_params(which = 'both', direction='in',

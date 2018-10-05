@@ -79,7 +79,7 @@ endif
 
 CFLAGS += $(GSL_INCL) $(FFTW_INCL)
 
-OPTIMIZE = -g -O3 -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
+OPTIMIZE = -g -O3 -Wextra -Wall -Wshadow # optimization and warning flags -Wunused-parameter  -Werror 
 
 LIBS   = -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB) $(RSAGE_LIB) $(FFTW3_LIBS)
 

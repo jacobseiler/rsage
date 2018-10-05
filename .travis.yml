@@ -1,7 +1,7 @@
 # Blocklist
-branches:
-  except:    
-    - development 
+#branches:
+#  except:    
+#    - development 
 
 cache:
   directories:

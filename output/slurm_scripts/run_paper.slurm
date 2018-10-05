@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=myresults
+#SBATCH --job-name=paper_plots
 
 #SBATCH --ntasks=8
 #SBATCH --time=1:00:00
