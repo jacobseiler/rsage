@@ -7,7 +7,7 @@ RSAGE
 Description
 ====================
 
-This repository contains the Reionization using Semi-Analytic Galaxy Evolution (``RSAGE``) model.  This model is an augmented version of the Semi-Analytic Galaxy Evolution (``SAGE``) model (found `here <https://github.com/darrencroton/sage>`_) that self-consistently couples galaxy evolution with the evolution of ionized gas during the Epoch of Reionization.  This coupling is powered by the semi-numerical code `cifog <https://github.com/annehutter/grid-model>`_. 
+This repository contains the Reionization using Semi-Analytic Galaxy Evolution (``RSAGE``) model.  This model is an augmented version of the Semi-Analytic Galaxy Evolution (``SAGE``) model (found `here <https://github.com/darrencroton/sage>`_) that self-consistently couples galaxy evolution with the evolution of ionized gas during the Epoch of Reionization.  This coupling is powered by the semi-numerical code `cifog <https://github.com/annehutter/grid-model>`_ which follows the evolution of ionized hydrogen and helium during reionization. 
 
 Installation
 ====================
