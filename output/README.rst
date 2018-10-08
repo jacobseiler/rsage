@@ -48,7 +48,7 @@ and the format in which they are written.  If the specified
 
 Following these are the paths to the ``.ini`` files for both the galaxy
 (usually tagged with a ``_SAGE`` suffix) and reionization (usually tagged with
-a ``cifog`` suffix) portions of ``RSAGE``. These ``.ini`` files are then placed
+a ``_cifog`` suffix) portions of ``RSAGE``. These ``.ini`` files are then placed
 into two lists: ``gal_ini_files`` and ``reion_ini_files``. **The paths in these
 lists, and only these lists, will be plotted**.
 
