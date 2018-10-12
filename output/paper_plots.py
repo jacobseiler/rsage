@@ -149,6 +149,7 @@ if __name__ == "__main__":
     mstar_fej  = 0
     mstar_SFR  = 0
     SMF        = 0
+    mstar_MUV  = 1
 
     # ==================== #
     # Galaxy Plot Options. # 
@@ -183,6 +184,7 @@ if __name__ == "__main__":
                     "SMF" :                   SMF,
                     "mstar_fej" :             mstar_fej,
                     "mstar_SFR" :             mstar_SFR,
+                    "mstar_MUV" :             mstar_MUV,
                     "plot_snaps_for_models" : plot_snaps_for_models,
                     "plot_models_at_snaps" :  plot_models_at_snaps,
                     "SMF_plot_z" :            SMF_plot_z,

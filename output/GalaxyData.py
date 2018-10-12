@@ -287,6 +287,9 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                    plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
 
+    if galaxy_plots["mstar_MUV"]:
+
+
 def generate_data(rank, size, comm, ini_files, galaxy_plots):
     """    
     Reads in the galaxy data for calculate all the require properties for each
