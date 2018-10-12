@@ -1,10 +1,17 @@
 # set this if you want to run in embarrassingly parallel
 USE-MPI ?= true
-# USE-HDF5 = yes # set this if you want to read in hdf5 trees (requires hdf5 libraries)
 
+OPT :=
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+#BUILD_RSAGE ?= true
+
+ifeq ($(BUILD_RSAGE), true)
+	OPT += -DRSAGE
+endif
+
 LIBS :=
-OPT := -DROOT_DIR='"${ROOT_DIR}"'
+OPT += -DROOT_DIR='"${ROOT_DIR}"'
 CCFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC 
 
 LIBNAME = sage

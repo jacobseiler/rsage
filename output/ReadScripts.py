@@ -207,7 +207,8 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('LenMergerGal', (np.int32, MAXSNAPS)),
          ('GridReionMod', (np.float32, MAXSNAPS)),
          ('GridNgamma_HI', (np.float32, MAXSNAPS)),
-         ('Gridfesc', (np.float32, MAXSNAPS))
+         ('Gridfesc', (np.float32, MAXSNAPS)),
+         ('GridMUV', (np.float32, MAXSNAPS))
 #         ('GridInfallRate', (np.float32, MAXSNAPS))
          ]
 

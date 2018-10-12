@@ -332,6 +332,7 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
   WRITE_GRID_PROPERTY(g->GridReionMod, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridNgamma_HI, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->Gridfesc, MAXSNAPS);
+  WRITE_GRID_PROPERTY(g->MUV, MAXSNAPS);
   //WRITE_GRID_PROPERTY(g->ColdCrit, MAXSNAPS);
   //WRITE_CONVERTED_GRID_PROPERTY(g->GridInfallRate, MAXSNAPS, SFR_CONVERSION, typeof(*(g->GridSFR)));
  

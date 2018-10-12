@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     run_directory = None
     while not run_directory:
-        run_directory = input("Base output directory")
+        run_directory = input("Base output directory ")
         if not run_directory:
             print("Must be specified")
 

@@ -518,5 +518,16 @@ int32_t check_ini_parameters(void)
     return EXIT_FAILURE; 
   }
 
+#ifndef RSAGE
+
+  if (self_consistent == 1 || (ReionizationOn == 2 || ReionizationOn == 3))
+  {
+    fprintf(stderr, "You have requested self-consistent reionization to be on (`self_consistent = 1` or `ReionizationOn = 2 or 3`)." 
+                    "  However you have not compiled with the self-consistent modules.\nEnsure that `BUILD_RSAGE` is set in the Makefile.\n" );
+    return EXIT_FAILURE;
+  }
+
+#endif
+
   return EXIT_SUCCESS;
 }
