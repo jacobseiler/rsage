@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
 
     if const_fej_SFR:
-        output_directory = "./const_fej_SFR"
+        output_directory = "./30month"
         gal_ini_files = [gal_ini_model1,
                          gal_ini_model4, 
                          gal_ini_model5]
@@ -265,15 +265,18 @@ if __name__ == "__main__":
     # For some plots, there is the option of plotting one model at different
     # snapshots (within one panel) or plotting all models at one snapshot
     # (within one panel).  
-    plot_snaps_for_models = [[33, 50, 76, 93],  # For each panel, plot one model 
-                             [33, 50, 76, 93],  # at specified snapshots.
-                             [33, 50, 76, 93],   
-                             [33, 50, 76, 93],   
-                             [33, 50, 76, 93],   
-                             [33, 50, 76, 93]]  
+    plot_snaps_for_models = [[76],  # For each panel, plot one model 
+                             [76],  # at specified snapshots.
+                             [76],   
+                             [76],   
+                             [76],   
+                             [76]]  
+    #plot_snaps_for_models = None
+    plot_models_at_snaps = [76] # For each panel, plot one specified snapshot 
+                                # for all models.
 
-    plot_models_at_snaps = None  # For each panel, plot one specified snapshot 
-                                 # for all models.
+    plot_single_panel = 1  # Instead of plotting multiple panels, plot all on a
+                           # single panel.
 
     # For the stellar mass function, we may only want to plot at specific
     # redshifts for each model.
@@ -294,6 +297,7 @@ if __name__ == "__main__":
                     "mstar_SFR" :             mstar_SFR,
                     "plot_snaps_for_models" : plot_snaps_for_models,
                     "plot_models_at_snaps" :  plot_models_at_snaps,
+                    "plot_single_panel" :     plot_single_panel,
                     "SMF_plot_z" :            SMF_plot_z,
                     "first_file" :            first_file,
                     "last_file" :             last_file}
@@ -301,20 +305,22 @@ if __name__ == "__main__":
     # Check if any galaxy plots need to be done.
     for field in galaxy_plots.keys():
         if galaxy_plots[field] == 1:
-            galdata.plot_galaxy_properties(rank, size, comm, gal_ini_files,
-                                           model_tags, galaxy_plots,
-                                           output_directory, output_format)
+            #galdata.plot_galaxy_properties(rank, size, comm, gal_ini_files,
+            #                               model_tags, galaxy_plots,
+            #                               output_directory, output_format)
             break
  
     # =========================== #
     # Reionization Plot Toggles . # 
     # =========================== #
+    single_slice         = 0
+    single_ps            = 0
     history              = 0
     reion_nion           = 0
-    ps_fixed_XHI         = 0
+    ps_fixed_XHI         = 1
     optical_depth        = 0
-    ps_scales            = 1
-    ps_scales_beta       = 1
+    ps_scales            = 0
+    ps_scales_beta       = 0
     slices_fixed_XHI     = 0
     bubble_size          = 0
     zreion_dens_cross    = 0
@@ -326,7 +332,8 @@ if __name__ == "__main__":
     # ========================== #
     # `px_fixed_XHI` and `slices_fixed_XHI` are done at fixed neutral
     # fractions. `ps_scales` also has these marked on the plot. 
-    fixed_XHI_values = [0.90, 0.75, 0.50, 0.25, 0.10]
+    #fixed_XHI_values = [0.90, 0.75, 0.50, 0.25, 0.10]
+    fixed_XHI_values = [0.50]
 
     # `ps_scales` has the option to instead mark redshift instead of fixed
     # neutral fractions. Set this to `None` to use the fixed neutral fractions
@@ -350,7 +357,7 @@ if __name__ == "__main__":
     use_instrument = "SKA"
 
     # First define the number of hours we will be integrating for.
-    integration_time = 400
+    integration_time = 200
 
     if use_instrument == "MWA":
         small_scale_err = 4.52e4   # 256 dish configuration at 1.0 h/Mpc.
@@ -415,7 +422,9 @@ if __name__ == "__main__":
     # ===================================================== #
     # Reionization Plotting Time (Shouldn't need to touch). # 
     # ===================================================== #
-    reion_plots = {"history" :              history,
+    reion_plots = {"single_slice" :         single_slice,
+                   "single_ps" :            single_ps,
+                   "history" :              history,
                    "nion" :                 reion_nion,
                    "ps_fixed_XHI" :         ps_fixed_XHI,
                    "contours" :             contours, 

@@ -230,8 +230,9 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                     master_std_mstar_fesc,
                                     master_N_mstar_fesc, model_tags,
                                     output_dir, "mstar_fesc", output_format,
-                                    plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
-                                    plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+                                    galaxy_plots["plot_snaps_for_models"],
+                                    galaxy_plots["plot_models_at_snaps"],
+                                    galaxy_plots["plot_single_panel"])
 
     if galaxy_plots["SMF"]:
 
