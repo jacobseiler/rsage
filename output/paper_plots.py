@@ -127,7 +127,7 @@ if __name__ == "__main__":
                            reion_ini_model5]
 
         model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.20}$",
-                      r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
+                      r"$\mathbf{f_\mathrm{esc} \: \propto \: SN}$",
                       r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
     if no_const:
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     # Galaxy Plot Toggles. # 
     # ==================== #
     gal_nion   = 0
-    mstar_fesc = 0
+    mstar_fesc = 1
     mstar_fej  = 0
     mstar_SFR  = 0
     SMF        = 0
@@ -285,7 +285,7 @@ if __name__ == "__main__":
     # If you only want to use a specific range of files, specify here. If you
     # want to use all the files from a model, set these to ``None``.
     first_file = None 
-    last_file = None 
+    last_file = None
    
     # =============================================== #
     # Galaxy Plotting Time (Shouldn't need to touch). # 
@@ -305,11 +305,10 @@ if __name__ == "__main__":
     # Check if any galaxy plots need to be done.
     for field in galaxy_plots.keys():
         if galaxy_plots[field] == 1:
-            #galdata.plot_galaxy_properties(rank, size, comm, gal_ini_files,
-            #                               model_tags, galaxy_plots,
-            #                               output_directory, output_format)
+            galdata.plot_galaxy_properties(rank, size, comm, gal_ini_files,
+                                           model_tags, galaxy_plots,
+                                           output_directory, output_format)
             break
- 
     # =========================== #
     # Reionization Plot Toggles . # 
     # =========================== #
@@ -319,9 +318,9 @@ if __name__ == "__main__":
     reion_nion           = 0
     ps_fixed_XHI         = 1
     optical_depth        = 0
-    ps_scales            = 0
-    ps_scales_beta       = 0
-    slices_fixed_XHI     = 0
+    ps_scales            = 1
+    ps_scales_beta       = 1
+    slices_fixed_XHI     = 1
     bubble_size          = 0
     zreion_dens_cross    = 0
     dens_ion_contours    = 0

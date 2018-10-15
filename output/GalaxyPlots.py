@@ -695,8 +695,6 @@ def plot_2D_line(bins, bin_width, binning_array_allmodels,
     else:
         nrows = int(np.ceil(np.sqrt(len(plot_snaps_for_models)))) 
 
-    print(nrows)
-    exit()
     fig1, ax = plt.subplots(nrows=nrows, ncols=nrows, 
                             sharex='col', sharey='row', figsize=(16,6))
 

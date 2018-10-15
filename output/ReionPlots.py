@@ -1284,8 +1284,10 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
 
     num_models = len(mass_frac_allmodels)
     num_fractions = len(fixed_XHI_values)
+    nrows = num_fractions
 
-    fig1, ax = plt.subplots(nrows=num_fractions, ncols=num_models,
+
+    fig1, ax = plt.subplots(nrows=nrows, ncols=num_models,
                            sharey=False, sharex=False, figsize=(12, 12))
     fig1.subplots_adjust(wspace = 0.02, hspace = 0.02)
 
@@ -1300,7 +1302,10 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
 
         for frac_number, frac_val in enumerate(fixed_XHI_values):
 
-            this_ax = ax[frac_number, model_number]
+            if nrows == 1:
+                this_ax = ax[model_number]
+            else:
+                this_ax = ax[frac_number, model_number]
 
             # First find the snapshot that corresponds to this XHI value.
             snap_idx = (np.abs(mass_frac_allmodels[model_number] - frac_val)).argmin()
@@ -1365,7 +1370,8 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
     # Model Loop.
 
     # All the models have been plotted. Now lets fix up the colorbar.
-    cax = fig1.add_axes([0.91, 0.11, 0.03, 0.77])
+    #cax = fig1.add_axes([0.91, 0.11, 0.03, 0.77])
+    cax = fig1.add_axes([0.91, 0.37, 0.03, 0.26])
     ticks = np.arange(-8.0, 1.0, 1.0)
     cbar = fig1.colorbar(im, cax=cax, ticks=ticks) 
     cbar.ax.set_yticklabels([r"$\mathbf{%d}$" % x for x in ticks], 
