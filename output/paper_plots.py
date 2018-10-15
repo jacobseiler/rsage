@@ -62,6 +62,8 @@ if __name__ == "__main__":
     gal_ini_model8="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha4.50_beta0.50_delta1.00_SAGE.ini"
     gal_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.63_beta1.50_delta1.00_SAGE.ini"
 
+    gal_ini_model10="/fred/oz004/jseiler/kali_self_consistent_output/rsage_UV/ini_files/test_UV_SAGE.ini"
+
     # Then the .ini files for cifog reionization.
     reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.3_cifog.ini"
     reion_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e8_1e12_0.90_0.05_cifog.ini"   
@@ -75,6 +77,8 @@ if __name__ == "__main__":
     reion_ini_model8="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha4.50_beta0.50_delta1.00_cifog.ini"
     reion_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.63_beta1.50_delta1.00_cifog.ini"
 
+    reion_ini_model10="/fred/oz004/jseiler/kali_self_consistent_output/rsage_UV/ini_files/test_UV_cifog.ini"
+
     # All .ini files included in this array will be plotted.
     gal_ini_files = [gal_ini_model1,
                      gal_ini_model2, 
@@ -82,12 +86,15 @@ if __name__ == "__main__":
                      gal_ini_model4, 
                      gal_ini_model5]
 
+    gal_ini_files = [gal_ini_model10]
+
     reion_ini_files = [reion_ini_model1,
                        reion_ini_model2,
                        reion_ini_model3,
                        reion_ini_model4,
                        reion_ini_model5]
 
+    reion_ini_files = [reion_ini_model10]
     '''
     gal_ini_files = [gal_ini_model4,
                      gal_ini_model6, 

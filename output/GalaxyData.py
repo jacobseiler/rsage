@@ -368,6 +368,11 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
     std_mstar_SFR_allmodels = []
     N_mstar_SFR_allmodels = []
 
+    # UV Magnitude as a function of stellar mass (Mstar).
+    mean_mstar_MUV_allmodels = []
+    std_mstar_MUV_allmodels = []
+    N_mstar_MUV_allmodels = []
+
     # All outer arrays set up, time to read in the data!
     for model_number, ini_file in enumerate(ini_files):
 
@@ -460,6 +465,17 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
             N_mstar_SFR_allmodels[model_number].append(np.zeros(mstar_Nbins,
                                                                 dtype=np.float32))
 
+        mean_mstar_MUV_allmodels.append([]) 
+        std_mstar_MUV_allmodels.append([])
+        N_mstar_MUV_allmodels.append([]) 
+        for snap_count in range(len(z_array_full)):
+            mean_mstar_MUV_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                   dtype=np.float32))
+            std_mstar_MUV_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                  dtype=np.float32))
+            N_mstar_MUV_allmodels[model_number].append(np.zeros(mstar_Nbins,
+                                                                dtype=np.float32))
+
         # Check to see if we're only using a subset of the files.
         if galaxy_plots["first_file"]:
             first_file = galaxy_plots["FirstFile"]
@@ -534,6 +550,16 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                                       std_mstar_SFR_allmodels[model_number][snap_count],
                                       N_mstar_SFR_allmodels[model_number][snap_count],
                                       mstar_bins)
+
+                if galaxy_plots["mstar_MUV"]:
+                    mean_mstar_MUV_allmodels[model_number][snap_count], \
+                    std_mstar_MUV_allmodels[model_number][snap_count], \
+                    N_mstar_MUV_allmodels[model_number][snap_count] = \
+                        do_2D_binning(log_mass, MUV,
+                                      mean_mstar_MUV_allmodels[model_number][snap_count],
+                                      std_mstar_MUV_allmodels[model_number][snap_count],
+                                      N_mstar_MUV_allmodels[model_number][snap_count],
+                                      mstar_bins)
  
                 SMF_thissnap = np.histogram(log_mass, bins=mstar_bins)
                 SMF_allmodels[model_number][snap_count] += SMF_thissnap[0]
@@ -567,5 +593,9 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                    "N_mstar_fej_allmodels" : N_mstar_fej_allmodels,
                    "mean_mstar_SFR_allmodels" : mean_mstar_SFR_allmodels,
                    "std_mstar_SFR_allmodels" : std_mstar_SFR_allmodels,
-                   "N_mstar_SFR_allmodels" : N_mstar_SFR_allmodels}
+                   "N_mstar_SFR_allmodels" : N_mstar_SFR_allmodels,
+                   "mean_mstar_MUV_allmodels" : mean_mstar_MUV_allmodels,
+                   "std_mstar_MUV_allmodels" : std_mstar_MUV_allmodels,
+                   "N_mstar_MUV_allmodels" : N_mstar_MUV_allmodels}
+
     return galaxy_data
