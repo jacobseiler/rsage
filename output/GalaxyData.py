@@ -213,12 +213,13 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
 
     if galaxy_plots["mstar_fesc"]:
 
-        master_mean_mstar_fesc, master_std_mstar_fesc, master_N_mstar_fesc_ = \
-            collective.collect_across_tasks(galaxy_data["mean_mstar_fesc_allmodels"], \
-                                            galaxy_data["std_mstar_fesc_allmodels"], \
-                                            galaxy_data["N_mstar_fesc_allmodels"], \
-                                            galaxy_data["z_array_full_allmodels"], \
-                                            galaxy_data["z_array_full_allmodels"], \
+        master_mean_mstar_fesc, master_std_mstar_fesc, master_N_mstar_fesc, _ = \
+            collective.collect_across_tasks(rank, comm,
+                                            galaxy_data["mean_mstar_fesc_allmodels"],
+                                            galaxy_data["std_mstar_fesc_allmodels"],
+                                            galaxy_data["N_mstar_fesc_allmodels"],
+                                            galaxy_data["z_array_full_allmodels"],
+                                            BinSnapList=galaxy_data["z_array_full_allmodels"],
                                             binned=True)
 
         if rank == 0:
@@ -229,8 +230,9 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                     master_std_mstar_fesc,
                                     master_N_mstar_fesc, model_tags,
                                     output_dir, "mstar_fesc", output_format,
-                                    plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
-                                    plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+                                    galaxy_plots["plot_snaps_for_models"],
+                                    galaxy_plots["plot_models_at_snaps"],
+                                    galaxy_plots["plot_single_panel"])
 
     if galaxy_plots["SMF"]:
 
@@ -248,12 +250,13 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
 
     if galaxy_plots["mstar_fej"]:
 
-        master_mean_mstar_fej, master_std_mstar_fej, master_N_mstar_fej = \
-            collective.collect_across_tasks(galaxy_data["mean_mstar_fej_allmodels"],
+        master_mean_mstar_fej, master_std_mstar_fej, master_N_mstar_fej, _ = \
+            collective.collect_across_tasks(rank, comm,
+                                            galaxy_data["mean_mstar_fej_allmodels"],
                                             galaxy_data["std_mstar_fej_allmodels"],
                                             galaxy_data["N_mstar_fej_allmodels"],
                                             galaxy_data["z_array_full_allmodels"],
-                                            galaxy_data["z_array_full_allmodels"],
+                                            BinSnapList=galaxy_data["z_array_full_allmodels"],
                                             binned=True)
 
         if rank == 0:        
@@ -268,12 +271,13 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
 
     if galaxy_plots["mstar_SFR"]:
 
-        master_mean_mstar_SFR, master_std_mstar_SFR, master_N_mstar_SFR = \
-            collective.collect_across_tasks(galaxy_data["mean_mstar_SFR_allmodels"],
+        master_mean_mstar_SFR, master_std_mstar_SFR, master_N_mstar_SFR, _ = \
+            collective.collect_across_tasks(rank, comm,
+                                            galaxy_data["mean_mstar_SFR_allmodels"],
                                             galaxy_data["std_mstar_SFR_allmodels"],
                                             galaxy_data["N_mstar_SFR_allmodels"],
                                             galaxy_data["z_array_full_allmodels"],
-                                            galaxy_data["z_array_full_allmodels"],
+                                            BinSnapList=galaxy_data["z_array_full_allmodels"],
                                             binned=True)
 
         if rank == 0:
@@ -477,13 +481,13 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                                                                 dtype=np.float32))
 
         # Check to see if we're only using a subset of the files.
-        if galaxy_plots["first_file"]:
-            first_file = galaxy_plots["FirstFile"]
+        if galaxy_plots["first_file"] is not None:
+            first_file = galaxy_plots["first_file"]
         else:
             first_file = int(SAGE_params["FirstFile"])
 
-        if galaxy_plots["last_file"]:
-            last_file = galaxy_plots["FirstFile"]
+        if galaxy_plots["last_file"] is not None:
+            last_file = galaxy_plots["last_file"]
         else:
             last_file = int(SAGE_params["LastFile"])
 

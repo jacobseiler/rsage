@@ -178,11 +178,46 @@ def plot_MHs(MH_low, MH_high, fesc_low, fesc_high):
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
+
+def plot_SFR_fesc(alpha, beta, delta):
+
+
+    fig1 = plt.figure(figsize = (8,8))
+    ax1 = fig1.add_subplot(111)
+
+    SFR = np.arange(-5, 2, 0.01)
+
+    for alpha_val, beta_val, delta_val in zip(alpha, beta, delta):
+        fesc = delta_val / (1.0 + np.exp(-alpha_val*(SFR-beta_val)))
+
+        label = r"$\alpha = " + str(alpha_val) + r", \beta = " + str(beta_val) +\
+                r", \delta = " + str(delta_val) + "$"
+        
+        print(label)
+
+        ax1.plot(SFR, fesc, label=label)
+    
+    leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(10)
+
+    outputFile1 = "./fesc_SFR.png"
+
+    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile1))
+    plt.close(fig1)
+
 if __name__ == "__main__":
 
     MH_low = 1.0e8
     MH_high = 1.0e12
     fesc_high = 0.05
 
-    for fesc_low in [0.95]:
-        plot_MHs(MH_low, MH_high, fesc_low, fesc_high)
+    #for fesc_low in [0.95]:
+    #    plot_MHs(MH_low, MH_high, fesc_low, fesc_high)
+
+    alpha = [0.2, 0.3, 0.63, 1.0, 4.50]
+    beta = [4.5, 2.3, 1.5, 1.0, 0.5]
+    delta = [1.0, 1.0, 1.0, 1.0, 1.0]
+    plot_SFR_fesc(alpha, beta, delta)

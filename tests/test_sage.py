@@ -76,6 +76,9 @@ def get_trees():
         repo_url = "https://github.com/jacobseiler/{0}".format(test_datadir)
         command = "git clone {0} --depth 1".format(repo_url)
         subprocess.call(command, shell=True)
+
+        downloaded_repo = True
+
     else:
         print("{0} exists so no need to download {1} repo."
               .format(treefile, test_datadir))
