@@ -122,8 +122,6 @@ void update_temporal_array(int p, int halonr, int steps_completed)
   }
   Gal[p].Gridfesc[SnapCurr] = fesc_local; 
 
-//  printf("%.4f\n", fesc_local);
-
   if (self_consistent == 1 && SnapCurr == ReionSnap && Gal[p].Len > HaloPartCut)
   {
     status = update_selfcon_grid(&Gal[p], grid_position, SnapCurr);
@@ -138,21 +136,41 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 
   if (calcUVmag == 1)
   {
-    float LUV;
+    float LUV = 0.0;
     status = calc_LUV(&Gal[p], &LUV);
     if (status != EXIT_SUCCESS)
     {
       ABORT(EXIT_FAILURE);
     }
 
-    // LUV is in units of 1.0e50 ergs s^-1 A^-1. Need to convert to log10 units first.
-    LUV = log10(LUV) + 50.0;
+    // If there's no ionizing luminosity, magnitude should get a junk value.
+    if (LUV > 1e-17)
+    {
 
-    // We calculat the UV Magnitude at 1600 Angstroms.
-    Gal[p].MUV[SnapCurr] = luminosity_to_ABMag(LUV, 1600); 
+      // LUV is in units of 1.0e50 ergs s^-1 A^-1. Need to convert to log10 units first.
+      float log_LUV = log10(LUV) + 50.0;
 
+      // We calculat the UV Magnitude at 1600 Angstroms.
+      Gal[p].MUV[SnapCurr] = luminosity_to_ABMag(log_LUV, 1600);
+      if(Gal[p].MUV[SnapCurr] > -0.1 && Gal[p].MUV[SnapCurr] < 0.1)
+        printf("LUV: %.4e\tlog_LUV: %.4e\n", LUV, log_LUV);
+    } 
+    else
+    { 
+      Gal[p].MUV[SnapCurr] = 999.9; 
+    } 
   }
+  /*
+  double tmp, tmp_LUV, tmp_MUV;
 
+  tmp = 1e-20;
+  tmp_LUV = log10(tmp) + 50.0;
+
+  tmp_MUV = luminosity_to_ABMag(tmp_LUV, 1600);
+  printf("%.4e\n", tmp_MUV);
+  exit(0); 
+  */
+ 
   double reff = 3.0 * Gal[p].DiskScaleRadius;
   // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h 
   double cold_crit = 0.19 * Gal[p].Vvir * reff;

@@ -291,8 +291,18 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                    plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
 
-    if galaxy_plots["mstar_MUV"]:
+    if galaxy_plots["UVLF"]:
+        master_UVLF_allmodels = collective.collect_hist_across_tasks(rank, comm,
+                                                                     galaxy_data["UVLF_allmodels"]) 
 
+        if rank == 0:
+            galplot.plot_UVLF(galaxy_data["MUV_bins"],
+                              galaxy_data["MUV_bin_width"],
+                              galaxy_data["z_array_full_allmodels"],
+                              galaxy_data["cosmology_allmodels"],
+                              master_UVLF_allmodels,
+                              galaxy_plots["UVLF_plot_z"],
+                              model_tags, output_dir, "UVLF", output_format)
 
 def generate_data(rank, size, comm, ini_files, galaxy_plots):
     """    
@@ -335,6 +345,15 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                            mstar_bin_high + mstar_bin_width,
                            mstar_bin_width)
 
+    # Binning parameters for UV Magnitudes.
+    MUV_bin_low = -24
+    MUV_bin_high = 5
+    MUV_bin_width = 0.2
+    MUV_Nbins = int((MUV_bin_high - MUV_bin_low) / MUV_bin_width)
+    MUV_bins = np.arange(MUV_bin_low,
+                         MUV_bin_high + MUV_bin_width,
+                         MUV_bin_width) 
+
     # ======================================================================= #
     # We calculate values for all models and put them into lists that are     #
     # indexed by ``model_number``. So first we need to set up the outer-lists #
@@ -372,10 +391,8 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
     std_mstar_SFR_allmodels = []
     N_mstar_SFR_allmodels = []
 
-    # UV Magnitude as a function of stellar mass (Mstar).
-    mean_mstar_MUV_allmodels = []
-    std_mstar_MUV_allmodels = []
-    N_mstar_MUV_allmodels = []
+    # UV Magnitude Luminosity Function. 
+    UVLF_allmodels = []
 
     # All outer arrays set up, time to read in the data!
     for model_number, ini_file in enumerate(ini_files):
@@ -469,16 +486,11 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
             N_mstar_SFR_allmodels[model_number].append(np.zeros(mstar_Nbins,
                                                                 dtype=np.float32))
 
-        mean_mstar_MUV_allmodels.append([]) 
-        std_mstar_MUV_allmodels.append([])
-        N_mstar_MUV_allmodels.append([]) 
+        # UV Luminosity Function. 
+        UVLF_allmodels.append([])
         for snap_count in range(len(z_array_full)):
-            mean_mstar_MUV_allmodels[model_number].append(np.zeros(mstar_Nbins,
-                                                                   dtype=np.float32))
-            std_mstar_MUV_allmodels[model_number].append(np.zeros(mstar_Nbins,
-                                                                  dtype=np.float32))
-            N_mstar_MUV_allmodels[model_number].append(np.zeros(mstar_Nbins,
-                                                                dtype=np.float32))
+            UVLF_allmodels[model_number].append(np.zeros(MUV_Nbins,
+                                                dtype=np.float32))
 
         # Check to see if we're only using a subset of the files.
         if galaxy_plots["first_file"] is not None:
@@ -522,6 +534,7 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                 fesc = G.Gridfesc[Gals_exist, snapnum]
                 fej = G.EjectedFraction[Gals_exist, snapnum]
                 SFR = G.GridSFR[Gals_exist, snapnum]
+                MUV = G.GridMUV[Gals_exist, snapnum]
 
                 # Calculate the mean fesc as a function of stellar mass.
                 if galaxy_plots["mstar_fesc"]:
@@ -555,28 +568,33 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                                       N_mstar_SFR_allmodels[model_number][snap_count],
                                       mstar_bins)
 
-                if galaxy_plots["mstar_MUV"]:
-                    mean_mstar_MUV_allmodels[model_number][snap_count], \
-                    std_mstar_MUV_allmodels[model_number][snap_count], \
-                    N_mstar_MUV_allmodels[model_number][snap_count] = \
-                        do_2D_binning(log_mass, MUV,
-                                      mean_mstar_MUV_allmodels[model_number][snap_count],
-                                      std_mstar_MUV_allmodels[model_number][snap_count],
-                                      N_mstar_MUV_allmodels[model_number][snap_count],
-                                      mstar_bins)
- 
                 SMF_thissnap = np.histogram(log_mass, bins=mstar_bins)
                 SMF_allmodels[model_number][snap_count] += SMF_thissnap[0]
+
+                # For the UV Magnitude, galaxies without any UV Luminosity have
+                # their UV Mag set to 999.0.  Filter these out...
+                w_MUV = np.where(MUV < 100.0)[0]
+                w_what = np.where((MUV > -10.5) & (MUV < -9.5))[0]
+
+                my_MUV = MUV[w_MUV]
+                UVLF_thissnap = np.histogram(my_MUV, bins=MUV_bins)
+                UVLF_allmodels[model_number][snap_count] += UVLF_thissnap[0]
+
                 # Snapshot loop.
             # File Loop.
         # Model Loop.
 
         # Ionizing emissitivty is scaled by the simulation volume (in Mpc^3).
         sum_nion_allmodels[model_number] /= model_volume
-        
+
         # Stellar Mass Function is normalized by boxsize and bin width.
         SMF_allmodels[model_number] = np.divide(SMF_allmodels[model_number],
                                                 model_volume * mstar_bin_width)
+
+        # As is the UV LF...
+        UVLF_allmodels[model_number] = np.divide(UVLF_allmodels[model_number],
+                                                 model_volume * MUV_bin_width)
+
 
     # Everything has been calculated. Now construct a dictionary that contains
     # all the data (for easy passing) and return it. 
@@ -598,8 +616,7 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                    "mean_mstar_SFR_allmodels" : mean_mstar_SFR_allmodels,
                    "std_mstar_SFR_allmodels" : std_mstar_SFR_allmodels,
                    "N_mstar_SFR_allmodels" : N_mstar_SFR_allmodels,
-                   "mean_mstar_MUV_allmodels" : mean_mstar_MUV_allmodels,
-                   "std_mstar_MUV_allmodels" : std_mstar_MUV_allmodels,
-                   "N_mstar_MUV_allmodels" : N_mstar_MUV_allmodels}
+                   "UVLF_allmodels" : UVLF_allmodels,
+                   "MUV_bins" : MUV_bins, "MUV_bin_width" : MUV_bin_width}
 
     return galaxy_data

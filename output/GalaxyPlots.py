@@ -636,6 +636,132 @@ def plot_mstar_SFR(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     plt.close(fig1)
 
 
+
+def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
+             cosmology_allmodels, UVLF, plot_z, model_tags, output_dir,
+             output_tag, output_format):
+    """
+    Plots the UV luminosity function. That is, the number count of galaxies
+    binned on (Absolute) UV Magnitude. 
+
+    Parameters
+    ----------
+
+    MUV_bins : List of floats
+        UV Magnitude bins that the data is binned on.
+
+    MUV_bin_width : Float
+        The bin separation between the UV Magnitude bins. 
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+    cosmology_allmodels : List of class ``astropy.cosmology``. Length is number
+                          of models.
+        ``astropy`` class containing the cosmology for each model.
+
+    UVLF : 3D nested lists of floats. Outer length is number of models, next is
+          number of snapshots in the model and final is the number of
+          ``MUV_bins``.
+        The UV luminosity function at each snapshot for each model.  That is,
+        the number of galaxies within each UV magnitude bin (given by 
+        ``MUV_bins``).
+
+    plot_z : 2D nested list of floats. Outer length is equal to number of models.
+        The redshift at which we wish to plot the UV luminosity function for
+        each model. Specified by user in ``paper_plots.py``.
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    fig1, ax = plt.subplots(nrows=1, ncols=len(plot_z[0]), 
+                            sharex='col', sharey='row', figsize=(16,6))
+
+    for model_number in range(len(z_array_full_allmodels)):
+        # Here we find the snapshots closest to the redshifts we want to plot.
+        plot_snaps = []
+        for val in plot_z[model_number]:
+            idx = (np.abs(z_array_full_allmodels[model_number] - val)).argmin()
+            plot_snaps.append(idx)
+
+        # Then plot only those snapshots.
+        for count, snap in enumerate(plot_snaps):
+            label = model_tags[model_number]
+            ax[count].plot(MUV_bins[:-1] + MUV_bin_width*0.5,
+                           UVLF[model_number][snap],
+                           color=ps.colors[model_number],
+                           dashes=ps.dashes[model_number],
+                           label=label)
+
+            if model_number == 0:
+
+                tick_locs = np.arange(6.0, 12.0)
+                #ax[count].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
+                #                          fontsize = ps.global_fontsize)
+                #ax[count].set_xlim([6.8, 10.3])
+                ax[count].set_xlabel(r'$\mathbf{M_{UV}}$', 
+                                     fontsize = ps.global_labelsize)
+                #ax[count].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
+
+                ax[count] = ps.adjust_axis(ax[count], ps.global_axiswidth,
+                                           ps.global_tickwidth,
+                                           ps.global_major_ticklength,
+                                           ps.global_minor_ticklength) 
+
+    # Since y-axis is shared, only need to do this once.
+    ax[0].set_yscale('log', nonposy='clip')
+    #ax[0].set_yticklabels([r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-5}}$",r"$\mathbf{10^{-4}}$", r"$\mathbf{10^{-3}}$",
+    #                       r"$\mathbf{10^{-2}}$",r"$\mathbf{10^{-1}}$"]) 
+    #ax[0].set_ylim([1e-5, 3e-1])
+    #ax[0].set_ylabel(r'\mathbf{$\log_{10} \Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]}$', 
+    ax[0].set_ylabel(r'$\mathbf{log_{10} \: \Phi\ [Mpc^{-3}\: dex^{-1}]}$', 
+                     fontsize = ps.global_labelsize) 
+
+    # Now lets overplot the Observational Data. 
+    #obs.Get_Data_SMF()
+
+    #caps = 5
+    #ewidth = 1.5
+
+    #ps.Plot_SMF_z6(ax[0], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
+    #ps.Plot_SMF_z7(ax[1], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
+    #ps.Plot_SMF_z8(ax[2], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
+    
+    ####
+
+    delta_fontsize = 0
+    ax[0].text(0.7, 0.9, r"$\mathbf{z = 6}$", transform = ax[0].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
+    ax[1].text(0.7, 0.9, r"$\mathbf{z = 7}$", transform = ax[1].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
+    ax[2].text(0.7, 0.9, r"$\mathbf{z = 8}$", transform = ax[2].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
+
+    leg = ax[0].legend(loc='lower left', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize - 2)
+
+    plt.tight_layout()
+
+    outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile1))
+    plt.close(fig1)
+
 def plot_2D_line(bins, bin_width, binning_array_allmodels,
                  mean_array_allmodels, std_array_allmodels, N_array_allmodels,
                  model_tags, plot_models_at_snaps, plot_snaps_for_models):

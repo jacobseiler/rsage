@@ -62,8 +62,6 @@ if __name__ == "__main__":
     gal_ini_model8="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha4.50_beta0.50_delta1.00_SAGE.ini"
     gal_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.63_beta1.50_delta1.00_SAGE.ini"
 
-    gal_ini_model10="/fred/oz004/jseiler/kali_self_consistent_output/rsage_UV/ini_files/test_UV_SAGE.ini"
-
     # Then the .ini files for cifog reionization.
     reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_cifog.ini"
     reion_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_cifog.ini"   
@@ -89,12 +87,13 @@ if __name__ == "__main__":
 
     # All .ini files included in this array will be plotted.
     paper_models = 0
-    const_fej_SFR = 1
+    const_fej_SFR = 0
     no_const = 0
     higher_tau = 0
     const = 0
     sliding_fesc = 0
     combined_higher_tau = 0
+    UV = 1
 
     if paper_models:
 
@@ -248,6 +247,17 @@ if __name__ == "__main__":
                       r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
                       r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
+    if UV:
+        output_directory = "./UV"
+
+        gal_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/test_UV_SAGE.ini"
+        reion_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/test_UV_cifog.ini"
+
+        gal_ini_files = [gal_ini]
+        reion_ini_files = [reion_ini]
+
+        model_tags = [r"$Test$"]
+
     # ============================================================= #
     # Switches to control what plots to make. 0 to skip, 1 to plot. #
     # ============================================================= #
@@ -256,11 +266,11 @@ if __name__ == "__main__":
     # Galaxy Plot Toggles. # 
     # ==================== #
     gal_nion   = 0
-    mstar_fesc = 1
+    mstar_fesc = 0
     mstar_fej  = 0
     mstar_SFR  = 0
-    SMF        = 0
-    mstar_MUV  = 1
+    SMF        = 1
+    UVLF       = 1
 
     # ==================== #
     # Galaxy Plot Options. # 
@@ -285,6 +295,9 @@ if __name__ == "__main__":
     # redshifts for each model.
     SMF_plot_z = [[6.0, 7.0, 8.0]]
 
+    # And same for the UV luminosity function.
+    UVLF_plot_z = [[6.0, 7.0, 8.0]]
+
     # If you only want to use a specific range of files, specify here. If you
     # want to use all the files from a model, set these to ``None``.
     first_file = None 
@@ -298,11 +311,12 @@ if __name__ == "__main__":
                     "SMF" :                   SMF,
                     "mstar_fej" :             mstar_fej,
                     "mstar_SFR" :             mstar_SFR,
-                    "mstar_MUV" :             mstar_MUV,
+                    "UVLF" :                  UVLF,
                     "plot_snaps_for_models" : plot_snaps_for_models,
                     "plot_models_at_snaps" :  plot_models_at_snaps,
                     "plot_single_panel" :     plot_single_panel,
                     "SMF_plot_z" :            SMF_plot_z,
+                    "UVLF_plot_z" :           UVLF_plot_z,
                     "first_file" :            first_file,
                     "last_file" :             last_file}
 
@@ -313,6 +327,8 @@ if __name__ == "__main__":
                                            model_tags, galaxy_plots,
                                            output_directory, output_format)
             break
+    exit()
+
     # =========================== #
     # Reionization Plot Toggles . # 
     # =========================== #
