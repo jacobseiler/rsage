@@ -96,6 +96,7 @@ def update_fields(base_dict, fields_to_check, print_text, check_type):
 
 if __name__ == '__main__':
 
+    print("======================")
     print("Welcome to the RSAGE ini file adjuster.")
     print("This script will adjust the directory names for both the SAGE and "
           "cifog ini files to be consistent with each other.") 
@@ -132,6 +133,33 @@ if __name__ == '__main__':
     cifog_fields_update = update_cifog_dict(cifog_params)
 
     cp.create_directories(run_directory)
-    cp.update_ini_files(base_SAGE_ini, base_cifog_ini,
-                        SAGE_fields_update, cifog_fields_update,
-                        run_directory)
+    SAGE_fname, cifog_fname = cp.update_ini_files(base_SAGE_ini, base_cifog_ini,
+                                                  SAGE_fields_update,
+                                                  cifog_fields_update,
+                                                  run_directory)
+
+    SAGE_fname = [SAGE_fname]
+    cifog_fname = [cifog_fname]
+    run_directory = [run_directory]
+
+    print("")
+    print("======================")
+    print("Ini files all created.")
+    print("Now creating the slurm script that can be used to submit your job.")
+
+    default_slurm_path = "{0}/run_rsage.slurm".format(script_dir)
+    print_text = "Path to the base slurm script [default: {0}]: ".format(default_slurm_path)
+    my_path = input("{0}".format(print_text))
+    if not my_path: 
+        my_path = default_slurm_path
+
+    print_text = "Number of processors to run on (must be specified): "
+    my_Nproc = None
+
+    while not my_Nproc:
+        my_Nproc = input("{0}".format(print_text))
+        if not my_Nproc:
+            print("Must be specified.")
+
+    cp.make_slurm_files(my_path, SAGE_fname, cifog_fname, run_directory,
+                        my_Nproc)

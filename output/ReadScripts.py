@@ -461,7 +461,7 @@ def read_SAGE_ini(fname):
                    "fescPrescription", "alpha", "beta", "delta",
                    "quasar_baseline", "quasar_boosted",
                    "N_dyntime", "MH_low", "fesc_low",
-                   "MH_high", "fesc_high"
+                   "MH_high", "fesc_high", "calcUVmag"
                   ]
 
     SAGE_dict = {}
