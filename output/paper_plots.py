@@ -308,9 +308,9 @@ if __name__ == "__main__":
     # =============================================== #
     galaxy_plots = {"nion" :                  gal_nion,
                     "mstar_fesc" :            mstar_fesc,
-                    "SMF" :                   SMF,
                     "mstar_fej" :             mstar_fej,
                     "mstar_SFR" :             mstar_SFR,
+                    "SMF" :                   SMF,
                     "UVLF" :                  UVLF,
                     "plot_snaps_for_models" : plot_snaps_for_models,
                     "plot_models_at_snaps" :  plot_models_at_snaps,

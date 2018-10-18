@@ -234,20 +234,6 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                     galaxy_plots["plot_models_at_snaps"],
                                     galaxy_plots["plot_single_panel"])
 
-    if galaxy_plots["SMF"]:
-
-        master_SMF_allmodels = collective.collect_hist_across_tasks(rank, comm,
-                                                                    galaxy_data["SMF_allmodels"]) 
-
-        if rank == 0:
-            galplot.plot_SMF(galaxy_data["mstar_bins"],
-                             galaxy_data["mstar_bin_width"],
-                             galaxy_data["z_array_full_allmodels"],
-                             galaxy_data["cosmology_allmodels"],
-                             master_SMF_allmodels,
-                             galaxy_plots["SMF_plot_z"],
-                             model_tags, output_dir, "SMF", output_format)
-
     if galaxy_plots["mstar_fej"]:
 
         master_mean_mstar_fej, master_std_mstar_fej, master_N_mstar_fej, _ = \
@@ -290,6 +276,19 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                    plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
                                    plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
+    if galaxy_plots["SMF"]:
+
+        master_SMF_allmodels = collective.collect_hist_across_tasks(rank, comm,
+                                                                    galaxy_data["SMF_allmodels"]) 
+
+        if rank == 0:
+            galplot.plot_SMF(galaxy_data["mstar_bins"],
+                             galaxy_data["mstar_bin_width"],
+                             galaxy_data["z_array_full_allmodels"],
+                             galaxy_data["cosmology_allmodels"],
+                             master_SMF_allmodels,
+                             galaxy_plots["SMF_plot_z"],
+                             model_tags, output_dir, "SMF", output_format)
 
     if galaxy_plots["UVLF"]:
         master_UVLF_allmodels = collective.collect_hist_across_tasks(rank, comm,
@@ -303,6 +302,7 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                               master_UVLF_allmodels,
                               galaxy_plots["UVLF_plot_z"],
                               model_tags, output_dir, "UVLF", output_format)
+
 
 def generate_data(rank, size, comm, ini_files, galaxy_plots):
     """    
