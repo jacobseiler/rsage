@@ -97,7 +97,7 @@ def plot_nion(z_array_full_allmodels, lookback_array_full_allmodels,
     ax1.set_ylim([48.4, 51.25])
     ax1.yaxis.set_minor_locator(mtick.MultipleLocator(0.25))
 
-    ax1.set_xlim(ps.time_xlim)
+    ax4.set_xlim(ps.time_xlim)
 
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3)
