@@ -255,17 +255,19 @@ def plot_history(z_array_reion_allmodels,
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
+    # If we're plotting this on another Figure, we only want one legend. So
+    # we'll handle this in the calling function rather than here.
     if not passed_ax:
         leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
+        leg.draw_frame(False)
+        for t in leg.get_texts():
             t.set_fontsize(ps.global_legendsize)
 
     if passed_ax:
         return ax1
     else:
         outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-        fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+        fig1.savefig(outputFile1, bbox_inches='tight')
         print('Saved file to {0}'.format(outputFile1))
         plt.close(fig1)
 
@@ -275,7 +277,7 @@ def plot_history(z_array_reion_allmodels,
 def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
               cosmology_allmodels, t_bigbang_allmodels, nion_allmodels,
               nion_factor_allmodels, model_tags, output_dir, output_tag,
-              output_format):
+              output_format, passed_ax=None):
     """
     Plots the ionizing emissivity as a function of time since Big Bang. 
 
@@ -321,14 +323,23 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
     output_format : String
         Format the plot is saved in.
 
+    passed_ax : ``matplotlib`` axes, optional
+        If defined, the ionizing emissivity will be plotted onto the passed axis
+        and returned.  The figure will not be saved. 
+
     Returns
     ---------
 
-    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
-    """
+    If ``passed_ax = None``, None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
 
-    fig1 = plt.figure(figsize = (8,8))
-    ax1 = fig1.add_subplot(111)
+    If ``passed_ax`` is passed, the axis is returned with the ionization
+    history plotted.
+    """
+    if passed_ax:
+        ax1 = passed_ax
+    else:
+        fig1 = plt.figure(figsize = (8,8))
+        ax1 = fig1.add_subplot(111)
 
     for model_number in range(len(z_array_reion_allmodels)):
 
@@ -373,15 +384,21 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
-    leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(ps.global_legendsize)
+    # If we're plotting this on another Figure, we only want one legend. So
+    # we'll handle this in the calling function rather than here.
+    if not passed_ax:
+        leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
+        leg.draw_frame(False)  # Don't want a box frame
+        for t in leg.get_texts():  # Reduce the size of the text
+            t.set_fontsize(ps.global_legendsize)
 
-    outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
-    print('Saved file to {0}'.format(outputFile1))
-    plt.close(fig1)
+    if passed_ax:
+        return ax1
+    else:
+        outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+        fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+        print('Saved file to {0}'.format(outputFile1))
+        plt.close(fig1)
 
 
 def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
@@ -799,7 +816,7 @@ def plot_duration_contours(duration_t, reion_completed, alpha_beta_limits,
 def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
              cosmology_allmodels, t_bigbang_allmodels, tau_allmodels,
              model_tags, output_dir, output_tag, output_format,
-             passed_ax=None):
+             passed_ax=None, plot_planck_2016=0, plot_planck_2018=1):
     """
     Plots the evolution of the Thomson optical depth tau as a function of
     time since Big Bang.
@@ -841,6 +858,16 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
     passed_ax : ``matplotlib`` axes, optional
         If defined, the history will be plotted onto the passed axis and
         returned.  The figure will not be saved. 
+
+    plot_planck_2016 : Integer
+        Flag to denote whether to plot the Planck 2016 value of the optical
+        depth. Includes a straight line at the best value and shaded region
+        showing the 68% confidence interval.
+
+    plot_planck_2018 : Integer
+        Flag to denote whether to plot the Planck 2018 value of the optical
+        depth. Includes a straight line at the best value and shaded region
+        showing the 68% confidence interval.
 
     Returns
     ---------
@@ -887,18 +914,15 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
-    ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.2)
-    ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$", fontsize=14)
+    if plot_planck_2016:
+        ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.2)
+        ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$", fontsize=14)
 
-    plot_planck_2018 = 1
     if plot_planck_2018:
         ax1.fill_between(np.arange(200, 1200, 0.01), 0.054 - 0.007, 0.054 + 0.007,
                          color = 'k', alpha = 0.4)
         ax1.axhline(y = 0.054, xmin = 0, xmax = 20, color = 'k', alpha = 0.4)
         ax1.text(850, 0.0530, r"$\mathrm{Planck \: 2018}$", fontsize=14)
-    else:
-        ax1.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
-                         color = 'k', alpha = 0.2)
 
     if not passed_ax:
         leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
@@ -916,8 +940,8 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
 
 def plot_combined_history_tau(z_array_reion_allmodels,
-                              lookback_array_reion_allmodels,                              
-                              cosmology_allmodels, t_bigbang_allmodels, 
+                              lookback_array_reion_allmodels,
+                              cosmology_allmodels, t_bigbang_allmodels,
                               mass_frac_allmodels, tau_allmodels, model_tags,
                               output_dir, output_tag, output_format):
     """
@@ -996,6 +1020,51 @@ def plot_combined_history_tau(z_array_reion_allmodels,
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
     fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile))
+    plt.close()
+
+
+def plot_combined_nion_tau(z_array_reion_allmodels,
+                           lookback_array_reion_allmodels,
+                           cosmology_allmodels, t_bigbang_allmodels, 
+                           nion_allmodels, nion_factor_allmodels, tau_allmodels,
+                           model_tags, output_dir, output_tag, output_format):
+    """
+
+    Parameters
+    ----------
+
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    fig1, ax = plt.subplots(nrows = 1, ncols = 2, 
+                           sharex=False, sharey=False, figsize=(16, 8))
+
+    # Pass each axis to the correct function to create the plots.
+    ax[0] = plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
+                      cosmology_allmodels, t_bigbang_allmodels, nion_allmodels,
+                      nion_factor_allmodels, model_tags, output_dir, output_tag,
+                      output_format, passed_ax=ax[0])
+
+    ax[1] = plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
+                     cosmology_allmodels, t_bigbang_allmodels, tau_allmodels,
+                     model_tags, output_dir, output_tag, output_format,
+                     passed_ax=ax[1])
+
+    # Create a single legend for both panels.
+    leg = ax[0].legend(loc='lower right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)
+    for t in leg.get_texts():
+        t.set_fontsize(ps.global_legendsize)
+
+    plt.tight_layout()    
+
+    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 

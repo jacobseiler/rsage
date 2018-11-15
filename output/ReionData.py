@@ -1216,6 +1216,17 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                             model_tags, output_dir,
                                             "history_tau", output_format)
 
+    if reion_plots["optical_depth"] and reion_plots["nion"]:
+        print("Plotting the combined optical depth/ionizing emissivity.")
+        reionplot.plot_combined_nion_tau(reion_data["z_array_reion_allmodels"],
+                                          reion_data["lookback_array_reion_allmodels"],
+                                          reion_data["cosmology_allmodels"],
+                                          reion_data["t_bigbang_allmodels"],
+                                          master_nion,
+                                          reion_data["nion_factor_allmodels"],
+                                          tau_allmodels, model_tags, output_dir,
+                                          "nion_tau", output_format)
+
     if reion_plots["ps_scales"] or reion_plots["ps_scales_beta"]:
         k, P21, PHII = gather_ps(rank, size, comm,
                                  reion_data["k_allmodels"],

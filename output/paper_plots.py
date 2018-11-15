@@ -40,7 +40,7 @@ if __name__ == "__main__":
     ps.rsage_paper_plot_params()
 
     # Directory name where we want the plots to be saved.
-    output_directory = "./2018_planck"
+    output_directory = "./nov_paper"
 
     # Format all plots are saved as.
     output_format = "png"
@@ -50,11 +50,6 @@ if __name__ == "__main__":
     # `OutputDir`)  **MUST** be absolute paths, **NOT** relative.
 
     # First we specify the .ini files for the SAGE galaxy evolution.
-    gal_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
-    gal_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_SAGE.ini"   
-    gal_ini_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.40_SAGE.ini"
-    gal_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.00_SAGE.ini"
-    gal_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.50_delta1.00_SAGE.ini"
 
     gal_ini_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.12_SAGE.ini"
     gal_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.19_SAGE.ini"
@@ -63,11 +58,6 @@ if __name__ == "__main__":
     gal_ini_model9="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha0.63_beta1.50_delta1.00_SAGE.ini"
 
     # Then the .ini files for cifog reionization.
-    reion_ini_model1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_cifog.ini"
-    reion_ini_model2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_cifog.ini"   
-    reion_ini_model3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.40_cifog.ini"
-    reion_ini_model4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.00_cifog.ini"
-    reion_ini_model5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.50_delta1.00_cifog.ini"
 
     reion_ini_model6="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.12_cifog.ini"
     reion_ini_model7="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.20_beta0.19_cifog.ini"
@@ -86,8 +76,8 @@ if __name__ == "__main__":
     reion_ini_model12="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta0.80_delta1.00_cifog.ini"
 
     # All .ini files included in this array will be plotted.
-    paper_models = 0
-    const_fej_SFR = 1
+    paper_models = 1
+    const_fej_SFR = 0
     no_const = 0
     higher_tau = 0
     const = 0
@@ -96,25 +86,37 @@ if __name__ == "__main__":
 
     if paper_models:
 
-        output_directory = "./paper_models"
-        gal_ini_files = [gal_ini_model1,
-                         gal_ini_model2, 
-                         gal_ini_model3, 
-                         gal_ini_model4, 
-                         gal_ini_model5]
+        output_directory = "./nov_paper"
 
-        reion_ini_files = [reion_ini_model1,
-                           reion_ini_model2,
-                           reion_ini_model3,
-                           reion_ini_model4,
-                           reion_ini_model5]
+        gal_ini_1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
+        gal_ini_2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_SAGE.ini"   
+        gal_ini_3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.40_SAGE.ini"
+        gal_ini_4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.00_SAGE.ini"
+        gal_ini_5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.50_delta1.00_SAGE.ini"
 
-        model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.20}$",
-                      r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}^{-1}}$",
-                      r"$\mathbf{f_\mathrm{esc} \: \propto \: M_\mathrm{H}}$",
-                      r"$\mathbf{f_\mathrm{esc} \: \propto \: f_\mathrm{ej}}$",
-                      r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+        reion_ini_1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_cifog.ini"
+        reion_ini_2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_cifog.ini"   
+        reion_ini_3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.40_cifog.ini"
+        reion_ini_4="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.00_cifog.ini"
+        reion_ini_5="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta1.50_delta1.00_cifog.ini"
 
+        gal_ini_files = [gal_ini_1,
+                         gal_ini_2, 
+                         gal_ini_3, 
+                         gal_ini_4, 
+                         gal_ini_5]
+
+        reion_ini_files = [reion_ini_1,
+                           reion_ini_2,
+                           reion_ini_3,
+                           reion_ini_4,
+                           reion_ini_5]
+
+        model_tags = [r"$\mathbf{Constant}$",
+                      r"$\mathbf{MH-Neg}$",
+                      r"$\mathbf{MH-Pos}$",
+                      r"$\mathbf{Ejected}$",
+                      r"$\mathbf{SFR}$"]
 
     if const_fej_SFR:
         output_directory = "./30month"
@@ -254,7 +256,7 @@ if __name__ == "__main__":
     # Galaxy Plot Toggles. # 
     # ==================== #
     gal_nion   = 0
-    mstar_fesc = 1
+    mstar_fesc = 0
     mstar_fej  = 0
     mstar_SFR  = 0
     SMF        = 0
@@ -294,19 +296,22 @@ if __name__ == "__main__":
                     "mstar_fesc" :            mstar_fesc,
                     "SMF" :                   SMF,
                     "mstar_fej" :             mstar_fej,
-                    "mstar_SFR" :             mstar_SFR,
-                    "plot_snaps_for_models" : plot_snaps_for_models,
-                    "plot_models_at_snaps" :  plot_models_at_snaps,
-                    "plot_single_panel" :     plot_single_panel,
-                    "SMF_plot_z" :            SMF_plot_z,
-                    "first_file" :            first_file,
-                    "last_file" :             last_file}
+                    "mstar_SFR" :             mstar_SFR}
+
+    galaxy_opts = {"plot_snaps_for_models" : plot_snaps_for_models,
+                   "plot_models_at_snaps" :  plot_models_at_snaps,
+                   "plot_single_panel" :     plot_single_panel,
+                   "SMF_plot_z" :            SMF_plot_z,
+                   "first_file" :            first_file,
+                   "last_file" :             last_file}
+
+    combined_galaxy = {**galaxy_plots, **galaxy_opts}
 
     # Check if any galaxy plots need to be done.
     for field in galaxy_plots.keys():
         if galaxy_plots[field] == 1:
             galdata.plot_galaxy_properties(rank, size, comm, gal_ini_files,
-                                           model_tags, galaxy_plots,
+                                           model_tags, combined_galaxy,
                                            output_directory, output_format)
             break
     # =========================== #
@@ -314,13 +319,13 @@ if __name__ == "__main__":
     # =========================== #
     single_slice         = 0
     single_ps            = 0
-    history              = 0
-    reion_nion           = 0
-    ps_fixed_XHI         = 1
-    optical_depth        = 0
-    ps_scales            = 1
-    ps_scales_beta       = 1
-    slices_fixed_XHI     = 1
+    history              = 1
+    reion_nion           = 1
+    ps_fixed_XHI         = 0
+    optical_depth        = 1
+    ps_scales            = 0
+    ps_scales_beta       = 0
+    slices_fixed_XHI     = 0
     bubble_size          = 0
     zreion_dens_cross    = 0
     dens_ion_contours    = 0
@@ -434,8 +439,9 @@ if __name__ == "__main__":
                    "slices_fixed_XHI" :     slices_fixed_XHI,
                    "zreion_dens_cross" :    zreion_dens_cross,
                    "dens_ion_contours" :    dens_ion_contours,
-                   "dens_zreion_contours" : dens_zreion_contours,
-                   "fixed_XHI_values" :     fixed_XHI_values,
+                   "dens_zreion_contours" : dens_zreion_contours}
+
+    reion_opts = { "fixed_XHI_values" :     fixed_XHI_values,
                    "ps_scales_z" :          ps_scales_z,
                    "alpha_beta_limits" :    alpha_beta_limits,
                    "duration_definition" :  duration_definition,
@@ -446,11 +452,13 @@ if __name__ == "__main__":
                    "cut_slice" :            cut_slice,
                    "cut_thickness" :        cut_thickness}
 
+    reion_combined = {**reion_plots, **reion_opts}
+
     # Check if any reionization plots need to be done.
     for field in reion_plots.keys():
         if reion_plots[field] == 1:
             reiondata.plot_reion_properties(rank, size, comm, reion_ini_files,
                                             gal_ini_files, model_tags,
-                                            reion_plots, output_directory,
+                                            reion_combined, output_directory,
                                             output_format)
             break
