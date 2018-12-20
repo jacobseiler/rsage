@@ -258,7 +258,7 @@ def plot_history(z_array_reion_allmodels,
     # If we're plotting this on another Figure, we only want one legend. So
     # we'll handle this in the calling function rather than here.
     if not passed_ax:
-        leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
+        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
         leg.draw_frame(False)
         for t in leg.get_texts():
             t.set_fontsize(ps.global_legendsize)
@@ -515,6 +515,8 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
             this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
                                     fontsize = ps.global_fontsize)
 
+            # Set a dotted line where the numerical cutoff is.
+            this_ax.axvline(x=4.0, color="k", ls="--", lw=1, alpha = 0.5)
 
     if ncols == 1:
         this_ax = ax
@@ -1141,7 +1143,7 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
 
     for model_number in range(num_models):
 
-        if model_number < 3:
+        if model_number < 100:
             label = model_tags[model_number]
             color = ps.colors[model_number]
             dashes = ps.dashes[model_number]
@@ -1439,8 +1441,8 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
     # Model Loop.
 
     # All the models have been plotted. Now lets fix up the colorbar.
-    #cax = fig1.add_axes([0.91, 0.11, 0.03, 0.77])
-    cax = fig1.add_axes([0.91, 0.37, 0.03, 0.26])
+    cax = fig1.add_axes([0.91, 0.11, 0.03, 0.77])
+    #cax = fig1.add_axes([0.91, 0.37, 0.03, 0.26])
     ticks = np.arange(-8.0, 1.0, 1.0)
     cbar = fig1.colorbar(im, cax=cax, ticks=ticks) 
     cbar.ax.set_yticklabels([r"$\mathbf{%d}$" % x for x in ticks], 

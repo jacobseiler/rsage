@@ -195,10 +195,12 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
     else:
         nrows = int((np.sqrt(len(plot_snaps_for_models)))) 
 
+    print("Making mstar_fesc plot with {0} rows/columns".format(nrows))
+
     if nrows == 1:
         figsize=(8,8)
     else:
-        figsize=(16,6)
+        figsize=(16,16)
     
     fig1, ax = plt.subplots(nrows=nrows, ncols=nrows, 
                             sharex='col', sharey='row', figsize=figsize)
@@ -216,11 +218,11 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
 
         for snap_count, snap in enumerate(plot_snaps_for_models[model_number]):
 
-            #z_label = r"$\mathbf{z = " + \
-            #            str(int(round(z_array_full_allmodels[model_number][snap],0))) + \
-            #           "}$"                
+            z_label = r"$\mathbf{z = " + \
+                        str(int(round(z_array_full_allmodels[model_number][snap],0))) + \
+                       "}$"                
 
-            z_label = model_tags[model_number]
+            #z_label = model_tags[model_number]
 
             mean = mean_allmodels[model_number][snap]
             w_low = np.where(N_allmodels[model_number][snap] < 4)[0]
@@ -228,11 +230,11 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
 
             this_ax.plot(mstar_bins[:-1] + mstar_bin_width*0.5,
                          mean, 
-                         color=ps.colors[model_number],
-                         dashes=ps.dashes[model_number],
+                         color=ps.colors[snap_count],
+                         dashes=ps.dashes[snap_count],
                          label=z_label) 
         if nrows > 1:
-            this_ax.text(0.05, 0.65, model_tags[model_number],
+            this_ax.text(0.05, 0.70, model_tags[model_number],
                          transform=this_ax.transAxes,
                          fontsize=ps.global_fontsize) 
 
@@ -271,8 +273,8 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
         this_ax.set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
                            size = ps.global_labelsize)
 
-        this_ax.set_ylim([-0.02, 0.42])
-        this_ax.yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
+        this_ax.set_ylim([-0.01, 0.41])
+        this_ax.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
         this_ax.yaxis.set_major_locator(mtick.MultipleLocator(0.1))
         this_ax.set_yticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs], 
                                 fontsize = ps.global_fontsize)
@@ -282,7 +284,7 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
     else:
         this_ax = ax
 
-    leg = this_ax.legend(loc='upper left', numpoints=1, labelspacing=0.1)
+    leg = this_ax.legend(loc='upper right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize)
