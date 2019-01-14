@@ -548,20 +548,15 @@ Depending on the value of `PhotonPrescription` specified, the prescription to ca
 
 0: Assigns a single value of fesc to all galaxies, regardless of properties.
    Value is given by `fesc`. 
-1: DEPRECATED.
-2: Power law as a function of halo mass, fesc = alpha*MH^beta. 
-   The values of `alpha` and `beta` are given by specifying two fixed points: (MH_low, fesc_low) and (MH_high, fesc_high).
-   These fixed points are specified in units of Msun; see `calculate_fesc_constants()` for exact equation. 
-3: Linear relationship as a function of the fraction of ejected baryons in the galaxy, fesc = alpha*fej + beta.
-   The values of `alpha` and `beta` are specified directly by the variables `alpha` and `beta` in the .ini file.
-4: The value of fesc is boosted by recent quasar activity. Each galaxy has a baselines fesc of `quasar_baseline`.
+1: Linear relationship as a function of the fraction of ejected baryons in the galaxy, fesc = alpha*fej + beta.
+   The values of `alpha` and `beta` are specified directly by the variables `alpha` and `beta` in the `.ini` file.
+2: The value of fesc is boosted by recent quasar activity. Each galaxy has a baselines fesc of `quasar_baseline`.
    Following a quasar event that ejects all gas from a galaxy, the galaxy is given an fesc value `quasar_boosted` for `N_dyntime` dynamical times.
    After this, it falls back to `quasar_baseline`.
-5,6: fesc either increases/decreases as a function of Halo Mass using Anne's specified functional forms.
+3,4: fesc either increases/decreases as a function of Halo Mass using Anne's specified functional forms.
    Ths fixed points are specified by giving (MH_low, fesc_low) and (MH_high, fesc_high).
-7: Same as 3 except the relationship is a power law of the form fesc = alpha*fej^beta.
-8: For galaxies with stellar mass between `fest_Mstar_low` and `fesc_Mstar_high` the value of fesc is set to `fesc_Mstar`.
-   All other galaxies are set to fesc = `fesc_not_Mstar`.
+5: Logistic relationship as a function of the star formation rate of the galaxy, fesc = delta / (1.0 + exp(-alpha*(log10(sfr)-beta))).
+  The values of `alpha`, `beta` and `delta` are specified directly in the `.ini` file.
 
 Parameters
 ----------
@@ -641,7 +636,9 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       break;
     
     case 3:
-      *fesc_local = fescMH_alpha*pow(halomass, fescMH_beta);
+      log_fesc = log10(fesc_low) - log10(halomss/MH_low) / log10(MH_high/MH_low) * log10(fesc_high/fesc_low);
+      *fesc_local = pow(10, log_fesc);
+
       if (fesc_low > fesc_high)
       {
         if (*fesc_local > fesc_low)
@@ -657,7 +654,9 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       break;
 
     case 4:
-      *fesc_local = 1. - pow((1.-fesc_low) * ((1.-fesc_low)/(1.-fesc_high)),(-log10(halomass/MH_low)/log10(MH_high/MH_low)));
+      log_one_minus_fesc = log10(1.0 - fesc_low) - log10(halomass/MH_low) / log10(MH_high/MH_low) * log10((1.0 - fesc_low) / (1.0 - fesc_high));
+      *fesc_local = -1.0* (pow(10, log_one_minus_fesc) - 1);
+
       if (*fesc_local < fesc_low)
       {
         *fesc_local = fesc_low;
@@ -809,9 +808,6 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
       break;
 
     case 3:
-      snprintf(tag, MAX_STRING_LEN - 1, "myMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
-      break;
-
     case 4:
       snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
       break;
