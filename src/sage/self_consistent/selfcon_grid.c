@@ -635,8 +635,8 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       *fesc_local = quasar_baseline * (1 - quasarfrac)  + quasar_boosted * quasarfrac;
       break;
     
-    case 3:
-      log_fesc = log10(fesc_low) - log10(halomss/MH_low) / log10(MH_high/MH_low) * log10(fesc_high/fesc_low);
+    case 3: ;
+      double log_fesc = log10(fesc_low) - log10(halomass/MH_low) / log10(MH_high/MH_low) * log10(fesc_high/fesc_low);
       *fesc_local = pow(10, log_fesc);
 
       if (fesc_low > fesc_high)
@@ -653,8 +653,8 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       }
       break;
 
-    case 4:
-      log_one_minus_fesc = log10(1.0 - fesc_low) - log10(halomass/MH_low) / log10(MH_high/MH_low) * log10((1.0 - fesc_low) / (1.0 - fesc_high));
+    case 4: ;
+      double log_one_minus_fesc = log10(1.0 - fesc_low) - log10(halomass/MH_low) / log10(MH_high/MH_low) * log10((1.0 - fesc_low) / (1.0 - fesc_high));
       *fesc_local = -1.0* (pow(10, log_one_minus_fesc) - 1);
 
       if (*fesc_local < fesc_low)
