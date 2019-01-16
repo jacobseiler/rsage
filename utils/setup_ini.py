@@ -188,7 +188,29 @@ def update_fields(base_dict, fields_to_check, print_text, field_required,
 
 
 def adjust_ini():
+    """
+    Takes a base ``SAGE`` and ``cifog`` ``.ini`` files and prompts the user to
+    update them.
 
+    ..note::
+        Only paths and filenames are updated. This function does not touch
+        recipe parameters, constants or simulation variables. 
+
+    Parameters
+    ----------
+
+    None.
+
+    Returns
+    ----------
+
+    None.
+
+    The updated ``.ini`` files are saved to the ``ini_files`` directory of the
+    run directory specified by the user.
+    """
+
+    # First get the base ini files that we'll use.
     base_SAGE_ini = "{0}/ini_files/kali_SAGE.ini".format(script_dir)
     base_cifog_ini = "{0}/ini_files/kali_cifog.ini".format(script_dir)
 
@@ -207,19 +229,25 @@ def adjust_ini():
     SAGE_params = rs.read_SAGE_ini(my_SAGE_ini)
     cifog_params, cifog_headers = rs.read_cifog_ini(my_cifog_ini)
 
+    # This directory will house all the output from RSAGE.
     run_directory = None
     while not run_directory:
         run_directory = input("Base output directory: ")
         if not run_directory:
             print("Must be specified")
 
+    # Update the fields based on user input.
     SAGE_fields_update = update_SAGE_dict(SAGE_params)
     cifog_fields_update = update_cifog_dict(cifog_params)
 
+    # Create all the directories and ini files.
     cp.create_directories(run_directory)
     cp.update_ini_files(base_SAGE_ini, base_cifog_ini,
                         SAGE_fields_update, cifog_fields_update,
                         run_directory)
+
+    print("ini files for both SAGE and cifog have been created and placed "
+          "into {0}/ini_files".format(run_directory))
 
 
 if __name__ == '__main__':
