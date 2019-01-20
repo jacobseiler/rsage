@@ -32,6 +32,7 @@ int NumGals;			 // Total number of galaxies stored for current tree
 int GalaxyCounter; // unique galaxy ID for main progenitor line in tree
 
 char OutputDir[512];
+char GalaxyOutputDir[512];
 char GridOutputDir[512];
 char FileNameGalaxies[512];
 char TreeName[512];

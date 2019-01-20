@@ -42,11 +42,11 @@
 // Filter Mass Declarations //
 #include "filter_mass/filter_mass.h"
 
-/*
+#endif
+
 // Misc Declarations //
 #include "check_ini_files.h"
-*/
-#endif
+
 
 #define MAXLEN 1024
 
@@ -163,17 +163,19 @@ int main(int argc, char **argv)
       goto err;
     }
 
-    /*
-    status = check_ini_files(&simParam, PhotoionName, PhotoionDir, fescPrescription, alpha, beta, delta,
-                             quasar_baseline, quasar_boosted, N_dyntime, MH_low, fesc_low,
-                             MH_high, fesc_high, HaloPartCut);
-    if (status !=  EXIT_SUCCESS)
-    {
-      goto err;
-    }
-    */
   }
+
 #endif
+
+  // Some ini file parameters are allowed to be specifically ``None``.
+  // For these, we want to update their values depending upon the recipe flags
+  // and constants chosen.
+  status = check_ini_files(FileNameGalaxies, OutputDir, GalaxyOutputDir, GridOutputDir,
+                           PhotoionDir, PhotoionName, ReionRedshiftName, argv, ThisTask);
+  if (status !=  EXIT_SUCCESS)
+  {
+    goto err;
+  }
 
 #ifdef RSAGE
 
@@ -307,7 +309,7 @@ int main(int argc, char **argv)
 #endif
 
   printf("About to cleanup\n");
-  status = sage_cleanup(argv);
+  status = sage_cleanup();
   if (status != EXIT_SUCCESS)
   {
     goto err;

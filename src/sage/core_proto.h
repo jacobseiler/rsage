@@ -33,7 +33,7 @@ void *mycalloc(size_t n, size_t size);
 void *myrealloc(void *p, size_t new_n, size_t old_n); 
 void myfree(void *p, size_t size);
 void print_final_memory(void);
-int32_t sage_cleanup(char **argv);
+int32_t sage_cleanup(void);
 
 void myexit(int signum);
 

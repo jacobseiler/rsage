@@ -113,7 +113,7 @@ void print_final_memory(void)
 #endif
 }
 
-int32_t sage_cleanup(char **argv)
+int32_t sage_cleanup(void)
 {
 
   XASSERT((gal_mallocs == gal_frees) && (mergedgal_mallocs == mergedgal_frees), "We had %d Galaxy Mallocs and %d Galaxy Frees\n We had %d MergedGalaxy Mallocs and %d MergedGalaxy Frees.\n", gal_mallocs, gal_frees, mergedgal_mallocs, mergedgal_frees);  
@@ -123,13 +123,8 @@ int32_t sage_cleanup(char **argv)
   if (ReionizationOn == 2 )
   {
     free_grid();
-  } 
+  }
 
-  // Copy the parameter file to the output directory. 
-  char copy_command[MAX_STRING_LEN];
-  snprintf(copy_command, MAX_STRING_LEN - 1, "cp %s %s", argv[1], OutputDir); 
-  system(copy_command);
-  
   if ((self_consistent == 1) && (ReionizationOn == 3 || ReionizationOn == 4))
   {
     free_selfcon_grid(SelfConGrid);

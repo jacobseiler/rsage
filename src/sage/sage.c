@@ -108,9 +108,9 @@ int32_t sage(void)
     }
 
     if (treestyle == 0)
-      sprintf(bufz0, "%s/%s_z%1.3f_%03d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
+      sprintf(bufz0, "%s/%s_z%1.3f_%03d", GalaxyOutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
     else
-      sprintf(bufz0, "%s/%s_z%1.3f.%d", OutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
+      sprintf(bufz0, "%s/%s_z%1.3f.%d", GalaxyOutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
   
     if(stat(bufz0, &filestatus) == 0 && self_consistent == 0)
     {
@@ -119,9 +119,9 @@ int32_t sage(void)
     }
 
     if (treestyle == 0)
-      sprintf(bufmergedz0, "%s/%s_MergedGalaxies_%03d", OutputDir, FileNameGalaxies, filenr);
+      sprintf(bufmergedz0, "%s/%s_MergedGalaxies_%03d", GalaxyOutputDir, FileNameGalaxies, filenr);
     else
-      sprintf(bufmergedz0, "%s/%s_MergedGalaxies.%d", OutputDir, FileNameGalaxies, filenr);
+      sprintf(bufmergedz0, "%s/%s_MergedGalaxies.%d", GalaxyOutputDir, FileNameGalaxies, filenr);
     
     FileNum = filenr;
     load_tree_table(filenr, treestyle);

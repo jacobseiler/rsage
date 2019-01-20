@@ -182,7 +182,7 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
 
     # These are paths and don't depend on `FileNameGalaxies`. 
     SAGE_params["OutputDir"] = "{0}/galaxies".format(run_directory)
-    SAGE_params["GridOutputDir"] = "{0}/grids/nion".format(run_directory)
+    SAGE_params["GridOutputDir"] = "{0}/grids".format(run_directory)
     SAGE_params["PhotoionDir"] = "{0}/grids/cifog".format(run_directory)
 
     # Now go through the parameters and update them.

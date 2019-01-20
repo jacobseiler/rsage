@@ -280,6 +280,7 @@ extern int    GalaxyCounter;     // unique galaxy ID for main progenitor line in
 extern int    LastSnapShotNr;
 
 extern char   OutputDir[512];
+extern char   GalaxyOutputDir[512];
 extern char   GridOutputDir[512];
 extern char   FileNameGalaxies[512];
 extern char   TreeName[512];

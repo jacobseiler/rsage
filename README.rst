@@ -48,7 +48,16 @@ better model the high redshift Universe.
 Running the code 
 ====================
 
-Like its parent model, ``RSAGE`` requires halo merger trees to run.  In addition to these trees, the computation of the ionization fields with ``cifog`` require dark matter overdensities grids. For testing purposes, we have included a small set of trees and dark matter density fields [here](BROKEN). Example parameter files for running the galaxy model and the semi-numerical reionization model are included in the ``ini_files`` directory.  For a complete description of the ``cifog`` parameters see the `README <https://github.com/annehutter/grid-model#parameter-file>`_.  The model can be run using
+Like its parent model, ``RSAGE`` requires halo merger trees to run.  In addition to these trees, the computation of the ionization fields with ``cifog`` require dark matter overdensities grids. For testing purposes, we have included a small set of trees and dark matter density fields [here](BROKEN). Example parameter files for running the galaxy model and the semi-numerical reionization model are included in the ``ini_files`` directory.  For a complete description of the ``cifog`` parameters see the `README <https://github.com/jacobseiler/grid-model#parameter-file>`_.
+
+To allow the easy handling of intermediate files (e.g., the ionizing photon and
+reionization grids), several of the fields within the ``SAGE`` and ``cifog``
+``.ini`` files have inputs of ``None``. Leaving these as ``None`` will force
+``RSAGE`` to automatically determine the correct paths based on the recipe
+flags and prescriptions chosen. **You only need to adjust the *FilePrefix*
+and *OutputDir* fields**.
+
+The model can be run using
 
 .. code::
 
