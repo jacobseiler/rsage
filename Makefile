@@ -13,7 +13,7 @@ INCL   =	src/main.h \
 BUILD_RSAGE = true
 
 # Set this to true if you want to run in MPI.
-USE-MPI = true
+USE-MPI = false
 
 # Determine if we're on continuous integration.
 ON_CI := false
@@ -73,7 +73,7 @@ FFTW_INCL := -I$(FFTW3DIR)
 FFTW3_LIBDIR :=/opt/local/lib
 FFTW3_LIBS := -L$(FFTW3_LIBDIR) -lfftw3 -Xlinker -rpath -Xlinker $(FFTW3_LIBDIR)
 
-ifdef USE-MPI
+ifeq ($(USE-MPI), true)
 ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service.    
     FFTW3_LIBS += -lfftw3_mpi
 endif
