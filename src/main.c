@@ -179,17 +179,19 @@ int main(int argc, char **argv)
   }
 
 #ifdef RSAGE
-  // Do similar checking for the cifog ini.
-  status = check_cifog_ini(&simParam, OutputDir, FileNameGalaxies, argv,
-                           ThisTask);
-
-  if (status !=  EXIT_SUCCESS)
-  {
-    goto err;
-  }
 
   if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
   {
+    // Do similar checking for the cifog ini.
+    status = check_cifog_ini(&simParam, OutputDir, FileNameGalaxies, argv,
+                             ThisTask);
+
+    if (status !=  EXIT_SUCCESS)
+    {
+      goto err;
+    }
+
+
     int32_t loop_SnapNum, first_update_flag, count; 
 
     for (loop_SnapNum = LowSnap, count = 0; loop_SnapNum < LastSnapShotNr; ++loop_SnapNum, ++count)

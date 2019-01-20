@@ -174,7 +174,7 @@ int32_t check_sage_ini(char *FileNameGalaxies, char *OutputDir, char *GalaxyOutp
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     char time_string[MAX_STRING_LEN];
-    snprintf(time_string, MAX_STRING_LEN - 1, "Code was executed on: %d-%d-%d %d:%d:%d",
+    snprintf(time_string, MAX_STRING_LEN - 1, "Code was executed on: %d-%02d-%02d %02d:%02d:%02d",
              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
 
@@ -193,48 +193,71 @@ int32_t check_sage_ini(char *FileNameGalaxies, char *OutputDir, char *GalaxyOutp
     system(buf);
   }
 
-
   return EXIT_SUCCESS;
 }
 
 #ifdef RSAGE
 
-int32_t check_cifog_ini(char *OutputDir, confObj_t *simParam, char *FileNameGalaxies, char **argv, int32_t ThisTask)
+int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *FileNameGalaxies, char **argv, int32_t ThisTask)
 {
 
   char buf[MAX_STRING_LEN], nion_prefix[MAX_STRING_LEN];
 
   // We have ensured all the directory structure is correct in `check_sage_ini`.
-  time_t t = time(NULL);
-  struct tm tm = *localtime(&t);
-  char time_string[MAX_STRING_LEN];
-  snprintf(time_string, MAX_STRING_LEN - 1, "Code was executed on: %d-%d-%d %d:%d:%d",
-           tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-  // First copy over the cifog ini file and append the time we ran the code
-  // and the Git version.
-  char *cifog_ini_file = strrchr(argv[2], '/') + 1;
+  if (ThisTask == 0)
+  {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    char time_string[MAX_STRING_LEN];
+    snprintf(time_string, MAX_STRING_LEN - 1, "Code was executed on: %d-%02d-%02d %02d:%02d:%02d",
+             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
-  snprintf(buf, MAX_STRING_LEN - 1, "cp %s %s/ini_files/%s", argv[2], OutputDir, cifog_ini_file); 
-  system(buf);
+    // First copy over the cifog ini file and append the time we ran the code
+    // and the Git version.
+    char *cifog_ini_file = strrchr(argv[2], '/') + 1;
 
-  snprintf(buf, MAX_STRING_LEN - 1, "sed -i '1s/^/%% %s\\n%% Git Version: %s\\n/' %s/ini_files/%s", time_string, VERSION, OutputDir, cifog_ini_file);
-  system(buf);
+    snprintf(buf, MAX_STRING_LEN - 1, "cp %s %s/ini_files/%s", argv[2], OutputDir, cifog_ini_file); 
+    system(buf);
+
+    snprintf(buf, MAX_STRING_LEN - 1, "sed -i '1s/^/%% %s\\n%% Git Version: %s\\n/' %s/ini_files/%s", time_string, VERSION, OutputDir, cifog_ini_file);
+    system(buf);
+  }
 
   // The prefix for the ionizing photon file depends upon the fesc prescription
   // chose in addition to the constants used.
+  get_nion_prefix(nion_prefix);
+
+  printf("%s\n", (*simParam)->out_restart_file);
   if (strncmp((*simParam)->nion_file, "None", 4) == 0)
   {
     snprintf((*simParam)->nion_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_%s_nionHI", OutputDir, FileNameGalaxies, nion_prefix);
-    printf("The `NionFile` variable has been updated to %s\n", (*simParam)->nion_file);
+    printf("The `inputNionFile` variable has been updated to %s\n", (*simParam)->nion_file);
   }
 
-  get_nion_prefix(nion_prefix);
+  // Reionization maps files.
+  if (strncmp((*simParam)->out_XHII_file, "None", 4) == 0)
+  {
+    snprintf((*simParam)->out_XHII_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_XHII", OutputDir, FileNameGalaxies);
+    printf("The `output_XHII_file` variable has been updated to %s\n", (*simParam)->out_XHII_file);
+  }
 
+  // Photoionization rate files.
+  if (strncmp((*simParam)->out_photHI_file, "None", 4) == 0)
+  {
+    snprintf((*simParam)->out_photHI_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_photHI", OutputDir, FileNameGalaxies);
+    printf("The `output_photHI_file` variable has been updated to %s\n", (*simParam)->out_photHI_file);
+  }
 
+  printf("%s\n", (*simParam)->out_restart_file);
+  // Restart files.
+  if (strncmp((*simParam)->out_restart_file, "None", 4) == 0)
+  {
+    snprintf((*simParam)->out_restart_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_restart", OutputDir, FileNameGalaxies);
+    printf("The `output_restart_file` variable has been updated to %s\n", (*simParam)->out_restart_file);
+  }
 
-
-  return EXIT_FAILURE;
+  return EXIT_SUCCESS;
 }
 
 #endif

@@ -5,8 +5,8 @@
 
 #include "../grid-model/src/confObj.h"
 
-int32_t check_cifog_ini(char *OutputDir, confObj_t *simParam, char **argv,
-                        char *FileNameGalaxies, int32_t ThisTask);
+int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *FileNameGalaxies,
+                        char **argv, int32_t ThisTask);
 
 #endif
 
