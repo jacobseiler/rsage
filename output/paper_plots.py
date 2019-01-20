@@ -51,10 +51,11 @@ if __name__ == "__main__":
 
     # All .ini files included in this array will be plotted.
     paper_models        = 0
-    no_const            = 1
+    no_const            = 0
     higher_tau          = 0
     sliding_fesc        = 0
     combined_higher_tau = 0
+    kali_512            = 1
 
     if paper_models:
 
@@ -235,6 +236,20 @@ if __name__ == "__main__":
                       r"$\mathbf{Ejected}$",
                       r"$\mathbf{SFR}$"]
 
+    if kali_512:
+        output_directory = "./kali_512"
+
+        gal_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali_512_SAGE.ini"
+        gal_ini_2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
+
+        reion_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali_512_cifog.ini"
+        reion_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali_512_cifog.ini"
+
+        gal_ini_files = [gal_ini_1, gal_ini_2]
+        reion_ini_files = [reion_ini_1]
+
+        model_tags = [r"Kali 512", r"Kali 2400"]
+
     # ============================================================= #
     # Switches to control what plots to make. 0 to skip, 1 to plot. #
     # ============================================================= #
@@ -243,10 +258,10 @@ if __name__ == "__main__":
     # Galaxy Plot Toggles. # 
     # ==================== #
     gal_nion   = 0
-    mstar_fesc = 1
+    mstar_fesc = 0
     mstar_fej  = 0
     mstar_SFR  = 0
-    SMF        = 0
+    SMF        = 1
 
     # ==================== #
     # Galaxy Plot Options. # 
@@ -269,7 +284,8 @@ if __name__ == "__main__":
 
     # For the stellar mass function, we may only want to plot at specific
     # redshifts for each model.
-    SMF_plot_z = [[6.0, 7.0, 8.0]]
+    SMF_plot_z = [[6.0, 7.0, 8.0],
+                  [6.0, 7.0, 8.0]]
 
     # If you only want to use a specific range of files, specify here. If you
     # want to use all the files from a model, set these to ``None``.

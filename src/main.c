@@ -170,14 +170,23 @@ int main(int argc, char **argv)
   // Some ini file parameters are allowed to be specifically ``None``.
   // For these, we want to update their values depending upon the recipe flags
   // and constants chosen.
-  status = check_ini_files(FileNameGalaxies, OutputDir, GalaxyOutputDir, GridOutputDir,
-                           PhotoionDir, PhotoionName, ReionRedshiftName, argv, ThisTask);
+  status = check_sage_ini(FileNameGalaxies, OutputDir, GalaxyOutputDir, GridOutputDir,
+                          PhotoionDir, PhotoionName, ReionRedshiftName, argv, ThisTask);
+
   if (status !=  EXIT_SUCCESS)
   {
     goto err;
   }
 
 #ifdef RSAGE
+  // Do similar checking for the cifog ini.
+  status = check_cifog_ini(&simParam, OutputDir, FileNameGalaxies, argv,
+                           ThisTask);
+
+  if (status !=  EXIT_SUCCESS)
+  {
+    goto err;
+  }
 
   if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
   {

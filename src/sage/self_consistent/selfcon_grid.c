@@ -330,6 +330,42 @@ int32_t zero_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
   return EXIT_SUCCESS;
 }
 
+int32_t get_nion_prefix(char *nion_prefix)
+{
+
+  switch(fescPrescription)
+  {
+    case 0:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", beta, HaloPartCut);
+      break;
+
+    case 1:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      break;
+
+    case 2:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
+      break;
+
+    case 3:
+    case 4:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
+      break;
+
+    case 5:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "SFR_%.3f_%.3f_%.3f_HaloPartCut%d", alpha, beta, delta, HaloPartCut);
+      break;
+
+    default:
+      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `save_selfcon_grid` in `selfcon_grid.c`.\nPlease add it there.\n");
+      return EXIT_FAILURE;
+
+  }
+
+  return EXIT_SUCCESS;
+}
+
+
 // Local Functions //
 
 /*
@@ -790,39 +826,12 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
 { 
 
   FILE* file_HI;
-  char tag[MAX_STRING_LEN], fname_HI[MAX_STRING_LEN];
+  char nion_prefix[MAX_STRING_LEN], fname_HI[MAX_STRING_LEN];
   int32_t nwritten;
 
-  switch(fescPrescription)
-  {
-    case 0:
-      snprintf(tag, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", beta, HaloPartCut);
-      break;
+  get_nion_prefix(nion_prefix);
 
-    case 1:
-      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
-      break;
-
-    case 2:
-      snprintf(tag, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
-      break;
-
-    case 3:
-    case 4:
-      snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
-      break;
-
-    case 5:
-      snprintf(tag, MAX_STRING_LEN - 1, "SFR_%.3f_%.3f_%.3f_HaloPartCut%d", alpha, beta, delta, HaloPartCut);
-      break;
-
-    default:
-      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `save_selfcon_grid` in `selfcon_grid.c`.\nPlease add it there.\n");
-      return EXIT_FAILURE;
-
-  }
-
-  snprintf(fname_HI, MAX_STRING_LEN, "%s/nion/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, tag, ReionSnap);
+  snprintf(fname_HI, MAX_STRING_LEN, "%s/nion/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, nion_prefix, ReionSnap);
 
   file_HI = fopen(fname_HI, "wb");
   if (file_HI == NULL)

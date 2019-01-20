@@ -14,6 +14,13 @@
 #include "main.h"
 
 #include "../grid-model/src/confObj.h"
+#include "sage/self_consistent/selfcon_grid.h"
+
+#ifdef RSAGE
+
+#include "../grid-model/src/confObj.h"
+
+#endif
 
 /*
 Within the SAGE and cifog .ini files, some directory paths can be set to the
@@ -42,26 +49,47 @@ Notes
 strncmp returns 0 if the two strings are equal.
 */
 
-int32_t check_ini_files(char *OutputDir, char *GalaxyOutputDir, char *GridOutputDir,
-                        char **argv, int32_t ThisTask)
+int32_t check_sage_ini(char *FileNameGalaxies, char *OutputDir, char *GalaxyOutputDir,
+                       char *GridOutputDir, char *PhotoionDir, char *PhotoionName,
+                       char *ReionRedshiftName, char **argv, int32_t ThisTask)
 {
 
   struct stat st = {0};
   char buf[MAX_STRING_LEN];
 
   // Check the Galaxy output directory.
-
   if (strncmp(GalaxyOutputDir, "None", 4) == 0)
   {
     snprintf(GalaxyOutputDir, MAX_STRING_LEN - 1, "%s/galaxies", OutputDir);
-    printf("The GalaxyOutputDir has been updated to %s\n", GalaxyOutputDir);
+    printf("The `GalaxyOutputDir` variable has been updated to %s\n", GalaxyOutputDir);
   }
 
-  // Check the Grid output directory.
+  // Grid output directory.
   if (strncmp(GridOutputDir, "None", 4) == 0)
   {
     snprintf(GridOutputDir, MAX_STRING_LEN - 1, "%s/grids", OutputDir);
-    printf("The GridOutputDir has been updated to %s\n", GalaxyOutputDir);
+    printf("The `GridOutputDir` variable has been updated to %s\n", GridOutputDir);
+  }
+
+  // Photoionization rate directory. 
+  if (strncmp(PhotoionDir, "None", 4) == 0)
+  {
+    snprintf(PhotoionDir, MAX_STRING_LEN - 1, "%s/grids/cifog", OutputDir);
+    printf("The `PhotoionDir` variable has been updated to %s\n", PhotoionDir);
+  }
+
+  // Photoionization rate file names. 
+  if (strncmp(PhotoionName, "None", 4) == 0)
+  {
+    snprintf(PhotoionName, MAX_STRING_LEN - 1, "%s_photHI", FileNameGalaxies);
+    printf("The `PhotoionName` variable has been updated to %s\n", PhotoionName);
+  }
+
+  // Reionization rdshift rate file names. 
+  if (strncmp(ReionRedshiftName, "None", 4) == 0)
+  {
+    snprintf(ReionRedshiftName, MAX_STRING_LEN - 1, "%s_reionization_redshift", FileNameGalaxies);
+    printf("The `PhotoionName` variable has been updated to %s\n", PhotoionName);
   }
 
   // Now check that the sub-directory structure exists.
@@ -162,29 +190,51 @@ int32_t check_ini_files(char *OutputDir, char *GalaxyOutputDir, char *GridOutput
     // At the top of the file, append the time of run and the Git version.
     // https://stackoverflow.com/questions/20543289/how-do-i-append-a-line-to-the-beginning-of-a-very-large-file-in-linux
     snprintf(buf, MAX_STRING_LEN - 1, "sed -i '1s/^/%% %s\\n%% Git Version: %s\\n/' %s/ini_files/%s", time_string, VERSION, OutputDir, SAGE_ini_file);
-    printf("%s\n", buf);
     system(buf);
-
-    // The cifog will only be passed if we're using the fully coupled RSAGE.
-#ifdef RSAGE
-    char *cifog_ini_file = strrchr(argv[2], '/') + 1;
- 
-    snprintf(buf, MAX_STRING_LEN - 1, "cp %s %s/ini_files/%s", argv[2], OutputDir, cifog_ini_file); 
-    system(buf);
-
-    snprintf(buf, MAX_STRING_LEN - 1, "sed -i '1s/^/%% %s\\n%% Git Version: %s\\n/' %s/ini_files/%s", time_string, VERSION, OutputDir, cifog_ini_file);
-    printf("%s\n", buf);
-    system(buf);
-
-#endif
-
   }
 
 
-  return EXIT_FAILURE;
-
-  // Next adjust the nion_file variable using the parameters from the SAGE ini file.
-  
-
-  //return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
+
+#ifdef RSAGE
+
+int32_t check_cifog_ini(char *OutputDir, confObj_t *simParam, char *FileNameGalaxies, char **argv, int32_t ThisTask)
+{
+
+  char buf[MAX_STRING_LEN], nion_prefix[MAX_STRING_LEN];
+
+  // We have ensured all the directory structure is correct in `check_sage_ini`.
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  char time_string[MAX_STRING_LEN];
+  snprintf(time_string, MAX_STRING_LEN - 1, "Code was executed on: %d-%d-%d %d:%d:%d",
+           tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+  // First copy over the cifog ini file and append the time we ran the code
+  // and the Git version.
+  char *cifog_ini_file = strrchr(argv[2], '/') + 1;
+
+  snprintf(buf, MAX_STRING_LEN - 1, "cp %s %s/ini_files/%s", argv[2], OutputDir, cifog_ini_file); 
+  system(buf);
+
+  snprintf(buf, MAX_STRING_LEN - 1, "sed -i '1s/^/%% %s\\n%% Git Version: %s\\n/' %s/ini_files/%s", time_string, VERSION, OutputDir, cifog_ini_file);
+  system(buf);
+
+  // The prefix for the ionizing photon file depends upon the fesc prescription
+  // chose in addition to the constants used.
+  if (strncmp((*simParam)->nion_file, "None", 4) == 0)
+  {
+    snprintf((*simParam)->nion_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_%s_nionHI", OutputDir, FileNameGalaxies, nion_prefix);
+    printf("The `NionFile` variable has been updated to %s\n", (*simParam)->nion_file);
+  }
+
+  get_nion_prefix(nion_prefix);
+
+
+
+
+  return EXIT_FAILURE;
+}
+
+#endif
