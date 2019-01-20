@@ -6,8 +6,6 @@ import os
 import numpy as np
 import math
 
-np.set_printoptions(threshold=np.nan)
-
 
 def Read_SAGE_header(model_name, fnr):
 
