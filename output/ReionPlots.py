@@ -73,7 +73,7 @@ def plot_single_slice(z, snapnum, XHII, mass_frac, GridSize, boxsize,
     output_tag = "slice_{0:03d}".format(snapnum)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -140,10 +140,9 @@ def plot_single_ps(k, P21, snapnum, mass_frac, small_scale_def,
 
     leg = ax1.legend(loc='lower right', numpoints=1,
                      labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize-2)
-    leg.draw_frame(False)  # Don't want a box frame
 
     fig1.tight_layout()
 
@@ -388,15 +387,15 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
     # we'll handle this in the calling function rather than here.
     if not passed_ax:
         leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
+        leg.draw_frame(False)
+        for t in leg.get_texts():
             t.set_fontsize(ps.global_legendsize)
 
     if passed_ax:
         return ax1
     else:
         outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-        fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+        fig1.savefig(outputFile1, bbox_inches='tight')
         print('Saved file to {0}'.format(outputFile1))
         plt.close(fig1)
 
@@ -535,10 +534,9 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
 
     leg = this_ax.legend(loc='lower right', numpoints=1,
                          labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize-2)
-    leg.draw_frame(False)  # Don't want a box frame
 
     leg2 = this_ax2.legend(loc='lower right', numpoints=1,
                            labelspacing=0.1)
@@ -714,7 +712,7 @@ def plot_tau_contours(tau_highz, reion_completed, alpha_beta_limits,
                         fontsize = ps.global_fontsize)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -810,7 +808,7 @@ def plot_duration_contours(duration_t, reion_completed, alpha_beta_limits,
                         fontsize = ps.global_fontsize)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -928,15 +926,15 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
 
     if not passed_ax:
         leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
+        leg.draw_frame(False)
+        for t in leg.get_texts():
             t.set_fontsize(ps.global_legendsize)
  
     if passed_ax:
         return ax1
     else:
         outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-        fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        fig1.savefig(outputFile, bbox_inches='tight')
         print('Saved file to {0}'.format(outputFile))
         plt.close()
 
@@ -1014,14 +1012,14 @@ def plot_combined_history_tau(z_array_reion_allmodels,
                      passed_ax=ax[1])
 
     leg = ax[0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     plt.tight_layout()    
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -1258,8 +1256,8 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
 
     leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1,
                      markerscale=6)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize-2)
 
 
@@ -1273,7 +1271,7 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
     outputFile = "{0}/{1}_{2}.{3}".format(output_dir, tag, name_tag,
                                           output_format)
 
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -1453,7 +1451,7 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
 
     # Done! Save time.
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -2003,8 +2001,8 @@ def plot_ps_beta(P21_beta, P21_beta_error,
 
     leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1,
                      markerscale=6)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize-2)
 
 
@@ -2012,6 +2010,6 @@ def plot_ps_beta(P21_beta, P21_beta_error,
                                                    large_scale_def)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()

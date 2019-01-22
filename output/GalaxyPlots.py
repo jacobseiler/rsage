@@ -115,12 +115,12 @@ def plot_nion(z_array_full_allmodels, lookback_array_full_allmodels,
     ax1.tick_params(which = 'minor', length = ps.global_ticklength-2)
 
     leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
@@ -285,15 +285,15 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
         this_ax = ax
 
     leg = this_ax.legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     plt.tight_layout()
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
@@ -412,14 +412,14 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     ax[2].text(0.7, 0.9, r"$\mathbf{z = 8}$", transform = ax[2].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
 
     leg = ax[0].legend(loc='lower left', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize - 2)
 
     plt.tight_layout()
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
@@ -518,15 +518,15 @@ def plot_mstar_fej(mstar_bins, mstar_bin_width, z_array_full_allmodels,
         #                                 fontsize = ps.global_fontsize)
 
     leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     plt.tight_layout()
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
@@ -625,15 +625,15 @@ def plot_mstar_SFR(mstar_bins, mstar_bin_width, z_array_full_allmodels,
         #                                 fontsize = ps.global_fontsize)
 
     leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     plt.tight_layout()
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
