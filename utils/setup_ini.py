@@ -17,14 +17,10 @@ import sys
 # Get the directory the script is in.
 # Used a global variable for convenience as quite a few functions will use this.
 script_dir = os.path.dirname(os.path.realpath(__file__))
-output_path = "{0}/output/".format(script_dir)
+output_path = "{0}/../output/".format(script_dir)
 sys.path.append(output_path)
 
 import ReadScripts as rs
-
-utils_path = "{0}/utils".format(script_dir)
-sys.path.append(utils_path)
-
 import change_params as cp
 
 
@@ -211,8 +207,8 @@ def adjust_ini():
     """
 
     # First get the base ini files that we'll use.
-    base_SAGE_ini = "{0}/ini_files/kali_SAGE.ini".format(script_dir)
-    base_cifog_ini = "{0}/ini_files/kali_cifog.ini".format(script_dir)
+    base_SAGE_ini = "{0}/../ini_files/kali_SAGE.ini".format(script_dir)
+    base_cifog_ini = "{0}/../ini_files/kali_cifog.ini".format(script_dir)
 
     # Prompt for a SAGE ini path. If none provided, use the base.
     my_SAGE_ini = input("Template SAGE ini file [default: "

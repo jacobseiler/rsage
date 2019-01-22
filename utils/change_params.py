@@ -181,7 +181,8 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
     cifog_params, cifog_headers = ReadScripts.read_cifog_ini(base_cifog_ini)
 
     # These are paths and don't depend on `FileNameGalaxies`. 
-    SAGE_params["OutputDir"] = "{0}/galaxies".format(run_directory)
+    SAGE_params["OutputDir"] = "{0}".format(run_directory)
+    SAGE_params["GalaxyOutputDir"] = "{0}/galaxies".format(run_directory)
     SAGE_params["GridOutputDir"] = "{0}/grids".format(run_directory)
     SAGE_params["PhotoionDir"] = "{0}/grids/cifog".format(run_directory)
 

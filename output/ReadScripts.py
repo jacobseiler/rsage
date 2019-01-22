@@ -433,7 +433,7 @@ def read_SAGE_ini(fname):
     """
 
     SAGE_fields = ["FileNameGalaxies", "OutputDir", "GridOutputDir",
-                   "FirstFile", "LastFile",
+                   "GalaxyOutputDir", "FirstFile", "LastFile",
                    "TreeName", "TreeExtension", "SimulationDir",
                    "FileWithSnapList", "LastSnapShotNr", "Omega", 
                    "OmegaLambda", "BaryonFrac", "Hubble_h",
