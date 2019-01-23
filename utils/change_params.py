@@ -180,11 +180,22 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
     SAGE_params = ReadScripts.read_SAGE_ini(base_SAGE_ini)
     cifog_params, cifog_headers = ReadScripts.read_cifog_ini(base_cifog_ini)
 
-    # These are paths and don't depend on `FileNameGalaxies`. 
+    # This is the outermost directory. 
     SAGE_params["OutputDir"] = "{0}".format(run_directory)
-    SAGE_params["GalaxyOutputDir"] = "{0}/galaxies".format(run_directory)
-    SAGE_params["GridOutputDir"] = "{0}/grids".format(run_directory)
-    SAGE_params["PhotoionDir"] = "{0}/grids/cifog".format(run_directory)
+
+    # Within RSAGE, we use values of `None` to signify that RSAGE should
+    # determine the paths on runtime. 
+    SAGE_params["GalaxyOutputDir"] = "None"
+    SAGE_params["GridOutputDir"] = "None"
+    SAGE_params["PhotoionDir"] = "None"
+    SAGE_params["PhotoionName"] = "None"
+    SAGE_params["ReionRedshiftName"] = "None"
+
+    cifog_params["inputNionFile"] = "None"
+    cifog_params["output_XHII_file"] = "None"
+
+    cifog_params["output_photHI_file"] = "None"
+    cifog_params["output_restart_file"] = "None"
 
     # Now go through the parameters and update them.
     for name in SAGE_fields_update:
@@ -195,28 +206,6 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
 
     # The unique identifier amongst each run will be `FileNameGalaxies`. 
     prefix_tag = SAGE_params["FileNameGalaxies"]
-
-    # Now update all the fields for this specific run.
-    SAGE_params["PhotoionName"] = "{0}_photHI".format(prefix_tag)
-    SAGE_params["ReionRedshiftName"] = "{0}_reionization_redshift" \
-                                       .format(prefix_tag)
-
-    # The name for the ionizing photon file depends upon the escape fraction
-    # prescription chosen.
-    nion_fname = get_nion_fname(SAGE_params)
-    print("Nion Name {0}".format(nion_fname))    
-
-    cifog_params["inputNionFile"] = "{0}/grids/nion/{1}" \
-                                    .format(run_directory, nion_fname)
-    cifog_params["output_XHII_file"] = "{0}/grids/cifog/{1}_XHII" \
-                                       .format(run_directory,
-                                               prefix_tag)
-    cifog_params["output_photHI_file"] = "{0}/grids/cifog/{1}_photHI" \
-                                         .format(run_directory,
-                                                 prefix_tag)
-    cifog_params["output_restart_file"] = "{0}/grids/cifog/{1}_restart" \
-                                          .format(run_directory,
-                                                  prefix_tag)
 
     # Write out the new ini files, using `FileNameGalaxies` as the tag.
     SAGE_fname = "{0}/ini_files/{1}_SAGE.ini".format(run_directory,
@@ -241,80 +230,6 @@ def update_ini_files(base_SAGE_ini, base_cifog_ini,
             f.write(string)
 
     return SAGE_fname, cifog_fname
-
-
-def get_nion_fname(SAGE_params):
-    """
-    Using the ``fescPrescription`` specified in the ``SAGE.ini`` file,
-    determines the name of the output ionizing photon file. 
-
-    Parameters
-    ----------
-
-    SAGE_params: Dictionary
-        Dictionary containing the ``SAGE.ini`` file parameters. 
-    
-    Returns
-    ----------
-
-    nion_fname: String
-        Tag for the ionizing photon files that ``SAGE`` creates. 
-    """
-
-    fesc_prescription = int(SAGE_params["fescPrescription"])
-
-    if fesc_prescription == 0:
-        nion_fname = "{0}_fesc{1:.2f}_HaloPartCut{2}_nionHI" \
-                      .format(SAGE_params["FileNameGalaxies"],
-                              float(SAGE_params["beta"]),
-                              int(SAGE_params["HaloPartCut"]))
-
-    elif fesc_prescription == 1:
-        nion_fname = "{0}_ejected_{1:.3f}_{2:.3f}_HaloPartCut{3}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"],
-                             float(SAGE_params["alpha"]),
-                             float(SAGE_params["beta"]),
-                             int(SAGE_params["HaloPartCut"]))
-
-    elif fesc_prescription == 2:
-        nion_fname = "{0}_quasar_{1:.2f}_{2:.2f}_{3:.2f}_HaloPartCut{4}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"],
-                             float(SAGE_params["quasar_baseline"]),
-                             float(SAGE_params["quasar_boosted"]),
-                             float(SAGE_params["N_dyntime"]),
-                             int(SAGE_params["HaloPartCut"]))
-
-    elif fesc_prescription == 3: 
-        nion_fname = "{0}_myMH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"],
-                             float(SAGE_params["MH_low"]),
-                             float(SAGE_params["fesc_low"]),
-                             float(SAGE_params["MH_high"]),
-                             float(SAGE_params["fesc_high"]),
-                             int(SAGE_params["HaloPartCut"]))
-
-    elif fesc_prescription == 4:
-        nion_fname = "{0}_AnneMH_{1:.3e}_{2:.2f}_{3:.3e}_{4:.2f}_HaloPartCut{5}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"],
-                             float(SAGE_params["MH_low"]),
-                             float(SAGE_params["fesc_low"]),
-                             float(SAGE_params["MH_high"]),
-                             float(SAGE_params["fesc_high"]),
-                             int(SAGE_params["HaloPartCut"]))
-
-    elif fesc_prescription == 5: 
-        nion_fname = "{0}_SFR_{1:.3f}_{2:.3f}_{3:.3f}_HaloPartCut{4}_nionHI" \
-                     .format(SAGE_params["FileNameGalaxies"],
-                             float(SAGE_params["alpha"]),
-                             float(SAGE_params["beta"]),
-                             float(SAGE_params["delta"]),
-                             int(SAGE_params["HaloPartCut"]))
-    else:
-        print("Select a valid fescPrescription, [0, 5].")
-        print("Current value is {0}".format(fesc_prescription))
-        raise ValueError
-
-    return nion_fname
 
 
 def make_ini_files(base_SAGE_ini, base_cifog_ini, 

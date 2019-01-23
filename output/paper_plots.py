@@ -239,16 +239,14 @@ if __name__ == "__main__":
     if kali_512:
         output_directory = "./kali_512"
 
-        gal_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali_512_SAGE.ini"
-        gal_ini_2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
+        gal_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali512_SAGE.ini"
 
-        reion_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali_512_cifog.ini"
-        reion_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali_512_cifog.ini"
+        reion_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali512_cifog.ini"
 
-        gal_ini_files = [gal_ini_1, gal_ini_2]
+        gal_ini_files = [gal_ini_1]
         reion_ini_files = [reion_ini_1]
 
-        model_tags = [r"Kali 512", r"Kali 2400"]
+        model_tags = [r"Kali 512"]
 
     # ============================================================= #
     # Switches to control what plots to make. 0 to skip, 1 to plot. #

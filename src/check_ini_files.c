@@ -22,6 +22,19 @@
 
 #endif
 
+int32_t check_directory(char *path)
+{
+  struct stat st = {0};
+
+  if (stat(path, &st) == - 1)
+  {
+    mkdir(path, 0700);
+    printf("Made directory %s.\n", path);
+  }
+
+  return EXIT_SUCCESS;
+}
+
 /*
 Within the SAGE and cifog .ini files, some directory paths can be set to the
 value of `None`.  In these instances, we want to use the runtime parameters to
@@ -54,7 +67,6 @@ int32_t check_sage_ini(char *FileNameGalaxies, char *OutputDir, char *GalaxyOutp
                        char *ReionRedshiftName, char **argv, int32_t ThisTask)
 {
 
-  struct stat st = {0};
   char buf[MAX_STRING_LEN];
 
   // Check the Galaxy output directory.
@@ -93,76 +105,40 @@ int32_t check_sage_ini(char *FileNameGalaxies, char *OutputDir, char *GalaxyOutp
   }
 
   // Now check that the sub-directory structure exists.
-  // Outer directory.
   if (ThisTask == 0)
   {
-    if (stat(OutputDir, &st) == - 1)
-    {
-      mkdir(OutputDir, 0700);
-      printf("Made directory %s.\n", OutputDir);
-    }
+    // Outer level directory.
+    check_directory(OutputDir);
 
-    // Galaxy directory.
-    if (stat(GalaxyOutputDir, &st) == - 1)
-    {
-      mkdir(GalaxyOutputDir, 0700);
-      fprintf(stderr, "Made directory %s.\n", GalaxyOutputDir);
-    }
+    // Directory for the galaxies.
+    check_directory(GalaxyOutputDir);
 
-    // Grid Directory.
-    if (stat(GridOutputDir, &st) == - 1)
-    {
-      mkdir(GridOutputDir, 0700);
-      fprintf(stderr, "Made directory %s.\n", GridOutputDir);
-    }
+    // Directories for all the grids.
+    check_directory(GridOutputDir);
 
-    // Directory for the Nion files.
+    // Directory for the ionizing photon grids.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/nion", GridOutputDir);
-    if (stat(buf, &st) == - 1)
-    {
-      mkdir(buf, 0700);
-      fprintf(stderr, "Made directory %s.\n", buf);
-    }
+    check_directory(buf);
 
-    // Directory for the cifog files.
+    // Directory for the reionization fields.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/cifog", GridOutputDir);
-    if (stat(buf, &st) == - 1)
-    {
-      mkdir(buf, 0700);
-      fprintf(stderr, "Made directory %s.\n", buf);
-    }
+    check_directory(buf);
 
-    // Directory for the reionization files.
+    // Directory for the reionization baryonic modifier files.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/cifog/reionization_modifiers", GridOutputDir);
-    if (stat(buf, &st) == - 1)
-    {
-      mkdir(buf, 0700);
-      fprintf(stderr, "Made directory %s.\n", buf);
-    }
+    check_directory(buf);
 
     // Directory for the ini files.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/ini_files", OutputDir);
-    if (stat(buf, &st) == - 1)
-    {
-      mkdir(buf, 0700);
-      fprintf(stderr, "Made directory %s.\n", buf);
-    }
+    check_directory(buf);
 
     // Directory for the slurm files.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/slurm_files", OutputDir);
-    if (stat(buf, &st) == - 1)
-    {
-      mkdir(buf, 0700);
-      fprintf(stderr, "Made directory %s.\n", buf);
-    }
+    check_directory(buf);
 
     // Directory for the log files.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/log_files", OutputDir);
-    if (stat(buf, &st) == - 1)
-    {
-      mkdir(buf, 0700);
-      fprintf(stderr, "Made directory %s.\n", buf);
-    }
+    check_directory(buf);
 
     // For log keeping purposes, copy the parameter files to the ini_files
     // directory. Furthermore, let's add some extra information to the top
@@ -176,7 +152,6 @@ int32_t check_sage_ini(char *FileNameGalaxies, char *OutputDir, char *GalaxyOutp
     char time_string[MAX_STRING_LEN];
     snprintf(time_string, MAX_STRING_LEN - 1, "Code was executed on: %d-%02d-%02d %02d:%02d:%02d",
              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-
 
     // RSAGE is called with the SAGE ini file as the first input. This will be
     // the full path to the ini file, so grab just the file name. Taken from:
@@ -228,7 +203,6 @@ int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *FileNameGala
   // chose in addition to the constants used.
   get_nion_prefix(nion_prefix);
 
-  printf("%s\n", (*simParam)->out_restart_file);
   if (strncmp((*simParam)->nion_file, "None", 4) == 0)
   {
     snprintf((*simParam)->nion_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_%s_nionHI", OutputDir, FileNameGalaxies, nion_prefix);
@@ -249,7 +223,6 @@ int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *FileNameGala
     printf("The `output_photHI_file` variable has been updated to %s\n", (*simParam)->out_photHI_file);
   }
 
-  printf("%s\n", (*simParam)->out_restart_file);
   // Restart files.
   if (strncmp((*simParam)->out_restart_file, "None", 4) == 0)
   {
