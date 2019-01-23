@@ -831,7 +831,7 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
 
   get_nion_prefix(nion_prefix);
 
-  snprintf(fname_HI, MAX_STRING_LEN, "%s/nion/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, nion_prefix, ReionSnap);
+  snprintf(fname_HI, MAX_STRING_LEN, "%s/nion/%s_%s_nionHI_%03d", GridOutputDir, RunPrefix, nion_prefix, ReionSnap);
 
   file_HI = fopen(fname_HI, "wb");
   if (file_HI == NULL)

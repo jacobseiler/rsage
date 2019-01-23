@@ -29,8 +29,8 @@ int32_t read_parameter_file(char *fname)
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
-  strcpy(tag[nt], "FileNameGalaxies");
-  addr[nt] = FileNameGalaxies;
+  strcpy(tag[nt], "RunPrefix");
+  addr[nt] = RunPrefix;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "OutputDir");

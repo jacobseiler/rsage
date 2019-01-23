@@ -24,7 +24,7 @@ int32_t save_arrays(int64_t *HaloID, float *ReionMod, struct SAGE_PARAMETERS *pa
   char outfile_name[MAXLEN];
   int32_t tmp_snap, tmp_NHalos, nwritten;
   
-  snprintf(outfile_name, MAXLEN - 1, "%s/reionization_modifiers/%s_treefile_%03d", params->PhotoionDir, params->FileNameGalaxies, filenr);
+  snprintf(outfile_name, MAXLEN - 1, "%s/reionization_modifiers/%s_treefile_%03d", params->PhotoionDir, params->RunPrefix, filenr);
 
   // If this is the first time the code is executed, need to create a new file. Otherwise append to the end.
   if (first_update_flag == 0)
@@ -105,7 +105,7 @@ int32_t read_arrays(struct SAGE_PARAMETERS *params, int32_t filenr, int32_t This
   int64_t *HaloID;
   float *ReionMod;
 
-  snprintf(infile_name, MAXLEN - 1, "%s/reionization_modifiers/%s_treefile_%03d", params->PhotoionDir, params->FileNameGalaxies, filenr);
+  snprintf(infile_name, MAXLEN - 1, "%s/reionization_modifiers/%s_treefile_%03d", params->PhotoionDir, params->RunPrefix, filenr);
   infile = fopen(infile_name, "rb");
 
   if (infile == NULL)

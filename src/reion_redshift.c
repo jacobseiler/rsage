@@ -13,7 +13,7 @@
 #define reionization_threshold 0.9
 
 int32_t update_reion_redshift(int32_t SnapNum, double redshift, int32_t GridSize, int32_t first_update_flag,
-                              char *PhotoionDir, char *FileNameGalaxies, char *ReionredshiftName) 
+                              char *PhotoionDir, char *RunPrefix, char *ReionredshiftName) 
 {
 
   int32_t grid_idx, num_read, num_write;
@@ -73,7 +73,7 @@ int32_t update_reion_redshift(int32_t SnapNum, double redshift, int32_t GridSize
   }
 
   char XHII_fname[MAX_STRING_LEN];
-  snprintf(XHII_fname, MAX_STRING_LEN - 1, "%s/%s_XHII_%03d", PhotoionDir, FileNameGalaxies, SnapNum);
+  snprintf(XHII_fname, MAX_STRING_LEN - 1, "%s/%s_XHII_%03d", PhotoionDir, RunPrefix, SnapNum);
 
   FILE *XHII_file;
   XHII_file = fopen(XHII_fname, "rb");

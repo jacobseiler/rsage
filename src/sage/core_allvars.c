@@ -34,7 +34,7 @@ int GalaxyCounter; // unique galaxy ID for main progenitor line in tree
 char OutputDir[512];
 char GalaxyOutputDir[512];
 char GridOutputDir[512];
-char FileNameGalaxies[512];
+char RunPrefix[512];
 char TreeName[512];
 char TreeExtension[512];
 char SimulationDir[512];

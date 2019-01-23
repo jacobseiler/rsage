@@ -89,7 +89,7 @@ int32_t init_reion_lists(int32_t filenr)
     return EXIT_SUCCESS;
   }
 
-  snprintf(ListFile_name, MAXLEN, "%s/reionization_modifiers/%s_treefile_%03d", PhotoionDir, FileNameGalaxies, filenr);    
+  snprintf(ListFile_name, MAXLEN, "%s/reionization_modifiers/%s_treefile_%03d", PhotoionDir, RunPrefix, filenr);    
 
   ListFile = fopen(ListFile_name, "rb");
   if (ListFile == NULL)

@@ -170,7 +170,7 @@ int main(int argc, char **argv)
   // Some ini file parameters are allowed to be specifically ``None``.
   // For these, we want to update their values depending upon the recipe flags
   // and constants chosen.
-  status = check_sage_ini(FileNameGalaxies, OutputDir, GalaxyOutputDir, GridOutputDir,
+  status = check_sage_ini(RunPrefix, OutputDir, GalaxyOutputDir, GridOutputDir,
                           PhotoionDir, PhotoionName, ReionRedshiftName, argv, ThisTask);
 
   if (status !=  EXIT_SUCCESS)
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
   if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
   {
     // Do similar checking for the cifog ini.
-    status = check_cifog_ini(&simParam, OutputDir, FileNameGalaxies, argv,
+    status = check_cifog_ini(&simParam, OutputDir, RunPrefix, argv,
                              ThisTask);
 
     if (status !=  EXIT_SUCCESS)
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 
         before = clock();
         status = update_reion_redshift(loop_SnapNum+1, ZZ[loop_SnapNum], GridSize, first_update_flag,
-                                       PhotoionDir, FileNameGalaxies, ReionRedshiftName);
+                                       PhotoionDir, RunPrefix, ReionRedshiftName);
         if (status !=  EXIT_SUCCESS)
         {
           goto err;
@@ -295,7 +295,7 @@ int main(int argc, char **argv)
       }
 
       before = clock();
-      status = filter_masses(FileNameGalaxies, SimulationDir, TreeName, PhotoionDir, PhotoionName, ReionRedshiftName,
+      status = filter_masses(RunPrefix, SimulationDir, TreeName, PhotoionDir, PhotoionName, ReionRedshiftName,
                              FirstFile, LastFile, GridSize, BoxSize, Hubble_h, loop_SnapNum, ZZ[loop_SnapNum], 
                              first_update_flag, ThisTask, NTask);
       filter_time = filter_time + (clock() - before);

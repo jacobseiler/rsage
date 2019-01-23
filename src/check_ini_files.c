@@ -62,7 +62,7 @@ Notes
 strncmp returns 0 if the two strings are equal.
 */
 
-int32_t check_sage_ini(char *FileNameGalaxies, char *OutputDir, char *GalaxyOutputDir,
+int32_t check_sage_ini(char *RunPrefix, char *OutputDir, char *GalaxyOutputDir,
                        char *GridOutputDir, char *PhotoionDir, char *PhotoionName,
                        char *ReionRedshiftName, char **argv, int32_t ThisTask)
 {
@@ -93,14 +93,14 @@ int32_t check_sage_ini(char *FileNameGalaxies, char *OutputDir, char *GalaxyOutp
   // Photoionization rate file names. 
   if (strncmp(PhotoionName, "None", 4) == 0)
   {
-    snprintf(PhotoionName, MAX_STRING_LEN - 1, "%s_photHI", FileNameGalaxies);
+    snprintf(PhotoionName, MAX_STRING_LEN - 1, "%s_photHI", RunPrefix);
     printf("The `PhotoionName` variable has been updated to %s\n", PhotoionName);
   }
 
   // Reionization rdshift rate file names. 
   if (strncmp(ReionRedshiftName, "None", 4) == 0)
   {
-    snprintf(ReionRedshiftName, MAX_STRING_LEN - 1, "%s_reionization_redshift", FileNameGalaxies);
+    snprintf(ReionRedshiftName, MAX_STRING_LEN - 1, "%s_reionization_redshift", RunPrefix);
     printf("The `PhotoionName` variable has been updated to %s\n", PhotoionName);
   }
 
@@ -173,7 +173,7 @@ int32_t check_sage_ini(char *FileNameGalaxies, char *OutputDir, char *GalaxyOutp
 
 #ifdef RSAGE
 
-int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *FileNameGalaxies, char **argv, int32_t ThisTask)
+int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *RunPrefix, char **argv, int32_t ThisTask)
 {
 
   char buf[MAX_STRING_LEN], nion_prefix[MAX_STRING_LEN];
@@ -205,28 +205,28 @@ int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *FileNameGala
 
   if (strncmp((*simParam)->nion_file, "None", 4) == 0)
   {
-    snprintf((*simParam)->nion_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_%s_nionHI", OutputDir, FileNameGalaxies, nion_prefix);
+    snprintf((*simParam)->nion_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_%s_nionHI", OutputDir, RunPrefix, nion_prefix);
     printf("The `inputNionFile` variable has been updated to %s\n", (*simParam)->nion_file);
   }
 
   // Reionization maps files.
   if (strncmp((*simParam)->out_XHII_file, "None", 4) == 0)
   {
-    snprintf((*simParam)->out_XHII_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_XHII", OutputDir, FileNameGalaxies);
+    snprintf((*simParam)->out_XHII_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_XHII", OutputDir, RunPrefix);
     printf("The `output_XHII_file` variable has been updated to %s\n", (*simParam)->out_XHII_file);
   }
 
   // Photoionization rate files.
   if (strncmp((*simParam)->out_photHI_file, "None", 4) == 0)
   {
-    snprintf((*simParam)->out_photHI_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_photHI", OutputDir, FileNameGalaxies);
+    snprintf((*simParam)->out_photHI_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_photHI", OutputDir, RunPrefix);
     printf("The `output_photHI_file` variable has been updated to %s\n", (*simParam)->out_photHI_file);
   }
 
   // Restart files.
   if (strncmp((*simParam)->out_restart_file, "None", 4) == 0)
   {
-    snprintf((*simParam)->out_restart_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_restart", OutputDir, FileNameGalaxies);
+    snprintf((*simParam)->out_restart_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_restart", OutputDir, RunPrefix);
     printf("The `output_restart_file` variable has been updated to %s\n", (*simParam)->out_restart_file);
   }
 

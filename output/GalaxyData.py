@@ -409,11 +409,11 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
 
         # Set up names for the galaxies. 
         galaxy_name = "{0}/{1}_z{2:.3f}".format(SAGE_params["GalaxyOutputDir"],
-                                                SAGE_params["FileNameGalaxies"],
+                                                SAGE_params["RunPrefix"],
                                                 z_array_reion[-1]) 
 
         merged_name = "{0}/{1}_MergedGalaxies".format(SAGE_params["GalaxyOutputDir"],
-                                                      SAGE_params["FileNameGalaxies"])
+                                                      SAGE_params["RunPrefix"])
 
         # Initialize the ionizing photon array to 0.
         sum_nion_allmodels.append(np.zeros(len(z_array_full),

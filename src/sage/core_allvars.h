@@ -282,7 +282,7 @@ extern int    LastSnapShotNr;
 extern char   OutputDir[512];
 extern char   GalaxyOutputDir[512];
 extern char   GridOutputDir[512];
-extern char   FileNameGalaxies[512];
+extern char   RunPrefix[512];
 extern char   TreeName[512];
 extern char   TreeExtension[512];
 extern char   SimulationDir[512];

@@ -432,7 +432,7 @@ def read_SAGE_ini(fname):
         Raised if the specified ``SAGE`` ``.ini`` file not found.
     """
 
-    SAGE_fields = ["FileNameGalaxies", "OutputDir", "GridOutputDir",
+    SAGE_fields = ["RunPrefix", "OutputDir", "GridOutputDir",
                    "GalaxyOutputDir", "FirstFile", "LastFile",
                    "TreeName", "TreeExtension", "SimulationDir",
                    "FileWithSnapList", "LastSnapShotNr", "Omega", 

@@ -21,7 +21,7 @@ void save_galaxies(int filenr, int tree)
     // only open the file if it is not already open.
   if (save_fd == NULL)
   {
-    sprintf(buf, "%s/%s_z%1.3f_%d", GalaxyOutputDir, FileNameGalaxies, ZZ[ListOutputSnaps[0]], filenr);
+    sprintf(buf, "%s/%s_z%1.3f_%d", GalaxyOutputDir, RunPrefix, ZZ[ListOutputSnaps[0]], filenr);
 
     save_fd = fopen(buf, "wb");
     if (save_fd == NULL)
@@ -103,7 +103,7 @@ void save_merged_galaxies(int filenr, int tree)
    
   if(!save_fd2)
   { 
-    sprintf(buf, "%s/%s_MergedGalaxies_%d", GalaxyOutputDir, FileNameGalaxies, filenr);
+    sprintf(buf, "%s/%s_MergedGalaxies_%d", GalaxyOutputDir, RunPrefix, filenr);
 
     save_fd2 = fopen(buf, "wb");
     if (save_fd2 == NULL)
