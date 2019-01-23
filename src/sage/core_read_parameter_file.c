@@ -396,12 +396,12 @@ int32_t check_ini_parameters(void)
   {
     case 0:
     case 1:
-    case 2:
     case 3:
       break;
 
     default:
-      fprintf(stderr, "The only valid options for `ReionizationOn` are 0, 1, 2 or 3. You entered %d\n", ReionizationOn);
+      fprintf(stderr, "The only valid options for `ReionizationOn` are 0, 1, or 3. You entered %d\n", ReionizationOn);
+      fprintf(stderr, "Note: `ReionizationOn = 2` is deprecated.\n");
       return EXIT_FAILURE;
   }
 
