@@ -14,7 +14,6 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
 	double tot_hotMetals, tot_ejectedMetals, tot_ICSMetals;
 	double tot_satBaryons; 
   double infallingMass, reionization_modifier;
-  double dummy;
   double tot_ejectedSN, tot_ejectedQSO;
 
   int32_t status;
@@ -62,9 +61,10 @@ double infall_recipe(int centralgal, int ngal, double Zcurr, int halonr)
       reionization_modifier = do_reionization(centralgal, Zcurr, 0);
       break;
 
-    case 2: 
-      reionization_modifier = do_grid_reionization(centralgal, Zcurr, &dummy);
-      break;
+    case 2:
+      fprintf(stderr, "Option 2 for `ReionizationOn` is deprecated.\n"); 
+      //reionization_modifier = do_grid_reionization(centralgal, Zcurr, &dummy);
+      ABORT(EXIT_FAILURE); 
 
     case 3:
     case 4:

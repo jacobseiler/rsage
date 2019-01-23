@@ -99,7 +99,7 @@ def check_sage_dirs(galaxy_name="test"):
     Parameters
     ----------
 
-    galaxy_name: String. Optional, default: 'test.ini'. 
+    galaxy_name: String. Optional, default: 'test'. 
         Prefix name for the galaxies. 
 
     Returns
@@ -125,15 +125,6 @@ def check_sage_dirs(galaxy_name="test"):
 
     # Check that the log directory exists.
     directory = "{0}/test_logs/".format(test_dir)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    # Future proof by also creating directories for grids.
-    directory = "{0}/test_output/grids/".format(test_dir) 
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    directory = "{0}/test_output/grids/properties".format(test_dir) 
     if not os.path.exists(directory):
         os.makedirs(directory)
 
@@ -179,14 +170,8 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
         print("SAGE exited with error code {0}".format(returncode))
         raise RuntimeError
 
-    print("Reading in the SAGE and cifog parameters as well.")
-    SAGE_params = ReadScripts.read_SAGE_ini(path_to_sage_ini)
-    cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini) 
-
     print("Done")
     print("")
-
-    return SAGE_params, cifog_params
 
 
 def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
@@ -362,20 +347,33 @@ def test_run():
     # produce. 
 
     ini_files = ["PhotonPrescription0"]
-
-    galaxy_names = ["PhotonPrescription0"]
    
-    for ini_file, galaxy_name in zip(ini_files, 
-                                     galaxy_names):
-        check_sage_dirs(galaxy_name)
-        sage_params, cifog_params = run_my_sage(ini_file)
+    for ini_file in ini_files:
 
-        max_snap = int(sage_params["LastSnapShotNr"])
+        # First read the ini file to get the runtime parameters.
+        path_to_sage_ini = "{0}/test_ini_files/{1}_SAGE.ini".format(test_dir, ini_file)
+        path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_file)
+
+        SAGE_params = ReadScripts.read_SAGE_ini(path_to_sage_ini)
+        cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini) 
+
+        run_prefix = SAGE_params["RunPrefix"]
+        max_snap = int(SAGE_params["LastSnapShotNr"])
+
+        # Make sure all the directories we need are present.
+        # SAGE itself will take care of the directories for the results. 
+        check_sage_dirs(run_prefix)
+
+        # Then run SAGE.
+        run_my_sage(ini_file)
+
         print("")
         print("SAGE run, now reading in the Galaxies.")
         print("")
-        Gals = load_gals(max_snap, galaxy_name)
-        check_smf(Gals, galaxy_name, max_snap, sage_params)  # Attempt to make a stellar mass function.
+
+        # Read the results and check the stellar mass function.
+        Gals = load_gals(max_snap, run_prefix)
+        check_smf(Gals, run_prefix, max_snap, SAGE_params)
 
     print("Done")
     print("")

@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#include "temporal_array.h"
 #include "core_allvars.h"
 #include "core_proto.h"
 

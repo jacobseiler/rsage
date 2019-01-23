@@ -7,6 +7,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "temporal_array.h"
 
 // keep a static file handle to remove the need to do constant seeking.
 FILE* save_fd = NULL;

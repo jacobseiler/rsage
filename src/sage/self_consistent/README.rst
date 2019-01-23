@@ -15,4 +15,4 @@ and ``grid.h``.
 Under this scheme, reionization is computed fully self-consistently.
 
 The files that relate to this scheme have the prefix ``selfcon``; e.g.,
-``selfcon.c`` and ``selfcon.h``.
+``selfcon_reionization.c`` and ``selfcon_grid.c``.

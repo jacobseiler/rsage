@@ -126,11 +126,11 @@ Adding An Extra Property
 These steps outline how to add an extra variable for ``SAGE`` to track for each snapshot and how to update the Python reader routine.
 
 * Add the variable as a pointer to the ``GALAXY`` struct in ``core_allvars.h``
-* Allocate the memory for each galaxy in the ``malloc_temporal_arrays`` function within ``self_consistent/common.c``
-* **Ensure the memory is being freed by adding the variable to the ``free_temporal_arrays`` function in ``self_consistent/common.c``**
+* Allocate the memory for each galaxy in the ``malloc_temporal_arrays`` function within ``temporal_array.c``
+* **Ensure the memory is being freed by adding the variable to the ``free_temporal_arrays`` function in ``temporal_array.c``**
 * Initialize the variable in the ``init_galaxy`` function within ``model_misc.c``
 * Ensure the variable is being added to the MergedGalaxy list by adding it to the ``add_galaxy_to_merger_list`` function within ``model_mergers.c``
-* Save the variable to the output list by adding it to the ``write_temporal_arrays`` function in ``self_consistent/common.c``.  **Note:** There are two macros for saving the property, ``WRITE_GRID_PROPERTY`` and ``WRITE_CONVERTED_GRID_RPOPERTY``.  The first macro writes the property in the internal code units (think hard about what these should be).  The second allows you to write the property in different units; e.g., converting from code units to Msun/yr (as is done for star formation rate).  You will need to specify the conversion factor and the data-type of the written out property. 
+* Save the variable to the output list by adding it to the ``write_temporal_arrays`` function in ``temporal_array.c``.  **Note:** There are two macros for saving the property, ``WRITE_GRID_PROPERTY`` and ``WRITE_CONVERTED_GRID_RPOPERTY``.  The first macro writes the property in the internal code units (think hard about what these should be).  The second allows you to write the property in different units; e.g., converting from code units to Msun/yr (as is done for star formation rate).  You will need to specify the conversion factor and the data-type of the written out property. 
 
 At this point the variable is correctly being tracked and output.  Now need to update the ReadScript to properly reflect the change in the galaxy struct
 

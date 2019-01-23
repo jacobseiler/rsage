@@ -122,7 +122,9 @@ int32_t sage_cleanup(void)
 
   if (ReionizationOn == 2 )
   {
-    free_grid();
+    fprintf(stderr, "Option 2 for `ReionizationOn` is deprecated.\n");
+    return EXIT_FAILURE;
+    //free_grid();
   }
 
   if ((self_consistent == 1) && (ReionizationOn == 3 || ReionizationOn == 4))

@@ -8,8 +8,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
-
-
+#include "temporal_array.h"
 
 double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
 {
@@ -36,8 +35,6 @@ double estimate_merging_time(int sat_halo, int mother_halo, int ngal)
   return mergtime;
 
 }
-
-
 
 void deal_with_galaxy_merger(int p, int merger_centralgal, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal)
 {

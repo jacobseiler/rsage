@@ -6,7 +6,6 @@ that tracks the number of HI ionizing photons for the specified snapshot.
 This ionizing photon grid is then fed into `cifog` to determine the ionization regions.
 
 Author: Jacob Seiler
-Version: 0.0.1
 */
 
 #define _GNU_SOURCE

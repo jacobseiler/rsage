@@ -10,6 +10,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "temporal_array.h"
 #include "io/tree_binary.h"
 
 // keep a static file handle to remove the need to do constant seeking
