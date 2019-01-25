@@ -461,6 +461,8 @@ def read_SAGE_ini(fname):
                    "MH_high", "fesc_high"
                   ]
 
+    old_SAGE_fields = ["FileNameGalaxies"]
+
     SAGE_dict = {}
  
     try:
@@ -476,8 +478,22 @@ def read_SAGE_ini(fname):
                 if first_char == ";" or first_char == "%" or first_char == "-": 
                     continue
                 split = stripped.split()
-                if split[0] in SAGE_fields:
+                if split[0] in SAGE_fields or split[0] in old_SAGE_fields:
                     SAGE_dict[split[0]] = split[1]
+
+        # In the old version of SAGE, the ini file had a `FileNameGalaxies`
+        # field that was equivalent to the `RunPrefix` field.
+        try:
+            SAGE_dict["RunPrefix"] = SAGE_dict["FileNameGalaxies"]
+        except KeyError:
+            pass
+
+        # Furthermore, `OutputDir` actually pointed to the same directory as
+        # `GalaxyOutputDir`. 
+        try:
+            SAGE_dict["GalaxyOutputDir"] = SAGE_dict["OutputDir"]
+        except KeyError:
+            pass
 
         return SAGE_dict
 
