@@ -67,8 +67,8 @@ def get_trees():
 
     print("")
     print("Checking to see if we need to download the test tree and output file.")
-    
-    treefile = "{0}/{1}/trees_063_000.dat".format(test_dir, test_datadir)
+
+    treefile = "{0}/{1}/kali512/trees/kali512_000.dat".format(test_dir, test_datadir)
     if not os.path.isfile(treefile):
         print("{0} does not exist, downloading the {1}"
               "repo.".format(treefile, test_datadir)) 
@@ -132,7 +132,7 @@ def check_sage_dirs(galaxy_name="test"):
     print("")
 
 
-def run_my_sage(ini_name="test_mini_millennium.ini"):
+def run_my_sage():
     """
     Executes my version of SAGE. 
 
@@ -142,7 +142,7 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     Parameters
     ----------
 
-    ini_name: String. Optional, default: 'test_mini_millennium.ini'. 
+    ini_name: String
         Name of the input ini file. 
 
     Returns
@@ -213,7 +213,7 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
 
     print("")
     print("Now checking the stellar mass function for the final snapshot of "
-          "mini-millennium.")
+          "Kali.")
 
     w_gal = np.where((Gals.GridHistory[:, max_snap] != -1) & 
                      (Gals.GridStellarMass[:, max_snap] > 0.0))[0]
@@ -255,7 +255,7 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
         print("Saved mass data as {0}".format(fname))
 
         print("All test data updated. Exiting checking now (because it'll "
-              "obviously be correct.")
+              "obviously be correct.)")
         return
 
     # Now let's check compare the mass of the test to the 'test_RSAGE' repo. 
@@ -306,8 +306,8 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
 def load_gals(max_snap, galaxy_name="test"):
 
     # First check that the output of the test run can be read. 
-   
-    gal_name = "{0}/test_output/galaxies/{1}_z0.000".format(test_dir,
+
+    gal_name = "{0}/test_output/galaxies/{1}_z5.829".format(test_dir,
                                                             galaxy_name) 
     Gals, Gals_Desc = ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
 
@@ -340,22 +340,22 @@ def test_run():
     print("Welcome to the RSAGE testing funhouse!")
     print("")
 
-    downloaded_repo = get_trees()  # Download mini-millennium tree if we needed 
+    downloaded_repo = get_trees()  # Download Kali tree if we needed 
 
     # We have multiple test parameter specs we want to test.
     # Need all the names of the ini files and the name of the galaxies they
     # produce. 
 
-    ini_files = ["PhotonPrescription0"]
+    ini_files = ["kali512"]
    
     for ini_file in ini_files:
 
         # First read the ini file to get the runtime parameters.
         path_to_sage_ini = "{0}/test_ini_files/{1}_SAGE.ini".format(test_dir, ini_file)
-        path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_file)
+        #path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_file)
 
         SAGE_params = ReadScripts.read_SAGE_ini(path_to_sage_ini)
-        cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini) 
+        #cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini) 
 
         run_prefix = SAGE_params["RunPrefix"]
         max_snap = int(SAGE_params["LastSnapShotNr"])
