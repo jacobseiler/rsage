@@ -132,7 +132,7 @@ def check_sage_dirs(galaxy_name="test"):
     print("")
 
 
-def run_my_sage():
+def run_my_sage(ini_name):
     """
     Executes my version of SAGE. 
 
@@ -249,8 +249,8 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
               "WANT, PRESS ENTER OTHERWISE CTRL-C TO GET OUTTA HERE!")
         input("JUST CHECKING ONCE MORE!")
 
-        fname = "{0}/{1}/{2}_testmass.txt".format(test_dir, test_datadir,
-                                                  galaxy_name)
+        fname = "{0}/{1}/kali512/data/{2}_testmass.txt".format(test_dir, test_datadir,
+                                                               galaxy_name)
         np.savetxt(fname, mass_test)
         print("Saved mass data as {0}".format(fname))
 
@@ -260,10 +260,10 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
 
     # Now let's check compare the mass of the test to the 'test_RSAGE' repo. 
 
-    mass_repo = np.loadtxt("{0}/{1}/{2}_testmass.txt".format(test_dir,
-                                                             test_datadir,
-                                                             galaxy_name)) 
-  
+    mass_repo = np.loadtxt("{0}/{1}/kali512/data/{2}_testmass.txt".format(test_dir,
+                                                                          test_datadir,
+                                                                          galaxy_name))
+
     if len(mass_test) != len(mass_repo):
         print("For the test data we had {0} galaxies at Snapshot {2} with > 0 "
               "Stellar Mass.  This is compared to {1} galaxies for the "
