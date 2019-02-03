@@ -212,21 +212,21 @@ int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *RunPrefix, c
   // Reionization maps files.
   if (strncmp((*simParam)->out_XHII_file, "None", 4) == 0)
   {
-    snprintf((*simParam)->out_XHII_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_XHII", OutputDir, RunPrefix);
+    snprintf((*simParam)->out_XHII_file, MAX_STRING_LEN - 1, "%s/grids/cifog/%s_XHII", OutputDir, RunPrefix);
     printf("The `output_XHII_file` variable has been updated to %s\n", (*simParam)->out_XHII_file);
   }
 
   // Photoionization rate files.
   if (strncmp((*simParam)->out_photHI_file, "None", 4) == 0)
   {
-    snprintf((*simParam)->out_photHI_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_photHI", OutputDir, RunPrefix);
+    snprintf((*simParam)->out_photHI_file, MAX_STRING_LEN - 1, "%s/grids/cifog/%s_photHI", OutputDir, RunPrefix);
     printf("The `output_photHI_file` variable has been updated to %s\n", (*simParam)->out_photHI_file);
   }
 
   // Restart files.
   if (strncmp((*simParam)->out_restart_file, "None", 4) == 0)
   {
-    snprintf((*simParam)->out_restart_file, MAX_STRING_LEN - 1, "%s/grids/nion/%s_restart", OutputDir, RunPrefix);
+    snprintf((*simParam)->out_restart_file, MAX_STRING_LEN - 1, "%s/grids/cifog/%s_restart", OutputDir, RunPrefix);
     printf("The `output_restart_file` variable has been updated to %s\n", (*simParam)->out_restart_file);
   }
 
