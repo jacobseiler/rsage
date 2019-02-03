@@ -213,6 +213,10 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &LowSnap;
   id[nt++] = INT;
 
+  strcpy(tag[nt], "HighSnap");
+  addr[nt] = &HighSnap;
+  id[nt++] = INT;
+
   strcpy(tag[nt], "GridSize");
   addr[nt] = &GridSize;
   id[nt++] = INT;

@@ -224,6 +224,24 @@ int main(int argc, char **argv)
         goto err;
       }
       SAGE_time = SAGE_time + (clock() - before); 
+
+      // The user may wish to stop part-way through self-consistent reionization.
+      // In this scenario, we have reached the specified snapshot (`HighSnap + 1`)
+      // and also done the final iteration of SAGE.  So we now exit from
+      // this loop. Note: We do +1 because the first iteration of RSAGE does not
+      // actually cause any reionization. 
+      if (loop_SnapNum == HighSnap + 1)
+      {
+
+        if (ThisTask == 0)
+        {
+          printf("\n\n======================================\n");
+          printf("(Rank %d) We have reached the final Snapshot we're doing self-consistent reionizaiton for (Snap %d)\n", ThisTask, loop_SnapNum); 
+          printf("======================================\n\n");
+        }
+
+        break;
+      }
  
       before = clock(); 
       status = cifog_zero_grids(grid, simParam);
@@ -373,10 +391,10 @@ int main(int argc, char **argv)
 
   if (ThisTask == 0)
   {
-    printf("SAGE took an average time of %.4f seconds to execute\n", master_SAGE_time / CLOCKS_PER_SEC);
-    printf("cifog took an average time of %.4f seconds to execute\n", master_cifog_time / CLOCKS_PER_SEC);
-    printf("Creation of Halo filter masses took an average time of %.4f seconds to execute\n", master_filter_time / CLOCKS_PER_SEC);
-    printf("Creation of reionization redshift grid took an average time of %.4f seconds to execute\n", master_misc_time / CLOCKS_PER_SEC * NTask); // Reionization redshift only done on root node.
+    printf("SAGE took an average time of %.4f seconds to execute on each Task.\n", master_SAGE_time / CLOCKS_PER_SEC);
+    printf("cifog took an average time of %.4f seconds to execute on each Task.\n", master_cifog_time / CLOCKS_PER_SEC);
+    printf("Creation of Halo filter masses took an average time of %.4f seconds to execute on each Task.\n", master_filter_time / CLOCKS_PER_SEC);
+    printf("Creation of reionization redshift grid took %.4f seconds to execute.\n", master_misc_time / CLOCKS_PER_SEC * NTask); // Reionization redshift only done on root node.
   }
 
 #ifdef MPI

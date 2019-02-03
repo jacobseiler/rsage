@@ -134,8 +134,6 @@ int32_t filter_masses(char *RunPrefix, char *TreeDir, char *TreeName,
         return EXIT_FAILURE;
       }
 
-
-
       // Now time to go through all the halos in this tree, determine those at the Snapshot specified and the associate reionization modifier (if it's within an ionized cell).
       status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], SnapNum, first_update_flag, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);
       if (status != EXIT_SUCCESS)

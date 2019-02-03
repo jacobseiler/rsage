@@ -41,7 +41,7 @@ GSL_LIBS := $(shell gsl-config --libs)
 GSL_LIBDIR := $(GSL_DIR)/lib
 
 OPTIMIZE = -g -O3 -Wall -Werror # optimization and warning flags
-#OPTS = -DDEBUG
+#OPTS = -DDEBUG -DDEBUG_TREES
 
 CFLAGS = $(OPTIMIZE) $(GSL_INCL) $(OPTS) 
 LIBS  += -g -lm  $(GSL_LIBS) -lgsl -lgslcblas

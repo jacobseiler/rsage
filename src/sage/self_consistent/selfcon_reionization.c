@@ -119,7 +119,7 @@ int32_t init_reion_lists(int32_t filenr)
     fread(&SnapNum_Read, sizeof(SnapNum_Read), 1, ListFile);
 
     fread(&ReionList->ReionMod_List[SnapNum].NHalos_Ionized, sizeof(SnapNum_Read), 1, ListFile);
-    //printf("Snapshot %d has %d Halos in the list.\n", SnapNum_Read, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
+    printf("Snapshot %d has %d Halos in the list.\n", SnapNum_Read, ReionList->ReionMod_List[SnapNum].NHalos_Ionized);
 
     if (SnapNum_Read != SnapNum)
     { 
