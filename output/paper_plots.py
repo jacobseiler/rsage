@@ -40,7 +40,7 @@ if __name__ == "__main__":
     ps.rsage_paper_plot_params()
 
     # Directory name where we want the plots to be saved.
-    output_directory = "./nov_paper"
+    output_directory = "./jan_paper"
 
     # Format all plots are saved as.
     output_format = "png"
@@ -50,16 +50,16 @@ if __name__ == "__main__":
     # `OutputDir`)  **MUST** be absolute paths, **NOT** relative.
 
     # All .ini files included in this array will be plotted.
-    paper_models        = 0
+    paper_models        = 1
     no_const            = 0
     higher_tau          = 0
     sliding_fesc        = 0
     combined_higher_tau = 0
-    kali_512            = 1
+    kali_512            = 0
 
     if paper_models:
 
-        output_directory = "./nov_paper"
+        output_directory = "./jan_paper"
 
         gal_ini_1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
         gal_ini_2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_SAGE.ini"   
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     if no_const:
 
-        output_directory = "./nov_noconst"
+        output_directory = "./jan_noconst"
 
         gal_ini_1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHneg/ini_files/MHneg_1e7_1e12_0.99_0.05_SAGE.ini"   
         gal_ini_2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_MHpos/ini_files/MHpos_1e8_1e12_0.01_0.40_SAGE.ini"
@@ -201,7 +201,7 @@ if __name__ == "__main__":
 
 
     if combined_higher_tau:
-        output_directory = "./nov_combined_higher_tau_400hrs"
+        output_directory = "./jan_combined_higher_tau_400hrs"
 
         gal_ini_1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
         gal_ini_2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.30_beta0.00_SAGE.ini"
@@ -248,6 +248,14 @@ if __name__ == "__main__":
 
         model_tags = [r"Kali 512"]
 
+
+    #gal_ini_1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
+    #reion_ini_1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_cifog.ini"
+
+    #gal_ini_files = [gal_ini_1]
+    #reion_ini_files = [reion_ini_1]
+
+    #model_tags = [r"$\mathbf{RSAGE}$"]
     # ============================================================= #
     # Switches to control what plots to make. 0 to skip, 1 to plot. #
     # ============================================================= #
@@ -259,7 +267,7 @@ if __name__ == "__main__":
     mstar_fesc = 0
     mstar_fej  = 0
     mstar_SFR  = 0
-    SMF        = 1
+    SMF        = 0
 
     # ==================== #
     # Galaxy Plot Options. # 
@@ -283,6 +291,7 @@ if __name__ == "__main__":
     # For the stellar mass function, we may only want to plot at specific
     # redshifts for each model.
     SMF_plot_z = [[6.0, 7.0, 8.0],
+                  [6.0, 7.0, 8.0],
                   [6.0, 7.0, 8.0]]
 
     # If you only want to use a specific range of files, specify here. If you
@@ -320,12 +329,12 @@ if __name__ == "__main__":
     # =========================== #
     single_slice         = 0
     single_ps            = 0
-    history              = 0
-    reion_nion           = 0 
-    ps_fixed_XHI         = 0
-    optical_depth        = 0
-    ps_scales            = 0
-    ps_scales_beta       = 0
+    history              = 0 
+    reion_nion           = 0
+    ps_fixed_XHI         = 1
+    optical_depth        = 0 
+    ps_scales            = 1
+    ps_scales_beta       = 0 
     slices_fixed_XHI     = 0 
     bubble_size          = 0
     zreion_dens_cross    = 0

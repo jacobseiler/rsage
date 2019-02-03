@@ -5,7 +5,7 @@ from mpi4py import MPI
 def update_cum_stats(mean_pool, std_pool, N_pool, mean_local, std_local, N_local):
     '''
     Update the cumulative statistics (such as Stellar Mass Function, Mvir-Ngamma, fesc-z) that are saved across files.
-    Pooled mean formulae taken : from https://www.ncbi.nlm.nih.gov/books/NBK56512/
+    Pooled mean formulae taken from : https://www.ncbi.nlm.nih.gov/books/NBK56512/
     Pooled variance formulae taken from : https://en.wikipedia.org/wiki/Pooled_variance
 
     Parameters

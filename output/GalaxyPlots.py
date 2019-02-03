@@ -234,9 +234,19 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
                          dashes=ps.dashes[snap_count],
                          label=z_label) 
         if nrows > 1:
-            this_ax.text(0.05, 0.70, model_tags[model_number],
+            if col_ax == 0:
+                ax_text_x = 0.75
+            else:
+                ax_text_x = 0.05                
+
+            if row_ax == 0:
+                ax_text_y = 0.05
+            else:
+                ax_text_y = 0.90
+
+            this_ax.text(ax_text_x, ax_text_y, model_tags[model_number],
                          transform=this_ax.transAxes,
-                         fontsize=ps.global_fontsize) 
+                         fontsize=ps.global_fontsize+4) 
 
         for axis in ['top','bottom','left','right']: # Adjust axis thickness.
             this_ax.spines[axis].set_linewidth(ps.global_axiswidth)
@@ -284,7 +294,8 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
     else:
         this_ax = ax
 
-    leg = this_ax.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg = this_ax.legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
     leg.draw_frame(False)
     for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
@@ -391,7 +402,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
                            r"$\mathbf{10^{-2}}$",r"$\mathbf{10^{-1}}$"]) 
     ax[0].set_ylim([1e-5, 3e-1])
     #ax[0].set_ylabel(r'\mathbf{$\log_{10} \Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]}$', 
-    ax[0].set_ylabel(r'$\mathbf{log_{10} \: \Phi\ [Mpc^{-3}\: dex^{-1}]}$', 
+    ax[0].set_ylabel(r'$\mathbf{\Phi\ [Mpc^{-3}\: dex^{-1}]}$', 
                      fontsize = ps.global_labelsize) 
 
     # Now lets overplot the Observational Data. 

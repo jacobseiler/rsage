@@ -101,6 +101,7 @@ def rsage_paper_plot_params():
     global global_minor_ticklength
     global global_errorwidth
     global global_axiswidth
+    global global_legend_handlelength
 
     global colors
     global markers
@@ -121,6 +122,7 @@ def rsage_paper_plot_params():
     global_minor_ticklength = 4 
     global_errorwidth = 3
     global_axiswidth = 2
+    global_legend_handlelength = 4
 
     matplotlib.rcdefaults()
     plt.rc('lines', linewidth=global_linewidth)

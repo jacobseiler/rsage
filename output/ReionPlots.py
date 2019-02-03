@@ -257,7 +257,8 @@ def plot_history(z_array_reion_allmodels,
     # If we're plotting this on another Figure, we only want one legend. So
     # we'll handle this in the calling function rather than here.
     if not passed_ax:
-        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
         leg.draw_frame(False)
         for t in leg.get_texts():
             t.set_fontsize(ps.global_legendsize)
@@ -386,7 +387,8 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
     # If we're plotting this on another Figure, we only want one legend. So
     # we'll handle this in the calling function rather than here.
     if not passed_ax:
-        leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
+        leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
         leg.draw_frame(False)
         for t in leg.get_texts():
             t.set_fontsize(ps.global_legendsize)
@@ -490,11 +492,11 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                                       ps.global_major_ticklength,
                                       ps.global_minor_ticklength)
 
-            this_ax.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+            this_ax.set_xlabel(r'$\mathbf{k \: \left[hMpc^{-1}\right]}$',
                                size = ps.global_labelsize)
             this_ax.set_xscale('log')
 
-            this_ax2.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+            this_ax2.set_xlabel(r'$\mathbf{k \: \left[hMpc^{-1}\right]}$',
                                 size = ps.global_labelsize)
             this_ax2.set_xscale('log')
 
@@ -533,13 +535,15 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     this_ax2.set_yscale('log', nonposy='clip')
 
     leg = this_ax.legend(loc='lower right', numpoints=1,
-                         labelspacing=0.1)
+                         labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
     leg.draw_frame(False)
     for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize-2)
 
     leg2 = this_ax2.legend(loc='lower right', numpoints=1,
-                           labelspacing=0.1)
+                           labelspacing=0.1,
+                           handlelength=ps.global_legend_handlelength)
     for t in leg2.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize-2)
     leg2.draw_frame(False)  # Don't want a box frame
@@ -925,7 +929,8 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
         ax1.text(850, 0.0530, r"$\mathrm{Planck \: 2018}$", fontsize=14)
 
     if not passed_ax:
-        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
+        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
         leg.draw_frame(False)
         for t in leg.get_texts():
             t.set_fontsize(ps.global_legendsize)
@@ -1011,7 +1016,8 @@ def plot_combined_history_tau(z_array_reion_allmodels,
                      model_tags, output_dir, output_tag, output_format,
                      passed_ax=ax[1])
 
-    leg = ax[0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg = ax[0].legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                       handlelength=ps.global_legend_handlelength)
     leg.draw_frame(False)
     for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
@@ -1056,7 +1062,8 @@ def plot_combined_nion_tau(z_array_reion_allmodels,
                      passed_ax=ax[1])
 
     # Create a single legend for both panels.
-    leg = ax[0].legend(loc='lower right', numpoints=1, labelspacing=0.1)
+    leg = ax[0].legend(loc='lower right', numpoints=1, labelspacing=0.1,
+                       handlelength=ps.global_legend_handlelength)
     leg.draw_frame(False)
     for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
@@ -1141,7 +1148,7 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
 
     for model_number in range(num_models):
 
-        if model_number < 100:
+        if model_number < 300:
             label = model_tags[model_number]
             color = ps.colors[model_number]
             dashes = ps.dashes[model_number]
@@ -1193,12 +1200,12 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
 
     small_scale_string = "{0:.1f}".format(small_scale_def)
     x_label = r"$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = " + \
-              small_scale_string + r"Mpc^{-1}h)}$" 
+              small_scale_string + r"hMpc^{-1})}$" 
     ax1.set_xlabel(x_label, size = ps.global_labelsize)
 
     large_scale_string = "{0:.1f}".format(large_scale_def)
     y_label = r"$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = " + \
-              large_scale_string + r"Mpc^{-1}h)}$" 
+              large_scale_string + r"hMpc^{-1})}$" 
     ax1.set_ylabel(y_label, size = ps.global_labelsize)
 
     max_smallscale = np.ceil(np.max(P21_small_scale))
@@ -1255,7 +1262,7 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
                         label=label)
 
     leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1,
-                     markerscale=6)
+                     markerscale=6, handlelength=ps.global_legend_handlelength)
     leg.draw_frame(False)
     for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize-2)
@@ -2000,11 +2007,11 @@ def plot_ps_beta(P21_beta, P21_beta_error,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
     leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1,
-                     markerscale=6)
+                     markerscale=6, handlelength=ps.global_legend_handlelength)
+
     leg.draw_frame(False)
     for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize-2)
-
 
     tag = "{0}_smallscale{1}_largescale{2}".format(output_tag, small_scale_def,
                                                    large_scale_def)
