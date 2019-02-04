@@ -48,14 +48,14 @@ better model the high redshift Universe.
 Running the code 
 ====================
 
-Like its parent model, ``RSAGE`` requires halo merger trees to run.  In addition to these trees, the computation of the ionization fields with ``cifog`` require dark matter overdensities grids. For testing purposes, we have included a small set of trees and dark matter density fields [here](BROKEN). Example parameter files for running the galaxy model and the semi-numerical reionization model are included in the ``ini_files`` directory.  For a complete description of the ``cifog`` parameters see the `README <https://github.com/jacobseiler/grid-model#parameter-file>`_.
+Like its parent model, ``RSAGE`` requires halo merger trees to run.  In addition to these trees, the computation of the ionization fields with ``cifog`` require dark matter overdensities grids. For testing purposes, we have included a small set of trees and dark matter density fields (link tbd. Email jseiler@swin.edu.au for quick access!). Example parameter files for running the galaxy model and the semi-numerical reionization model are included in the ``ini_files`` directory.  For a complete description of the ``cifog`` parameters see the `README <https://github.com/jacobseiler/grid-model#parameter-file>`_.
 
 To allow the easy handling of intermediate files (e.g., the ionizing photon and
 reionization grids), several of the fields within the ``SAGE`` and ``cifog``
 ``.ini`` files have inputs of ``None``. Leaving these as ``None`` will force
 ``RSAGE`` to automatically determine the correct paths based on the recipe
-flags and prescriptions chosen. **You only need to adjust the *FilePrefix*
-and *OutputDir* fields**.
+flags and prescriptions chosen. **These fields are listed in the ``ini_files``
+directory ``README``**.
 
 The model can be run using
 
@@ -82,7 +82,10 @@ The underlying semi-analytic galaxy evolution model was developed by `Darren Cro
 The semi-numerical model used to compute ionization fields was developed by `Anne Hutter <https://github.com/annehutter/grid-model>`_ and is described in `Hutter, 2018 <https://arxiv.org/abs/1803.00088>`_.
 The self-consistent coupling of these models was developed by Jacob Seiler and is described in (Stay tuned!). 
 
-Any issues, questions or ranting can be sent to Jacob Seiler: jseiler@swin.edu.au 
+``RSAGE`` is undergoing constant development and improvement. Absolutely any
+and all changes, improvements, questions or comments are encouraged and
+requested. Feel free to open an issue for any bug-bears or difficulties or get
+in touch directly via jseiler@swin.edu.au
 
 .. |TRAVIS| image:: https://travis-ci.org/jacobseiler/rsage.svg?branch=master
        :target: https://travis-ci.org/jacobseiler/rsage

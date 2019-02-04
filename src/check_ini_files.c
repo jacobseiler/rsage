@@ -226,7 +226,7 @@ int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *RunPrefix, c
   // Restart files.
   if (strncmp((*simParam)->out_restart_file, "None", 4) == 0)
   {
-    snprintf((*simParam)->out_restart_file, MAX_STRING_LEN - 1, "%s/grids/cifog/%s_restart", OutputDir, RunPrefix);
+    snprintf((*simParam)->out_restart_file, MAX_STRING_LEN - 2, "%s/grids/cifog/%s_restart", OutputDir, RunPrefix);
     printf("The `output_restart_file` variable has been updated to %s\n", (*simParam)->out_restart_file);
   }
 
