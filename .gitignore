@@ -37,8 +37,7 @@ tests/trees*
 tests/millennium.a_list
 tests/millennium_redshift_file.dat
 tests/snap*
-tests/test_output/galaxies/*
-tests/test_output/grids/*
+tests/test_output
 tests/*.txt
 tests/test_logs/*.log
 tests/*.log
