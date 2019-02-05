@@ -471,8 +471,8 @@ def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
 
         test_grid = ReadScripts.read_binary_grid(fname, GridSize, precision)
 
-        if not np.allclose(grid, test_grid, atol=1e-5):
-            diff = np.abs(grid-test_grid)
+        diff = np.abs(grid-test_grid)       
+        if len(diff[diff > 1e-8]) > 0: 
 
             print("Found that the {0} grids disagreed.".format(tag))
             print("The SAGE dictionary is {0}".format(SAGE_params))
@@ -483,7 +483,10 @@ def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
                                                          np.mean(test_grid)))
             print("The non-zero difference values are {0}".format(diff[diff > 0]))
 
-            raise ValueError
+            print("Checking if any of these values are greater than 0.01")
+            if len(diff[diff > 1e-2]) > 0:
+
+                raise ValueError
 
     print("Grids are checked and all correct!")
     print("")
