@@ -54,8 +54,8 @@ To allow the easy handling of intermediate files (e.g., the ionizing photon and
 reionization grids), several of the fields within the ``SAGE`` and ``cifog``
 ``.ini`` files have inputs of ``None``. Leaving these as ``None`` will force
 ``RSAGE`` to automatically determine the correct paths based on the recipe
-flags and prescriptions chosen. **These fields are listed in the ``ini_files``
-directory ``README``**.
+flags and prescriptions chosen. **These fields are listed in the** ``ini_files``
+**directory**.
 
 The model can be run using
 
@@ -81,7 +81,7 @@ Authors and Reference Papers
 The underlying semi-analytic galaxy evolution model was developed by `Darren Croton <https://github.com/darrencroton/sage>`_ and is described in `Croton et al., 2016 <https://arxiv.org/abs/1601.04709>`_.
 The semi-numerical model used to compute ionization fields was developed by `Anne Hutter <https://github.com/annehutter/grid-model>`_ and is described in `Hutter, 2018 <https://arxiv.org/abs/1803.00088>`_.
 
-The self-consistent coupling of these models was develpoed by Jacob Seiler and is described in (Stay tuned). 
+The self-consistent coupling of these models was developed by Jacob Seiler and is described in (Stay tuned). 
 
 ``RSAGE`` is undergoing constant development and improvement. Absolutely any
 and all changes, improvements, questions or comments are encouraged and
