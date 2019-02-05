@@ -471,7 +471,7 @@ def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
 
         test_grid = ReadScripts.read_binary_grid(fname, GridSize, precision)
 
-        if not np.allclose(grid, test_grid):
+        if not np.allclose(grid, test_grid, atol=1e-5):
             print("Found that the {0} grids disagreed.".format(tag))
             print("The SAGE dictionary is {0}".format(SAGE_params))
             print("The cifog dictionary is {0}".format(cifog_params))
