@@ -259,7 +259,6 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
         return
 
     # Now let's check compare the mass of the test to the 'test_RSAGE' repo. 
-
     mass_repo = np.loadtxt("{0}/{1}/kali512/data/{2}_testmass.txt".format(test_dir,
                                                                           test_datadir,
                                                                           galaxy_name))
@@ -338,6 +337,8 @@ def read_grids(SAGE_params, cifog_params, snapshot):
         the values from the ``.ini`` file. See ``read_cifog_ini`` in
         ``output/ReadScripts.py`` for full details.
     """
+
+    print("Reading the nionHI, XHII and photHI grids for the test run.")
 
     RunPrefix = SAGE_params["RunPrefix"]
     RunPrefix = SAGE_params["RunPrefix"]
@@ -421,6 +422,72 @@ def get_nion_prefix(SAGE_params):
 
     return nion_prefix
 
+
+def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
+                snapshot, update_data=0):
+
+    print("")
+    print("Now checking that the nionHI, XHII and photHI grids match the test "
+          "data.")
+
+    RunPrefix = SAGE_params["RunPrefix"]
+    nion_precision = int(cifog_params["nionFilesAreInDoublePrecision"]) + 1
+    GridSize = int(SAGE_params["GridSize"])
+
+    tags = ["nionHI", "XHII", "photHI"]
+    grids = [nion_grid, XHII_grid, photHI_grid]
+    precisions = [nion_precision, 2, 2]  # XHII and photHI hard code as double.
+
+    if update_data:
+        print("=======================================================")
+        print("WARNING WARNING WARNING WARNING WARNING WARNING WARNING")
+        print("=======================================================")
+        print("=======================================================")
+        print("WARNING WARNING WARNING WARNING WARNING WARNING WARNING")
+        print("=======================================================")
+        input("YOU ARE ABOUT TO OVERWRITE THE GRID TEST DATA. IF THIS IS WHAT "
+              "YOU WANT, PRESS ENTER OTHERWISE CTRL-C TO GET OUTTA HERE!")
+        input("JUST CHECKING ONCE MORE!")
+
+        for (grid, tag, precision) in zip(grids, tags, precions):
+
+            fname = "{0}/{1}/kali512/data/{2}_test_{3}_{4:03d}"\
+                    .format(test_dir, test_datadir, RunPrefix, tag, snapshot)
+
+            # We are passed a 3D array, need to save it as 1D binary.
+            np.savetxt(fname, grid)
+            print("Saved {0} grid data as {1}".format(tag, fname))
+
+        print("All grid test data updated. Exiting checking now (because it'll "
+              "obviously be correct.)")
+        return
+
+    # Now let's compare the grids to the test data.
+
+    for (grid, tag, precision) in zip(grids, tags, precisions):
+        
+        fname = "{0}/{1}/kali512/data/{2}_test_{3}_{4:03d}"\
+                .format(test_dir, test_datadir, RunPrefix, tag, snapshot)
+
+        test_grid = ReadScripts.read_binary_grid(fname, GridSize, precision)
+
+        if not np.allclose(grid, test_grid):
+            print("Found that the {0} grids disagreed.".format(tag))
+            print("The SAGE dictionary is {0}".format(SAGE_params))
+            print("The cifog dictionary is {0}".format(cifog_params))
+
+            print("The mean value of the run grid is {0} compared to the mean "
+                  "value of the test grid is {1}".format(np.mean(grid),
+                                                         np.mean(test_grid)))
+
+            raise ValueError
+
+    print("Grids are checked and all correct!")
+    print("")
+
+    return
+
+
 def test_run():
     """
     Wrapper to run all the tests.
@@ -476,10 +543,13 @@ def test_run():
         check_smf(Gals, run_prefix, max_snap, SAGE_params)
 
         # Read the grids and check.
+        snapshot = 61
         nion_grid, XHII_grid, photHI_grid = read_grids(SAGE_params,
                                                        cifog_params,
-                                                       61)
-
+                                                       snapshot)
+        check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params,
+                    cifog_params, snapshot)
+    
     print("Done")
     print("")
     
