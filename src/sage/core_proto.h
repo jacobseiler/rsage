@@ -20,11 +20,10 @@ void save_galaxies(int filenr, int tree);
 void save_merged_galaxies(int MergedNr, int filenr);
 
 void free_galaxies_and_tree(int32_t treenr);
-void free_temporal_arrays(struct GALAXY *g);
+
 void free_tree_table(void);
 int32_t free_grid(void);
 int32_t free_reion_lists(int32_t filenr);
-int32_t malloc_temporal_arrays(struct GALAXY *g);
 void print_allocated(void);
 
 int32_t read_parameter_file(char *fname);
@@ -33,12 +32,11 @@ void *mycalloc(size_t n, size_t size);
 void *myrealloc(void *p, size_t new_n, size_t old_n); 
 void myfree(void *p, size_t size);
 void print_final_memory(void);
-int32_t sage_cleanup(char **argv);
+int32_t sage_cleanup(void);
 
 void myexit(int signum);
 
 void finalize_galaxy_file(void);
-void write_temporal_arrays(struct GALAXY *g, FILE *fp);
 void finalize_merged_galaxy_file(void);
 
 void starformation_and_feedback(int p, int centralgal, double time, double dt, int halonr, int step, int tree, int ngal);
@@ -94,7 +92,6 @@ void grid_update_mass_metals_mass(double mass, double mass_metals, int GridPos, 
 
 
 int32_t determine_1D_idx(float pos_x, float pos_y, float pos_z, int32_t *grid_1D);
-void update_temporal_array(int p, int halonr, int steps_completed);
 void calculate_photons(float SFR, float Z, float *Ngamma_HI, float *Ngamma_HeI, float *Ngamma_HeII);
 
 

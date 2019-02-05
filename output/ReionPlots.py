@@ -19,6 +19,142 @@ import ObservationalData as Obs
 
 from mpi4py import MPI
 
+def plot_single_slice(z, snapnum, XHII, mass_frac, GridSize, boxsize, 
+                      cut_slice, cut_thickness, model_tag, output_dir,
+                      output_format):
+
+    fig1 = plt.figure()
+    ax = fig1.add_subplot(111)
+
+    ionized_cells = np.log10(1.0 - XHII)
+    my_slice = ionized_cells[:,:,cut_slice:cut_slice+cut_thickness].mean(axis=-1)
+
+    im = ax.imshow(my_slice,
+                   interpolation="none", origin="low",
+                   extent = [0.0, boxsize, 0.0, boxsize],
+                   vmin=-8, vmax=0, cmap="afmhot_r")
+
+    ax.set_xlim([0.0, boxsize])
+    ax.set_ylim([0.0, boxsize])
+
+    ax.set_xlabel(r"$\mathbf{x \: [h^{-1}Mpc]}$", size=ps.global_labelsize) 
+    ax.set_ylabel(r"$\mathbf{y \: [h^{-1}Mpc]}$", size=ps.global_labelsize)
+
+    HI_string = "{0:.2f}".format(mass_frac)
+    HI_label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
+
+    title = model_tag + ", " + HI_label 
+
+    ax.set_title(title, size = ps.global_labelsize - 4) 
+
+    # Finally add the redshift to the top right of the axis.
+    z_label = r"$z = %.2f$" %(z)
+    z_text = ax.text(0.75,0.9, z_label,
+                     transform=ax.transAxes, 
+                     size=ps.global_labelsize - 16,
+                     color='k')
+    # Add a white background to make the label legible.
+    z_text.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
+    plt.draw()
+
+    # All the models have been plotted. Now lets fix up the colorbar.
+    cax = fig1.add_axes([0.81, 0.11, 0.03, 0.77])
+    ticks = np.arange(-8.0, 1.0, 1.0)
+    cbar = fig1.colorbar(im, cax=cax, ticks=ticks) 
+    cbar.ax.set_yticklabels([r"$\mathbf{%d}$" % x for x in ticks], 
+                            fontsize = ps.global_legendsize+10)
+    cbar.ax.set_ylabel(r'$\mathbf{log_{10}\left(\chi_{HI}\right)}$',
+                       rotation = 90, size = ps.global_labelsize)
+    #cbar.ax.tick_params(labelsize = ps.global_legendsize + 10)
+
+    # Done! Save time.
+    #output_tag = "slice_{0}_z{1:.2f}".format(model_tag, z)
+    #output_tag = "slice_{0}_z{1:03d}".format(model_tag, snapnum)
+    output_tag = "slice_{0:03d}".format(snapnum)
+
+    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    fig1.savefig(outputFile, bbox_inches='tight')
+    print('Saved file to {0}'.format(outputFile))
+    plt.close()
+
+
+def plot_single_ps(k, P21, snapnum, mass_frac, small_scale_def,
+                   large_scale_def, model_tag, output_dir,
+                   output_format): 
+
+    fig1 = plt.figure(figsize=(8,8))
+    ax1 = fig1.add_subplot(111)
+
+    w = np.where(k > 9e-2)[0]
+    w = w[0:-1]
+    label = model_tag
+ 
+    ax1.plot(k[w], P21[w],
+             color=ps.colors[0],
+             dashes=ps.dashes[0],
+             lw = 2, rasterized=True, label = label)
+
+    this_ax = ps.adjust_axis(ax1, ps.global_axiswidth,
+                             ps.global_tickwidth,
+                             ps.global_major_ticklength,
+                             ps.global_minor_ticklength)
+
+    ax1.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+                   size = ps.global_labelsize)
+    ax1.set_xscale('log')
+
+
+    HI_string = "{0:.2f}".format(mass_frac)
+    label = r"$\mathbf{\langle \chi_{HI}\rangle = " +HI_string + r"}$"
+    this_ax.text(0.05, 0.9, label, transform = this_ax.transAxes,
+                 fontsize = ps.global_fontsize)
+
+    ax1.axvline(small_scale_def, ymin=0, ymax=max(P21[w]), lw=1, ls='--')
+    ax1.axvline(large_scale_def, ymin=0, ymax=max(P21[w]), lw=1, ls='--')
+
+
+    # Find the indices corresponding to the specified scales.
+    small_idx = (np.abs(k - small_scale_def)).argmin()
+    large_idx = (np.abs(k - large_scale_def)).argmin()
+
+    # Then grab the relevant values at those scales.
+    k_small = k[small_idx]
+    k_large = k[large_idx]
+
+    P21_small = P21[small_idx]
+    P21_large = P21[large_idx]
+
+    # Then plot a straight line between them...
+    ax1.plot([k_small, k_large], [P21_small, P21_large],
+             lw=3, color='r')
+
+    tick_locs = np.arange(-3, 1, 1.0)
+    this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
+                            fontsize = ps.global_fontsize)
+
+    ax1.set_ylim([0.5, 100]) 
+
+    ax1.set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right]}$',
+                   size = ps.global_labelsize)
+    ax1.set_yscale('log', nonposy='clip')
+
+    leg = ax1.legend(loc='lower right', numpoints=1,
+                     labelspacing=0.1)
+    leg.draw_frame(False)
+    for t in leg.get_texts():
+        t.set_fontsize(ps.global_legendsize-2)
+
+    fig1.tight_layout()
+
+    output_tag = "ps_{0:03d}".format(snapnum)
+    outputFile = "{0}/{1}.{2}".format(output_dir,
+                                      output_tag,
+                                      output_format)
+    fig1.savefig(outputFile)
+    print('Saved file to {0}'.format(outputFile))
+
+    plt.close()
+
 
 def plot_history(z_array_reion_allmodels, 
                  lookback_array_reion_allmodels, cosmology_allmodels,
@@ -118,17 +254,20 @@ def plot_history(z_array_reion_allmodels,
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
+    # If we're plotting this on another Figure, we only want one legend. So
+    # we'll handle this in the calling function rather than here.
     if not passed_ax:
-        leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
+        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
+        leg.draw_frame(False)
+        for t in leg.get_texts():
             t.set_fontsize(ps.global_legendsize)
 
     if passed_ax:
         return ax1
     else:
         outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-        fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+        fig1.savefig(outputFile1, bbox_inches='tight')
         print('Saved file to {0}'.format(outputFile1))
         plt.close(fig1)
 
@@ -138,7 +277,7 @@ def plot_history(z_array_reion_allmodels,
 def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
               cosmology_allmodels, t_bigbang_allmodels, nion_allmodels,
               nion_factor_allmodels, model_tags, output_dir, output_tag,
-              output_format):
+              output_format, passed_ax=None):
     """
     Plots the ionizing emissivity as a function of time since Big Bang. 
 
@@ -184,14 +323,23 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
     output_format : String
         Format the plot is saved in.
 
+    passed_ax : ``matplotlib`` axes, optional
+        If defined, the ionizing emissivity will be plotted onto the passed axis
+        and returned.  The figure will not be saved. 
+
     Returns
     ---------
 
-    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
-    """
+    If ``passed_ax = None``, None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
 
-    fig1 = plt.figure(figsize = (8,8))
-    ax1 = fig1.add_subplot(111)
+    If ``passed_ax`` is passed, the axis is returned with the ionization
+    history plotted.
+    """
+    if passed_ax:
+        ax1 = passed_ax
+    else:
+        fig1 = plt.figure(figsize = (8,8))
+        ax1 = fig1.add_subplot(111)
 
     for model_number in range(len(z_array_reion_allmodels)):
 
@@ -236,15 +384,22 @@ def plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax1 = ps.adjust_axis(ax1, ps.global_axiswidth, ps.global_tickwidth,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
-    leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(ps.global_legendsize)
+    # If we're plotting this on another Figure, we only want one legend. So
+    # we'll handle this in the calling function rather than here.
+    if not passed_ax:
+        leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
+        leg.draw_frame(False)
+        for t in leg.get_texts():
+            t.set_fontsize(ps.global_legendsize)
 
-    outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
-    print('Saved file to {0}'.format(outputFile1))
-    plt.close(fig1)
+    if passed_ax:
+        return ax1
+    else:
+        outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+        fig1.savefig(outputFile1, bbox_inches='tight')
+        print('Saved file to {0}'.format(outputFile1))
+        plt.close(fig1)
 
 
 def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
@@ -284,17 +439,28 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
-    fig1, ax = plt.subplots(nrows=1, ncols=len(fixed_XHI_values),
-                            sharey='row', figsize=(16, 6))
+    ncols = len(fixed_XHI_values)
 
-    fig2, ax2 = plt.subplots(nrows=1, ncols=len(fixed_XHI_values),
-                             sharey='row', figsize=(16, 6))
+    if ncols == 1:
+        figsize=(8,8)
+    else:
+        figsize=(16,6)
+
+    fig1, ax = plt.subplots(nrows=1, ncols=ncols,
+                            sharey='row', figsize=figsize)
+
+    fig2, ax2 = plt.subplots(nrows=1, ncols=ncols,
+                             sharey='row', figsize=figsize)
 
     for model_number in range(len(k)):
         for fraction in range(len(fixed_XHI_values)):
 
-            this_ax = ax[fraction]
-            this_ax2 = ax2[fraction]
+            if ncols == 1:
+                this_ax = ax
+                this_ax2 = ax2
+            else: 
+                this_ax = ax[fraction]
+                this_ax2 = ax2[fraction]
 
             w = np.where(k[model_number][fraction] > 9e-2)[0]
             w = w[0:-1]
@@ -326,11 +492,11 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
                                       ps.global_major_ticklength,
                                       ps.global_minor_ticklength)
 
-            this_ax.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+            this_ax.set_xlabel(r'$\mathbf{k \: \left[hMpc^{-1}\right]}$',
                                size = ps.global_labelsize)
             this_ax.set_xscale('log')
 
-            this_ax2.set_xlabel(r'$\mathbf{k \: \left[Mpc^{-1}h\right]}$',
+            this_ax2.set_xlabel(r'$\mathbf{k \: \left[hMpc^{-1}\right]}$',
                                 size = ps.global_labelsize)
             this_ax2.set_xscale('log')
 
@@ -350,27 +516,34 @@ def plot_ps_fixed_XHI(k, P21, PHII, fixed_XHI_values, model_tags, output_dir,
             this_ax.set_xticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
                                     fontsize = ps.global_fontsize)
 
-    ax[0].set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right]}$',
-                     size = ps.global_labelsize)
-    ax[0].set_yscale('log', nonposy='clip')
+            # Set a dotted line where the numerical cutoff is.
+            this_ax.axvline(x=4.0, color="k", ls="--", lw=1, alpha = 0.5)
 
-    ax2[0].set_ylabel(r'$\mathbf{\Delta_{\chi_\mathrm{HII}}^2}$',
-                      size = ps.global_labelsize)
-    ax2[0].set_yscale('log', nonposy='clip')
+    if ncols == 1:
+        this_ax = ax
+        this_ax2 = ax2
+    else: 
+        this_ax = ax[0]
+        this_ax2 = ax2[0]
 
-    #tick_locs = np.arange(-1.0, 5.5, 1.0)
-    #ax[0].set_yticklabels([r"$\mathbf{10^{%d}}$" % x for x in tick_locs],
-    #                      fontsize = ps.global_fontsize)
+    this_ax.set_ylabel(r'$\mathbf{\Delta_{21}^2 \left[mK^2\right]}$',
+                       size = ps.global_labelsize)
+    this_ax.set_yscale('log', nonposy='clip')
 
-    leg = ax[0].legend(loc='lower right', numpoints=1,
-                       labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    this_ax2.set_ylabel(r'$\mathbf{\Delta_{\chi_\mathrm{HII}}^2}$',
+                        size = ps.global_labelsize)
+    this_ax2.set_yscale('log', nonposy='clip')
+
+    leg = this_ax.legend(loc='lower right', numpoints=1,
+                         labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize-2)
-    leg.draw_frame(False)  # Don't want a box frame
 
-    leg2 = ax2[0].legend(loc='lower right', numpoints=1,
-                       labelspacing=0.1)
+    leg2 = this_ax2.legend(loc='lower right', numpoints=1,
+                           labelspacing=0.1,
+                           handlelength=ps.global_legend_handlelength)
     for t in leg2.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize-2)
     leg2.draw_frame(False)  # Don't want a box frame
@@ -543,7 +716,7 @@ def plot_tau_contours(tau_highz, reion_completed, alpha_beta_limits,
                         fontsize = ps.global_fontsize)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -639,7 +812,7 @@ def plot_duration_contours(duration_t, reion_completed, alpha_beta_limits,
                         fontsize = ps.global_fontsize)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -647,7 +820,7 @@ def plot_duration_contours(duration_t, reion_completed, alpha_beta_limits,
 def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
              cosmology_allmodels, t_bigbang_allmodels, tau_allmodels,
              model_tags, output_dir, output_tag, output_format,
-             passed_ax=None):
+             passed_ax=None, plot_planck_2016=0, plot_planck_2018=1):
     """
     Plots the evolution of the Thomson optical depth tau as a function of
     time since Big Bang.
@@ -689,6 +862,16 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
     passed_ax : ``matplotlib`` axes, optional
         If defined, the history will be plotted onto the passed axis and
         returned.  The figure will not be saved. 
+
+    plot_planck_2016 : Integer
+        Flag to denote whether to plot the Planck 2016 value of the optical
+        depth. Includes a straight line at the best value and shaded region
+        showing the 68% confidence interval.
+
+    plot_planck_2018 : Integer
+        Flag to denote whether to plot the Planck 2018 value of the optical
+        depth. Includes a straight line at the best value and shaded region
+        showing the 68% confidence interval.
 
     Returns
     ---------
@@ -735,37 +918,35 @@ def plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
     ax2 = ps.add_time_z_axis(ax1, cosmology_allmodels[0],
                              t_bigbang_allmodels[0]/1.0e3, ps.time_xlim)
 
-    ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.2)
-    ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$", fontsize=14)
+    if plot_planck_2016:
+        ax1.axhline(y = 0.058, xmin = 0, xmax = 20, color = 'k', alpha = 0.2)
+        ax1.text(850, 0.0570, r"$\mathrm{Planck \: 2016}$", fontsize=14)
 
-    plot_planck_2018 = 1
     if plot_planck_2018:
         ax1.fill_between(np.arange(200, 1200, 0.01), 0.054 - 0.007, 0.054 + 0.007,
                          color = 'k', alpha = 0.4)
         ax1.axhline(y = 0.054, xmin = 0, xmax = 20, color = 'k', alpha = 0.4)
         ax1.text(850, 0.0530, r"$\mathrm{Planck \: 2018}$", fontsize=14)
-    else:
-        ax1.fill_between(np.arange(200, 1200, 0.01), 0.058 - 0.012, 0.058 + 0.012,
-                         color = 'k', alpha = 0.2)
 
     if not passed_ax:
-        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1)
-        leg.draw_frame(False)  # Don't want a box frame
-        for t in leg.get_texts():  # Reduce the size of the text
+        leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
+        leg.draw_frame(False)
+        for t in leg.get_texts():
             t.set_fontsize(ps.global_legendsize)
  
     if passed_ax:
         return ax1
     else:
         outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-        fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+        fig1.savefig(outputFile, bbox_inches='tight')
         print('Saved file to {0}'.format(outputFile))
         plt.close()
 
 
 def plot_combined_history_tau(z_array_reion_allmodels,
-                              lookback_array_reion_allmodels,                              
-                              cosmology_allmodels, t_bigbang_allmodels, 
+                              lookback_array_reion_allmodels,
+                              cosmology_allmodels, t_bigbang_allmodels,
                               mass_frac_allmodels, tau_allmodels, model_tags,
                               output_dir, output_tag, output_format):
     """
@@ -835,15 +1016,62 @@ def plot_combined_history_tau(z_array_reion_allmodels,
                      model_tags, output_dir, output_tag, output_format,
                      passed_ax=ax[1])
 
-    leg = ax[0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg = ax[0].legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                       handlelength=ps.global_legend_handlelength)
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     plt.tight_layout()    
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
+    print('Saved file to {0}'.format(outputFile))
+    plt.close()
+
+
+def plot_combined_nion_tau(z_array_reion_allmodels,
+                           lookback_array_reion_allmodels,
+                           cosmology_allmodels, t_bigbang_allmodels, 
+                           nion_allmodels, nion_factor_allmodels, tau_allmodels,
+                           model_tags, output_dir, output_tag, output_format):
+    """
+
+    Parameters
+    ----------
+
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    fig1, ax = plt.subplots(nrows = 1, ncols = 2, 
+                           sharex=False, sharey=False, figsize=(16, 8))
+
+    # Pass each axis to the correct function to create the plots.
+    ax[0] = plot_nion(z_array_reion_allmodels, lookback_array_reion_allmodels,
+                      cosmology_allmodels, t_bigbang_allmodels, nion_allmodels,
+                      nion_factor_allmodels, model_tags, output_dir, output_tag,
+                      output_format, passed_ax=ax[0])
+
+    ax[1] = plot_tau(z_array_reion_allmodels, lookback_array_reion_allmodels,
+                     cosmology_allmodels, t_bigbang_allmodels, tau_allmodels,
+                     model_tags, output_dir, output_tag, output_format,
+                     passed_ax=ax[1])
+
+    # Create a single legend for both panels.
+    leg = ax[0].legend(loc='lower right', numpoints=1, labelspacing=0.1,
+                       handlelength=ps.global_legend_handlelength)
+    leg.draw_frame(False)
+    for t in leg.get_texts():
+        t.set_fontsize(ps.global_legendsize)
+
+    plt.tight_layout()    
+
+    outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -920,7 +1148,7 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
 
     for model_number in range(num_models):
 
-        if model_number < 3:
+        if model_number < 300:
             label = model_tags[model_number]
             color = ps.colors[model_number]
             dashes = ps.dashes[model_number]
@@ -972,12 +1200,12 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
 
     small_scale_string = "{0:.1f}".format(small_scale_def)
     x_label = r"$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = " + \
-              small_scale_string + r"Mpc^{-1}h)}$" 
+              small_scale_string + r"hMpc^{-1})}$" 
     ax1.set_xlabel(x_label, size = ps.global_labelsize)
 
     large_scale_string = "{0:.1f}".format(large_scale_def)
     y_label = r"$\mathbf{\Delta_{21}^2 \left[mK^2\right] (k = " + \
-              large_scale_string + r"Mpc^{-1}h)}$" 
+              large_scale_string + r"hMpc^{-1})}$" 
     ax1.set_ylabel(y_label, size = ps.global_labelsize)
 
     max_smallscale = np.ceil(np.max(P21_small_scale))
@@ -1034,9 +1262,9 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
                         label=label)
 
     leg = ax1.legend(loc='upper left', numpoints=1, labelspacing=0.1,
-                     markerscale=6)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+                     markerscale=6, handlelength=ps.global_legend_handlelength)
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize-2)
 
 
@@ -1050,7 +1278,7 @@ def plot_ps_scales(P21_small_scale, P21_large_scale,
     outputFile = "{0}/{1}_{2}.{3}".format(output_dir, tag, name_tag,
                                           output_format)
 
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -1132,8 +1360,10 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
 
     num_models = len(mass_frac_allmodels)
     num_fractions = len(fixed_XHI_values)
+    nrows = num_fractions
 
-    fig1, ax = plt.subplots(nrows=num_fractions, ncols=num_models,
+
+    fig1, ax = plt.subplots(nrows=nrows, ncols=num_models,
                            sharey=False, sharex=False, figsize=(12, 12))
     fig1.subplots_adjust(wspace = 0.02, hspace = 0.02)
 
@@ -1148,7 +1378,10 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
 
         for frac_number, frac_val in enumerate(fixed_XHI_values):
 
-            this_ax = ax[frac_number, model_number]
+            if nrows == 1:
+                this_ax = ax[model_number]
+            else:
+                this_ax = ax[frac_number, model_number]
 
             # First find the snapshot that corresponds to this XHI value.
             snap_idx = (np.abs(mass_frac_allmodels[model_number] - frac_val)).argmin()
@@ -1214,6 +1447,7 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
 
     # All the models have been plotted. Now lets fix up the colorbar.
     cax = fig1.add_axes([0.91, 0.11, 0.03, 0.77])
+    #cax = fig1.add_axes([0.91, 0.37, 0.03, 0.26])
     ticks = np.arange(-8.0, 1.0, 1.0)
     cbar = fig1.colorbar(im, cax=cax, ticks=ticks) 
     cbar.ax.set_yticklabels([r"$\mathbf{%d}$" % x for x in ticks], 
@@ -1224,7 +1458,7 @@ def plot_slices_XHI(z_array_reion_allmodels, cosmology_allmodels,
 
     # Done! Save time.
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()
 
@@ -1773,16 +2007,16 @@ def plot_ps_beta(P21_beta, P21_beta_error,
                          ps.global_major_ticklength, ps.global_minor_ticklength) 
 
     leg = ax1.legend(loc='upper right', numpoints=1, labelspacing=0.1,
-                     markerscale=6)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
-        t.set_fontsize(ps.global_legendsize-2)
+                     markerscale=6, handlelength=ps.global_legend_handlelength)
 
+    leg.draw_frame(False)
+    for t in leg.get_texts():
+        t.set_fontsize(ps.global_legendsize-2)
 
     tag = "{0}_smallscale{1}_largescale{2}".format(output_tag, small_scale_def,
                                                    large_scale_def)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, tag, output_format)
-    fig1.savefig(outputFile, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile))
     plt.close()

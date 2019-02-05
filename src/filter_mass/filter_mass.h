@@ -8,7 +8,7 @@
 struct SAGE_PARAMETERS
 {
 
-  char *FileNameGalaxies; 
+  char *RunPrefix; 
   char *TreeDir;
   char *TreeName;
   char *PhotoionDir;
@@ -29,7 +29,7 @@ struct SAGE_PARAMETERS
 
 // Proto-Types //
 
-int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName, 
+int32_t filter_masses(char *RunPrefix, char *TreeDir, char *TreeName, 
                       char *PhotoionDir, char *PhotoionName, char *ReionRedshiftName,
                       int32_t FirstFile, int32_t LastFile, int32_t GridSize, double BoxSize,
                       double Hubble_h, int32_t SnapNum, double Redshift, int32_t first_update_flag,

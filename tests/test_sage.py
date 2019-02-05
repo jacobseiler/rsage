@@ -67,8 +67,8 @@ def get_trees():
 
     print("")
     print("Checking to see if we need to download the test tree and output file.")
-    
-    treefile = "{0}/{1}/trees_063_000.dat".format(test_dir, test_datadir)
+
+    treefile = "{0}/{1}/kali512/trees/kali512_000.dat".format(test_dir, test_datadir)
     if not os.path.isfile(treefile):
         print("{0} does not exist, downloading the {1}"
               "repo.".format(treefile, test_datadir)) 
@@ -99,7 +99,7 @@ def check_sage_dirs(galaxy_name="test"):
     Parameters
     ----------
 
-    galaxy_name: String. Optional, default: 'test.ini'. 
+    galaxy_name: String. Optional, default: 'test'. 
         Prefix name for the galaxies. 
 
     Returns
@@ -128,20 +128,11 @@ def check_sage_dirs(galaxy_name="test"):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    # Future proof by also creating directories for grids.
-    directory = "{0}/test_output/grids/".format(test_dir) 
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    directory = "{0}/test_output/grids/properties".format(test_dir) 
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
     print("Done.")
     print("")
 
 
-def run_my_sage(ini_name="test_mini_millennium.ini"):
+def run_my_sage(ini_name):
     """
     Executes my version of SAGE. 
 
@@ -151,7 +142,7 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
     Parameters
     ----------
 
-    ini_name: String. Optional, default: 'test_mini_millennium.ini'. 
+    ini_name: String
         Name of the input ini file. 
 
     Returns
@@ -179,14 +170,8 @@ def run_my_sage(ini_name="test_mini_millennium.ini"):
         print("SAGE exited with error code {0}".format(returncode))
         raise RuntimeError
 
-    print("Reading in the SAGE and cifog parameters as well.")
-    SAGE_params = ReadScripts.read_SAGE_ini(path_to_sage_ini)
-    cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini) 
-
     print("Done")
     print("")
-
-    return SAGE_params, cifog_params
 
 
 def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
@@ -228,7 +213,7 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
 
     print("")
     print("Now checking the stellar mass function for the final snapshot of "
-          "mini-millennium.")
+          "Kali.")
 
     w_gal = np.where((Gals.GridHistory[:, max_snap] != -1) & 
                      (Gals.GridStellarMass[:, max_snap] > 0.0))[0]
@@ -264,21 +249,20 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
               "WANT, PRESS ENTER OTHERWISE CTRL-C TO GET OUTTA HERE!")
         input("JUST CHECKING ONCE MORE!")
 
-        fname = "{0}/{1}/{2}_testmass.txt".format(test_dir, test_datadir,
-                                                  galaxy_name)
+        fname = "{0}/{1}/kali512/data/{2}_testmass.txt".format(test_dir, test_datadir,
+                                                               galaxy_name)
         np.savetxt(fname, mass_test)
         print("Saved mass data as {0}".format(fname))
 
         print("All test data updated. Exiting checking now (because it'll "
-              "obviously be correct.")
+              "obviously be correct.)")
         return
 
     # Now let's check compare the mass of the test to the 'test_RSAGE' repo. 
+    mass_repo = np.loadtxt("{0}/{1}/kali512/data/{2}_testmass.txt".format(test_dir,
+                                                                          test_datadir,
+                                                                          galaxy_name))
 
-    mass_repo = np.loadtxt("{0}/{1}/{2}_testmass.txt".format(test_dir,
-                                                             test_datadir,
-                                                             galaxy_name)) 
-  
     if len(mass_test) != len(mass_repo):
         print("For the test data we had {0} galaxies at Snapshot {2} with > 0 "
               "Stellar Mass.  This is compared to {1} galaxies for the "
@@ -321,8 +305,8 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
 def load_gals(max_snap, galaxy_name="test"):
 
     # First check that the output of the test run can be read. 
-   
-    gal_name = "{0}/test_output/galaxies/{1}_z0.000".format(test_dir,
+
+    gal_name = "{0}/test_output/galaxies/{1}_z5.829".format(test_dir,
                                                             galaxy_name) 
     Gals, Gals_Desc = ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
 
@@ -334,6 +318,180 @@ def load_gals(max_snap, galaxy_name="test"):
     # Gals is now a recarray containing all galaxies at all snapshots. 
 
     return Gals
+
+
+def read_grids(SAGE_params, cifog_params, snapshot):
+    """
+    Reads the grids for a specific ``RSAGE`` run.
+
+    Parameters
+    ----------
+
+    SAGE_params : Dictionary
+        Dictionary keyed by the ``SAGE`` parameter field names and containing 
+        the values from the ``.ini`` file. See ``read_SAGE_ini`` in
+        ``output/ReadScripts.py`` for full details.
+
+    cifog_params : Dictionary
+        Dictionary keyed by the ``cifog`` parameter field names and containing 
+        the values from the ``.ini`` file. See ``read_cifog_ini`` in
+        ``output/ReadScripts.py`` for full details.
+    """
+
+    print("Reading the nionHI, XHII and photHI grids for the test run.")
+
+    RunPrefix = SAGE_params["RunPrefix"]
+    RunPrefix = SAGE_params["RunPrefix"]
+    OutputDir = SAGE_params["OutputDir"]
+    GridSize = int(SAGE_params["GridSize"])
+
+    # Here the precision is 1 for float, 2 for double. XHII and photHI are
+    # hardcoded to be in double.
+
+    nion_prefix = get_nion_prefix(SAGE_params)
+    nion_path = "{0}/grids/nion/{1}_{2}_nionHI_{3:03d}".format(OutputDir, RunPrefix,
+                                                       nion_prefix, snapshot)
+    nion_precision = int(cifog_params["nionFilesAreInDoublePrecision"]) + 1
+    nion_grid = ReadScripts.read_binary_grid(nion_path, GridSize,
+                                             nion_precision)
+
+    XHII_path = "{0}/grids/cifog/{1}_XHII_{2:03d}".format(OutputDir, RunPrefix,
+                                                          snapshot)
+    XHII_precision = 2
+    XHII_grid = ReadScripts.read_binary_grid(XHII_path, GridSize,
+                                             XHII_precision)
+
+    photHI_path = "{0}/grids/cifog/{1}_photHI_{2:03d}".format(OutputDir,
+                                                              RunPrefix,
+                                                              snapshot)
+
+    photHI_precision = 2
+    photHI_grid = ReadScripts.read_binary_grid(photHI_path, GridSize,
+                                             photHI_precision)
+
+
+    return nion_grid, XHII_grid, photHI_grid
+
+
+def get_nion_prefix(SAGE_params):
+
+    fescPrescription = int(SAGE_params["fescPrescription"])
+    HaloPartCut = int(SAGE_params["HaloPartCut"])
+
+    if fescPrescription == 0:
+        beta = float(SAGE_params["beta"])
+        nion_prefix = "fesc{0:.2f}_HaloPartCut{1}".format(beta,
+                                                          HaloPartCut)
+
+    elif fescPrescription == 1:
+        alpha = float(SAGE_params["alpha"])
+        beta = float(SAGE_params["beta"])
+
+        nion_prefix = "ejected_{0:.3f}_{1:.3f}_HaloPartCut{2}".format(alpha,
+                                                                      beta, 
+                                                                      HaloPartCut)
+
+    elif fescPrescription == 2:
+        baseline = float(SAGE_params["quasar_baseline"])
+        boosted = float(SAGE_params["quasar_boosted"])
+        N_dyntime = float(SAGE_params["N_dyntime"])
+
+        nion_prefix = "quasar_{0:.2f}_{1:.2f}_{2:.2f}_HaloPartCut{3}".format(baseline,
+                                                                             boosted,
+                                                                             N_dyntime,
+                                                                             HaloPartCut)
+
+    elif fescPrescription == 3 or fescPrescription == 4:
+        MH_low = float(SAGE_params["MH_low"])
+        MH_high = float(SAGE_params["MH_high"])
+        fesc_low = float(SAGE_params["fesc_low"])
+        fesc_high = float(SAGE_params["fesc_high"])
+
+        nion_prefix = "AnneMH_{0:.3e}_{1:.2f}_{2:.3e}_{3:.2f}_HaloPartCut{4}".format(MH_low, fesc_low, MH_high,
+                                              fesc_high)
+
+    else:
+        alpha = float(SAGE_params["alpha"])
+        beta = float(SAGE_params["beta"])
+        delta = float(SAGE_params["delta"])
+
+        nion_prefix = "SFR_{0:.3f}_{1:.3f}_{2:.3f}_HaloPartCut{3}".format(alpha,
+                                                                          beta,
+                                                                          delta,
+                                                                          HaloPartCut)
+
+    return nion_prefix
+
+
+def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
+                snapshot, update_data=0):
+
+    print("")
+    print("Now checking that the nionHI, XHII and photHI grids match the test "
+          "data.")
+
+    RunPrefix = SAGE_params["RunPrefix"]
+    nion_precision = int(cifog_params["nionFilesAreInDoublePrecision"]) + 1
+    GridSize = int(SAGE_params["GridSize"])
+
+    tags = ["nionHI", "XHII", "photHI"]
+    grids = [nion_grid, XHII_grid, photHI_grid]
+    precisions = [nion_precision, 2, 2]  # XHII and photHI hard code as double.
+
+    if update_data:
+        print("=======================================================")
+        print("WARNING WARNING WARNING WARNING WARNING WARNING WARNING")
+        print("=======================================================")
+        print("=======================================================")
+        print("WARNING WARNING WARNING WARNING WARNING WARNING WARNING")
+        print("=======================================================")
+        input("YOU ARE ABOUT TO OVERWRITE THE GRID TEST DATA. IF THIS IS WHAT "
+              "YOU WANT, PRESS ENTER OTHERWISE CTRL-C TO GET OUTTA HERE!")
+        input("JUST CHECKING ONCE MORE!")
+
+        for (grid, tag, precision) in zip(grids, tags, precions):
+
+            fname = "{0}/{1}/kali512/data/{2}_test_{3}_{4:03d}"\
+                    .format(test_dir, test_datadir, RunPrefix, tag, snapshot)
+
+            # We are passed a 3D array, need to save it as 1D binary.
+            np.savetxt(fname, grid)
+            print("Saved {0} grid data as {1}".format(tag, fname))
+
+        print("All grid test data updated. Exiting checking now (because it'll "
+              "obviously be correct.)")
+        return
+
+    # Now let's compare the grids to the test data.
+
+    for (grid, tag, precision) in zip(grids, tags, precisions):
+        
+        fname = "{0}/{1}/kali512/data/{2}_test_{3}_{4:03d}"\
+                .format(test_dir, test_datadir, RunPrefix, tag, snapshot)
+
+        test_grid = ReadScripts.read_binary_grid(fname, GridSize, precision)
+
+        diff = np.abs(grid-test_grid)       
+        if len(diff[diff > 1e-8]) > 0: 
+
+            print("Found that the {0} grids disagreed.".format(tag))
+            print("The SAGE dictionary is {0}".format(SAGE_params))
+            print("The cifog dictionary is {0}".format(cifog_params))
+
+            print("The mean value of the run grid is {0} compared to the mean "
+                  "value of the test grid is {1}".format(np.mean(grid),
+                                                         np.mean(test_grid)))
+            print("The non-zero difference values are {0}".format(diff[diff > 0]))
+
+            print("Checking if any of these values are greater than 0.01")
+            if len(diff[diff > 1e-2]) > 0:
+
+                raise ValueError
+
+    print("Grids are checked and all correct!")
+    print("")
+
+    return
 
 
 def test_run():
@@ -355,28 +513,49 @@ def test_run():
     print("Welcome to the RSAGE testing funhouse!")
     print("")
 
-    downloaded_repo = get_trees()  # Download mini-millennium tree if we needed 
+    downloaded_repo = get_trees()  # Download Kali tree if we needed 
 
     # We have multiple test parameter specs we want to test.
     # Need all the names of the ini files and the name of the galaxies they
     # produce. 
 
-    ini_files = ["PhotonPrescription0"]
-
-    galaxy_names = ["PhotonPrescription0"]
+    ini_files = ["kali512"]
    
-    for ini_file, galaxy_name in zip(ini_files, 
-                                     galaxy_names):
-        check_sage_dirs(galaxy_name)
-        sage_params, cifog_params = run_my_sage(ini_file)
+    for ini_file in ini_files:
 
-        max_snap = int(sage_params["LastSnapShotNr"])
+        # First read the ini file to get the runtime parameters.
+        path_to_sage_ini = "{0}/test_ini_files/{1}_SAGE.ini".format(test_dir, ini_file)
+        path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_file)
+
+        SAGE_params = ReadScripts.read_SAGE_ini(path_to_sage_ini)
+        cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini) 
+
+        run_prefix = SAGE_params["RunPrefix"]
+        max_snap = int(SAGE_params["LastSnapShotNr"])
+
+        # Make sure all the directories we need are present.
+        # SAGE itself will take care of the directories for the results. 
+        check_sage_dirs(run_prefix)
+
+        # Then run SAGE.
+        run_my_sage(ini_file)
+
         print("")
         print("SAGE run, now reading in the Galaxies.")
         print("")
-        Gals = load_gals(max_snap, galaxy_name)
-        check_smf(Gals, galaxy_name, max_snap, sage_params)  # Attempt to make a stellar mass function.
 
+        # Read the results and check the stellar mass function.
+        Gals = load_gals(max_snap, run_prefix)
+        check_smf(Gals, run_prefix, max_snap, SAGE_params)
+
+        # Read the grids and check.
+        snapshot = 61
+        nion_grid, XHII_grid, photHI_grid = read_grids(SAGE_params,
+                                                       cifog_params,
+                                                       snapshot)
+        check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params,
+                    cifog_params, snapshot)
+    
     print("Done")
     print("")
     

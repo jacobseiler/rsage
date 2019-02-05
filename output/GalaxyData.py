@@ -230,8 +230,9 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                                     master_std_mstar_fesc,
                                     master_N_mstar_fesc, model_tags,
                                     output_dir, "mstar_fesc", output_format,
-                                    plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
-                                    plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+                                    galaxy_plots["plot_snaps_for_models"],
+                                    galaxy_plots["plot_models_at_snaps"],
+                                    galaxy_plots["plot_single_panel"])
 
     if galaxy_plots["SMF"]:
 
@@ -407,12 +408,12 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
         lookback_array_reion_allmodels.append(lookback_array_reion)
 
         # Set up names for the galaxies. 
-        galaxy_name = "{0}/{1}_z{2:.3f}".format(SAGE_params["OutputDir"],
-                                                SAGE_params["FileNameGalaxies"],
+        galaxy_name = "{0}/{1}_z{2:.3f}".format(SAGE_params["GalaxyOutputDir"],
+                                                SAGE_params["RunPrefix"],
                                                 z_array_reion[-1]) 
 
-        merged_name = "{0}/{1}_MergedGalaxies".format(SAGE_params["OutputDir"],
-                                                      SAGE_params["FileNameGalaxies"])
+        merged_name = "{0}/{1}_MergedGalaxies".format(SAGE_params["GalaxyOutputDir"],
+                                                      SAGE_params["RunPrefix"])
 
         # Initialize the ionizing photon array to 0.
         sum_nion_allmodels.append(np.zeros(len(z_array_full),

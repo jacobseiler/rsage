@@ -7,7 +7,6 @@ Whenever `ReionizationModifier` is needed we search through this file to see if 
 Since we need to remember the history of `ReionizationModifier`, we load in all the `ReionizationModifier` lists for the current snapshot iteration in addition to all previous snapshots. 
 
 Author: Jacob Seiler
-Version: 0.0.1
 */
  
 #include <stdio.h>
@@ -22,7 +21,7 @@ Version: 0.0.1
 
 #include "../core_allvars.h"
 #include "../core_proto.h"
-#include "selfcon.h"
+#include "selfcon_reionization.h"
 
 // Local Variables //
 
@@ -89,7 +88,7 @@ int32_t init_reion_lists(int32_t filenr)
     return EXIT_SUCCESS;
   }
 
-  snprintf(ListFile_name, MAXLEN, "%s/reionization_modifiers/%s_treefile_%03d", PhotoionDir, FileNameGalaxies, filenr);    
+  snprintf(ListFile_name, MAXLEN, "%s/reionization_modifiers/%s_treefile_%03d", PhotoionDir, RunPrefix, filenr);    
 
   ListFile = fopen(ListFile_name, "rb");
   if (ListFile == NULL)

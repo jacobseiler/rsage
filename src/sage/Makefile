@@ -11,11 +11,11 @@ LIBNAME = sage
 EXEC := $(LIBNAME)
 
 LIBSRC :=  sage.c core_read_parameter_file.c core_init.c core_io_tree.c core_allvars.c \
-           core_cool_func.c core_build_model.c core_save.c core_mymalloc.c \
+           core_cool_func.c core_build_model.c core_save.c core_mymalloc.c temporal_array.c \
            model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
            model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
            io/tree_binary.c \
-		   self_consistent/selfcon.c self_consistent/selfcon_grid.c self_consistent/grid.c self_consistent/common.c 
+		   self_consistent/selfcon_reionization.c self_consistent/selfcon_grid.c
 
 SRC := main.c $(LIBSRC)
 OBJS := $(SRC:.c=.o)
@@ -23,9 +23,9 @@ OBJS := $(SRC:.c=.o)
 LIBOBJS := $(LIBSRC:.c=.o)
 SAGELIB := lib$(LIBNAME).a
 
-INCL   =	core_allvars.h core_proto.h  core_simulation.h \
+INCL   =	core_allvars.h core_proto.h  core_simulation.h temporal_array.h \
 			io/tree_binary.h \
-			self_consistent/selfcon.h self_consistent/selfcon_grid.h self_consistent/grid.h self_consistent/common.h \
+			self_consistent/selfcon_reionization.h self_consistent/selfcon_grid.h \
 			./Makefile
 
 UNAME := $(shell uname)

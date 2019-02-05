@@ -42,11 +42,11 @@
 // Filter Mass Declarations //
 #include "filter_mass/filter_mass.h"
 
-/*
+#endif
+
 // Misc Declarations //
 #include "check_ini_files.h"
-*/
-#endif
+
 
 #define MAXLEN 1024
 
@@ -163,22 +163,35 @@ int main(int argc, char **argv)
       goto err;
     }
 
-    /*
-    status = check_ini_files(&simParam, PhotoionName, PhotoionDir, fescPrescription, alpha, beta, delta,
-                             quasar_baseline, quasar_boosted, N_dyntime, MH_low, fesc_low,
-                             MH_high, fesc_high, HaloPartCut);
-    if (status !=  EXIT_SUCCESS)
-    {
-      goto err;
-    }
-    */
   }
+
 #endif
+
+  // Some ini file parameters are allowed to be specifically ``None``.
+  // For these, we want to update their values depending upon the recipe flags
+  // and constants chosen.
+  status = check_sage_ini(RunPrefix, OutputDir, GalaxyOutputDir, GridOutputDir,
+                          PhotoionDir, PhotoionName, ReionRedshiftName, argv, ThisTask);
+
+  if (status !=  EXIT_SUCCESS)
+  {
+    goto err;
+  }
 
 #ifdef RSAGE
 
   if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
   {
+    // Do similar checking for the cifog ini.
+    status = check_cifog_ini(&simParam, OutputDir, RunPrefix, argv,
+                             ThisTask);
+
+    if (status !=  EXIT_SUCCESS)
+    {
+      goto err;
+    }
+
+
     int32_t loop_SnapNum, first_update_flag, count; 
 
     for (loop_SnapNum = LowSnap, count = 0; loop_SnapNum < LastSnapShotNr; ++loop_SnapNum, ++count)
@@ -211,6 +224,24 @@ int main(int argc, char **argv)
         goto err;
       }
       SAGE_time = SAGE_time + (clock() - before); 
+
+      // The user may wish to stop part-way through self-consistent reionization.
+      // In this scenario, we have reached the specified snapshot (`HighSnap + 1`)
+      // and also done the final iteration of SAGE.  So we now exit from
+      // this loop. Note: We do +1 because the first iteration of RSAGE does not
+      // actually cause any reionization. 
+      if (loop_SnapNum == HighSnap + 1)
+      {
+
+        if (ThisTask == 0)
+        {
+          printf("\n\n======================================\n");
+          printf("(Rank %d) We have reached the final Snapshot we're doing self-consistent reionizaiton for (Snap %d)\n", ThisTask, loop_SnapNum); 
+          printf("======================================\n\n");
+        }
+
+        break;
+      }
  
       before = clock(); 
       status = cifog_zero_grids(grid, simParam);
@@ -261,7 +292,7 @@ int main(int argc, char **argv)
 
         before = clock();
         status = update_reion_redshift(loop_SnapNum+1, ZZ[loop_SnapNum], GridSize, first_update_flag,
-                                       PhotoionDir, FileNameGalaxies, ReionRedshiftName);
+                                       PhotoionDir, RunPrefix, ReionRedshiftName);
         if (status !=  EXIT_SUCCESS)
         {
           goto err;
@@ -282,7 +313,7 @@ int main(int argc, char **argv)
       }
 
       before = clock();
-      status = filter_masses(FileNameGalaxies, SimulationDir, TreeName, PhotoionDir, PhotoionName, ReionRedshiftName,
+      status = filter_masses(RunPrefix, SimulationDir, TreeName, PhotoionDir, PhotoionName, ReionRedshiftName,
                              FirstFile, LastFile, GridSize, BoxSize, Hubble_h, loop_SnapNum, ZZ[loop_SnapNum], 
                              first_update_flag, ThisTask, NTask);
       filter_time = filter_time + (clock() - before);
@@ -307,7 +338,7 @@ int main(int argc, char **argv)
 #endif
 
   printf("About to cleanup\n");
-  status = sage_cleanup(argv);
+  status = sage_cleanup();
   if (status != EXIT_SUCCESS)
   {
     goto err;
@@ -360,10 +391,10 @@ int main(int argc, char **argv)
 
   if (ThisTask == 0)
   {
-    printf("SAGE took an average time of %.4f seconds to execute\n", master_SAGE_time / CLOCKS_PER_SEC);
-    printf("cifog took an average time of %.4f seconds to execute\n", master_cifog_time / CLOCKS_PER_SEC);
-    printf("Creation of Halo filter masses took an average time of %.4f seconds to execute\n", master_filter_time / CLOCKS_PER_SEC);
-    printf("Creation of reionization redshift grid took an average time of %.4f seconds to execute\n", master_misc_time / CLOCKS_PER_SEC * NTask); // Reionization redshift only done on root node.
+    printf("SAGE took an average time of %.4f seconds to execute on each Task.\n", master_SAGE_time / CLOCKS_PER_SEC);
+    printf("cifog took an average time of %.4f seconds to execute on each Task.\n", master_cifog_time / CLOCKS_PER_SEC);
+    printf("Creation of Halo filter masses took an average time of %.4f seconds to execute on each Task.\n", master_filter_time / CLOCKS_PER_SEC);
+    printf("Creation of reionization redshift grid took %.4f seconds to execute.\n", master_misc_time / CLOCKS_PER_SEC * NTask); // Reionization redshift only done on root node.
   }
 
 #ifdef MPI

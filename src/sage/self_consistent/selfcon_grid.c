@@ -6,7 +6,6 @@ that tracks the number of HI ionizing photons for the specified snapshot.
 This ionizing photon grid is then fed into `cifog` to determine the ionization regions.
 
 Author: Jacob Seiler
-Version: 0.0.1
 */
 
 #define _GNU_SOURCE
@@ -330,6 +329,42 @@ int32_t zero_selfcon_grid(struct SELFCON_GRID_STRUCT *my_grid)
   return EXIT_SUCCESS;
 }
 
+int32_t get_nion_prefix(char *nion_prefix)
+{
+
+  switch(fescPrescription)
+  {
+    case 0:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", beta, HaloPartCut);
+      break;
+
+    case 1:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
+      break;
+
+    case 2:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
+      break;
+
+    case 3:
+    case 4:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
+      break;
+
+    case 5:
+      snprintf(nion_prefix, MAX_STRING_LEN - 1, "SFR_%.3f_%.3f_%.3f_HaloPartCut%d", alpha, beta, delta, HaloPartCut);
+      break;
+
+    default:
+      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `save_selfcon_grid` in `selfcon_grid.c`.\nPlease add it there.\n");
+      return EXIT_FAILURE;
+
+  }
+
+  return EXIT_SUCCESS;
+}
+
+
 // Local Functions //
 
 /*
@@ -548,20 +583,15 @@ Depending on the value of `PhotonPrescription` specified, the prescription to ca
 
 0: Assigns a single value of fesc to all galaxies, regardless of properties.
    Value is given by `fesc`. 
-1: DEPRECATED.
-2: Power law as a function of halo mass, fesc = alpha*MH^beta. 
-   The values of `alpha` and `beta` are given by specifying two fixed points: (MH_low, fesc_low) and (MH_high, fesc_high).
-   These fixed points are specified in units of Msun; see `calculate_fesc_constants()` for exact equation. 
-3: Linear relationship as a function of the fraction of ejected baryons in the galaxy, fesc = alpha*fej + beta.
-   The values of `alpha` and `beta` are specified directly by the variables `alpha` and `beta` in the .ini file.
-4: The value of fesc is boosted by recent quasar activity. Each galaxy has a baselines fesc of `quasar_baseline`.
+1: Linear relationship as a function of the fraction of ejected baryons in the galaxy, fesc = alpha*fej + beta.
+   The values of `alpha` and `beta` are specified directly by the variables `alpha` and `beta` in the `.ini` file.
+2: The value of fesc is boosted by recent quasar activity. Each galaxy has a baselines fesc of `quasar_baseline`.
    Following a quasar event that ejects all gas from a galaxy, the galaxy is given an fesc value `quasar_boosted` for `N_dyntime` dynamical times.
    After this, it falls back to `quasar_baseline`.
-5,6: fesc either increases/decreases as a function of Halo Mass using Anne's specified functional forms.
+3,4: fesc either increases/decreases as a function of Halo Mass using Anne's specified functional forms.
    Ths fixed points are specified by giving (MH_low, fesc_low) and (MH_high, fesc_high).
-7: Same as 3 except the relationship is a power law of the form fesc = alpha*fej^beta.
-8: For galaxies with stellar mass between `fest_Mstar_low` and `fesc_Mstar_high` the value of fesc is set to `fesc_Mstar`.
-   All other galaxies are set to fesc = `fesc_not_Mstar`.
+5: Logistic relationship as a function of the star formation rate of the galaxy, fesc = delta / (1.0 + exp(-alpha*(log10(sfr)-beta))).
+  The values of `alpha`, `beta` and `delta` are specified directly in the `.ini` file.
 
 Parameters
 ----------
@@ -640,8 +670,10 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       *fesc_local = quasar_baseline * (1 - quasarfrac)  + quasar_boosted * quasarfrac;
       break;
     
-    case 3:
-      *fesc_local = fescMH_alpha*pow(halomass, fescMH_beta);
+    case 3: ;
+      double log_fesc = log10(fesc_low) - log10(halomass/MH_low) / log10(MH_high/MH_low) * log10(fesc_high/fesc_low);
+      *fesc_local = pow(10, log_fesc);
+
       if (fesc_low > fesc_high)
       {
         if (*fesc_local > fesc_low)
@@ -656,8 +688,10 @@ int32_t determine_fesc(struct GALAXY *g, int32_t snapshot, float *fesc_local)
       }
       break;
 
-    case 4:
-      *fesc_local = 1. - pow((1.-fesc_low) * ((1.-fesc_low)/(1.-fesc_high)),(-log10(halomass/MH_low)/log10(MH_high/MH_low)));
+    case 4: ;
+      double log_one_minus_fesc = log10(1.0 - fesc_low) - log10(halomass/MH_low) / log10(MH_high/MH_low) * log10((1.0 - fesc_low) / (1.0 - fesc_high));
+      *fesc_local = -1.0* (pow(10, log_one_minus_fesc) - 1);
+
       if (*fesc_local < fesc_low)
       {
         *fesc_local = fesc_low;
@@ -791,42 +825,12 @@ int32_t write_selfcon_grid(struct SELFCON_GRID_STRUCT *grid_towrite)
 { 
 
   FILE* file_HI;
-  char tag[MAX_STRING_LEN], fname_HI[MAX_STRING_LEN];
+  char nion_prefix[MAX_STRING_LEN], fname_HI[MAX_STRING_LEN];
   int32_t nwritten;
 
-  switch(fescPrescription)
-  {
-    case 0:
-      snprintf(tag, MAX_STRING_LEN - 1, "fesc%.2f_HaloPartCut%d", beta, HaloPartCut);
-      break;
+  get_nion_prefix(nion_prefix);
 
-    case 1:
-      snprintf(tag, MAX_STRING_LEN - 1, "ejected_%.3f_%.3f_HaloPartCut%d", alpha, beta, HaloPartCut); 
-      break;
-
-    case 2:
-      snprintf(tag, MAX_STRING_LEN - 1, "quasar_%.2f_%.2f_%.2f_HaloPartCut%d", quasar_baseline, quasar_boosted, N_dyntime, HaloPartCut);
-      break;
-
-    case 3:
-      snprintf(tag, MAX_STRING_LEN - 1, "myMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
-      break;
-
-    case 4:
-      snprintf(tag, MAX_STRING_LEN - 1, "AnneMH_%.3e_%.2f_%.3e_%.2f_HaloPartCut%d", MH_low, fesc_low, MH_high, fesc_high, HaloPartCut);      
-      break;
-
-    case 5:
-      snprintf(tag, MAX_STRING_LEN - 1, "SFR_%.3f_%.3f_%.3f_HaloPartCut%d", alpha, beta, delta, HaloPartCut);
-      break;
-
-    default:
-      fprintf(stderr, "The selected fescPrescription is not handled by the switch case in `save_selfcon_grid` in `selfcon_grid.c`.\nPlease add it there.\n");
-      return EXIT_FAILURE;
-
-  }
-
-  snprintf(fname_HI, MAX_STRING_LEN, "%s/%s_%s_nionHI_%03d", GridOutputDir, FileNameGalaxies, tag, ReionSnap);
+  snprintf(fname_HI, MAX_STRING_LEN, "%s/nion/%s_%s_nionHI_%03d", GridOutputDir, RunPrefix, nion_prefix, ReionSnap);
 
   file_HI = fopen(fname_HI, "wb");
   if (file_HI == NULL)

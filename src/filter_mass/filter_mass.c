@@ -28,7 +28,7 @@
 
 // Functions //
 
-int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName, 
+int32_t filter_masses(char *RunPrefix, char *TreeDir, char *TreeName, 
                       char *PhotoionDir, char *PhotoionName, char *ReionRedshiftName,
                       int32_t FirstFile, int32_t LastFile, int32_t GridSize, double BoxSize,
                       double Hubble_h, int32_t SnapNum, double Redshift, int32_t first_update_flag,
@@ -51,7 +51,7 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName,
     return EXIT_FAILURE; 
   }
 
-  params->FileNameGalaxies = FileNameGalaxies;
+  params->RunPrefix = RunPrefix;
   params->TreeDir = TreeDir;
   params->TreeName = TreeName;
   params->PhotoionDir = PhotoionDir;
@@ -133,8 +133,6 @@ int32_t filter_masses(char *FileNameGalaxies, char *TreeDir, char *TreeName,
       {
         return EXIT_FAILURE;
       }
-
-
 
       // Now time to go through all the halos in this tree, determine those at the Snapshot specified and the associate reionization modifier (if it's within an ionized cell).
       status = populate_halo_arrays(filenr, treenr, TreeNHalos[treenr], SnapNum, first_update_flag, Halos, Grid, params, &HaloID, &ReionMod, &NHalos_ThisSnap, &NHalos_Ionized, &NHalos_In_Regions, &sum_ReionMod);

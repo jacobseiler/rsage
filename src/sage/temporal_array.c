@@ -9,10 +9,10 @@
 #include <unistd.h>
 #include <assert.h>
 
-#include "../core_allvars.h"
-#include "../core_proto.h"
-#include "common.h"
-#include "selfcon_grid.h"
+#include "core_allvars.h"
+#include "core_proto.h"
+#include "temporal_array.h"
+#include "self_consistent/selfcon_grid.h"
 
 // Local Variables //
 

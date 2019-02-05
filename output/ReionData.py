@@ -1083,7 +1083,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
     # First calculate all the properties and statistics we need.
     reion_data = generate_data(rank, size, comm, reion_ini_files,
                                gal_ini_files, reion_plots, output_dir,
-                               model_tags)
+                               model_tags, output_format)
 
     # Gather all the fractions onto the master process.
     # This will be used for many different plots. 
@@ -1216,7 +1216,19 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
                                             model_tags, output_dir,
                                             "history_tau", output_format)
 
+    if reion_plots["optical_depth"] and reion_plots["nion"] and rank == 0:
+        print("Plotting the combined optical depth/ionizing emissivity.")
+        reionplot.plot_combined_nion_tau(reion_data["z_array_reion_allmodels"],
+                                          reion_data["lookback_array_reion_allmodels"],
+                                          reion_data["cosmology_allmodels"],
+                                          reion_data["t_bigbang_allmodels"],
+                                          master_nion,
+                                          reion_data["nion_factor_allmodels"],
+                                          tau_allmodels, model_tags, output_dir,
+                                          "nion_tau", output_format)
+
     if reion_plots["ps_scales"] or reion_plots["ps_scales_beta"]:
+        print("Gathering the 21cm Power Spectra across processors")
         k, P21, PHII = gather_ps(rank, size, comm,
                                  reion_data["k_allmodels"],
                                  reion_data["P21_allmodels"],
@@ -1349,7 +1361,7 @@ def plot_reion_properties(rank, size, comm, reion_ini_files, gal_ini_files,
 
 
 def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
-                  reion_plots, output_dir, model_tags):
+                  reion_plots, output_dir, model_tags, output_format):
     """    
     Reads in the galaxy data for calculate all the require properties for each
     models.
@@ -1559,9 +1571,20 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
 
                 nion_allmodels[model_number][snap_idx] = np.sum(nion)
 
+            # If we're plotting a single slice, we have the ionized cells open
+            # so let's plot it now!
+            if reion_plots["single_slice"]:
+                reionplot.plot_single_slice(z_array_reion[snap_idx], snap_idx,
+                                            XHII, mass_frac, GridSize, boxsize,  
+                                            reion_plots["cut_slice"],
+                                            reion_plots["cut_thickness"],
+                                            model_tags[model_number],
+                                            output_dir, output_format)
+
             # If we're plotting the power spectra in scale space need to
             # calculate them at every single snapshot.
-            if reion_plots["ps_scales"] or reion_plots["ps_scales_beta"]:
+            if reion_plots["ps_scales"] or reion_plots["ps_scales_beta"] or \
+               reion_plots["single_ps"]:
                 T0 = T_naught(z_array_reion[snap_idx], cosmology.H(0).value/100.0,
                               cosmology.Om0, cosmology.Ob0)
 
@@ -1569,9 +1592,19 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
                 tmp_k, tmp_PowSpec, tmp_Error, \
                 tmp_k_XHII, tmp_Pspec_HII, tmp_Error_XHII = calc_ps(XHII, density,
                                                                     boxsize)
+
+                factor = T0*T0 * tmp_k**3 * 4.0*np.pi
                 k_allmodels[model_number].append(tmp_k)
-                P21_allmodels[model_number].append(tmp_PowSpec * T0*T0 * tmp_k**3 * 4.0*np.pi)
+                P21_allmodels[model_number].append(tmp_PowSpec * factor) 
                 PHII_allmodels[model_number].append(tmp_Pspec_HII * tmp_k**3 * 4.0*np.pi)
+
+                if reion_plots["single_ps"]:
+                    reionplot.plot_single_ps(tmp_k, tmp_PowSpec * factor,
+                                             snap_idx, mass_frac,
+                                             reion_plots["small_scale_def"],
+                                             reion_plots["large_scale_def"],
+                                             model_tags[model_number],
+                                             output_dir, output_format)
 
             if reion_plots["bubble_size"] and \
                (mass_frac < 0.95 and mass_frac > 0.05):

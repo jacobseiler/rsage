@@ -8,6 +8,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "temporal_array.h"
 
 void init_galaxy(int p, int halonr, int treenr, int32_t filenr)
 {

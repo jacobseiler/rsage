@@ -115,12 +115,12 @@ def plot_nion(z_array_full_allmodels, lookback_array_full_allmodels,
     ax1.tick_params(which = 'minor', length = ps.global_ticklength-2)
 
     leg = ax1.legend(loc='lower right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
@@ -128,8 +128,8 @@ def plot_nion(z_array_full_allmodels, lookback_array_full_allmodels,
 def plot_mstar_fesc(mstar_bins, mstar_bin_width, 
                     z_array_full_allmodels, mean_allmodels, std_allmodels,
                     N_allmodels, model_tags, output_dir, output_tag,
-                    output_format, plot_models_at_snaps=None,
-                    plot_snaps_for_models=None):
+                    output_format, plot_snaps_for_models, plot_models_at_snaps,
+                    plot_single_panel):
     """
     Plots the escape fraction as a function of stellar mass. 
 
@@ -167,15 +167,19 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
     output_format : String
         Format the plot is saved in.
 
+    plot_snaps_for_models : 2D nested list of integers.  Outer length is number
+                           of models.
+        If not ``None``, plots all models at a single, specified snapshot. That
+        is, each panel will be for all models at one specified snapshot. 
+
     plot_models_at_snaps : 2D nested list of integers.  Outer length is number
-                           of models, optional
+                           of models,
         If not ``None``, plots each model at the specified snapshots. That is,
         each panel will be for one model at the specified snapshots.
 
-    plot_snaps_for_models : 2D nested list of integers.  Outer length is number
-                           of models, optional
-        If not ``None``, plots all models at a single, specified snapshot. That
-        is, each panel will be for all models at one specified snapshot. 
+    plot_single_panel : Integer.
+        If not ``None`` or 0, plots the data in a single panel rather than over
+        multiple ones.
 
     Returns
     ---------
@@ -184,85 +188,123 @@ def plot_mstar_fesc(mstar_bins, mstar_bin_width,
     """
 
     # Our plotting area will be a square so find out the max NxN deimsnion.
-    if plot_models_at_snaps:
+    if plot_single_panel:
+        nrows = 1
+    elif plot_models_at_snaps:
         nrows = int((np.sqrt(len(plot_models_at_snaps))))
     else:
         nrows = int((np.sqrt(len(plot_snaps_for_models)))) 
 
+    print("Making mstar_fesc plot with {0} rows/columns".format(nrows))
+
+    if nrows == 1:
+        figsize=(8,8)
+    else:
+        figsize=(16,16)
+    
     fig1, ax = plt.subplots(nrows=nrows, ncols=nrows, 
-                            sharex='col', sharey='row', figsize=(16,6))
+                            sharex='col', sharey='row', figsize=figsize)
 
     row_ax = -1
     for count, model_number in enumerate(range(len(z_array_full_allmodels))):
         if count % nrows == 0:
             row_ax += 1
         col_ax = count % nrows
+
+        if nrows > 1:
+            this_ax = ax[row_ax, col_ax]
+        else:
+            this_ax = ax
+
         for snap_count, snap in enumerate(plot_snaps_for_models[model_number]):
 
             z_label = r"$\mathbf{z = " + \
                         str(int(round(z_array_full_allmodels[model_number][snap],0))) + \
                        "}$"                
 
+            #z_label = model_tags[model_number]
+
             mean = mean_allmodels[model_number][snap]
             w_low = np.where(N_allmodels[model_number][snap] < 4)[0]
             mean[w_low] = np.nan
 
-            ax[row_ax, col_ax]. plot(mstar_bins[:-1] + mstar_bin_width*0.5,
-                                     mean, 
-                                     color=ps.colors[snap_count],
-                                     dashes=ps.dashes[snap_count],
-                                     label = z_label) 
+            this_ax.plot(mstar_bins[:-1] + mstar_bin_width*0.5,
+                         mean, 
+                         color=ps.colors[snap_count],
+                         dashes=ps.dashes[snap_count],
+                         label=z_label) 
+        if nrows > 1:
+            if col_ax == 0:
+                ax_text_x = 0.75
+            else:
+                ax_text_x = 0.05                
 
-        ax[row_ax, col_ax].text(0.05, 0.65, model_tags[model_number],
-                                transform = ax[row_ax, col_ax].transAxes,
-                                fontsize = ps.global_fontsize) 
+            if row_ax == 0:
+                ax_text_y = 0.05
+            else:
+                ax_text_y = 0.90
+
+            this_ax.text(ax_text_x, ax_text_y, model_tags[model_number],
+                         transform=this_ax.transAxes,
+                         fontsize=ps.global_fontsize+4) 
 
         for axis in ['top','bottom','left','right']: # Adjust axis thickness.
-            ax[row_ax, col_ax].spines[axis].set_linewidth(ps.global_axiswidth)
+            this_ax.spines[axis].set_linewidth(ps.global_axiswidth)
 
-        ax[row_ax, col_ax].tick_params(which = 'both', direction='in', width =
+        this_ax.tick_params(which = 'both', direction='in', width =
                                        ps.global_tickwidth)
-        ax[row_ax, col_ax].tick_params(which = 'major', length = ps.global_ticklength)
-        ax[row_ax, col_ax].tick_params(which = 'minor', length = ps.global_ticklength-2)
+        this_ax.tick_params(which = 'major', length = ps.global_ticklength)
+        this_ax.tick_params(which = 'minor', length = ps.global_ticklength-2)
 
     # Set variables for every column.
     tick_locs = np.arange(4.0, 11.0)
     for ax_count in range(nrows):
-        ax[nrows-1, ax_count].set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
-                                         size = ps.global_fontsize)
-        ax[nrows-1, ax_count].set_xlim([4.8, 10.2])
-        ax[nrows-1, ax_count].xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
-        ax[nrows-1, ax_count].xaxis.set_major_locator(mtick.MultipleLocator(1.0))
-        ax[nrows-1, ax_count].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
-                                              fontsize = ps.global_fontsize)
-    
-    labels = ax[1,0].xaxis.get_ticklabels()
-    locs = ax[1,0].xaxis.get_ticklocs()
-    for label, loc in zip(labels, locs):
-        print("{0} {1}".format(label, loc)) 
+        if nrows > 1:
+            this_ax = ax[nrows-1, ax_count]
+        else:
+            this_ax = ax
+
+        this_ax.set_xlabel(r'$\mathbf{log_{10} \: M_{*} \:[M_{\odot}]}$', 
+                           size = ps.global_fontsize)
+        this_ax.set_xlim([4.8, 10.2])
+        this_ax.xaxis.set_minor_locator(mtick.MultipleLocator(0.25))
+        this_ax.xaxis.set_major_locator(mtick.MultipleLocator(1.0))
+        this_ax.set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+                                fontsize = ps.global_fontsize)
 
     # Set variables for every row.
     tick_locs = np.arange(-0.10, 0.60, 0.10)
     for ax_count in range(nrows):
-        ax[ax_count, 0].set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
-                                   size = ps.global_labelsize)
+        if nrows > 1:
+            this_ax = ax[ax_count, 0]
+        else:
+            this_ax = ax
 
-        ax[ax_count, 0].set_ylim([-0.02, 0.58])
-        ax[ax_count, 0].yaxis.set_minor_locator(mtick.MultipleLocator(0.1))
-        ax[ax_count, 0].yaxis.set_major_locator(mtick.MultipleLocator(0.1))
-        ax[ax_count, 0].set_yticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs], 
-                                         fontsize = ps.global_fontsize)
+        this_ax.set_ylabel(r'$\mathbf{\langle f_{esc}\rangle_{M_*}}$', 
+                           size = ps.global_labelsize)
 
-    leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+        this_ax.set_ylim([-0.01, 0.41])
+        this_ax.yaxis.set_minor_locator(mtick.MultipleLocator(0.05))
+        this_ax.yaxis.set_major_locator(mtick.MultipleLocator(0.1))
+        this_ax.set_yticklabels([r"$\mathbf{%.1f}$" % x for x in tick_locs], 
+                                fontsize = ps.global_fontsize)
+
+    if nrows > 1:
+        this_ax = ax[0, 0]
+    else:
+        this_ax = ax
+
+    leg = this_ax.legend(loc='upper right', numpoints=1, labelspacing=0.1,
+                         handlelength=ps.global_legend_handlelength)
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     plt.tight_layout()
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
@@ -360,7 +402,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
                            r"$\mathbf{10^{-2}}$",r"$\mathbf{10^{-1}}$"]) 
     ax[0].set_ylim([1e-5, 3e-1])
     #ax[0].set_ylabel(r'\mathbf{$\log_{10} \Phi\ [\mathrm{Mpc}^{-3}\: \mathrm{dex}^{-1}]}$', 
-    ax[0].set_ylabel(r'$\mathbf{log_{10} \: \Phi\ [Mpc^{-3}\: dex^{-1}]}$', 
+    ax[0].set_ylabel(r'$\mathbf{\Phi\ [Mpc^{-3}\: dex^{-1}]}$', 
                      fontsize = ps.global_labelsize) 
 
     # Now lets overplot the Observational Data. 
@@ -381,14 +423,14 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
     ax[2].text(0.7, 0.9, r"$\mathbf{z = 8}$", transform = ax[2].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
 
     leg = ax[0].legend(loc='lower left', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize - 2)
 
     plt.tight_layout()
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
@@ -487,15 +529,15 @@ def plot_mstar_fej(mstar_bins, mstar_bin_width, z_array_full_allmodels,
         #                                 fontsize = ps.global_fontsize)
 
     leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     plt.tight_layout()
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
@@ -594,15 +636,15 @@ def plot_mstar_SFR(mstar_bins, mstar_bin_width, z_array_full_allmodels,
         #                                 fontsize = ps.global_fontsize)
 
     leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
-    leg.draw_frame(False)  # Don't want a box frame
-    for t in leg.get_texts():  # Reduce the size of the text
+    leg.draw_frame(False)
+    for t in leg.get_texts():
         t.set_fontsize(ps.global_legendsize)
 
     plt.tight_layout()
     plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
 
     outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
-    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    fig1.savefig(outputFile1, bbox_inches='tight')
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
 
@@ -666,8 +708,6 @@ def plot_2D_line(bins, bin_width, binning_array_allmodels,
     else:
         nrows = int(np.ceil(np.sqrt(len(plot_snaps_for_models)))) 
 
-    print(nrows)
-    exit()
     fig1, ax = plt.subplots(nrows=nrows, ncols=nrows, 
                             sharex='col', sharey='row', figsize=(16,6))
 

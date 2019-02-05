@@ -410,9 +410,9 @@ int32_t init_fesc(void)
     case 3:
       if (ThisTask == 0)
       {
-        printf("\n\nUsing an fesc prescription that scales as a power law with halo mass.\n");        
+        printf("\n\nUsing Anne's functional form for an escape fraction that increases for descreasing halo mass.\n");
+        printf("MH_low = %.4e\tMH_high = %.4e\tfesc_low = %.4f\tfesc_high =  %.4f.\n", MH_low, MH_high, fesc_low, fesc_high);
       }
-      determine_fescMH_constants();
       XASSERT(fesc_low > fesc_high, "Input file contain fesc_low = %.2f and fesc_high = %.2f. For this prescription (fescPrescription == 3), we require fesc_low > fesc_high\n", fesc_low, fesc_high);
 
       break;
@@ -446,15 +446,19 @@ int32_t init_fesc(void)
 For some escape fraction prescriptions, the functional form is a power law with the constants calculated using two fixed points.
 This function determines these constants based on the fixed points specified.
 Refer to the .ini file or `determine_fesc()` function for full details on each `fescPrescription`.
+
 Parameters
 ----------
 None.  All variables used/adjusted are global.
+
 Returns
 ----------
-None. All variables adjusted are global.
+None. All variables adjusted are global
+.
 Pointer Updates
 ----------
 None.
+
 Units  
 ----------
 The Halo Masses used to specify the fixed points (MH_low and MH_high) are in Msun.

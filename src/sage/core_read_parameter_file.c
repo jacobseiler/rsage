@@ -29,12 +29,16 @@ int32_t read_parameter_file(char *fname)
   char tag[MAXTAGS][50];
   int errorFlag = 0; 
 
-  strcpy(tag[nt], "FileNameGalaxies");
-  addr[nt] = FileNameGalaxies;
+  strcpy(tag[nt], "RunPrefix");
+  addr[nt] = RunPrefix;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "OutputDir");
   addr[nt] = OutputDir;
+  id[nt++] = STRING;
+
+  strcpy(tag[nt], "GalaxyOutputDir");
+  addr[nt] = GalaxyOutputDir;
   id[nt++] = STRING;
 
   strcpy(tag[nt], "GridOutputDir");
@@ -207,6 +211,10 @@ int32_t read_parameter_file(char *fname)
 
   strcpy(tag[nt], "LowSnap");
   addr[nt] = &LowSnap;
+  id[nt++] = INT;
+
+  strcpy(tag[nt], "HighSnap");
+  addr[nt] = &HighSnap;
   id[nt++] = INT;
 
   strcpy(tag[nt], "GridSize");
@@ -392,12 +400,12 @@ int32_t check_ini_parameters(void)
   {
     case 0:
     case 1:
-    case 2:
     case 3:
       break;
 
     default:
-      fprintf(stderr, "The only valid options for `ReionizationOn` are 0, 1, 2 or 3. You entered %d\n", ReionizationOn);
+      fprintf(stderr, "The only valid options for `ReionizationOn` are 0, 1, or 3. You entered %d\n", ReionizationOn);
+      fprintf(stderr, "Note: `ReionizationOn = 2` is deprecated.\n");
       return EXIT_FAILURE;
   }
 

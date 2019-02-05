@@ -4,10 +4,14 @@
 #ifdef RSAGE
 
 #include "../grid-model/src/confObj.h"
-int32_t check_ini_files(confObj_t *simParam, char *PhotoionName, char *PhotoionDir, int32_t fescPrescription, double alpha, double beta, double delta,
-                        double quasar_baseline, double quasar_boosted, double N_dyntime, double MH_low, double fesc_low,
-                        double MH_high, double fesc_high, int32_t HaloPartCut);
+
+int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *RunPrefix,
+                        char **argv, int32_t ThisTask);
 
 #endif
+
+int32_t check_sage_ini(char *RunPrefix, char *OutputDir, char *GalaxyOutputDir,
+                       char *GridOutputDir, char *PhotoionDir, char *PhotoionName,
+                       char *ReionRedshiftName, char **argv, int32_t ThisTask);
 
 #endif
