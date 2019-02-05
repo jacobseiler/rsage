@@ -27,11 +27,7 @@ differently depending upon the value of ``fescPrescription``). The following
 
 The following ``_cifog.ini`` fields allow this:
 
-* ``inputNionFile`` ->
-``<OutputDir>/grids/nion/<RunPrefix>_<NionPrefix>_nionHI`` where
-``<NionPrefix>`` depends upon ``fescPrescription`` and the constants used. See
-``get_nion_prefix()`` in ``src/sage/self_consistent/selfcon_grid.c`` for a full
-description.
+* ``inputNionFile`` -> ``<OutputDir>/grids/nion/<RunPrefix>_<NionPrefix>_nionHI`` where ``<NionPrefix>`` depends upon ``fescPrescription`` and the constants used. See ``get_nion_prefix()`` in ``src/sage/self_consistent/selfcon_grid.c`` for a full description.
 * ``output_XHII_file`` -> ``<OutputDir>/grids/cifog/<RunPrefix>_XHII``
 * ``output_photHI_file`` -> ``<OutputDir>/grids/cifog/<RunPrefix>_photHI``
 * ``output_restart_file`` -> ``<OutputDir>/grids/cifog/<RunPrefix>_restart``
