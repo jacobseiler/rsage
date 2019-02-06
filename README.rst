@@ -24,7 +24,8 @@ Downloading
 
 .. code::
 
-    $ git clone https://github.com/jacobseiler/rsage 
+    $ git clone https://github.com/jacobseiler/rsage
+    $ cd rsage/
     $ git submodule init
     $ git submodule update 
 
