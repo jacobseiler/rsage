@@ -163,6 +163,14 @@ int main(int argc, char **argv)
       goto err;
     }
 
+    if (simParam->grid_size != GridSize)
+    {
+      fprintf(stderr, "The grid size according to the cifog ini file is %d\n", simParam->grid_size); 
+      fprintf(stderr, "The grid size according to the SAGE ini file is %d\n", GridSize);
+      fprintf(stderr, "These MUST be equal.\n");
+      goto err; 
+    }
+
   }
 
 #endif
@@ -230,7 +238,7 @@ int main(int argc, char **argv)
       // and also done the final iteration of SAGE.  So we now exit from
       // this loop. Note: We do +1 because the first iteration of RSAGE does not
       // actually cause any reionization. 
-      if (loop_SnapNum == HighSnap + 1)
+      if (loop_SnapNum == HighSnap + 2)
       {
 
         if (ThisTask == 0)
