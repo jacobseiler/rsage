@@ -44,7 +44,7 @@
 float spectralflux_wavelength_to_frequency(float flux, float wavelength)
 {
 
-    float f_nu = 3.34e4 * pow(wavelength, 2) * flux;
+    float f_nu = 3.34e4 * pow(wavelength,2) * flux;
 
     return f_nu; 
 }

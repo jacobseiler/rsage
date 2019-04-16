@@ -152,14 +152,25 @@ void update_temporal_array(int p, int halonr, int steps_completed)
 
       // We calculat the UV Magnitude at 1600 Angstroms.
       Gal[p].MUV[SnapCurr] = luminosity_to_ABMag(log_LUV, 1600);
-      if(Gal[p].MUV[SnapCurr] > -0.1 && Gal[p].MUV[SnapCurr] < 0.1)
-        printf("LUV: %.4e\tlog_LUV: %.4e\n", LUV, log_LUV);
+      if(Gal[p].MUV[SnapCurr] > -0.1 && Gal[p].MUV[SnapCurr] < 0.1) {
+        fprintf(stderr, "LUV: %.4e\tlog_LUV: %.4e\n", LUV, log_LUV);
+      }
     } 
     else
     { 
       Gal[p].MUV[SnapCurr] = 999.9; 
-    } 
+    }
+
+    /*
+    for(int32_t snap = 0; snap < MAXSNAPS; ++snap) {
+      if(Gal[p].MUV[snap] > -0.001 && Gal[p].MUV[snap] < 0.001) {
+          fprintf(stderr, "In Update: Snap %d has MUV %.4e\n", snap, Gal[p].MUV[snap]);
+      }
+    }
+    */
+
   }
+
   /*
   double tmp, tmp_LUV, tmp_MUV;
 
@@ -317,10 +328,19 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
   free(buffer); \
 }
 
+
   int j;  
   int32_t nwritten;
   void *buffer; 
   const double SFR_CONVERSION = UnitMass_in_g/UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS/STEPS; // Conversion from the SFR over one snapshot to Msun/yr. 
+
+  /*
+  for(int32_t snap = 0; snap < MAXSNAPS; ++snap) {
+    if(g->MUV[snap] > -0.001 && g->MUV[snap] < 0.001) {
+        fprintf(stderr, "IMMEDIATELY BEFORE WRITING Snap %d has MUV %.4e with SFR %.4e\n", snap, g->MUV[snap], g->GridSFR[snap] * SFR_CONVERSION);
+    }
+  }
+  */
 
   nwritten = fwrite(&g->TreeNr, sizeof(g->TreeNr), 1, fp);
  
@@ -350,10 +370,17 @@ void write_temporal_arrays(struct GALAXY *g, FILE *fp)
   WRITE_GRID_PROPERTY(g->GridReionMod, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->GridNgamma_HI, MAXSNAPS);
   WRITE_GRID_PROPERTY(g->Gridfesc, MAXSNAPS);
-  WRITE_GRID_PROPERTY(g->MUV, MAXSNAPS);
+  //WRITE_GRID_PROPERTY(g->MUV, MAXSNAPS);
   //WRITE_GRID_PROPERTY(g->ColdCrit, MAXSNAPS);
   //WRITE_CONVERTED_GRID_PROPERTY(g->GridInfallRate, MAXSNAPS, SFR_CONVERSION, typeof(*(g->GridSFR)));
- 
+
+  /*
+  for(int32_t snap = 0; snap < MAXSNAPS; ++snap) {
+    if(g->MUV[snap] > -0.001 && g->MUV[snap] < 0.001) {
+        fprintf(stderr, "IsMerged %d\tSnap %d has MUV %.4e\n", g->IsMerged, snap, g->MUV[snap]);
+    }
+  }
+  */
 #undef WRITE_GRID_PROPERTY
 #undef WRITE_CONVERTED_GRID_PROPERTY 
 }

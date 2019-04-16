@@ -465,7 +465,7 @@ void add_galaxy_to_merger_list(int p)
     MergedGal[MergedNr].GridReionMod[j]        = Gal[p].GridReionMod[j];
     MergedGal[MergedNr].GridNgamma_HI[j]       = Gal[p].GridNgamma_HI[j];
     MergedGal[MergedNr].Gridfesc[j]            = Gal[p].Gridfesc[j];
-    MergedGal[MergedNr].ColdCrit[j]            = Gal[p].ColdCrit[j];
+    MergedGal[MergedNr].MUV[j]                 = Gal[p].MUV[j];
   }
 
   if (IRA == 0)

@@ -23,10 +23,10 @@ int32_t init_UVlookup(void)
 
   // Using STARBURST99 it was determined that the 1600A Luminosty depends on the mass
   // of stars formed and the time since the starburst. Furthermore, the UV luminosity linearly with the mass of stars formed.
-  // That is, a starburst that forms 7.0e10Msun worth of stars will exhibit 10 times the UV luminosity as a starburst that forms 6.0e10Msun worth of stars.
+  // That is, a starburst that forms 6.0e11Msun worth of stars will exhibit 10 times the UV luminosity as a starburst that forms 6.0e10Msun worth of stars.
 
   // So if we read in a table that contains the number of ionizing photons emitted from a starburst for a 6.0e10Msun episode, then we can scale our values to this lookup table
-  // using log10 LUV(Msun, t) = (log10 M* - 6.0) + log10 LUV(6.0, t). 
+  // using log10 LUV(Msun, t) = (log10 M* - 6.0) + log10 LUV(6.0, t).
 
 #define MAXBINS 10000
 
@@ -54,6 +54,8 @@ int32_t init_UVlookup(void)
   {
 
     stars_LUV[num_lines] = LUV;
+
+    fprintf(stderr, "t = %.4e\tlambda = %.4e\tLUV = %.4e\tnorm_spec = %.4e\n", t, lambda, LUV, norm_spec);
 
     ++num_lines;
     if (num_lines == MAXBINS - 1)
@@ -127,9 +129,10 @@ int32_t calc_LUV(struct GALAXY *g, float *LUV)
       continue;
 
     t = (i + 1) * TimeResolutionStellar; // (i + 1) because 0th entry will be at TimeResolutionSN.
-    lookup_idx = (t / 0.1); // Find the index in the lookup table. 
+    lookup_idx = t; // Find the index in the lookup table.
 
     *LUV += exp10(log10(g->Stellar_Stars[i] / code_LUV_lookuptable_mass) + stars_LUV[lookup_idx] - 50.0);        
+    //printf("t %.4f\tlookup_idx %d\tg->Stellar_Stars[i] %.4e\tstars_LUV[lookup_idx] %.4e\tRunningTotal %.4e\n", t, lookup_idx, g->Stellar_Stars[i], stars_LUV[lookup_idx], *LUV);
   }
 
   // The units of LUV are 1.0e50 erg s^-1 A^-1.  Hence a negative value is not allowed.

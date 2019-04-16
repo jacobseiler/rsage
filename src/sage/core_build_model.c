@@ -355,6 +355,12 @@ void evolve_galaxies(int halonr, int ngal, int tree)	// Note: halonr is here the
 
       starformation_and_feedback(p, centralgal, time, substep_dt, halonr, step, tree, ngal);
 
+      for(int32_t snap = 0; snap < MAXSNAPS; ++snap) {
+        if(Gal[p].MUV[snap] > -0.001 && Gal[p].MUV[snap] < 0.001) {
+            fprintf(stderr, "In Evolve: Snap %d has MUV %.4e\n", snap, Gal[p].MUV[snap]);
+        }
+      }
+
     }
 
     // check for satellite disruption and merger events 

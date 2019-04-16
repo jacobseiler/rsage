@@ -85,7 +85,7 @@ ifeq ($(DO_CHECKS), 1)
   CFLAGS += $(GSL_INCL)
 
   OPTIMIZE = -O2 -march=native -mno-fma
-  CFLAGS += -g -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
+  CFLAGS += -g -Wextra -Wall -Wshadow # optimization and warning flags
   LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas
   CFLAGS += $(OPTIMIZE) $(OPT)
 endif
