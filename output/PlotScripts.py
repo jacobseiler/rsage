@@ -362,3 +362,58 @@ def adjust_axis(ax, axis_width, tickwidth, major_ticklength,
                    length = minor_ticklength) 
 
     return ax
+
+
+def define_UV_plotting_params():
+
+    global UVLF_colors
+    global UVLF_markers
+    global UVLF_linestyles
+    global UVLF_linewidths
+
+    UVLF_colors = ["#31a354", "#2b8cbe", "#c51b8a", "m", "r", "b", "g"]
+    UVLF_markers = ["o", "s", "D", "x", "O", "p", "8"]
+    UVLF_linestyles = ["-", "--", "-."]
+    UVLF_linewidth = 3
+
+
+def plot_UVLF_data(ax, hubble_h, IMF, z_target):
+
+    # Use `astrodatapy` to grab the data we need. 
+    from astrodatapy.number_density import number_density
+
+    obs = number_density(feature="GLF_UV", z_target=z_target, z_tol=0.25, h=hubble_h,
+                         quiet=0)
+
+    # Then iterate through all the available observations.
+    scatter_counter = 0
+    line_counter = 0
+
+    for obs_idx in range(obs.n_target_observation):
+
+        # Grab the data and parameters from the observations.
+        data = obs.target_observation["Data"][obs_idx]
+        label = obs.target_observation.index[obs_idx]
+        label = "${0}$".format(label)
+        #obs.target_observation.index[obs_idx]
+        datatype = obs.target_observation["DataType"][obs_idx]
+
+        # Set plotting parameters.
+        color = UVLF_colors[obs_idx]
+        marker = UVLF_markers[scatter_counter]
+        linestyle = UVLF_linestyles[line_counter]
+
+        # The observations could be single scatter points with +- errors (data), single
+        # scatter points with only upper limits (dataULimit) or fitted lines with shaded error regions (else).
+        if datatype == "data":
+            ax.errorbar(data[:,0], data[:,1], yerr=[data[:,1]-data[:,3],data[:,2]- data[:,1]],
+                        label=label, color=color, fmt=marker)
+            scatter_counter += 1
+        elif datatype == "dataULimit":
+            ax.errorbar(data[:,0], data[:,1], yerr = -0.2*data[:,1], uplims=True,
+                        label=label, color=color, fmt=marker)
+            scatter_counter += 1
+        else:
+            ax.plot(data[:,0],data[:,1],label=label,color=color,linestyle=linestyle,lw=3)
+            ax.fill_between(data[:,0], data[:,2],data[:,3],color=color,alpha=0.5)
+            line_counter += 1

@@ -248,9 +248,9 @@ if __name__ == "__main__":
                       r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
     if UV:
-        output_directory = "./UV"
+        output_directory = "./dust_dust_dust_dust"
 
-        gal_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/test_UV_SAGE.ini"
+        gal_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/april2019_SAGE.ini"
         reion_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/test_UV_cifog.ini"
 
         gal_ini_files = [gal_ini]
@@ -300,9 +300,13 @@ if __name__ == "__main__":
 
     # If you only want to use a specific range of files, specify here. If you
     # want to use all the files from a model, set these to ``None``.
-    first_file = None 
+    first_file = None
     last_file = None
-   
+
+    dust_to_gas_ratio = [1.0, 1.0, 1.0]
+    radius_dust_grains = [5.0e-6, 5.0e-6, 5.0e-6]
+    density_dust_grains = [2.25, 2.25, 2.25]
+
     # =============================================== #
     # Galaxy Plotting Time (Shouldn't need to touch). # 
     # =============================================== #
@@ -318,7 +322,10 @@ if __name__ == "__main__":
                     "SMF_plot_z" :            SMF_plot_z,
                     "UVLF_plot_z" :           UVLF_plot_z,
                     "first_file" :            first_file,
-                    "last_file" :             last_file}
+                    "last_file" :             last_file,
+                    "dust_to_gas_ratio" :     dust_to_gas_ratio,
+                    "radius_dust_grains" :    radius_dust_grains,
+                    "density_dust_grains" :   density_dust_grains}
 
     # Check if any galaxy plots need to be done.
     for field in galaxy_plots.keys():

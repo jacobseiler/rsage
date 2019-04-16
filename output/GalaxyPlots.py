@@ -368,6 +368,7 @@ def plot_SMF(mstar_bins, mstar_bin_width, z_array_full_allmodels,
                            dashes=ps.dashes[model_number],
                            label = label)
 
+            print("SMF: Snap {0}\t{1}".format(snap, np.sum(SMF[model_number][snap])))
             if model_number == 0:
             
                 tick_locs = np.arange(6.0, 12.0)
@@ -638,8 +639,8 @@ def plot_mstar_SFR(mstar_bins, mstar_bin_width, z_array_full_allmodels,
 
 
 def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
-             cosmology_allmodels, UVLF, plot_z, model_tags, output_dir,
-             output_tag, output_format):
+             cosmology_allmodels, UVLF, dustcorrected_UVLF, plot_z, model_tags,
+             output_dir, output_tag, output_format):
     """
     Plots the UV luminosity function. That is, the number count of galaxies
     binned on (Absolute) UV Magnitude. 
@@ -667,6 +668,8 @@ def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
         The UV luminosity function at each snapshot for each model.  That is,
         the number of galaxies within each UV magnitude bin (given by 
         ``MUV_bins``).
+
+    dustcorrected_UVLF : Same as ``UVLF`` but corrected for dust attenuation.
 
     plot_z : 2D nested list of floats. Outer length is equal to number of models.
         The redshift at which we wish to plot the UV luminosity function for
@@ -709,12 +712,20 @@ def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
                            dashes=ps.dashes[model_number],
                            label=label)
 
+            ax[count].plot(MUV_bins[:-1] + MUV_bin_width*0.5,
+                           dustcorrected_UVLF[model_number][snap],
+                           color=ps.colors[model_number+1],
+                           dashes=ps.dashes[model_number+1],
+                           label=label + "Dust Corrected")
+
+            print("UVLF: Snap {0}\t{1}".format(snap, np.sum(UVLF[model_number][snap])))
+
             if model_number == 0:
 
                 tick_locs = np.arange(6.0, 12.0)
                 #ax[count].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs],
                 #                          fontsize = ps.global_fontsize)
-                #ax[count].set_xlim([6.8, 10.3])
+                ax[count].set_xlim([-23.0, -5.0])
                 ax[count].set_xlabel(r'$\mathbf{M_{UV}}$', 
                                      fontsize = ps.global_labelsize)
                 #ax[count].xaxis.set_minor_locator(plt.MultipleLocator(0.25))
@@ -734,14 +745,12 @@ def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
                      fontsize = ps.global_labelsize) 
 
     # Now lets overplot the Observational Data. 
-    #obs.Get_Data_SMF()
+    ps.define_UV_plotting_params()
 
-    #caps = 5
-    #ewidth = 1.5
-
-    #ps.Plot_SMF_z6(ax[0], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
-    #ps.Plot_SMF_z7(ax[1], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
-    #ps.Plot_SMF_z8(ax[2], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
+    for my_ax, z in zip(ax, [6.0, 7.0, 8.0]):
+        ps.plot_UVLF_data(my_ax, cosmology_allmodels[0].H(0).value/100.0, "", z)
+    #ps.Plot_UVLF_z7(ax[1], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
+    #ps.Plot_UVLF_z8(ax[2], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
     
     ####
 
@@ -750,7 +759,7 @@ def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
     ax[1].text(0.7, 0.9, r"$\mathbf{z = 7}$", transform = ax[1].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
     ax[2].text(0.7, 0.9, r"$\mathbf{z = 8}$", transform = ax[2].transAxes, fontsize = ps.global_fontsize - delta_fontsize)
 
-    leg = ax[0].legend(loc='lower left', numpoints=1, labelspacing=0.1)
+    leg = ax[0].legend(loc='lower right', numpoints=1, labelspacing=0.1)
     leg.draw_frame(False)  # Don't want a box frame
     for t in leg.get_texts():  # Reduce the size of the text
         t.set_fontsize(ps.global_legendsize - 2)
