@@ -248,7 +248,7 @@ if __name__ == "__main__":
                       r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
 
     if UV:
-        output_directory = "./dust_dust_dust_dust"
+        output_directory = "./tmp_dust"
 
         gal_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/april2019_SAGE.ini"
         reion_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/test_UV_cifog.ini"
@@ -278,15 +278,14 @@ if __name__ == "__main__":
     # For some plots, there is the option of plotting one model at different
     # snapshots (within one panel) or plotting all models at one snapshot
     # (within one panel).  
-    plot_snaps_for_models = [[76],  # For each panel, plot one model 
+    plot_snaps_for_models = [[93, 76, 64],  # For each panel, plot one model 
                              [76],  # at specified snapshots.
-                             [76],   
-                             [76],   
                              [76],   
                              [76]]  
     #plot_snaps_for_models = None
-    plot_models_at_snaps = [76] # For each panel, plot one specified snapshot 
-                                # for all models.
+    plot_models_at_snaps = None
+    #plot_models_at_snaps = [76] # For each panel, plot one specified snapshot 
+    #                            # for all models.
 
     plot_single_panel = 1  # Instead of plotting multiple panels, plot all on a
                            # single panel.

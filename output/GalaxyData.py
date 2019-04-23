@@ -94,8 +94,6 @@ def calc_dust_tau(radius_dust_grains, density_dust_grains, dust_radius, dustmass
 
     tau = 3.0 * sigma_dust / (4.0 * radius_dust_grains * density_dust_grains)
 
-    #print("dustmass[0:10] {0}\tsigma_dust[0:10] {1}\ttau[0:10] {2}".format(dustmass[0:10], sigma_dust[0:10], tau[0:10]))
-
     return tau
 
 
@@ -364,6 +362,8 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                              model_tags, output_dir, "SMF", output_format)
 
     if galaxy_plots["UVLF"]:
+
+        # First do the actual UV LFs.
         master_UVLF_allmodels = collective.collect_hist_across_tasks(rank, comm,
                                                                      galaxy_data["UVLF_allmodels"]) 
 
@@ -379,6 +379,48 @@ def plot_galaxy_properties(rank, size, comm, ini_files, model_tags,
                               master_dustcorrected_UVLF_allmodels,
                               galaxy_plots["UVLF_plot_z"],
                               model_tags, output_dir, "UVLF", output_format)
+
+        # Now do the dust attenuation as a function of magnitude.
+        master_mean_MUV_A1600, master_std_MUV_A1600, master_N_MUV_A1600, _ = \
+            collective.collect_across_tasks(rank, comm,
+                                            galaxy_data["mean_MUV_A1600_allmodels"],
+                                            galaxy_data["std_MUV_A1600_allmodels"],
+                                            galaxy_data["N_MUV_A1600_allmodels"],
+                                            galaxy_data["z_array_full_allmodels"],
+                                            BinSnapList=galaxy_data["z_array_full_allmodels"],
+                                            binned=True)
+
+
+        if rank == 0:
+            galplot.plot_MUV_A1600(galaxy_data["MUV_bins"],
+                                   galaxy_data["MUV_bin_width"],
+                                   galaxy_data["z_array_full_allmodels"],
+                                   master_mean_MUV_A1600, master_std_MUV_A1600,
+                                   master_N_MUV_A1600, model_tags, output_dir,
+                                   "A1600", output_format,
+                                   plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
+                                   plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
+
+        # Dust mass as a function of absolute magnitude.
+        master_mean_MUV_dustmass, master_std_MUV_dustmass, master_N_MUV_dustmass, _ = \
+            collective.collect_across_tasks(rank, comm,
+                                            galaxy_data["mean_MUV_dustmass_allmodels"],
+                                            galaxy_data["std_MUV_dustmass_allmodels"],
+                                            galaxy_data["N_MUV_dustmass_allmodels"],
+                                            galaxy_data["z_array_full_allmodels"],
+                                            BinSnapList=galaxy_data["z_array_full_allmodels"],
+                                            binned=True)
+
+
+        if rank == 0:
+            galplot.plot_MUV_dustmass(galaxy_data["MUV_bins"],
+                                      galaxy_data["MUV_bin_width"],
+                                      galaxy_data["z_array_full_allmodels"],
+                                      master_mean_MUV_dustmass, master_std_MUV_dustmass,
+                                      master_N_MUV_dustmass, model_tags, output_dir,
+                                      "dustmass", output_format,
+                                      plot_snaps_for_models=galaxy_plots["plot_snaps_for_models"],
+                                      plot_models_at_snaps=galaxy_plots["plot_models_at_snaps"])
 
 
 def generate_data(rank, size, comm, ini_files, galaxy_plots):
@@ -471,6 +513,16 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
     # UV Magnitude Luminosity Function. 
     UVLF_allmodels = []
     dustcorrected_UVLF_allmodels = []
+
+    # Dust extinction (in dex) as a function of absolute UV magnitude.
+    mean_MUV_A1600_allmodels = []
+    std_MUV_A1600_allmodels = []    
+    N_MUV_A1600_allmodels = []    
+
+    # Dust mass as a function of absolute UV magnitude.
+    mean_MUV_dustmass_allmodels = []
+    std_MUV_dustmass_allmodels = []    
+    N_MUV_dustmass_allmodels = []    
 
     # All outer arrays set up, time to read in the data!
     for model_number, ini_file in enumerate(ini_files):
@@ -578,6 +630,22 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
             dustcorrected_UVLF_allmodels[model_number].append(np.zeros(MUV_Nbins,
                                                               dtype=np.float32))
 
+        mean_MUV_A1600_allmodels.append([])
+        std_MUV_A1600_allmodels.append([])
+        N_MUV_A1600_allmodels.append([])
+        for snap_count in range(len(z_array_full)):
+            mean_MUV_A1600_allmodels[model_number].append(np.zeros(MUV_Nbins, dtype=np.float32))
+            std_MUV_A1600_allmodels[model_number].append(np.zeros(MUV_Nbins, dtype=np.float32))
+            N_MUV_A1600_allmodels[model_number].append(np.zeros(MUV_Nbins, dtype=np.float32))
+
+        mean_MUV_dustmass_allmodels.append([])
+        std_MUV_dustmass_allmodels.append([])
+        N_MUV_dustmass_allmodels.append([])
+        for snap_count in range(len(z_array_full)):
+            mean_MUV_dustmass_allmodels[model_number].append(np.zeros(MUV_Nbins, dtype=np.float32))
+            std_MUV_dustmass_allmodels[model_number].append(np.zeros(MUV_Nbins, dtype=np.float32))
+            N_MUV_dustmass_allmodels[model_number].append(np.zeros(MUV_Nbins, dtype=np.float32))
+
         # Check to see if we're only using a subset of the files.
         if galaxy_plots["first_file"] is not None:
             first_file = galaxy_plots["first_file"]
@@ -660,25 +728,52 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                 SMF_thissnap = np.histogram(log_mass, bins=mstar_bins)
                 SMF_allmodels[model_number][snap_count] += SMF_thissnap[0]
 
-                # For the UV Magnitude, galaxies without any UV Luminosity have
-                # their UV Mag set to 999.0.  Filter these out...
-                w_MUV = np.where(MUV < 100.0)[0]
+                if galaxy_plots["UVLF"]:
+                    # For the UV Magnitude, galaxies without any UV Luminosity have
+                    # their UV Mag set to 999.0.  Filter these out...
+                    w_MUV = np.where(MUV < 100.0)[0]
 
-                my_MUV = MUV[w_MUV]
+                    my_MUV = MUV[w_MUV]
 
-                dustcorrected_MUV = calculate_dustcorrected_MUV(my_MUV, halomass[w_MUV],
-                                                                dustmass[w_MUV],
-                                                                cosmology,
-                                                                model_dust_to_gas_ratio,
-                                                                model_radius_dust_grains,
-                                                                model_density_dust_grains,
-                                                                z_array_full[snapnum]) 
+                    dustcorrected_MUV = calculate_dustcorrected_MUV(my_MUV, halomass[w_MUV],
+                                                                    dustmass[w_MUV],
+                                                                    cosmology,
+                                                                    model_dust_to_gas_ratio,
+                                                                    model_radius_dust_grains,
+                                                                    model_density_dust_grains,
+                                                                    z_array_full[snapnum]) 
 
-                UVLF_thissnap = np.histogram(my_MUV, bins=MUV_bins)
-                UVLF_allmodels[model_number][snap_count] += UVLF_thissnap[0]
+                    UVLF_thissnap = np.histogram(my_MUV, bins=MUV_bins)
+                    UVLF_allmodels[model_number][snap_count] += UVLF_thissnap[0]
 
-                dustcorrected_UVLF_thissnap = np.histogram(dustcorrected_MUV, bins=MUV_bins)                
-                dustcorrected_UVLF_allmodels[model_number][snap_count] += dustcorrected_UVLF_thissnap[0]
+                    dustcorrected_UVLF_thissnap = np.histogram(dustcorrected_MUV, bins=MUV_bins)                
+                    dustcorrected_UVLF_allmodels[model_number][snap_count] += dustcorrected_UVLF_thissnap[0]
+
+                    # To determine the amount of dust extinction (in dex) of each galaxy,
+                    # we'll just cheatingly do "dustcorrected_MUV - intrinsic_MUV".
+                    A1600 = dustcorrected_MUV - my_MUV
+
+                    mean_MUV_A1600_allmodels[model_number][snap_count], \
+                    std_MUV_A1600_allmodels[model_number][snap_count], \
+                    N_MUV_A1600_allmodels[model_number][snap_count] = \
+                        do_2D_binning(my_MUV, A1600,
+                                      mean_MUV_A1600_allmodels[model_number][snap_count],
+                                      std_MUV_A1600_allmodels[model_number][snap_count],
+                                      N_MUV_A1600_allmodels[model_number][snap_count],
+                                      MUV_bins)
+
+                    # When determining the dustmass, only use those galaxies that have a
+                    # valid MUV.
+                    my_dustmass = dustmass[w_MUV]
+
+                    mean_MUV_dustmass_allmodels[model_number][snap_count], \
+                    std_MUV_dustmass_allmodels[model_number][snap_count], \
+                    N_MUV_dustmass_allmodels[model_number][snap_count] = \
+                        do_2D_binning(my_MUV, my_dustmass,
+                                      mean_MUV_dustmass_allmodels[model_number][snap_count],
+                                      std_MUV_dustmass_allmodels[model_number][snap_count],
+                                      N_MUV_dustmass_allmodels[model_number][snap_count],
+                                      MUV_bins)
 
                 #if(snap_count > 70):
                 #    print("z {0}: MUV_bins {1}\tUVLF {2}".format(z_array_full[snap_count], MUV_bins, UVLF_thissnap[0]))
@@ -723,6 +818,12 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
                    "N_mstar_SFR_allmodels" : N_mstar_SFR_allmodels,
                    "UVLF_allmodels" : UVLF_allmodels,
                    "dustcorrected_UVLF_allmodels" : dustcorrected_UVLF_allmodels,
+                   "mean_MUV_A1600_allmodels" : mean_MUV_A1600_allmodels,
+                   "std_MUV_A1600_allmodels" : std_MUV_A1600_allmodels,
+                   "N_MUV_A1600_allmodels" : N_MUV_A1600_allmodels,
+                   "mean_MUV_dustmass_allmodels" : mean_MUV_dustmass_allmodels,
+                   "std_MUV_dustmass_allmodels" : std_MUV_dustmass_allmodels,
+                   "N_MUV_dustmass_allmodels" : N_MUV_dustmass_allmodels,
                    "MUV_bins" : MUV_bins, "MUV_bin_width" : MUV_bin_width}
 
     return galaxy_data

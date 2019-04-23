@@ -745,12 +745,11 @@ def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
                      fontsize = ps.global_labelsize) 
 
     # Now lets overplot the Observational Data. 
-    ps.define_UV_plotting_params()
+    obs.get_data_UVLF()
 
-    for my_ax, z in zip(ax, [6.0, 7.0, 8.0]):
-        ps.plot_UVLF_data(my_ax, cosmology_allmodels[0].H(0).value/100.0, "", z)
-    #ps.Plot_UVLF_z7(ax[1], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
-    #ps.Plot_UVLF_z8(ax[2], cosmology_allmodels[0].H(0).value/100.0, errorwidth=ewidth, capsize=caps) 
+    ps.plot_UVLF_z6(ax[0], cosmology_allmodels[0].H(0).value/100.0)
+    ps.plot_UVLF_z7(ax[1], cosmology_allmodels[0].H(0).value/100.0)
+    ps.plot_UVLF_z8(ax[2], cosmology_allmodels[0].H(0).value/100.0)
     
     ####
 
@@ -770,6 +769,233 @@ def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
     fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
     print('Saved file to {0}'.format(outputFile1))
     plt.close(fig1)
+
+
+def plot_MUV_A1600(MUV_bins, MUV_bin_width, z_array_full_allmodels,
+                   mean_allmodels, std_allmodels, N_allmodels, model_tags,
+                   output_dir, output_tag, output_format,
+                   plot_models_at_snaps=None, plot_snaps_for_models=None):
+    """
+    Plots the magnitude attenuation due to dust at 1600A, as a function of absolute UV
+    Magnitude.
+
+    Parameters
+    ----------
+
+    MUV_bins : List of floats
+        UV Magnitude bins that the data is binned on.
+
+    MUV_bin_width : Float
+        The bin separation between the UV Magnitude bins. 
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+
+    mean_allmodels, std_allmodels, N_allmodels : 3D nested lists of floats.
+                                                 Outer length is number of
+                                                 models, next is number of
+                                                 snapshots in the model and
+                                                 final is the number of
+                                                 ``mstar_bins``. 
+        The mean and standard deviation for the dust attenuation (in Magnitudes) in each
+        absolute Magnitude bin. Also the number of data points in each bin. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    plot_models_at_snaps : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots each model at the specified snapshots. That is,
+        each panel will be for one model at the specified snapshots.
+
+    plot_snaps_for_models : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots all models at a single, specified snapshot. That
+        is, each panel will be for all models at one specified snapshot. 
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    # Create a grid of plots.
+    fig1, ax, nrows = plot_2D_line(MUV_bins, MUV_bin_width,
+                                   z_array_full_allmodels, 
+                                   mean_allmodels, std_allmodels, N_allmodels,
+                                   model_tags, plot_models_at_snaps,
+                                   plot_snaps_for_models)
+
+    # Set variables for every column.
+    xlim_min = -23.0
+    xlim_max = -5.0
+    tick_locs = np.arange(xlim_min, xlim_max + 2.0, 2.0)
+
+    for ax_count in range(nrows):
+
+        ax[nrows-1, ax_count].set_xlabel(r'$\mathbf{M_{UV}}$',
+                                         size = ps.global_fontsize)
+        ax[nrows-1, ax_count].set_xlim([xlim_min - 0.2, xlim_max + 0.2])
+        ax[nrows-1, ax_count].xaxis.set_minor_locator(mtick.MultipleLocator(1.0))
+        ax[nrows-1, ax_count].xaxis.set_major_locator(mtick.MultipleLocator(2.0))
+        ax[nrows-1, ax_count].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+                                              fontsize = ps.global_fontsize)
+
+    labels = ax[1,0].xaxis.get_ticklabels()
+    locs = ax[1,0].xaxis.get_ticklocs()
+    for label, loc in zip(labels, locs):
+        print("{0} {1}".format(label, loc)) 
+
+    # Set variables for every row.
+    #tick_locs = np.arange(-0.10, 0.80, 0.10)
+    for ax_count in range(nrows):
+        ax[ax_count, 0].set_ylabel(r'$\mathbf{\langle A_{1600}\rangle_{M_{UV}}}$', 
+                                   size = ps.global_labelsize)
+
+        #ax[ax_count, 0].set_ylim([-0.02, 1.0])
+        #ax[ax_count, 0].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))       
+        #ax[ax_count, 0].yaxis.set_major_locator(mtick.MultipleLocator(0.1))       
+        #ax[ax_count, 0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+        #                                 fontsize = ps.global_fontsize)
+
+    leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
+    outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile1))
+    plt.close(fig1)
+
+
+
+def plot_MUV_dustmass(MUV_bins, MUV_bin_width, z_array_full_allmodels,
+                      mean_allmodels, std_allmodels, N_allmodels, model_tags,
+                      output_dir, output_tag, output_format,
+                      plot_models_at_snaps=None, plot_snaps_for_models=None):
+    """
+    Plots the mass of dust as a function of absolute UV Magnitude.
+
+    Parameters
+    ----------
+
+    MUV_bins : List of floats
+        UV Magnitude bins that the data is binned on.
+
+    MUV_bin_width : Float
+        The bin separation between the UV Magnitude bins. 
+
+    z_array_reion_allmodels : 2D nested list of floats. Outer length is number
+                              of models, inner is number of snapshots.
+        The redshift at each snapshot for each model.
+
+
+    mean_allmodels, std_allmodels, N_allmodels : 3D nested lists of floats.
+                                                 Outer length is number of
+                                                 models, next is number of
+                                                 snapshots in the model and
+                                                 final is the number of
+                                                 ``mstar_bins``. 
+        The mean and standard deviation for the dust mass in each
+        absolute Magnitude bin. Also the number of data points in each bin. 
+
+    model_tags : List of strings. Length is number of models.
+        Legend entry for each model.
+
+    output_dir : String
+        Directory where the plot is saved.
+
+    output_tag : String.
+        Tag added to the name of the output file.
+
+    output_format : String
+        Format the plot is saved in.
+
+    plot_models_at_snaps : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots each model at the specified snapshots. That is,
+        each panel will be for one model at the specified snapshots.
+
+    plot_snaps_for_models : 2D nested list of integers.  Outer length is number
+                           of models, optional
+        If not ``None``, plots all models at a single, specified snapshot. That
+        is, each panel will be for all models at one specified snapshot. 
+
+    Returns
+    ---------
+
+    None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
+    """
+
+    # Create a grid of plots.
+    fig1, ax, nrows = plot_2D_line(MUV_bins, MUV_bin_width,
+                                   z_array_full_allmodels, 
+                                   mean_allmodels, std_allmodels, N_allmodels,
+                                   model_tags, plot_models_at_snaps,
+                                   plot_snaps_for_models)
+
+    # Set variables for every column.
+    xlim_min = -23.0
+    xlim_max = -5.0
+    tick_locs = np.arange(xlim_min, xlim_max + 2.0, 2.0)
+
+    for ax_count in range(nrows):
+
+        ax[nrows-1, ax_count].set_xlabel(r'$\mathbf{M_{UV}}$',
+                                         size = ps.global_fontsize)
+        ax[nrows-1, ax_count].set_xlim([xlim_min - 0.2, xlim_max + 0.2])
+        ax[nrows-1, ax_count].xaxis.set_minor_locator(mtick.MultipleLocator(1.0))
+        ax[nrows-1, ax_count].xaxis.set_major_locator(mtick.MultipleLocator(2.0))
+        ax[nrows-1, ax_count].set_xticklabels([r"$\mathbf{%d}$" % x for x in tick_locs], 
+                                              fontsize = ps.global_fontsize)
+
+
+    labels = ax[1,0].xaxis.get_ticklabels()
+    locs = ax[1,0].xaxis.get_ticklocs()
+    for label, loc in zip(labels, locs):
+        print("{0} {1}".format(label, loc)) 
+
+    # Set variables for every row.
+    #tick_locs = np.arange(-0.10, 0.80, 0.10)
+    for ax_count in range(nrows):
+        ax[ax_count, 0].set_ylabel(r'$\mathbf{\langle M_{dust}\rangle_{M_{UV}}}$', 
+                                   size = ps.global_labelsize)
+
+        ax[ax_count, 0].set_yscale('log', nonposy='clip')
+        #ax[ax_count, 0].set_ylim([-0.02, 1.0])
+        #ax[ax_count, 0].yaxis.set_minor_locator(mtick.MultipleLocator(0.05))       
+        #ax[ax_count, 0].yaxis.set_major_locator(mtick.MultipleLocator(0.1))       
+        #ax[ax_count, 0].set_yticklabels([r"$\mathbf{%.2f}$" % x for x in tick_locs], 
+        #                                 fontsize = ps.global_fontsize)
+
+    leg = ax[0,0].legend(loc='upper right', numpoints=1, labelspacing=0.1)
+    leg.draw_frame(False)  # Don't want a box frame
+    for t in leg.get_texts():  # Reduce the size of the text
+        t.set_fontsize(ps.global_legendsize)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace = 0.0, hspace = 0.0)
+
+    outputFile1 = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)
+    fig1.savefig(outputFile1, bbox_inches='tight')  # Save the figure
+    print('Saved file to {0}'.format(outputFile1))
+    plt.close(fig1)
+
 
 def plot_2D_line(bins, bin_width, binning_array_allmodels,
                  mean_array_allmodels, std_array_allmodels, N_array_allmodels,

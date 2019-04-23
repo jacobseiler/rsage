@@ -24,8 +24,17 @@ import ObservationalData as Obs
 
 Chabrier_to_Salpeter = 1.8  
 
-def h_converter_x(hubble_h_observational, hubble_h_simulation):
-    return -2.0 * np.log10(hubble_h_simulation / hubble_h_observational)
+def h_converter_x(hubble_h_observational, hubble_h_simulation, convert_type="Mass"):
+
+    # These pre-factors are set using Qin's astrodatapy package.
+    # https://github.com/qyx268/astrodatapy
+    if convert_type == "Mass":
+        adjusted_values = -2.0 * np.log10(hubble_h_simulation / hubble_h_observational)
+    elif convert_type == "LF":
+        adjusted_values = -5.0 * np.log10(hubble_h_simulation / hubble_h_observational)
+
+    return adjusted_values
+
 
 def h_converter_y(hubble_h_observational, hubble_h_simulation):
     return pow(hubble_h_simulation / hubble_h_observational, 3.0)
@@ -364,56 +373,43 @@ def adjust_axis(ax, axis_width, tickwidth, major_ticklength,
     return ax
 
 
-def define_UV_plotting_params():
+def plot_UVLF_z6(ax, hubble_h, errorwidth=1.5, capsize=2.0, linewidth=1.0, alpha=1.0):
 
-    global UVLF_colors
-    global UVLF_markers
-    global UVLF_linestyles
-    global UVLF_linewidths
+    x_data = Obs.Bouwens2015_UVLF_z6[:, 0] + h_converter_x(1.00, hubble_h, "LF")
+    y_data = Obs.Bouwens2015_UVLF_z6[:, 1] / h_converter_y(1.00, hubble_h)
+    y_err  = Obs.Bouwens2015_UVLF_z6[:, 2] / h_converter_y(1.00, hubble_h)
 
-    UVLF_colors = ["#31a354", "#2b8cbe", "#c51b8a", "m", "r", "b", "g"]
-    UVLF_markers = ["o", "s", "D", "x", "O", "p", "8"]
-    UVLF_linestyles = ["-", "--", "-."]
-    UVLF_linewidth = 3
+    print(y_data)
+
+    ax.errorbar(x_data, y_data, yerr = y_err, alpha=alpha, elinewidth=errorwidth,
+                lw=linewidth, marker=Obs.UVLF_markers[0], ls='none', 
+                label=r'$\mathbf{Bouwens \: et \: al. \: 2015}$',
+                color=Obs.UVLF_colors[0], capsize=capsize)
 
 
-def plot_UVLF_data(ax, hubble_h, IMF, z_target):
+def plot_UVLF_z7(ax, hubble_h, errorwidth=1.5, capsize=2.0, linewidth=1.0, alpha=1.0):
 
-    # Use `astrodatapy` to grab the data we need. 
-    from astrodatapy.number_density import number_density
+    x_data = Obs.Bouwens2015_UVLF_z7[:, 0] + h_converter_x(1.00, hubble_h, "LF")
+    y_data = Obs.Bouwens2015_UVLF_z7[:, 1] / h_converter_y(1.00, hubble_h)
+    y_err  = Obs.Bouwens2015_UVLF_z7[:, 2] / h_converter_y(1.00, hubble_h)
 
-    obs = number_density(feature="GLF_UV", z_target=z_target, z_tol=0.25, h=hubble_h,
-                         quiet=0)
+    print(y_data)
 
-    # Then iterate through all the available observations.
-    scatter_counter = 0
-    line_counter = 0
+    ax.errorbar(x_data, y_data, yerr = y_err, alpha=alpha, elinewidth=errorwidth,
+                lw=linewidth, marker=Obs.UVLF_markers[0], ls='none', 
+                label=r'$\mathbf{Bouwens \: et \: al. \: 2015}$',
+                color=Obs.UVLF_colors[0], capsize=capsize)
 
-    for obs_idx in range(obs.n_target_observation):
 
-        # Grab the data and parameters from the observations.
-        data = obs.target_observation["Data"][obs_idx]
-        label = obs.target_observation.index[obs_idx]
-        label = "${0}$".format(label)
-        #obs.target_observation.index[obs_idx]
-        datatype = obs.target_observation["DataType"][obs_idx]
+def plot_UVLF_z8(ax, hubble_h, errorwidth=1.5, capsize=2.0, linewidth=1.0, alpha=1.0):
 
-        # Set plotting parameters.
-        color = UVLF_colors[obs_idx]
-        marker = UVLF_markers[scatter_counter]
-        linestyle = UVLF_linestyles[line_counter]
+    x_data = Obs.Bouwens2015_UVLF_z8[:, 0] + h_converter_x(1.00, hubble_h, "LF")
+    y_data = Obs.Bouwens2015_UVLF_z8[:, 1] / h_converter_y(1.00, hubble_h)
+    y_err  = Obs.Bouwens2015_UVLF_z8[:, 2] / h_converter_y(1.00, hubble_h)
 
-        # The observations could be single scatter points with +- errors (data), single
-        # scatter points with only upper limits (dataULimit) or fitted lines with shaded error regions (else).
-        if datatype == "data":
-            ax.errorbar(data[:,0], data[:,1], yerr=[data[:,1]-data[:,3],data[:,2]- data[:,1]],
-                        label=label, color=color, fmt=marker)
-            scatter_counter += 1
-        elif datatype == "dataULimit":
-            ax.errorbar(data[:,0], data[:,1], yerr = -0.2*data[:,1], uplims=True,
-                        label=label, color=color, fmt=marker)
-            scatter_counter += 1
-        else:
-            ax.plot(data[:,0],data[:,1],label=label,color=color,linestyle=linestyle,lw=3)
-            ax.fill_between(data[:,0], data[:,2],data[:,3],color=color,alpha=0.5)
-            line_counter += 1
+    print(y_data)
+
+    ax.errorbar(x_data, y_data, yerr = y_err, alpha=alpha, elinewidth=errorwidth,
+                lw=linewidth, marker=Obs.UVLF_markers[0], ls='none', 
+                label=r'$\mathbf{Bouwens \: et \: al. \: 2015}$',
+                color=Obs.UVLF_colors[0], capsize=capsize)
