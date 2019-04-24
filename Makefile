@@ -13,7 +13,7 @@ INCL   =	src/main.h \
 BUILD_RSAGE = true
 
 # Set this to true if you want to run in MPI.
-USE-MPI = true
+#USE-MPI = true
 
 # Determine if we're on continuous integration.
 ON_CI := false

@@ -18,7 +18,7 @@ do {                                                                \
 #define  ALLOCPARAMETER 10.0
 #define  MAX_NODE_NAME_LEN 50
 #define  ABSOLUTEMAXSNAPS 1000
-#define STELLAR_TRACKING_TIME 180 // This is the time (Myr) we wish to track the stellar history for. 
+#define STELLAR_TRACKING_TIME 100 // This is the time (Myr) we wish to track the stellar history for.
 
 #define  MAXLEN      1024
 #define  MAX_STRING_LEN      1024
