@@ -15,6 +15,8 @@ BUILD_RSAGE = true
 # Set this to true if you want to run in MPI.
 #USE-MPI = true
 
+CFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC 
+
 # Determine if we're on continuous integration.
 ON_CI := false
 ifeq ($(CI), true)

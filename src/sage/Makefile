@@ -12,7 +12,7 @@ endif
 
 LIBS :=
 OPT += -DROOT_DIR='"${ROOT_DIR}"'
-CCFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC 
+CFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC 
 
 LIBNAME = sage
 EXEC := $(LIBNAME)
@@ -93,7 +93,7 @@ endif
 all: $(EXEC) 
 
 $(EXEC): $(OBJS) $(SAGELIB) 
-	$(CC) $(OPTIMIZE) $(OBJS) $(LIBS)   -o  $(EXEC)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS)   -o  $(EXEC)
 
 $(SAGELIB): $(LIBOBJS)
 	ar rcs $@ $(LIBOBJS) 
