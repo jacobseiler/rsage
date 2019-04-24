@@ -13,6 +13,7 @@
 
 #include "core_allvars.h"
 #include "core_proto.h"
+#include "UVmag/UVmag.h"
 
 // Local Proto-Types //
 
@@ -115,7 +116,21 @@ void sage_init(void)
     if (status != EXIT_SUCCESS)
     {
       ABORT(EXIT_FAILURE);
-    }  
+    }
+  }
+
+  if (calcUVmag == 1)
+  {
+    status = init_UVlookup();
+    if (status != EXIT_SUCCESS)
+    {
+      ABORT(EXIT_FAILURE);
+    }
+  }
+
+  if ((PhotonPrescription == 1) || (calcUVmag == 1))
+  {
+    StellarTracking_Len = STELLAR_TRACKING_TIME / TimeResolutionStellar;
   }
  
   mergedgal_mallocs = 0;
@@ -225,13 +240,12 @@ int32_t init_nionlookup(void)
 
   // Using STARBURST99 it was determined that the number of ionizing photons emitted from an instantaneous starburst depends on the 
   // mass of stars formed and the time since the starburst.  Furthermore, the number of ionizing photons scales linearly with the mass of stars formed.
-  // That is, a starburst that forms 8.0e10Msun worth of stars will emit 10x as many photons as a starburst that forms 7.0e10Msun worth of stars.
+  // That is, a starburst that forms 7.0e10Msun worth of stars will emit 10x as many photons as a starburst that forms 6.0e10Msun worth of stars.
 
-  // So if we read in a table that contains the number of ionizing photons emitted from a starburst for a 7.0e10Msun episode, then we can scale our values to this lookup table
-  // using log10 Ngamma(Msun, t) = (log10 M* - 7.0) + log10 Ngamma(7.0, t). 
+  // So if we read in a table that contains the number of ionizing photons emitted from a starburst for a 6.0e10Msun episode, then we can scale our values to this lookup table
+  // using log10 Ngamma(Msun, t) = (log10 M* - 6.0) + log10 Ngamma(6.0, t). 
 
 #define MAXBINS 10000
-#define FINALTIME 100 // This is the time we wish to track the stellar history for. 
 
   char buf[MAX_STRING_LEN], fname[MAX_STRING_LEN];
   FILE *niontable;
@@ -260,6 +274,7 @@ int32_t init_nionlookup(void)
     return EXIT_FAILURE;
   }
 
+  // The first 8 lines are all header information. So move past them.
   while (i < 8)
   {
     fgets(buf, MAX_STRING_LEN, niontable);
@@ -282,27 +297,16 @@ int32_t init_nionlookup(void)
   fclose(niontable);
 
   // Check that the Nion lookup table had enough datapoints to cover the time we're tracking the ages for. 
-  if (stars_tbins[num_lines - 1] / 1.0e6 < FINALTIME)
+  if (stars_tbins[num_lines - 1] / 1.0e6 < STELLAR_TRACKING_TIME)
   {
-    fprintf(stderr, "The final time specified in the Nion lookup table is %.4f Myr. However we specified to track stellar ages over %d Myr.\n", stars_tbins[num_lines - 1] / 1.0e6, FINALTIME);
-    fprintf(stderr, "Either update the Nion lookup table or reduce the value of FINALTIME in `core_init.c`.\n");
+    fprintf(stderr, "The final time specified in the Nion lookup table is %.4f Myr. However we specified to track stellar ages over %d Myr.\n", stars_tbins[num_lines - 1] / 1.0e6, STELLAR_TRACKING_TIME);
+    fprintf(stderr, "Either update the Nion lookup table or reduce the value of STELLAR_TRACKING_TIME in `core_allvars.h`.\n");
     return EXIT_FAILURE;
-  }
-
-  float Time_Stellar = 0.0; 
-
-  StellarTracking_Len = 0;
-  while(Time_Stellar < FINALTIME)
-  {
-    Time_Stellar += TimeResolutionStellar; // The resolution on which we do the tracking is specified in the .ini file. 
-    ++StellarTracking_Len;
   }
 
   return EXIT_SUCCESS;
 
 #undef MAXBINS
-#undef FINALTIME
-
 }
 
 void set_units(void)

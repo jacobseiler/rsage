@@ -150,3 +150,32 @@ def Get_Data_SMBH():
     Mstar = np.arange(1.0, 12.0, 0.01) # Array of stellar masses.
 
     Huang_z8_BHSM = 1.10*Mstar - 3.85 # Relationship is log10(M_BH) = 1.10*log10(M_*/10^11) + 8.25.  Units in Msun.
+
+
+def get_data_UVLF():
+
+    global Bouwens2015_UVLF_z6
+    global Qin2017_UVLF_z6
+
+    global Bouwens2015_UVLF_z7
+    global Atek2015_UVLF_z7
+
+    global Bouwens2015_UVLF_z8
+
+    Bouwens2015_UVLF_z6 = np.genfromtxt("/home/jseiler/ObservationalData/GLF_UV/Bouwens2015/z6pt0.dat")
+    Qin2017_UVLF_z6 = np.genfromtxt("/home/jseiler/ObservationalData/GLF_UV/Qin2017_Tiamat/z6pt0.dat")
+
+    Bouwens2015_UVLF_z7 = np.genfromtxt("/home/jseiler/ObservationalData/GLF_UV/Bouwens2015/z7pt0.dat")
+    Atek2015_UVLF_z7 = np.genfromtxt("/home/jseiler/ObservationalData/GLF_UV/Atek2015/z7pt0.dat")
+
+    Bouwens2015_UVLF_z8 = np.genfromtxt("/home/jseiler/ObservationalData/GLF_UV/Bouwens2015/z8pt0.dat")
+
+    global UVLF_colors
+    global UVLF_markers
+    global UVLF_linestyles
+    global UVLF_linewidths
+
+    UVLF_colors = ["#31a354", "#2b8cbe", "#c51b8a", "m", "r", "b", "g"]
+    UVLF_markers = ["o", "s", "D", "x", "O", "p", "8"]
+    UVLF_linestyles = ["-", "--", "-."]
+    UVLF_linewidth = 3

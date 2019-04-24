@@ -218,10 +218,14 @@ float N_tbins;
 
 // Ionizing Photon Lookup Tables
 
+int32_t PhotonPrescription;
 float *stars_tbins;
 float *stars_Ngamma;
-int32_t PhotonPrescription;
 double TimeResolutionStellar;
- int32_t HaloPartCut;
+int32_t HaloPartCut;
 int32_t StellarTracking_Len; 
 
+// UV Magnitude
+
+int32_t calcUVmag;
+float *stars_LUV;

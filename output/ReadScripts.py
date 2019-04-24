@@ -205,7 +205,8 @@ def ReadGals_SAGE(DirName, fnr, MAXSNAPS, comm=None):
          ('LenMergerGal', (np.int32, MAXSNAPS)),
          ('GridReionMod', (np.float32, MAXSNAPS)),
          ('GridNgamma_HI', (np.float32, MAXSNAPS)),
-         ('Gridfesc', (np.float32, MAXSNAPS))
+         ('Gridfesc', (np.float32, MAXSNAPS)),
+         ('GridMUV', (np.float32, MAXSNAPS))
 #         ('GridInfallRate', (np.float32, MAXSNAPS))
          ]
 
@@ -458,7 +459,7 @@ def read_SAGE_ini(fname):
                    "fescPrescription", "alpha", "beta", "delta",
                    "quasar_baseline", "quasar_boosted",
                    "N_dyntime", "MH_low", "fesc_low",
-                   "MH_high", "fesc_high"
+                   "MH_high", "fesc_high", "calcUVmag"
                   ]
 
     old_SAGE_fields = ["FileNameGalaxies"]

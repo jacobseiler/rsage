@@ -58,9 +58,16 @@ void save_galaxies(int filenr, int tree)
 
     if(HaloGal[i].SnapNum == max_snap && Halo[HaloGal[i].HaloNr].Descendant == -1) 
     {
-      write_temporal_arrays(&HaloGal[i], save_fd); // Input snapshots are ordered highest -> lowest so it'll be 0th element. 
+      write_temporal_arrays(&HaloGal[i], save_fd);
+
+      for(int32_t snap = 0; snap < MAXSNAPS; ++snap) {
+        if(HaloGal[i].MUV[snap] > -0.1 && HaloGal[i].MUV[snap] < 0.1) {
+            fprintf(stderr, "Before Save\tSnap %d has MUV %.4e\n", snap, HaloGal[i].MUV[snap]);
+        }
+      }
+      fwrite(HaloGal[i].MUV, sizeof(float), MAXSNAPS, save_fd);
       TotGalaxies++;
-      TreeNgals[tree]++;          
+      TreeNgals[tree]++;
     } 
   
   } // NumGals loop.
@@ -125,6 +132,14 @@ void save_merged_galaxies(int filenr, int tree)
   for(i = 0; i < MergedNr; i++)
   {
     write_temporal_arrays(&MergedGal[i], save_fd2);
+
+    for(int32_t snap = 0; snap < MAXSNAPS; ++snap) {
+      if(MergedGal[i].MUV[snap] > -0.1 && MergedGal[i].MUV[snap] < 0.1) {
+        fprintf(stderr, "Before Merge Save\tSnap %d has MUV %.4e\n", snap, MergedGal[i].MUV[snap]);
+      }
+    }
+    fwrite(MergedGal[i].MUV, sizeof(float), MAXSNAPS, save_fd2);
+    //write_temporal_arrays(&MergedGal[i], save_fd2);
 
     TotMerged++;
     TreeNMergedgals[tree]++;

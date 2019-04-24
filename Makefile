@@ -10,7 +10,7 @@ INCL   =	src/main.h \
 			src/check_ini_files.h
 
 # Set if you're using self-consistent reionization.
-BUILD_RSAGE = true
+#BUILD_RSAGE = true
 
 # Set this to true if you want to run in MPI.
 USE-MPI = true
@@ -101,6 +101,7 @@ export $(GSL_FOUND)
 export $(GSL_INCL)
 export $(GSL_LIBDIR)
 export $(GSL_LIBS)
+export BUILD_RSAGE
 
 # All flags set up, time to compile targets.
 default: all 

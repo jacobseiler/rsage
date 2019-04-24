@@ -91,6 +91,18 @@ if __name__ == "__main__":
                       r"$\mathbf{Ejected}$",
                       r"$\mathbf{SFR}$"]
 
+
+
+    # All .ini files included in this array will be plotted.
+    paper_models = 0
+    const_fej_SFR = 0
+    no_const = 0
+    higher_tau = 0
+    const = 0
+    sliding_fesc = 0
+    combined_higher_tau = 0
+    UV = 1
+
     if no_const:
 
         output_directory = "./jan_noconst"
@@ -236,26 +248,17 @@ if __name__ == "__main__":
                       r"$\mathbf{Ejected}$",
                       r"$\mathbf{SFR}$"]
 
-    if kali_512:
-        output_directory = "./kali_512"
+    if UV:
+        output_directory = "./tmp_dust"
 
-        gal_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali512_SAGE.ini"
+        gal_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/april2019_SAGE.ini"
+        reion_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/test_UV_cifog.ini"
 
-        reion_ini_1="/fred/oz070/jseiler/kali/512/rsage_output/ini_files/kali512_cifog.ini"
+        gal_ini_files = [gal_ini]
+        reion_ini_files = [reion_ini]
 
-        gal_ini_files = [gal_ini_1]
-        reion_ini_files = [reion_ini_1]
+        model_tags = [r"$Test$"]
 
-        model_tags = [r"Kali 512"]
-
-
-    #gal_ini_1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_SAGE.ini"
-    #reion_ini_1="/fred/oz004/jseiler/kali/self_consistent_output/rsage_constant/ini_files/const_0.20_cifog.ini"
-
-    #gal_ini_files = [gal_ini_1]
-    #reion_ini_files = [reion_ini_1]
-
-    #model_tags = [r"$\mathbf{RSAGE}$"]
     # ============================================================= #
     # Switches to control what plots to make. 0 to skip, 1 to plot. #
     # ============================================================= #
@@ -267,13 +270,15 @@ if __name__ == "__main__":
     mstar_fesc = 0
     mstar_fej  = 0
     mstar_SFR  = 0
-    SMF        = 0
+    SMF        = 1
+    UVLF       = 1
 
     # ==================== #
     # Galaxy Plot Options. # 
     # ==================== #
     # For some plots, there is the option of plotting one model at different
     # snapshots (within one panel) or plotting all models at one snapshot
+
     # (within one panel).
     plot_snaps_for_models = [[33, 50, 76, 93],  # For each panel, plot one model 
                              [33, 50, 76, 93],  # at specified snapshots.
@@ -284,7 +289,6 @@ if __name__ == "__main__":
 
     plot_models_at_snaps = None # For each panel, plot one specified snapshot 
                                 # for all models.
-
     plot_single_panel = 0  # Instead of plotting multiple panels, plot all on a
                            # single panel.
 
@@ -294,26 +298,40 @@ if __name__ == "__main__":
                   [6.0, 7.0, 8.0],
                   [6.0, 7.0, 8.0]]
 
+    # And same for the UV luminosity function.
+    UVLF_plot_z = [[6.0, 7.0, 8.0]]
+
     # If you only want to use a specific range of files, specify here. If you
     # want to use all the files from a model, set these to ``None``.
     first_file = None
     last_file = None
-   
+
+    dust_to_gas_ratio = [1.0, 1.0, 1.0]
+    radius_dust_grains = [5.0e-6, 5.0e-6, 5.0e-6]
+    density_dust_grains = [2.25, 2.25, 2.25]
+
     # =============================================== #
     # Galaxy Plotting Time (Shouldn't need to touch). # 
     # =============================================== #
     galaxy_plots = {"nion" :                  gal_nion,
                     "mstar_fesc" :            mstar_fesc,
-                    "SMF" :                   SMF,
                     "mstar_fej" :             mstar_fej,
-                    "mstar_SFR" :             mstar_SFR}
+                    "mstar_SFR" :             mstar_SFR,
+                    "SMF" :                   SMF,
+                    "UVLF" :                  UVLF,                    
+                    }
 
     galaxy_opts = {"plot_snaps_for_models" : plot_snaps_for_models,
                    "plot_models_at_snaps" :  plot_models_at_snaps,
                    "plot_single_panel" :     plot_single_panel,
                    "SMF_plot_z" :            SMF_plot_z,
+                   "UVLF_plot_z" :           UVLF_plot_z,
                    "first_file" :            first_file,
-                   "last_file" :             last_file}
+                   "last_file" :             last_file,
+                   "dust_to_gas_ratio" :     dust_to_gas_ratio,
+                   "radius_dust_grains" :    radius_dust_grains,
+                   "density_dust_grains" :   density_dust_grains
+                   }
 
     combined_galaxy = {**galaxy_plots, **galaxy_opts}
 
@@ -324,6 +342,8 @@ if __name__ == "__main__":
                                            model_tags, combined_galaxy,
                                            output_directory, output_format)
             break
+    exit()
+
     # =========================== #
     # Reionization Plot Toggles . # 
     # =========================== #

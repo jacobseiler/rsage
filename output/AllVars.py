@@ -9,9 +9,16 @@ from scipy import stats
 import os
 
 
+def Hubble_Param_cgs(z, h, OM):
+
+    H0 = h * 1.0e7 / (mpc_to_m*m_to_cm)
+    H = H0 * np.sqrt(OM * (1+z)**3 + (1 - OM))
+
+    return H
+
 def Hubble_Param(z, h, OM):
 
-    ## Output in units of km/s/Mpc
+    ## Output in units of km/s/Mp   print(halomass * avc
 
 	H0 = h*100
 	H = H0**2 * (OM * (1+z)**3 + (1 - OM))
@@ -195,6 +202,7 @@ def Set_Constants():
     global Sigmat
     global H0
     global G
+    global G_cgs
     global mpc_to_m 
     global cubic_cm_per_cubic_mpc
     global km_to_m
@@ -206,7 +214,7 @@ def Set_Constants():
     Sec_Per_Megayear = 3.155e13
     Ionized_Mass_H = 0.53 # Molecular mass of ionized H.
     LymanAlpha_energy = 10.2 # Energy of Lyman Alpha photon in eV.
-    eV_to_erg = 1.6202e-12 # Conversion from eV to erg. 
+    eV_to_erg = 1.6202e-12 # Conversion from eV to erg.
     M_bol_Sun = 4.74 # Bolometric magnitude of the sun.
     L_sun = 3.828e26 # Luminosity of the Sun in W.
     W_to_ergs = 1.0e7 # Watts to erg s^-1.
@@ -217,6 +225,7 @@ def Set_Constants():
     Sigmat = 6.652e-29 # Thomson cross-section for an electron in m^2.
     H0 = 3.24078e-18 # In h/sec.
     G = 6.674e-11 # Gravitational constant in m^3 kg^-1 s^-2.
+    G_cgs = 6.67408e-8 # Gravitational constant in cm^3 g^-1 s^-2.
     mpc_to_m = 3.0857e22 # How many metres in a Mpc 
     cubic_cm_per_cubic_mpc = 2.93799e73 # cm^-3 to Mpc_3
     km_to_m = 1.0e3 # Kilometres to metres.
@@ -316,8 +325,8 @@ def luminosity_to_ABMag(luminosity, wavelength):
     ``M`` units are unitless. 
     """
 
-    Flux = Luminosity_to_Flux(Luminosity, 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units. 
-    f_nu = spectralflux_wavelength_to_frequency(10**Flux, 1600) # Spectral flux density in Janksy.
+    flux = luminosity_to_flux(luminosity, 10.0) # Calculate the flux from a distance of 10 parsec, units of erg s^-1 A^-1 cm^-2.  Log Units. 
+    f_nu = spectralflux_wavelength_to_frequency(10**flux, 1600) # Spectral flux density in Janksy.
     M = -2.5 * np.log10(f_nu) + 8.90 # AB Magnitude from http://www.astro.ljmu.ac.uk/~ikb/convert-units/node2.html
 
     return M

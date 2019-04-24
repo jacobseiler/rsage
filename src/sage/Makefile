@@ -1,10 +1,17 @@
 # set this if you want to run in embarrassingly parallel
 USE-MPI ?= true
-# USE-HDF5 = yes # set this if you want to read in hdf5 trees (requires hdf5 libraries)
 
+OPT :=
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+#BUILD_RSAGE ?= true
+
+ifeq ($(BUILD_RSAGE), true)
+	OPT += -DRSAGE
+endif
+
 LIBS :=
-OPT := -DROOT_DIR='"${ROOT_DIR}"'
+OPT += -DROOT_DIR='"${ROOT_DIR}"'
 CCFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC 
 
 LIBNAME = sage
@@ -15,7 +22,9 @@ LIBSRC :=  sage.c core_read_parameter_file.c core_init.c core_io_tree.c core_all
            model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
            model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
            io/tree_binary.c \
-		   self_consistent/selfcon_reionization.c self_consistent/selfcon_grid.c
+		   self_consistent/selfcon_reionization.c self_consistent/selfcon_grid.c self_consistent/grid.c self_consistent/common.c
+		   UVmag/UVmag.c \
+		   utils/conversion.c
 
 SRC := main.c $(LIBSRC)
 OBJS := $(SRC:.c=.o)
@@ -25,7 +34,9 @@ SAGELIB := lib$(LIBNAME).a
 
 INCL   =	core_allvars.h core_proto.h  core_simulation.h temporal_array.h \
 			io/tree_binary.h \
-			self_consistent/selfcon_reionization.h self_consistent/selfcon_grid.h \
+			self_consistent/selfcon_reionization.h self_consistent/selfcon_grid.h self_consistent/grid.h self_consistent/common.h \
+			UVmag/UVmag.h \
+			utils/conversion.h \
 			./Makefile
 
 UNAME := $(shell uname)
@@ -74,7 +85,7 @@ ifeq ($(DO_CHECKS), 1)
   CFLAGS += $(GSL_INCL)
 
   OPTIMIZE = -O2 -march=native -mno-fma
-  CFLAGS += -g -Wextra -Werror -Wunused-parameter -Wall -Wshadow # optimization and warning flags
+  CFLAGS += -g -Wextra -Wall -Wshadow # optimization and warning flags
   LIBS   =   -g -lm  $(GSL_LIBS) -lgsl -lgslcblas
   CFLAGS += $(OPTIMIZE) $(OPT)
 endif

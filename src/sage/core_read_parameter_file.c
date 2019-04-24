@@ -289,6 +289,10 @@ int32_t read_parameter_file(char *fname)
   addr[nt] = &fesc_high;
   id[nt++] = DOUBLE;
 
+  strcpy(tag[nt], "calcUVmag");
+  addr[nt] = &calcUVmag;
+  id[nt++] = INT;
+
   if((fd = fopen(fname, "r")))
   {
     while(!feof(fd))
@@ -521,6 +525,17 @@ int32_t check_ini_parameters(void)
     fprintf(stderr, "You have turned off self consistent reionization (`self_consistent` = 0).  However your reionization prescription (`ReionizationOn`) relies on self consistent pipeline. Change either `self_consistent` or `ReionizationOn`.\n");
     return EXIT_FAILURE; 
   }
+
+#ifndef RSAGE
+
+  if (self_consistent == 1 || (ReionizationOn == 2 || ReionizationOn == 3))
+  {
+    fprintf(stderr, "You have requested self-consistent reionization to be on (`self_consistent = 1` or `ReionizationOn = 2 or 3`)." 
+                    "  However you have not compiled with the self-consistent modules.\nEnsure that `BUILD_RSAGE` is set in the Makefile.\n" );
+    return EXIT_FAILURE;
+  }
+
+#endif
 
   return EXIT_SUCCESS;
 }
