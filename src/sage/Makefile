@@ -1,4 +1,4 @@
-# set this if you want to run in embarrassingly parallel
+# Set this if you want to run in embarrassingly parallel.
 USE-MPI ?= true
 
 OPT :=
@@ -22,7 +22,7 @@ LIBSRC :=  sage.c core_read_parameter_file.c core_init.c core_io_tree.c core_all
            model_infall.c model_cooling_heating.c model_starformation_and_feedback.c \
            model_disk_instability.c model_reincorporation.c model_mergers.c model_misc.c \
            io/tree_binary.c \
-		   self_consistent/selfcon_reionization.c self_consistent/selfcon_grid.c self_consistent/grid.c self_consistent/common.c
+		   self_consistent/selfcon_reionization.c self_consistent/selfcon_grid.c \
 		   UVmag/UVmag.c \
 		   utils/conversion.c
 
@@ -34,7 +34,7 @@ SAGELIB := lib$(LIBNAME).a
 
 INCL   =	core_allvars.h core_proto.h  core_simulation.h temporal_array.h \
 			io/tree_binary.h \
-			self_consistent/selfcon_reionization.h self_consistent/selfcon_grid.h self_consistent/grid.h self_consistent/common.h \
+			self_consistent/selfcon_reionization.h self_consistent/selfcon_grid.h \
 			UVmag/UVmag.h \
 			utils/conversion.h \
 			./Makefile

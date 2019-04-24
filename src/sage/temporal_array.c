@@ -13,6 +13,8 @@
 #include "core_proto.h"
 #include "temporal_array.h"
 #include "self_consistent/selfcon_grid.h"
+#include "UVmag/UVmag.h"
+#include "utils/conversion.h"
 
 // Local Variables //
 

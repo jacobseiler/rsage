@@ -320,7 +320,7 @@ def load_gals(max_snap, galaxy_name="test"):
     return Gals
 
 
-def read_grids(SAGE_params, cifog_params, snapshot):
+def read_grids(SAGE_params, cifog_params, snapshot, reshape=False):
     """
     Reads the grids for a specific ``RSAGE`` run.
 
@@ -336,6 +336,10 @@ def read_grids(SAGE_params, cifog_params, snapshot):
         Dictionary keyed by the ``cifog`` parameter field names and containing 
         the values from the ``.ini`` file. See ``read_cifog_ini`` in
         ``output/ReadScripts.py`` for full details.
+
+    reshape : Boolean, default False
+        Controls whether the grids should be recast to NxNxN arrays (True) or kept as 1D
+        arrays (False).
     """
 
     print("Reading the nionHI, XHII and photHI grids for the test run.")
@@ -353,13 +357,13 @@ def read_grids(SAGE_params, cifog_params, snapshot):
                                                        nion_prefix, snapshot)
     nion_precision = int(cifog_params["nionFilesAreInDoublePrecision"]) + 1
     nion_grid = ReadScripts.read_binary_grid(nion_path, GridSize,
-                                             nion_precision)
+                                             nion_precision, reshape=reshape)
 
     XHII_path = "{0}/grids/cifog/{1}_XHII_{2:03d}".format(OutputDir, RunPrefix,
                                                           snapshot)
     XHII_precision = 2
     XHII_grid = ReadScripts.read_binary_grid(XHII_path, GridSize,
-                                             XHII_precision)
+                                             XHII_precision, reshape=reshape)
 
     photHI_path = "{0}/grids/cifog/{1}_photHI_{2:03d}".format(OutputDir,
                                                               RunPrefix,
@@ -367,7 +371,7 @@ def read_grids(SAGE_params, cifog_params, snapshot):
 
     photHI_precision = 2
     photHI_grid = ReadScripts.read_binary_grid(photHI_path, GridSize,
-                                             photHI_precision)
+                                             photHI_precision, reshape=reshape)
 
 
     return nion_grid, XHII_grid, photHI_grid
@@ -469,7 +473,7 @@ def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
         fname = "{0}/{1}/kali512/data/{2}_test_{3}_{4:03d}"\
                 .format(test_dir, test_datadir, RunPrefix, tag, snapshot)
 
-        test_grid = ReadScripts.read_binary_grid(fname, GridSize, precision)
+        test_grid = ReadScripts.read_binary_grid(fname, GridSize, precision, reshape=False)
 
         diff = np.abs(grid-test_grid)       
         if len(diff[diff > 1e-8]) > 0: 
@@ -478,14 +482,22 @@ def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
             print("The SAGE dictionary is {0}".format(SAGE_params))
             print("The cifog dictionary is {0}".format(cifog_params))
 
-            print("The mean value of the run grid is {0} compared to the mean "
-                  "value of the test grid is {1}".format(np.mean(grid),
-                                                         np.mean(test_grid)))
+            print("The mean value of the run grid is {0:.6e} compared to the mean "
+                  "value of the test grid is {1:.6e}".format(np.mean(grid),
+                                                             np.mean(test_grid)))
             print("The non-zero difference values are {0}".format(diff[diff > 0]))
 
-            print("Checking if any of these values are greater than 0.01")
-            if len(diff[diff > 1e-2]) > 0:
-
+            tol = 0.1 
+            print("Checking if any of these values have a fractional difference "
+                  "greater than {0}".format(tol))
+            greater_0 = np.where(test_grid > 0.0)[0]
+            fractional = diff[greater_0]/test_grid[greater_0]
+            wrong_vals = greater_0[np.where(fractional > tol)[0]]
+            if len(wrong_vals) > 0:
+                print("Run values {0}".format(grid[wrong_vals]))
+                print("Correct values {0}".format(test_grid[wrong_vals]))
+                print("Diff {0}".format(diff[wrong_vals]))
+                print("Fractional diff {0}".format(diff[wrong_vals]/test_grid[wrong_vals]))
                 raise ValueError
 
     print("Grids are checked and all correct!")

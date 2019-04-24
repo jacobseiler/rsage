@@ -10,7 +10,7 @@ INCL   =	src/main.h \
 			src/check_ini_files.h
 
 # Set if you're using self-consistent reionization.
-#BUILD_RSAGE = true
+BUILD_RSAGE = true
 
 # Set this to true if you want to run in MPI.
 USE-MPI = true
@@ -111,6 +111,7 @@ $(EXEC): $(OBJS)
 
 $(OBJS): $(INCL) 
 
+tests: do_tests
 do_tests: compile_sage compile_cifog compile_filter $(EXEC)
 	tests/test_sage.sh
 
