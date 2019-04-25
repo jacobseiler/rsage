@@ -1,3 +1,16 @@
+/*
+Within the SAGE and cifog .ini files, some directory paths can be set to the
+value of `None`.  In these instances, we use the runtime parameters to determine
+the correct paths.
+
+Furthermore, the names of intermediate files can also depend upon runtime parameters.
+For example, the exact naming of the ionizing photon files depends upon the escape fraction
+prescription used.
+
+Refer to the README in the `ini_files` directory for a full description of which
+fields support this and the structure of the updated names.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -22,13 +35,29 @@
 
 #endif
 
-int32_t check_directory(char *path)
+/*
+Checks that a directory exists. If the directory doesn't exist, it is created.
+
+Returns
+-------
+
+If the directory exists or is correctly made, `EXIT_SUCCESS`.
+Otherwise, `EXIT_FAILURE`.
+*/
+
+int32_t check_and_create_directory(char *path)
 {
   struct stat st = {0};
+  int32_t status;
 
+  // Checks if the path exists.
   if (stat(path, &st) == - 1)
   {
-    mkdir(path, 0700);
+    status = mkdir(path, 0700);
+    CHECK_STATUS_AND_RETURN_ON_FAIL(status, status,
+                                    "Did not find directory %s. Attempting to create it failed.\n",
+                                    path);
+
     printf("Made directory %s.\n", path);
   }
 
@@ -36,25 +65,7 @@ int32_t check_directory(char *path)
 }
 
 /*
-Within the SAGE and cifog .ini files, some directory paths can be set to the
-value of `None`.  In these instances, we want to use the runtime parameters to
-determine the correct paths.
-
-This function checks these fields and updates them if necessary.
-
-Parameters
-----------
-
-
-Returns
-----------
-
-
-Pointer Updates
-----------
-
-Units
-----------
+Checks the fields from the SAGE .ini files and updates them if necessary.
 
 Notes
 ----------
@@ -107,38 +118,49 @@ int32_t check_sage_ini(char *RunPrefix, char *OutputDir, char *GalaxyOutputDir,
   // Now check that the sub-directory structure exists.
   if (ThisTask == 0)
   {
+    int32_t status;
+
     // Outer level directory.
-    check_directory(OutputDir);
+    status = check_and_create_directory(OutputDir);
+    CHECK_STATUS_AND_RETURN_ON_FAIL_NO_PRINT(status, EXIT_FAILURE);
 
     // Directory for the galaxies.
-    check_directory(GalaxyOutputDir);
+    status = check_and_create_directory(GalaxyOutputDir);
+    CHECK_STATUS_AND_RETURN_ON_FAIL_NO_PRINT(status, EXIT_FAILURE);
 
     // Directories for all the grids.
-    check_directory(GridOutputDir);
+    check_and_create_directory(GridOutputDir);
+    CHECK_STATUS_AND_RETURN_ON_FAIL_NO_PRINT(status, EXIT_FAILURE);
 
     // Directory for the ionizing photon grids.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/nion", GridOutputDir);
-    check_directory(buf);
+    check_and_create_directory(buf);
+    CHECK_STATUS_AND_RETURN_ON_FAIL_NO_PRINT(status, EXIT_FAILURE);
 
     // Directory for the reionization fields.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/cifog", GridOutputDir);
-    check_directory(buf);
+    check_and_create_directory(buf);
+    CHECK_STATUS_AND_RETURN_ON_FAIL_NO_PRINT(status, EXIT_FAILURE);
 
     // Directory for the reionization baryonic modifier files.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/cifog/reionization_modifiers", GridOutputDir);
-    check_directory(buf);
+    check_and_create_directory(buf);
+    CHECK_STATUS_AND_RETURN_ON_FAIL_NO_PRINT(status, EXIT_FAILURE);
 
     // Directory for the ini files.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/ini_files", OutputDir);
-    check_directory(buf);
+    check_and_create_directory(buf);
+    CHECK_STATUS_AND_RETURN_ON_FAIL_NO_PRINT(status, EXIT_FAILURE);
 
     // Directory for the slurm files.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/slurm_files", OutputDir);
-    check_directory(buf);
+    check_and_create_directory(buf);
+    CHECK_STATUS_AND_RETURN_ON_FAIL_NO_PRINT(status, EXIT_FAILURE);
 
     // Directory for the log files.
     snprintf(buf, MAX_STRING_LEN - 1, "%s/log_files", OutputDir);
-    check_directory(buf);
+    check_and_create_directory(buf);
+    CHECK_STATUS_AND_RETURN_ON_FAIL_NO_PRINT(status, EXIT_FAILURE);
 
     // For log keeping purposes, copy the parameter files to the ini_files
     // directory. Furthermore, let's add some extra information to the top
@@ -173,15 +195,27 @@ int32_t check_sage_ini(char *RunPrefix, char *OutputDir, char *GalaxyOutputDir,
 
 #ifdef RSAGE
 
+/*
+Checks the fields from the cifog .ini files and updates them if necessary.
+
+Notes
+----------
+
+strncmp returns 0 if the two strings are equal.
+*/
+
 int32_t check_cifog_ini(confObj_t *simParam, char *OutputDir, char *RunPrefix, char **argv, int32_t ThisTask)
 {
 
   char buf[MAX_STRING_LEN], nion_prefix[MAX_STRING_LEN];
 
-  // We have ensured all the directory structure is correct in `check_sage_ini`.
+  // We have ensured all the directory structure is correct in `check_sage_ini`. Hence don't need to
+  // check it here.
 
   if (ThisTask == 0)
   {
+    // Identical to the SAGE .ini file, we want to append the time the code was executed and the Git
+    // version.
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
     char time_string[MAX_STRING_LEN];
