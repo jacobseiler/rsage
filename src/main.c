@@ -186,6 +186,11 @@ int main(int argc, char **argv)
     goto err;
   }
 
+#ifdef MPI
+  // Here to prevent any shenanagins if we try write to files without the path existing.
+  MPI_Barrier(MPI_COMM_WORLD); 
+#endif
+
 #ifdef RSAGE
 
   if (self_consistent == 1 && (ReionizationOn == 3 || ReionizationOn == 4))
@@ -194,6 +199,10 @@ int main(int argc, char **argv)
     status = check_cifog_ini(&simParam, OutputDir, RunPrefix, argv,
                              ThisTask);
 
+#ifdef MPI
+    // Here to prevent any shenanagins if we try write to files without the path existing.
+    MPI_Barrier(MPI_COMM_WORLD); 
+#endif
     if (status !=  EXIT_SUCCESS)
     {
       goto err;
@@ -399,10 +408,14 @@ int main(int argc, char **argv)
 
   if (ThisTask == 0)
   {
-    printf("SAGE took an average time of %.4f seconds to execute on each Task.\n", master_SAGE_time / CLOCKS_PER_SEC);
-    printf("cifog took an average time of %.4f seconds to execute on each Task.\n", master_cifog_time / CLOCKS_PER_SEC);
-    printf("Creation of Halo filter masses took an average time of %.4f seconds to execute on each Task.\n", master_filter_time / CLOCKS_PER_SEC);
-    printf("Creation of reionization redshift grid took %.4f seconds to execute.\n", master_misc_time / CLOCKS_PER_SEC * NTask); // Reionization redshift only done on root node.
+    printf("SAGE took an average time of %.4f seconds (%.2f minutes) to execute on each Task.\n",
+           master_SAGE_time / CLOCKS_PER_SEC,  master_SAGE_time / CLOCKS_PER_SEC / 60.0);
+    printf("cifog took an average time of %.4f seconds (%.2f minutes) to execute on each Task.\n",
+           master_cifog_time / CLOCKS_PER_SEC, master_SAGE_time / CLOCKS_PER_SEC / 60.0);
+    printf("Creation of Halo filter masses took an average time of %.4f seconds (%.2f minutes) to execute on each Task.\n",
+           master_filter_time / CLOCKS_PER_SEC, master_SAGE_time / CLOCKS_PER_SEC);
+    printf("Creation of reionization redshift grid took %.4f seconds (%.2f minutes) to execute.\n",
+           master_misc_time / CLOCKS_PER_SEC * NTask, master_SAGE_time / CLOCKS_PER_SEC / 60.0 * NTask); // Reionization redshift only done on root node.
   }
 
 #ifdef MPI

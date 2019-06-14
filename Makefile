@@ -15,7 +15,7 @@ BUILD_RSAGE = true
 # Set this to true if you want to run in MPI.
 #USE-MPI = true
 
-CFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC 
+CFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC
 
 # Determine if we're on continuous integration.
 ON_CI := false
@@ -27,7 +27,7 @@ ifeq ($(TRAVIS), true)
     ON_CI := true
 endif
 
-ifeq ($(ON_CI), true) #  Don't build with MPI if we're on a continuous integration service. 
+ifeq ($(ON_CI), true) #  Don't build with MPI if we're on a continuous integration service.
     USE-MPI = false
 endif
 
@@ -58,11 +58,11 @@ ifndef GSL_FOUND
   $(warning Assuming GSL *might* be in $(GSL_DIR) and trying to compile)
   # if the automatic detection fails, set GSL_DIR appropriately
   GSL_DIR := /opt/local
-  GSL_INCL := -I$(GSL_DIR)/include  
+  GSL_INCL := -I$(GSL_DIR)/include
   GSL_LIBDIR := $(GSL_DIR)/lib
   # since GSL is not in PATH, the runtime environment might not be setup correctly either
   # therefore, adding the compiletime library path is even more important (the -Xlinker bit)
-  GSL_LIBS := -L$(GSL_LIBDIR) -lgsl -lgslcblas -Xlinker -rpath -Xlinker $(GSL_LIBDIR) 
+  GSL_LIBS := -L$(GSL_LIBDIR) -lgsl -lgslcblas -Xlinker -rpath -Xlinker $(GSL_LIBDIR)
 else
   # GSL is probably configured correctly, pick up the locations automatically
   GSL_INCL := $(shell gsl-config --cflags)
@@ -76,14 +76,14 @@ FFTW3_LIBDIR :=/opt/local/lib
 FFTW3_LIBS := -L$(FFTW3_LIBDIR) -lfftw3 -Xlinker -rpath -Xlinker $(FFTW3_LIBDIR)
 
 ifeq ($(USE-MPI), true)
-ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service.    
+ifeq ($(ON_CI), false) #  Don't build with MPI if we're on a continuous integration service.
     FFTW3_LIBS += -lfftw3_mpi
 endif
 endif
 
 CFLAGS += $(GSL_INCL) $(FFTW_INCL)
 
-OPTIMIZE = -g -O3 -Wextra -Wall -Wshadow # optimization and warning flags -Wunused-parameter  -Werror 
+OPTIMIZE = -g -O3 -Wextra -Wall -Wshadow # optimization and warning flags -Wunused-parameter  -Werror
 
 LIBS   = -lm  $(GSL_LIBS) -lgsl -lgslcblas $(SAGE_LIB) $(RSAGE_LIB) $(FFTW3_LIBS)
 
@@ -106,12 +106,12 @@ export $(GSL_LIBS)
 export BUILD_RSAGE
 
 # All flags set up, time to compile targets.
-default: all 
+default: all
 
 $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(EXEC)
 
-$(OBJS): $(INCL) 
+$(OBJS): $(INCL)
 
 tests: do_tests
 do_tests: compile_sage compile_cifog compile_filter $(EXEC)
@@ -121,9 +121,9 @@ clean:
 	rm -f $(OBJS) $(EXEC)
 
 tidy:
-	rm -f $(OBJS) $(EXEC) 
+	rm -f $(OBJS) $(EXEC)
 	$(MAKE) clean -C src/sage/
-	$(MAKE) clean -C grid-model/ 
+	$(MAKE) clean -C grid-model/
 	$(MAKE) clean -C src/filter_mass/
 
 all: compile_sage compile_cifog compile_filter $(EXEC)
@@ -137,6 +137,6 @@ compile_cifog:
 	$(MAKE) -C grid-model/
 
 compile_filter:
-	$(MAKE) -C src/filter_mass/ 
+	$(MAKE) -C src/filter_mass/
 
 celan celna clena claen: clean

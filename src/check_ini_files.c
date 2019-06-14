@@ -23,6 +23,7 @@ fields support this and the structure of the updated names.
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
+#include <errno.h>
 
 #include "main.h"
 
@@ -53,17 +54,83 @@ int32_t check_and_create_directory(char *path)
   // Checks if the path exists.
   if (stat(path, &st) == - 1)
   {
-    status = mkdir(path, 0700);
-    CHECK_STATUS_AND_RETURN_ON_FAIL(status, status,
-                                    "Did not find directory %s. Attempting to create it failed.\n",
-                                    path);
-
-    printf("Made directory %s.\n", path);
+    // Recursively make the directory so we don't hit any errors for nested paths.
+    // We'll just use a shell command to avoid having to muck around with strings.
+    char command[MAX_STRING_LEN];
+    snprintf(command, MAX_STRING_LEN - 1, "mkdir -p %s", path);
+    status = system(command);
+    CHECK_STATUS_AND_RETURN_ON_FAIL(status, status, "Could not create path %s\n", path);
   }
 
   return EXIT_SUCCESS;
 }
 
+/*
+Mimics the `mkdir -p` shell command. That is, creates all the necessary folders such that
+`path` is a valid directory path.
+
+Taken from https://gist.github.com/JonathonReinhart/8c0d90191c38af2dcadb102c4e202950
+*/
+
+int32_t recursively_create_directory(char *path)
+{
+
+  // First check that the passed string isn't too long.
+  if (strlen(path) > MAX_STRING_LEN)
+  {
+    fprintf(stderr, "`recursively_create_directory` was called using a string with length %d. "
+                    "This is greater than the allowed limit. This can be fixed by increasing `MAX_STRING_LEN`.",
+                    strlen(path));
+    return EXIT_FAILURE;
+  }
+
+  errno = EXIT_SUCCESS;
+  int32_t status;
+
+  // Copy the path so we can alter it.
+  char func_path[MAX_STRING_LEN];
+  strcpy(func_path, path);
+
+  char *p;
+
+  // Now iterate through the path until we hit a '/'. At that point, we will create the directory up
+  // to that point.
+  for (p = func_path + 1; *p; p++)
+  {
+    fprintf(stderr, "%s %s\n", func_path, p);
+    if (*p == "/")
+    {
+      // Truncate the path.
+      *p = "\0";
+
+      // Careful here, if the directory already exists, `mkdir` will return an error status.
+      // Furthermore, `errno` will be set to `EEXIST`.  So check for this scenario directly. 
+      status = mkdir(func_path, S_IRWXU);
+
+      fprintf(stderr, "%s\n", func_path);
+      if (status != EXIT_SUCCESS) {
+        if (errno != EEXIST) {
+          fprintf(stderr, "Failed to create directory %s.\n", func_path);
+          return status;
+        }
+      }
+
+      *p = "/";
+    }
+  }
+
+  // At this point we've ensured that all the nested directories are made. So we're free to make the
+  // full directory.
+  status = mkdir(func_path, S_IRWXU);
+  if (status != EXIT_SUCCESS) {
+    if (errno != EEXIST) {
+      fprintf(stderr, "Failed to create directory %s.\n", func_path);
+      return status;
+    }
+  }
+
+  return EXIT_SUCCESS;
+}
 /*
 Checks the fields from the SAGE .ini files and updates them if necessary.
 

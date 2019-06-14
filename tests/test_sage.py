@@ -540,7 +540,7 @@ def test_run():
         path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_file)
 
         SAGE_params = ReadScripts.read_SAGE_ini(path_to_sage_ini)
-        cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini) 
+        cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini, SAGE_params) 
 
         run_prefix = SAGE_params["RunPrefix"]
         max_snap = int(SAGE_params["LastSnapShotNr"])
