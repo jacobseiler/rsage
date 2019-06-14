@@ -9,11 +9,11 @@ INCL   =	src/main.h \
 			src/reion_redshift.h \
 			src/check_ini_files.h
 
-# Set if you're using self-consistent reionization.
+# Set if you're using self-consistent reionization. Otherwise set to False.
 BUILD_RSAGE = true
 
-# Set this to true if you want to run in MPI.
-#USE-MPI = true
+# Set this to true if you want to run in MPI. Otherwise set to False.
+USE-MPI = false
 
 CFLAGS := -DGNU_SOURCE -std=gnu99 -fPIC
 

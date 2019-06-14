@@ -114,6 +114,13 @@ def check_sage_dirs(galaxy_name="test"):
     # Check to see if the output directory exists.
     # If it does, remove any old output.
     # Otherwise, create the directory.
+    directory = "{0}/test_output/galaxies/".format(test_dir)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    else:
+        print("Cleaning up old output files.")
+        command = "rm {0}/test_output/galaxies/{1}_*".format(test_dir,
+                                                             galaxy_name)
         subprocess.call(command, shell=True)
 
     # Check that the log directory exists.
