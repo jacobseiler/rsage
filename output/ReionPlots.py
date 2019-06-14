@@ -37,6 +37,7 @@ def plot_single_slice(z, snapnum, XHII, mass_frac, GridSize, boxsize,
     ax.set_xlim([0.0, boxsize])
     ax.set_ylim([0.0, boxsize])
 
+    plt.axis("off")
     ax.set_xlabel(r"$\mathbf{x \: [h^{-1}Mpc]}$", size=ps.global_labelsize) 
     ax.set_ylabel(r"$\mathbf{y \: [h^{-1}Mpc]}$", size=ps.global_labelsize)
 
@@ -57,7 +58,7 @@ def plot_single_slice(z, snapnum, XHII, mass_frac, GridSize, boxsize,
     z_text.set_path_effects([PathEffects.withStroke(linewidth=5, foreground='w')])
     plt.draw()
 
-    # All the models have been plotted. Now lets fix up the colorbar.
+    # Now lets fix up the colorbar.
     cax = fig1.add_axes([0.81, 0.11, 0.03, 0.77])
     ticks = np.arange(-8.0, 1.0, 1.0)
     cbar = fig1.colorbar(im, cax=cax, ticks=ticks) 
@@ -65,11 +66,9 @@ def plot_single_slice(z, snapnum, XHII, mass_frac, GridSize, boxsize,
                             fontsize = ps.global_legendsize+10)
     cbar.ax.set_ylabel(r'$\mathbf{log_{10}\left(\chi_{HI}\right)}$',
                        rotation = 90, size = ps.global_labelsize)
-    #cbar.ax.tick_params(labelsize = ps.global_legendsize + 10)
+    cbar.ax.tick_params(labelsize = ps.global_legendsize + 10)
 
     # Done! Save time.
-    #output_tag = "slice_{0}_z{1:.2f}".format(model_tag, z)
-    #output_tag = "slice_{0}_z{1:03d}".format(model_tag, snapnum)
     output_tag = "slice_{0:03d}".format(snapnum)
 
     outputFile = "{0}/{1}.{2}".format(output_dir, output_tag, output_format)

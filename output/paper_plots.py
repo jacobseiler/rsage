@@ -101,7 +101,8 @@ if __name__ == "__main__":
     const = 0
     sliding_fesc = 0
     combined_higher_tau = 0
-    UV = 1
+    UV = 0
+    noSN = 1
 
     if no_const:
 
@@ -143,7 +144,7 @@ if __name__ == "__main__":
         reion_ini_2="/fred/oz004/jseiler/kali/self_consistent_output/rsage_fej/ini_files/fej_alpha0.45_beta0.00_cifog.ini"
         reion_ini_3="/fred/oz004/jseiler/kali/self_consistent_output/rsage_SFR/ini_files/SFR_alpha1.00_beta0.80_delta1.00_cifog.ini"
 
-        output_directory = "./nov_higher_tau"
+        output_directory = "./may_higher_tau"
 
         gal_ini_files = [gal_ini_1,
                          gal_ini_2,
@@ -249,15 +250,41 @@ if __name__ == "__main__":
                       r"$\mathbf{SFR}$"]
 
     if UV:
-        output_directory = "./tmp_dust"
+        output_directory = "./rsage_UV"
 
-        gal_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/april2019_SAGE.ini"
-        reion_ini="/fred/oz004/jseiler/kali/self_consistent_output/rsage_UV/ini_files/test_UV_cifog.ini"
+        gal_ini_model0="/fred/oz004/jseiler/kali/UV/constant/ini_files/kali_SAGE.ini"
+        reion_ini_model0="/fred/oz004/jseiler/kali/UV/constant/ini_files/kali_cifog.ini"
 
-        gal_ini_files = [gal_ini, gal_ini]
-        reion_ini_files = [reion_ini, reion_ini]
+        gal_ini_model1="/fred/oz004/jseiler/kali/UV/fej/ini_files/kali_fej_alpha0.30_beta0.00_SAGE.ini"
+        reion_ini_model1="/fred/oz004/jseiler/kali/UV/fej/ini_files/kali_fej_alpha0.30_beta0.00_cifog.ini"
 
-        model_tags = [r"$Test$", r"$Test2$"]
+        gal_ini_model2="/fred/oz004/jseiler/kali/UV/sfr/ini_files/kali_sfr_alpha1.00_beta1.50_delta1.00_SAGE.ini"
+        reion_ini_model2="/fred/oz004/jseiler/kali/UV/sfr/ini_files/kali_sfr_alpha1.00_beta1.50_delta1.00_cifog.ini"
+
+        gal_ini_files = [gal_ini_model0, gal_ini_model1, gal_ini_model2]
+
+        reion_ini_files = [reion_ini_model0, reion_ini_model1, reion_ini_model2]
+
+
+        model_tags = [r"$\mathbf{f_\mathrm{esc} = 0.20}$",
+                      r"$\mathbf{f_\mathrm{esc} \: \propto \: SN}$",
+                      r"$\mathbf{f_\mathrm{esc} \: \propto \: SFR}$"]
+
+    if noSN:
+
+        output_directory = "./UV_noSN"
+
+        gal_ini_model0="/fred/oz004/jseiler/kali/UV/constant/ini_files/kali_SAGE.ini"
+        reion_ini_model0="/fred/oz004/jseiler/kali/UV/constant/ini_files/kali_cifog.ini"
+
+        gal_ini_model1="/fred/oz004/jseiler/kali/noSN/ini_files/noSN_SAGE.ini"
+        reion_ini_model1="/fred/oz004/jseiler/kali/noSN/ini_files/noSN_cifog.ini"
+
+        gal_ini_files = [gal_ini_model0, gal_ini_model1]
+        reion_ini_files = [reion_ini_model0, reion_ini_model1]
+
+        model_tags = [r"$\mathbf{Base}$",
+                      r"$\mathbf{NoSN}$"]
 
     # ============================================================= #
     # Switches to control what plots to make. 0 to skip, 1 to plot. #
@@ -270,7 +297,7 @@ if __name__ == "__main__":
     mstar_fesc = 0
     mstar_fej  = 0
     mstar_SFR  = 0
-    SMF        = 0
+    SMF        = 1
     UVLF       = 1
 
     # ==================== #
@@ -281,7 +308,8 @@ if __name__ == "__main__":
 
     # (within one panel).
     plot_snaps_for_models = [[33, 50, 76, 93],  # For each panel, plot one model
-                             [33, 50, 76, 93]]  # at specified snapshots.
+                             [33, 50, 76, 93],  # at specified snapshots.
+                             [33, 50, 76, 93]]
 
 
     plot_models_at_snaps = None
@@ -298,12 +326,13 @@ if __name__ == "__main__":
 
     # And same for the UV luminosity function.
     UVLF_plot_z = [[6.0, 7.0, 8.0],
+                   [6.0, 7.0, 8.0],
                    [6.0, 7.0, 8.0]]
 
     # If you only want to use a specific range of files, specify here. If you
     # want to use all the files from a model, set these to ``None``.
     first_file = None
-    last_file = 0
+    last_file = None
 
     dust_to_gas_ratio = [1.0, 1.0, 1.0]
     radius_dust_grains = [5.0e-6, 5.0e-6, 5.0e-6]
@@ -341,7 +370,7 @@ if __name__ == "__main__":
                                            model_tags, combined_galaxy,
                                            output_directory, output_format)
             break
-    exit()
+
 
     # =========================== #
     # Reionization Plot Toggles . #
@@ -350,9 +379,9 @@ if __name__ == "__main__":
     single_ps            = 0
     history              = 0
     reion_nion           = 0
-    ps_fixed_XHI         = 1
+    ps_fixed_XHI         = 0
     optical_depth        = 0
-    ps_scales            = 1
+    ps_scales            = 0
     ps_scales_beta       = 0
     slices_fixed_XHI     = 0
     bubble_size          = 0

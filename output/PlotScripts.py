@@ -395,7 +395,14 @@ def plot_UVLF_z7(ax, hubble_h, errorwidth=1.5, capsize=2.0, linewidth=1.0, alpha
     y_data = Obs.Bouwens2015_UVLF_z7[:, 1] / h_converter_y(1.00, hubble_h)
     y_err  = Obs.Bouwens2015_UVLF_z7[:, 2] / h_converter_y(1.00, hubble_h)
 
-    print(y_data)
+    ax.errorbar(x_data, y_data, yerr = y_err, alpha=alpha, elinewidth=errorwidth,
+                lw=linewidth, marker=Obs.UVLF_markers[0], ls='none', 
+                label=r'$\mathbf{Bouwens \: et \: al. \: 2015}$',
+                color=Obs.UVLF_colors[0], capsize=capsize)
+
+    x_data = Obs.Bouwens2015_UVLF_z7[:, 0] + h_converter_x(1.00, hubble_h, "LF")
+    y_data = Obs.Bouwens2015_UVLF_z7[:, 1] / h_converter_y(1.00, hubble_h)
+    y_err  = Obs.Bouwens2015_UVLF_z7[:, 2] / h_converter_y(1.00, hubble_h)
 
     ax.errorbar(x_data, y_data, yerr = y_err, alpha=alpha, elinewidth=errorwidth,
                 lw=linewidth, marker=Obs.UVLF_markers[0], ls='none', 
@@ -412,6 +419,6 @@ def plot_UVLF_z8(ax, hubble_h, errorwidth=1.5, capsize=2.0, linewidth=1.0, alpha
     print(y_data)
 
     ax.errorbar(x_data, y_data, yerr = y_err, alpha=alpha, elinewidth=errorwidth,
-                lw=linewidth, marker=Obs.UVLF_markers[0], ls='none', 
+                lw=linewidth, marker=Obs.UVLF_markers[0], ls='none',
                 label=r'$\mathbf{Bouwens \: et \: al. \: 2015}$',
                 color=Obs.UVLF_colors[0], capsize=capsize)

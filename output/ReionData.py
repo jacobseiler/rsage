@@ -1458,8 +1458,8 @@ def generate_data(rank, size, comm, reion_ini_files, gal_ini_files,
             print("Model {0}".format(model_number))
 
         # Read in the parameters and set some initial variables.
-        cifog_params, _ = rs.read_cifog_ini(reion_ini_file)
         SAGE_params = rs.read_SAGE_ini(gal_ini_file)
+        cifog_params, _ = rs.read_cifog_ini(reion_ini_file, SAGE_params)
 
         cosmology, t_bigbang = gd.set_cosmology(float(SAGE_params["Hubble_h"]),
                                                 float(SAGE_params["Omega"]),

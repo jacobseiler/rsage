@@ -554,6 +554,7 @@ def generate_data(rank, size, comm, ini_files, galaxy_plots):
         z_array_full, lookback_array_full = load_redshifts(SAGE_params["FileWithSnapList"],
                                                            cosmology, t_bigbang)
         z_array_full = np.array(z_array_full[0:last_snap+1])
+
         lookback_array_full = np.array(lookback_array_full[0:last_snap+1])
 
         z_array_full_allmodels.append(z_array_full)

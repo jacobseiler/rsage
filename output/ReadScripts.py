@@ -482,39 +482,89 @@ def read_SAGE_ini(fname):
                 if split[0] in SAGE_fields or split[0] in old_SAGE_fields:
                     SAGE_dict[split[0]] = split[1]
 
-        # In the old version of SAGE, the ini file had a `FileNameGalaxies`
-        # field that was equivalent to the `RunPrefix` field.
-        try:
-            SAGE_dict["RunPrefix"] = SAGE_dict["FileNameGalaxies"]
-        except KeyError:
-            pass
-
-        # Furthermore, `OutputDir` actually pointed to the same directory as
-        # `GalaxyOutputDir`. 
-        try:
-            SAGE_dict["GalaxyOutputDir"] = SAGE_dict["OutputDir"]
-        except KeyError:
-            pass
-
-        return SAGE_dict
-
     except FileNotFoundError:
         print("Could not file SAGE ini file {0}".format(fname))
-        raise RuntimeError 
+        raise FileNotFoundError
+
+    # For some fields, they are kept as `None` in the `.ini` file and automatically
+    # updated by RSAGE.  Hence for these we need to update them. 
+    allowed_none_fields = ["GalaxyOutputDir", "GridOutputDir", "PhotoionDir",
+                           "PhotoionName", "ReionRedshiftName"]
+
+    for field in allowed_none_fields:
+        try:
+            if SAGE_dict[field] == "None":
+                SAGE_dict[field] = update_none_field(SAGE_dict, field, "SAGE")
+        except KeyError:
+            pass
+
+    return SAGE_dict
 
 
-def read_cifog_ini(fname):
+def update_none_field(parameter_dict, field_name, ini_type):
+
+    if ini_type == "SAGE":
+
+        if field_name == "GalaxyOutputDir":
+            updated_name = "{0}/galaxies".format(parameter_dict["OutputDir"])
+
+        elif field_name == "GridOutputDir":
+            updated_name = "{0}/grids".format(parameter_dict["OutputDir"])
+
+        elif field_name == "PhotoionDir":
+            updated_name = "{0}/grids/cifog".format(parameter_dict["OutputDir"])
+
+        elif field_name == "PhotoionName":
+            updated_name = "{0}_photHI".format(parameter_dict["RunPrefix"])
+
+        elif field_name == "PhotoionName":
+            updated_name = "{0}_photHI".format(parameter_dict["RunPrefix"])
+
+        elif field_name == "ReionRedshiftName":
+            updated_name = "{0}_reionization_redshift".format(parameter_dict["RunPrefix"])
+
+
+    elif ini_type == "cifog":
+
+        if field_name == "inputNionFile":
+            print("Currently haven't implemented Nion for None file in cifog.")
+            updated_name = None
+
+        elif field_name == "output_XHII_file":
+            updated_name = "{0}/grids/cifog/{1}_XHII".format(parameter_dict["OutputDir"],
+                                                             parameter_dict["RunPrefix"])
+
+        elif field_name == "output_photHI_file":
+            updated_name = "{0}/grids/cifog/{1}_photHI".format(parameter_dict["OutputDir"],
+                                                               parameter_dict["RunPrefix"])
+
+        elif field_name == "output_restart_file":
+            updated_name = "{0}/grids/cifog/{1}_restart".format(parameter_dict["OutputDir"],
+                                                                parameter_dict["RunPrefix"])
+
+    return updated_name
+
+def read_cifog_ini(fname, SAGE_params=None):
     """    
     Reads the ``cifog`` ``.ini`` file into a dictionary containing the parameter
     values.  ``cifog`` also contains a number of header fields which must be
     present in the ``.ini`` file which this function also reads into a separate
     dictionary. 
 
+    Within the ``cifog`` ``.ini`` file, we support the use of special ``'None'`` variables.
+    Specifying this means that ``RSAGE`` automatically determined the parameter value.
+    For these, they depend upon parameters defined in the ``SAGE`` ``.ini`` file and hence
+    the ``SAGE_params`` parameter must be passed.
+
     Parameters
     ----------
 
     fname : String
         Path to the ``cifog`` ``.ini`` file.         
+
+    SAGE_params : Dictionary, see ``read_SAGE_ini()`` for full field names
+        Parameters form the ``SAGE`` ``.ini`` file read by ``read_SAGE_ini()``. Necessary
+        if any fields in the ``cifog`` ``.ini`` file are ``'None'``.
 
     Returns
     ---------
@@ -591,8 +641,26 @@ def read_cifog_ini(fname):
                 if first_char == "[":
                     header_name = stripped
 
-        return cifog_dict, cifog_headers
-
     except FileNotFoundError:
         print("Could not file cifog ini file {0}".format(fname))
         raise ValueError 
+
+
+    # For some fields, they are kept as `None` in the `.ini` file and automatically
+    # updated by RSAGE.  Hence for these we need to update them. 
+    allowed_none_fields = ["inputNionFile", "output_XHII_file", "output_photHI_file",
+                           "output_restart_file"]
+
+    for field in allowed_none_fields:
+        if cifog_dict[field] == "None":
+
+            if SAGE_params is None:
+                print("When reading the cifog ini file, we encountered a field that is "
+                      "'None'. To automatically detect this, the SAGE parameter file must "
+                      "be read and passed into this function. Please use the "
+                      "read_SAGE_ini() function.")
+                raise ValueError
+
+            cifog_dict[field] = update_none_field(SAGE_params, field, "cifog")
+
+    return cifog_dict, cifog_headers

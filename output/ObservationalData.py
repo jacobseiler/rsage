@@ -9,20 +9,20 @@ import os
 
 def Get_Data_SMF():
 
-    ## Stellar Mass Function Data.## 
-    
+    ## Stellar Mass Function Data.##
+
     print("Getting SMF data.")
-       
-    global Gonzalez_SMF_z6 
-    global Gonzalez_SMF_z7 
+
+    global Gonzalez_SMF_z6
+    global Gonzalez_SMF_z7
 
     global Song_SMF_z6
     global Song_SMF_z7
     global Song_SMF_z8
- 
+
     global Duncan_SMF_z6
     global Duncan_SMF_z7
- 
+
     global Baldry_SMF_z0
 
     global SMF_colors
@@ -31,7 +31,7 @@ def Get_Data_SMF():
     #SMF_colors = ["b", "g", "c", "m"]
     SMF_colors = ["#31a354", "#2b8cbe", "#c51b8a", "m"]
     SMF_markers = ["o", "s", "D"]
- 
+
     ## For Gonzalez and Song, Columns are redshift, mean value, lower bound, upper bound.##
     ## Units of log10 Phi [dex^-1 Mpc^-3].
     ## Gonzales Data uses h = 0.699999 and a Salpeter IMF ## 

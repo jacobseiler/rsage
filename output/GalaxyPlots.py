@@ -706,6 +706,8 @@ def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
     None. The figure is saved as "<output_dir>/<output_tag>.<output_format>".
     """
 
+    plot_dust = 1
+
     fig1, ax = plt.subplots(nrows=1, ncols=len(plot_z[0]),
                             sharex='col', sharey='row', figsize=(16,6))
 
@@ -719,19 +721,19 @@ def plot_UVLF(MUV_bins, MUV_bin_width, z_array_full_allmodels,
         # Then plot only those snapshots.
         for count, snap in enumerate(plot_snaps):
             label = model_tags[model_number]
-            ax[count].plot(MUV_bins[:-1] + MUV_bin_width*0.5,
-                           UVLF[model_number][snap],
-                           color=ps.colors[model_number],
-                           dashes=ps.dashes[model_number],
-                           label=label)
+
+            if plot_dust:
+                ax[count].plot(MUV_bins[:-1] + MUV_bin_width*0.5,
+                               UVLF[model_number][snap],
+                               color=ps.colors[model_number],
+                               dashes=ps.dashes[0],
+                               label=label + "Intrinsic")
 
             ax[count].plot(MUV_bins[:-1] + MUV_bin_width*0.5,
                            dustcorrected_UVLF[model_number][snap],
-                           color=ps.colors[model_number+1],
-                           dashes=ps.dashes[model_number+1],
+                           color=ps.colors[model_number],
+                           dashes=ps.dashes[1],
                            label=label + "Dust Corrected")
-
-            print("UVLF: Snap {0}\t{1}".format(snap, np.sum(UVLF[model_number][snap])))
 
             if model_number == 0:
 
