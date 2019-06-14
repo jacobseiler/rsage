@@ -17,7 +17,7 @@ of SAGE can change between versions, we store the 'correct' stellar mass as a
 .txt file in the 'test_RSAGE' directory.  See `check_smf()` for list of
 conditions that fail the test.
 """
- 
+
 from __future__ import print_function
 import numpy as np
 import argparse
@@ -47,11 +47,11 @@ import ReadScripts
 
 def get_trees():
     """
-    Grabs the trees and galaxy output needed for the testing. 
+    Grabs the trees and galaxy output needed for the testing.
 
     First checks the test directory to see if they trees are there.
     Otherwise downloads the ``test_datadir`` repo.
-    
+
     Parameters
     ----------
 
@@ -61,8 +61,8 @@ def get_trees():
     ----------
 
     downloaded_repo: Boolean.  Required.
-        Flag to check if we downloaded the test_RSAGE repo.  Useful for cleanup as we get 
-        rid of all the unecessary files (e.g., ``README.rst``, ``LICENSE``, etc). 
+        Flag to check if we downloaded the test_RSAGE repo.  Useful for cleanup as we get
+        rid of all the unecessary files (e.g., ``README.rst``, ``LICENSE``, etc).
     """
 
     print("")
@@ -71,7 +71,7 @@ def get_trees():
     treefile = "{0}/{1}/kali512/trees/kali512_000.dat".format(test_dir, test_datadir)
     if not os.path.isfile(treefile):
         print("{0} does not exist, downloading the {1}"
-              "repo.".format(treefile, test_datadir)) 
+              "repo.".format(treefile, test_datadir))
 
         repo_url = "https://github.com/jacobseiler/{0}".format(test_datadir)
         command = "git clone {0} --depth 1".format(repo_url)
@@ -92,15 +92,15 @@ def get_trees():
 
 def check_sage_dirs(galaxy_name="test"):
     """
-    Ensures the directories for outputs exist. 
+    Ensures the directories for outputs exist.
 
     Also removes old files that may be in the directory.
 
     Parameters
     ----------
 
-    galaxy_name: String. Optional, default: 'test'. 
-        Prefix name for the galaxies. 
+    galaxy_name: String. Optional, default: 'test'.
+        Prefix name for the galaxies.
 
     Returns
     ----------
@@ -110,17 +110,10 @@ def check_sage_dirs(galaxy_name="test"):
 
     print("First checking that the required output directories are present.")
     print("")
-   
+
     # Check to see if the output directory exists.
     # If it does, remove any old output.
-    # Otherwise, create the directory.  
-    directory = "{0}/test_output/galaxies/".format(test_dir)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    else:
-        print("Cleaning up old output files.")
-        command = "rm {0}/test_output/galaxies/{1}_*".format(test_dir,
-                                                             galaxy_name) 
+    # Otherwise, create the directory.
         subprocess.call(command, shell=True)
 
     # Check that the log directory exists.
@@ -134,16 +127,16 @@ def check_sage_dirs(galaxy_name="test"):
 
 def run_my_sage(ini_name):
     """
-    Executes my version of SAGE. 
+    Executes my version of SAGE.
 
     This uses the base analytic prescription for reionization (i.e., no
-    self-consistent). 
+    self-consistent).
 
     Parameters
     ----------
 
     ini_name: String
-        Name of the input ini file. 
+        Name of the input ini file.
 
     Returns
     ----------
@@ -180,7 +173,7 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
     Checks the stellar mass of the galaxies.
 
     The galaxies of the model being tested are loaded in and compared to the
-    'correct' masses from the 'test_RSAGE' repo. 
+    'correct' masses from the 'test_RSAGE' repo.
 
     Parameters
     ----------
@@ -188,7 +181,7 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
     mass_tol: Float. Optional, default: 3.0e-3.
         The allowed difference between the stellar mass of the test galaxies
         and the stellar mass in the 'test_RSAGE' repo.  If any galaxy has a
-        (absolute) difference larger than this, a RuntimeError is raised. 
+        (absolute) difference larger than this, a RuntimeError is raised.
 
     Returns
     ----------
@@ -196,15 +189,15 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
     None.
 
     If any test galaxy has a GridPosition greater than 256^3 a RuntimeError is
-    raised. 
+    raised.
 
     If test model produces a different number of galaxies to the 'test_RSAGE'
-    galaxies a RuntimeError is raised. 
+    galaxies a RuntimeError is raised.
 
     If the mass of any test galaxy is negative a RuntimeError is raised.
 
-    If the mass of any test galaxy differs by more than ``mass_tol`` dex 
-    compared to the 'test_RSAGE' galaxies a RuntimeError is raised. 
+    If the mass of any test galaxy differs by more than ``mass_tol`` dex
+    compared to the 'test_RSAGE' galaxies a RuntimeError is raised.
     """
 
     GridSize = int(sage_params["GridSize"])
@@ -215,11 +208,11 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
     print("Now checking the stellar mass function for the final snapshot of "
           "Kali.")
 
-    w_gal = np.where((Gals.GridHistory[:, max_snap] != -1) & 
+    w_gal = np.where((Gals.GridHistory[:, max_snap] != -1) &
                      (Gals.GridStellarMass[:, max_snap] > 0.0))[0]
-        
+
     position = Gals.GridHistory[w_gal, max_snap]
-    w_wrong = np.where(position > pow(GridSize, 3))[0] 
+    w_wrong = np.where(position > pow(GridSize, 3))[0]
     if (len(w_wrong) > 0):
         print("Found grid cells that had indices outside of the allowed "
               "values.")
@@ -228,10 +221,10 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
                                               position[w_wrong]))
         raise RuntimeError
 
-    mass_test = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / Hubble_h)   
-    mass_test_nolog = Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / Hubble_h 
-    
-    w_wrong = np.where(mass_test_nolog <= 0.0)[0] 
+    mass_test = np.log10(Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / Hubble_h)
+    mass_test_nolog = Gals.GridStellarMass[w_gal, max_snap] * 1.0e10 / Hubble_h
+
+    w_wrong = np.where(mass_test_nolog <= 0.0)[0]
     if (len(w_wrong) > 0):
         print("The mass of the acceptable galaxies must be greater than 0.0.")
         print("Galaxies {0} had stellar mass {1}.".format(w_gal[w_wrong],
@@ -258,7 +251,7 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
               "obviously be correct.)")
         return
 
-    # Now let's check compare the mass of the test to the 'test_RSAGE' repo. 
+    # Now let's check compare the mass of the test to the 'test_RSAGE' repo.
     mass_repo = np.loadtxt("{0}/{1}/kali512/data/{2}_testmass.txt".format(test_dir,
                                                                           test_datadir,
                                                                           galaxy_name))
@@ -272,7 +265,7 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
         print("First 10 galaxies for the repo data {0}".format(mass_repo[0:10]))
 
         raise RuntimeError
- 
+
     mass_difference = mass_test - mass_repo
     w_wrong = np.where(abs(mass_difference) > mass_tol)[0]
     if (len(w_wrong) > 0):
@@ -293,8 +286,8 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
                       np.mean(abs(mass_difference))))
 
         max_diff = np.argmax(abs(mass_difference))
-        
-        print("The largest mass difference is {0} which corresponds to a {1}% " 
+
+        print("The largest mass difference is {0} which corresponds to a {1}% "
               "shift compared to the test data (mass {2})." \
               .format(mass_difference[max_diff],
                       abs(mass_difference[max_diff]/mass_test[max_diff]*100.0),
@@ -304,18 +297,18 @@ def check_smf(Gals, galaxy_name, max_snap, sage_params, mass_tol=3.0e-3,
 
 def load_gals(max_snap, galaxy_name="test"):
 
-    # First check that the output of the test run can be read. 
+    # First check that the output of the test run can be read.
 
     gal_name = "{0}/test_output/galaxies/{1}_z5.829".format(test_dir,
-                                                            galaxy_name) 
+                                                            galaxy_name)
     Gals, Gals_Desc = ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
 
     gal_name = "{0}/test_output/galaxies/{1}_MergedGalaxies".format(test_dir,
-                                                                    galaxy_name) 
+                                                                    galaxy_name)
     Gals_Merged, _= ReadScripts.ReadGals_SAGE(gal_name, 0, max_snap + 1)
     Gals = ReadScripts.Join_Arrays(Gals, Gals_Merged, Gals_Desc)
 
-    # Gals is now a recarray containing all galaxies at all snapshots. 
+    # Gals is now a recarray containing all galaxies at all snapshots.
 
     return Gals
 
@@ -328,12 +321,12 @@ def read_grids(SAGE_params, cifog_params, snapshot, reshape=False):
     ----------
 
     SAGE_params : Dictionary
-        Dictionary keyed by the ``SAGE`` parameter field names and containing 
+        Dictionary keyed by the ``SAGE`` parameter field names and containing
         the values from the ``.ini`` file. See ``read_SAGE_ini`` in
         ``output/ReadScripts.py`` for full details.
 
     cifog_params : Dictionary
-        Dictionary keyed by the ``cifog`` parameter field names and containing 
+        Dictionary keyed by the ``cifog`` parameter field names and containing
         the values from the ``.ini`` file. See ``read_cifog_ini`` in
         ``output/ReadScripts.py`` for full details.
 
@@ -392,7 +385,7 @@ def get_nion_prefix(SAGE_params):
         beta = float(SAGE_params["beta"])
 
         nion_prefix = "ejected_{0:.3f}_{1:.3f}_HaloPartCut{2}".format(alpha,
-                                                                      beta, 
+                                                                      beta,
                                                                       HaloPartCut)
 
     elif fescPrescription == 2:
@@ -428,7 +421,7 @@ def get_nion_prefix(SAGE_params):
 
 
 def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
-                snapshot, update_data=0):
+                snapshot, tol=0.01, update_data=0):
 
     print("")
     print("Now checking that the nionHI, XHII and photHI grids match the test "
@@ -469,14 +462,14 @@ def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
     # Now let's compare the grids to the test data.
 
     for (grid, tag, precision) in zip(grids, tags, precisions):
-        
+
         fname = "{0}/{1}/kali512/data/{2}_test_{3}_{4:03d}"\
                 .format(test_dir, test_datadir, RunPrefix, tag, snapshot)
 
         test_grid = ReadScripts.read_binary_grid(fname, GridSize, precision, reshape=False)
 
-        diff = np.abs(grid-test_grid)       
-        if len(diff[diff > 1e-8]) > 0: 
+        diff = np.abs(grid-test_grid)
+        if len(diff[diff > 1e-8]) > 0:
 
             print("Found that the {0} grids disagreed.".format(tag))
             print("The SAGE dictionary is {0}".format(SAGE_params))
@@ -487,7 +480,6 @@ def check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params, cifog_params,
                                                              np.mean(test_grid)))
             print("The non-zero difference values are {0}".format(diff[diff > 0]))
 
-            tol = 0.1 
             print("Checking if any of these values have a fractional difference "
                   "greater than {0}".format(tol))
             greater_0 = np.where(test_grid > 0.0)[0]
@@ -525,14 +517,14 @@ def test_run():
     print("Welcome to the RSAGE testing funhouse!")
     print("")
 
-    downloaded_repo = get_trees()  # Download Kali tree if we needed 
+    downloaded_repo = get_trees()  # Download Kali tree if we needed
 
     # We have multiple test parameter specs we want to test.
     # Need all the names of the ini files and the name of the galaxies they
-    # produce. 
+    # produce.
 
     ini_files = ["kali512"]
-   
+
     for ini_file in ini_files:
 
         # First read the ini file to get the runtime parameters.
@@ -540,13 +532,13 @@ def test_run():
         path_to_cifog_ini = "{0}/test_ini_files/{1}_cifog.ini".format(test_dir, ini_file)
 
         SAGE_params = ReadScripts.read_SAGE_ini(path_to_sage_ini)
-        cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini, SAGE_params) 
+        cifog_params, cifog_headers = ReadScripts.read_cifog_ini(path_to_cifog_ini, SAGE_params)
 
         run_prefix = SAGE_params["RunPrefix"]
         max_snap = int(SAGE_params["LastSnapShotNr"])
 
         # Make sure all the directories we need are present.
-        # SAGE itself will take care of the directories for the results. 
+        # SAGE itself will take care of the directories for the results.
         check_sage_dirs(run_prefix)
 
         # Then run SAGE.
@@ -567,10 +559,10 @@ def test_run():
                                                        snapshot)
         check_grids(nion_grid, XHII_grid, photHI_grid, SAGE_params,
                     cifog_params, snapshot)
-    
+
     print("Done")
     print("")
-    
+
     #cleanup(downloaded_repo)
 
     print("")
@@ -582,12 +574,12 @@ def test_run():
 
 def cleanup(downloaded_repo):
     """
-    Removes uncessary files from the directory. 
+    Removes uncessary files from the directory.
 
     Parameters
     ----------
 
-    downloaded_repo: Boolean.  Required. 
+    downloaded_repo: Boolean.  Required.
         If we downloaded the entire test_RSAGE repo, need to get rid of files such as ``README.rst``.
 
     Returns
@@ -597,12 +589,12 @@ def cleanup(downloaded_repo):
     """
 
     print("Cleaning up files.")
-   
-    # If we downloaded the git repo, remove the uneeded files. 
-    files = []   
+
+    # If we downloaded the git repo, remove the uneeded files.
+    files = []
 
     # Remove all the output galaxy files.
-   
+
     print("Done")
     print("")
 
